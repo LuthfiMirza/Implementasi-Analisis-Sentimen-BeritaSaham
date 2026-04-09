@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-slate-950 text-slate-100 antialiased;
+        font-family: 'Space Grotesk', theme('fontFamily.sans');
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@layer components {
+    .glass-card {
+        @apply bg-slate-900/70 border border-slate-800/80 rounded-2xl shadow-lg shadow-black/30 backdrop-blur-sm;
+    }
+
+    .pill {
+        @apply rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide;
+    }
+
+    .metric-label {
+        @apply text-xs uppercase tracking-wide text-slate-400;
+    }
+}
