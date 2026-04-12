@@ -51,9 +51,9 @@
                 'fetched_at' => $live_quote['fetched_at'] ?? ($latest_price?->price_date?->toDateTimeString()),
             ];
         @endphp
-        <div class="col-span-12" :class="open ? 'lg:col-span-6' : 'lg:col-span-9'">
+        <div class="col-span-12 space-y-5 lg:space-y-6" :class="open ? 'lg:col-span-6' : 'lg:col-span-9'">
             <div x-data="priceQuote({{ json_encode($initialQuote) }}, {{ json_encode($price_change_pct) }})" x-init="startPolling('/api/stocks/{{ $stock->code }}/quote')">
-            <x-panel padding="p-5">
+            <x-panel padding="p-5" class="space-y-5">
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
                         <div class="text-xs text-slate-400 uppercase">Saham Aktif</div>
@@ -110,7 +110,7 @@
                 </div>
             </x-panel>
 
-            <x-panel padding="p-5">
+            <x-panel padding="p-5" class="mt-5 lg:mt-6">
                 <div class="flex items-center justify-between mb-3">
                     <div>
                         <p class="text-xs text-slate-400 uppercase">Harga</p>
@@ -136,7 +136,7 @@
                 @endif
             </x-panel>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 lg:mt-5">
                 <x-metric-card label="Sentimen Positif" :value="$sentiment_summary['positive_pct'].'%'" :hint="'Artikel: '.$sentiment_summary['positive']" />
                 <x-metric-card label="Sentimen Netral" :value="$sentiment_summary['neutral_pct'].'%'" :hint="'Artikel: '.$sentiment_summary['neutral']" />
                 <x-metric-card label="Sentimen Negatif" :value="$sentiment_summary['negative_pct'].'%'" :hint="'Artikel: '.$sentiment_summary['negative']" />
@@ -194,34 +194,126 @@
                 </div>
             </x-panel>
 
-            <x-panel class="flex-1 flex flex-col min-h-[360px]">
+            <x-panel class="flex-1 flex flex-col min-h-[360px]" x-data="newsRefresh('{{ $stock->code }}')">
                 <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-semibold">Berita Terkini</h3>
-                    <a href="{{ route('news.index', ['code' => $stock->code]) }}" class="text-xs text-sky-400">Lihat semua</a>
+                    <div>
+                        <h3 class="font-semibold">Berita Terkini</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5" x-text="lastRefreshed">
+                            {{ now()->format('d M H:i') }}
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('news.index', ['code' => $stock->code]) }}" class="text-xs text-sky-400 hover:underline">Lihat semua</a>
+                        <button @click="refresh()"
+                                :disabled="loading"
+                                class="flex items-center gap-1 px-2 py-1 rounded-lg border border-slate-700
+                                       bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition
+                                       disabled:opacity-50 disabled:cursor-wait">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" :class="loading ? 'animate-spin' : ''"
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span x-text="loading ? 'Fetching...' : 'Refresh'">Refresh</span>
+                        </button>
+                    </div>
                 </div>
+
+                <div x-show="savedCount !== null" x-cloak
+                     class="mb-2 px-2 py-1 rounded-lg bg-green-500/10 border border-green-500/20 text-[11px] text-green-400"
+                     x-text="savedCount + ' artikel baru disimpan'">
+                </div>
+
+                <div x-show="error" x-cloak
+                     class="mb-2 px-2 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-400"
+                     x-text="error">
+                </div>
+
+                <div class="flex gap-3 mb-3 text-[11px]">
+                    <span class="text-green-400">▲ {{ $news->where('sentiment_label','positive')->count() }} positif</span>
+                    <span class="text-slate-400">◆ {{ $news->where('sentiment_label','neutral')->count() }} netral</span>
+                    <span class="text-rose-400">▼ {{ $news->where('sentiment_label','negative')->count() }} negatif</span>
+                </div>
+
                 <div class="overflow-hidden rounded-xl border border-slate-800/80 flex-1">
-                    <div class="max-h-[520px] overflow-y-auto divide-y divide-slate-800">
-                        @forelse($news as $article)
-                            <div class="px-3 py-3 hover:bg-slate-900/60 transition">
-                                <div class="flex items-start justify-between gap-2">
-                                    <div class="min-w-0">
-                                        <p class="font-semibold text-[13px] leading-tight truncate">{{ Str::limit($article->title, 90) }}</p>
-                                        <p class="text-[11px] text-slate-400">
-                                            {{ $article->published_at?->format('d M H:i') }} • {{ $article->source?->name ?? 'Sumber' }}
-                                        </p>
-                                    </div>
-                                    <div class="flex flex-col items-end gap-1">
-                                        <x-sentiment-badge :label="$article->sentiment_label ?? 'neutral'" />
-                                        <span class="px-2 py-1 rounded-full text-[10px] border border-slate-700 bg-slate-800/60 text-slate-100">
-                                            {{ $article->quality_band ? ucfirst($article->quality_band) : 'Quality?' }}
+                        <div class="max-h-[520px] overflow-y-auto divide-y divide-slate-800" id="newsContainer">
+                        {{-- Server-rendered cards: always visible on load until refresh --}}
+                        <div id="serverArticles">
+                            @forelse($news as $article)
+                                @php
+                                    $sent = $article->sentiment_label ?? 'neutral';
+                                    $sentLabel = $sent === 'positive' ? '🟢 Positif' : ($sent === 'negative' ? '🔴 Negatif' : '⚪ Netral');
+                                    $sentClass = $sent === 'positive' ? 'bg-green-500/20 text-green-400' : ($sent === 'negative' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400');
+                                    $sourceLabel = match($article->source_provider) {
+                                        'rss_local' => 'CNBC ID',
+                                        'gnews' => 'GNews',
+                                        'gdelt' => 'GDELT',
+                                        default => $article->source_provider ?? 'RSS',
+                                    };
+                                    $stars = match($article->relevance_band) {
+                                        'high' => '★★★',
+                                        'medium' => '★★',
+                                        default => '★',
+                                    };
+                                    $diffHours = now()->diffInHours($article->published_at);
+                                    $timeAgo = $diffHours < 1 ? 'baru saja'
+                                      : ($diffHours < 24 ? $diffHours.' jam lalu'
+                                      : now()->diffInDays($article->published_at).' hari lalu');
+                                @endphp
+                                <a href="{{ $article->source_url ?? '#' }}" target="_blank" rel="noopener"
+                                   class="block p-3 hover:bg-white/5 transition border-b border-slate-800 group border-l-2 ml-0
+                                   {{ ($article->sentiment_label === 'positive') ? 'border-l-green-500' : (($article->sentiment_label === 'negative') ? 'border-l-rose-500' : 'border-l-slate-700') }}">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <span class="text-xs px-1.5 py-0.5 rounded font-medium {{ $sentClass }}">
+                                            {{ $sentLabel }}
                                         </span>
+                                        <span class="text-xs text-gray-500">{{ $sourceLabel }}</span>
+                                        <span class="text-xs text-yellow-600/70">{{ $stars }}</span>
+                                        <span class="text-xs text-gray-600 ml-auto">{{ $timeAgo }}</span>
                                     </div>
+                                    <p class="text-sm text-gray-200 group-hover:text-white transition line-clamp-2 leading-snug">
+                                        {{ $article->title }}
+                                    </p>
+                                </a>
+                            @empty
+                                <div class="px-3 py-6 text-center text-sm text-slate-400">
+                                    Belum ada berita. Klik Refresh untuk fetch terbaru.
                                 </div>
-                                <p class="text-[12px] text-slate-300 mt-1 line-clamp-2">{{ Str::limit($article->summary ?? $article->content_snippet, 120) }}</p>
-                            </div>
-                        @empty
-                            <div class="px-3 py-3 text-sm text-slate-400">Belum ada berita.</div>
-                        @endforelse
+                            @endforelse
+                        </div>
+
+                        {{-- Alpine-rendered cards: shown AFTER refresh --}}
+                        <div id="alpineArticles" style="display:none">
+                            <template x-if="articles.length > 0">
+                                <template x-for="article in articles" :key="article.url">
+                                    <a :href="article.url || '#'" target="_blank"
+                                       class="block p-3 hover:bg-white/5 transition border-b border-slate-800 border-l-2 ml-0"
+                                       :class="article.sentiment === 'positive' ? 'border-l-green-500' : (article.sentiment === 'negative' ? 'border-l-rose-500' : 'border-l-slate-700')">
+                                        <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                            <span class="text-xs px-1.5 py-0.5 rounded font-medium"
+                                                  :class="{
+                                                    'bg-green-500/20 text-green-400': article.sentiment === 'positive',
+                                                    'bg-red-500/20 text-red-400': article.sentiment === 'negative',
+                                                    'bg-gray-500/20 text-gray-400': article.sentiment !== 'positive' && article.sentiment !== 'negative'
+                                                  }"
+                                                  x-text="article.sentiment === 'positive' ? '🟢 Positif' : (article.sentiment === 'negative' ? '🔴 Negatif' : '⚪ Netral')">
+                                            </span>
+                                            <span class="text-xs text-gray-500" x-text="article.source || 'RSS'"></span>
+                                            <span class="text-xs text-yellow-600/70"
+                                                  x-text="article.quality === 'high' ? '★★★' : (article.quality === 'medium' ? '★★' : '★')">
+                                            </span>
+                                            <span class="text-xs text-gray-600 ml-auto" x-text="article.relative || article.published"></span>
+                                        </div>
+                                        <p class="text-sm text-gray-200 line-clamp-2 leading-snug" x-text="article.title"></p>
+                                    </a>
+                                </template>
+                            </template>
+                            <template x-if="articles.length === 0">
+                                <div class="px-3 py-6 text-center text-sm text-slate-400">
+                                    Tidak ada artikel baru ditemukan.
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </x-panel>
@@ -264,5 +356,60 @@
                 }
             </script>
         @endpush
-    @endif
+@endif
 </x-app-layout>
+
+@push('scripts')
+<script>
+function newsRefresh(stockCode) {
+    return {
+        loading: false,
+        refreshed: false,
+        articles: [],
+        savedCount: null,
+        error: null,
+        lastRefreshed: 'Terakhir: baru saja',
+
+        async refresh() {
+            this.loading = true;
+            this.error = null;
+            this.savedCount = null;
+
+            try {
+                const res = await fetch(`/api/news/refresh/${stockCode}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!res.ok) throw new Error('Gagal fetch berita');
+
+                const data = await res.json();
+                this.articles = data.articles || [];
+                this.savedCount = data.saved;
+                this.refreshed = true;
+                // Swap: hide server cards, show Alpine cards
+                const srv = document.getElementById('serverArticles');
+                const alp = document.getElementById('alpineArticles');
+                if (srv) srv.style.display = 'none';
+                if (alp) alp.style.display = 'block';
+
+                const now = new Date();
+                this.lastRefreshed = 'Diperbarui: ' +
+                    now.toLocaleDateString('id-ID', {day:'2-digit', month:'short'}) +
+                    ' ' + now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+
+                setTimeout(() => { this.savedCount = null; }, 5000);
+            } catch (e) {
+                this.error = e.message || 'Terjadi kesalahan saat refresh berita';
+            } finally {
+                this.loading = false;
+            }
+        }
+    }
+}
+</script>
+@endpush

@@ -16,70 +16,62 @@ class GNewsFetcher implements NewsFetcherInterface
 
     public function fetchForStock(Stock $stock, int $limit = 10): array
     {
-        $baseUrl = config('services.gnews.api_base_url', env('GNEWS_BASE_URL'));
         $apiKey = config('services.gnews.api_key', env('GNEWS_API_KEY'));
-        $language = config('services.gnews.language', env('GNEWS_LANGUAGE', 'id'));
+        $baseUrl = config('services.gnews.api_base_url', env('GNEWS_BASE_URL', 'https://gnews.io/api/v4/search'));
+        $lang = config('services.gnews.language', env('GNEWS_LANGUAGE', 'id'));
         $country = config('services.gnews.country', env('GNEWS_COUNTRY', 'id'));
         $timeout = config('services.gnews.timeout', env('GNEWS_TIMEOUT', 8));
-        $userAgent = config('services.gnews.user_agent', env('GNEWS_USER_AGENT', 'SentimenaNews/1.0'));
 
-        if (! $baseUrl || ! $apiKey) {
+        if (! $apiKey) {
             return [];
         }
 
-        $query = $this->mapper->contextualQuery($stock);
-        $params = [
-            'q' => $query,
-            'lang' => $language,
-            'country' => $country,
-            'max' => $limit,
-            'token' => $apiKey,
-        ];
+        $keywords = $this->mapper->keywords($stock);
+        $query = collect($keywords)->take(3)->map(fn ($k) => '"'.$k.'"')->implode(' OR ');
 
         try {
             $response = Http::withHeaders([
-                'User-Agent' => $userAgent,
-                'Accept' => 'application/json',
-            ])->timeout($timeout)->get($baseUrl, $params);
+                'User-Agent' => env('GNEWS_USER_AGENT', 'SentimenaNews/1.0'),
+            ])->timeout($timeout)->get($baseUrl, [
+                'q' => $query,
+                'lang' => $lang,
+                'country' => $country,
+                'token' => $apiKey,
+                'max' => min($limit, 10),
+                'sortby' => 'publishedAt',
+            ]);
         } catch (\Throwable $e) {
-            Log::warning('GNews request exception', ['error' => $e->getMessage(), 'params' => $params]);
+            Log::warning('GNews request failed', ['error' => $e->getMessage()]);
             return [];
         }
 
         if (! $response->successful()) {
-            Log::warning('GNews request failed', [
+            Log::warning('GNews response error', [
                 'status' => $response->status(),
-                'body' => $response->body(),
-                'params' => $params,
+                'body' => substr($response->body(), 0, 200),
             ]);
             return [];
         }
 
         $json = $response->json();
-        if (! is_array($json) || ! isset($json['articles']) || ! is_array($json['articles'])) {
-            Log::warning('GNews invalid payload', ['payload' => $json]);
-            return [];
-        }
+        $articles = $json['articles'] ?? [];
 
-        $articles = $json['articles'];
-        if (! $articles) {
+        if (empty($articles)) {
+            Log::info('GNews returned 0 articles', ['stock' => $stock->code, 'query' => $query]);
             return [];
         }
 
         return collect($articles)->take($limit)->map(function ($item) use ($stock) {
             $title = $item['title'] ?? 'Berita '.$stock->code;
-            $slug = Str::slug($title).'-'.Str::random(4);
-
             return [
                 'title' => $title,
-                'slug' => $slug,
+                'slug' => Str::slug($title).'-'.Str::random(4),
                 'source_name' => data_get($item, 'source.name'),
                 'source_url' => $item['url'] ?? null,
-                'published_at' => $item['publishedAt'] ? Carbon::parse($item['publishedAt']) : Carbon::now(),
-                'summary' => $item['description'] ?? null,
-                'content_snippet' => $item['content'] ?? null,
+                'published_at' => isset($item['publishedAt']) ? Carbon::parse($item['publishedAt']) : Carbon::now(),
+                'summary' => Str::limit(strip_tags($item['description'] ?? ''), 300),
+                'content_snippet' => Str::limit(strip_tags($item['content'] ?? $item['description'] ?? ''), 500),
                 'provider' => 'gnews',
-                'language' => $item['language'] ?? 'id',
                 'sentiment_label' => null,
                 'sentiment_score' => null,
                 'raw_payload' => $item,

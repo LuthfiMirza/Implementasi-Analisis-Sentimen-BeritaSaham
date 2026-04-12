@@ -1,45 +1,8 @@
 <x-panel class="sticky top-24" x-data>
-    <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <div>
-            <p class="text-xs text-slate-400 uppercase">Watchlist</p>
-            <h3 class="text-lg font-semibold">Pergerakan Cepat</h3>
-        </div>
-        <div class="flex items-center gap-2 text-xs flex-wrap justify-end">
-            <a href="{{ route('dashboard') }}" class="px-3 py-1 rounded-lg border border-slate-800 bg-slate-900/70 hover:border-slate-600 transition whitespace-nowrap">Dashboard</a>
-            <a href="{{ route('watchlist.index') }}" class="px-3 py-1 rounded-lg border border-slate-800 bg-slate-900/70 hover:border-slate-600 transition whitespace-nowrap">Watchlist</a>
-            <button type="button" class="px-2 py-1 rounded-lg border border-slate-700 bg-slate-800/70 hover:border-slate-600 transition flex items-center gap-1 whitespace-nowrap"
-                    x-on:click="$dispatch('toggle-watchlist')">
-                <span x-text="$root.__watchlistOpen ? 'Sembunyikan' : 'Tampilkan'"></span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" :transform="$root.__watchlistOpen ? 'rotate(180 12 12)' : ''"/>
-                </svg>
-            </button>
-        </div>
+    <div class="px-0 pt-0 pb-2">
+        <p class="text-xs text-slate-500 uppercase font-medium">Watchlist</p>
+        <h3 class="text-lg font-semibold text-slate-200">Portofolio Pantau</h3>
     </div>
-    @php
-        $tvMode = config('dashboard.stock_chart_mode', env('STOCK_CHART_MODE', 'internal')) === 'tradingview';
-        $symbols = ($watchlistInsights ?? collect())->pluck('stock.code')->filter()->take(10)->values();
-    @endphp
-    @if($tvMode && $symbols->isNotEmpty())
-        <div class="rounded-xl border border-slate-800/80 bg-slate-900/60 p-2 mb-3">
-            <div class="tradingview-widget-container">
-                <div class="tradingview-widget-container__widget"></div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-                {
-                    "symbols": [
-                        @foreach($symbols as $sym)
-                            { "proName": "{{ config('dashboard.tradingview_exchange', 'IDX') }}:{{ $sym }}", "title": "{{ $sym }}" }@if(!$loop->last),@endif
-                        @endforeach
-                    ],
-                    "colorTheme": "dark",
-                    "isTransparent": true,
-                    "displayMode": "adaptive",
-                    "locale": "en"
-                }
-                </script>
-            </div>
-        </div>
-    @endif
     @php
         $entries = ($watchlistInsights ?? collect());
         if ($entries->isEmpty() && isset($watchlist)) {

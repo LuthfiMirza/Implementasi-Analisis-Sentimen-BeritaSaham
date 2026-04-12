@@ -5,10 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\NewsArticle;
 use App\Models\NewsSource;
 use App\Models\Stock;
+use App\Services\News\NewsAggregationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class NewsController extends Controller
 {
+    public function __construct(
+        protected NewsAggregationService $aggregationService,
+    ) {
+    }
+
     public function index(Request $request)
     {
         $stockCode = $request->query('code');
@@ -92,6 +99,34 @@ class NewsController extends Controller
                 'relevance' => $relevanceBand,
                 'sort' => $sort,
             ],
+        ]);
+    }
+
+    public function refresh(Request $request, string $code): \Illuminate\Http\JsonResponse
+    {
+        $stock = Stock::where('code', strtoupper($code))
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $stats = $this->aggregationService->refreshFromProvider($stock, 15);
+        $articles = $this->aggregationService->fetchLatestArticles($stock, 10);
+
+        return response()->json([
+            'success' => true,
+            'saved' => $stats['saved'] ?? 0,
+            'updated' => $stats['updated'] ?? 0,
+            'total' => $articles->count(),
+            'articles' => $articles->map(fn ($a) => [
+                'title' => $a->title,
+                'summary' => Str::limit($a->summary ?? $a->content_snippet, 120),
+                'sentiment' => $a->sentiment_label ?? 'neutral',
+                'score' => $a->sentiment_score,
+                'quality' => $a->quality_band,
+                'source' => $a->source?->name ?? $a->source_provider,
+                'url' => $a->source_url,
+                'published' => $a->published_at?->format('d M H:i'),
+                'relative' => $a->published_at?->diffForHumans(now(), locale: 'id'),
+            ])->values(),
         ]);
     }
 }

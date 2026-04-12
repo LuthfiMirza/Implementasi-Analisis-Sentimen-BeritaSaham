@@ -80,6 +80,7 @@ class AnalyticsController extends Controller
             'decision' => $decision,
             'analytics' => $analytics,
             'prediction' => $prediction,
+            'prices' => $priceSeries,
             'topPositiveArticles' => $topPositiveArticles,
             'topRiskArticles' => $topRiskArticles,
             'latestPrice' => $priceMeta['latest'],

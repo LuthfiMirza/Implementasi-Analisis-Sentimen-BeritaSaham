@@ -29,6 +29,8 @@
                         ['label' => 'Berita Terkini', 'route' => 'news.index', 'href' => route('news.index'), 'icon' => 'M4 6h16M4 10h16M4 14h10m-4 4h4'],
                         ['label' => 'Watchlist', 'route' => 'watchlist.index', 'href' => route('watchlist.index'), 'icon' => 'M5 4h14a1 1 0 011 1v10a1 1 0 01-.553.894l-6.894 3.447a1 1 0 01-.894 0L4.765 15.96A1 1 0 014 15V5a1 1 0 011-1z'],
                         ['label' => 'Prediksi', 'route' => 'analytics.index', 'href' => route('analytics.index'), 'icon' => 'M3 17l6-6 4 4 8-8'],
+                        ['label' => 'Evaluasi Model', 'route' => 'evaluasi.index', 'href' => route('evaluasi.index'), 'icon' => 'M9 17v-6h6v6m-7 4h8a2 2 0 002-2v-8l-5-5H9a2 2 0 00-2 2v11a2 2 0 002 2z'],
+                        ['label' => 'Evaluasi Sistem', 'route' => 'evaluation.index', 'href' => route('evaluation.index'), 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
                     ];
                 @endphp
                 @foreach($nav as $item)
@@ -152,8 +154,19 @@
                 </div>
             </header>
 
+            <div class="w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm sticky top-[57px] z-20">
+                <iframe
+                    scrolling="no"
+                    allowtransparency="true"
+                    frameborder="0"
+                    src="https://www.tradingview-widget.com/embed-widget/ticker-tape/?locale=en#%7B%22symbols%22%3A%5B%7B%22proName%22%3A%22IDX%3ABBCA%22%2C%22title%22%3A%22BBCA%22%7D%2C%7B%22proName%22%3A%22IDX%3ABBRI%22%2C%22title%22%3A%22BBRI%22%7D%2C%7B%22proName%22%3A%22IDX%3ABMRI%22%2C%22title%22%3A%22BMRI%22%7D%2C%7B%22proName%22%3A%22IDX%3ATLKM%22%2C%22title%22%3A%22TLKM%22%7D%2C%7B%22proName%22%3A%22IDX%3AASII%22%2C%22title%22%3A%22ASII%22%7D%2C%7B%22proName%22%3A%22IDX%3AGOTO%22%2C%22title%22%3A%22GOTO%22%7D%2C%7B%22proName%22%3A%22IDX%3AADRO%22%2C%22title%22%3A%22ADRO%22%7D%2C%7B%22proName%22%3A%22IDX%3AUNVR%22%2C%22title%22%3A%22UNVR%22%7D%2C%7B%22proName%22%3A%22IDX%3AINDF%22%2C%22title%22%3A%22INDF%22%7D%2C%7B%22proName%22%3A%22IDX%3AICBP%22%2C%22title%22%3A%22ICBP%22%7D%2C%7B%22proName%22%3A%22IDX%3ABUMI%22%2C%22title%22%3A%22BUMI%22%7D%2C%7B%22proName%22%3A%22IDX%3ADEWA%22%2C%22title%22%3A%22DEWA%22%7D%2C%7B%22proName%22%3A%22IDX%3ACOMPOSITE%22%2C%22title%22%3A%22IHSG%22%7D%2C%7B%22proName%22%3A%22FOREXCOM%3AUSDIDR%22%2C%22title%22%3A%22USD%2FIDR%22%7D%5D%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22displayMode%22%3A%22adaptive%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A44%7D"
+                    title="Ticker Tape"
+                    style="display:block; height:44px; width:100%;">
+                </iframe>
+            </div>
+
             <main class="flex-1">
-                <div class="max-w-[1400px] mx-auto px-4 lg:px-8 py-6">
+                <div class="max-w-[1400px] mx-auto px-4 lg:px-8 py-6 pt-4">
                     {{ $slot }}
                 </div>
             </main>

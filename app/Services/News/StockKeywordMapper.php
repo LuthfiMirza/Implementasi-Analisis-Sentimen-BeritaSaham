@@ -12,16 +12,18 @@ class StockKeywordMapper
      * Tambahkan sesuai kebutuhan.
      */
     protected array $overrides = [
-        'BBCA' => ['BBCA', 'BCA', 'Bank Central Asia', 'BCA Digital'],
+        'BBCA' => ['BBCA', 'BCA', 'Bank Central Asia', 'BCA Digital', 'BCA Finance'],
         'BBRI' => ['BBRI', 'BRI', 'Bank Rakyat Indonesia'],
-        'BMRI' => ['BMRI', 'Bank Mandiri'],
-        'TLKM' => ['TLKM', 'Telkom', 'Telkom Indonesia'],
-        'ASII' => ['ASII', 'Astra', 'Astra International'],
-        'GOTO' => ['GOTO', 'GoTo Group', 'GoTo Gojek Tokopedia', 'Gojek', 'Tokopedia'],
+        'BMRI' => ['BMRI', 'Bank Mandiri', 'Mandiri'],
+        'TLKM' => ['TLKM', 'Telkom', 'Telkom Indonesia', 'PT Telkom Indonesia', 'Telkomsel', 'IndiHome'],
+        'ASII' => ['ASII', 'Astra', 'Astra International', 'Astra Otoparts'],
+        'GOTO' => ['GOTO', 'GoTo Group', 'GoTo Gojek Tokopedia', 'Gojek', 'Tokopedia', 'PT GoTo Gojek Tokopedia'],
         'UNVR' => ['UNVR', 'Unilever Indonesia'],
         'INDF' => ['INDF', 'Indofood', 'Indofood Sukses Makmur'],
         'ICBP' => ['ICBP', 'Indofood CBP'],
-        'ADRO' => ['ADRO', 'Adaro', 'Adaro Energy'],
+        'ADRO' => ['ADRO', 'Adaro', 'Adaro Energy', 'Adaro Energy Indonesia'],
+        'BUMI' => ['BUMI saham', 'PT Bumi Resources', 'Bumi Resources', 'BUMI.JK', 'emiten bumi'],
+        'DEWA' => ['DEWA saham', 'Darma Henwa', 'PT Darma Henwa', 'DEWA.JK'],
     ];
 
     /**
@@ -30,6 +32,49 @@ class StockKeywordMapper
     protected array $exclusions = [
         'GOTO' => ['goto islands', 'goto island', 'camellia', 'nagasaki', 'archipelago', 'tsubaki'],
         'ASII' => ['asia', 'asian', 'asii express', 'asia express', 'asia finance'],
+        'DEWA' => ['dewa united', 'dewa 19', 'dewa dewi', 'dewa chord', 'dewa lirik'],
+    ];
+
+    /**
+     * Kata kunci pengecualian global (promosi / riset pasar global / lifestyle) yang berlaku untuk semua saham.
+     */
+    protected array $globalExclusions = [
+        // Promosi & merchant
+        'promo', 'diskon', 'voucher', 'cashback', 'merchant',
+        'pizza', 'mcdonald', 'kfc', 'resto', 'restoran', 'kuliner',
+        'gratis', 'cicilan 0%', 'installment', 'belanja',
+        // Job listings
+        'lowongan', 'rekrutmen', 'karir', 'hiring',
+        // Market research tidak relevan
+        'lactic acid', 'polylactic', 'global market size',
+        'cagr:', 'swot analysis', 'market research',
+        // Lifestyle
+        'skincare', 'fashion', 'liburan', 'wisata', 'hotel deals',
+        // Entertainment/lifestyle
+        'mortuary', 'shudder', 'streaming', 'watch online',
+        'film', 'movie', 'series', 'drama', 'sinopsis',
+        // CSR/Program non-financial
+        'magang bergaji', 'lowongan magang', 'program csr',
+        'berbakti', 'kkn', 'mahasiswa', 'beasiswa',
+        // Sports
+        'olahraga', 'sepak bola', 'bola basket', 'atletik',
+        // Bencana/alam
+        'gempa bumi', 'gempa', 'tsunami', 'bencana alam', 'longsor',
+    ];
+    /**
+     * Kata kunci sektor tambahan per saham untuk memperkaya query kontekstual.
+     */
+    protected array $sectorKeywords = [
+        'BBCA' => ['bank', 'perbankan', 'kredit', 'dpk', 'dana pihak ketiga', 'dividen', 'laba', 'rugi', 'rights issue'],
+        'BBRI' => ['bank', 'perbankan', 'kredit', 'umkm', 'mikro', 'dividen', 'laba', 'rugi'],
+        'BMRI' => ['bank', 'perbankan', 'kredit', 'kartu kredit', 'dividen', 'laba', 'rugi'],
+        'TLKM' => ['telco', 'telekomunikasi', 'fiber', 'broadband', 'data center', 'telkomsel', 'indihome', 'laba', 'dividen'],
+        'ASII' => ['otomotif', 'automotive', 'mobil', 'motor', 'penjualan mobil', 'kendaraan', 'dividen', 'laba'],
+        'GOTO' => ['teknologi', 'ecommerce', 'e-commerce', 'ride hailing', 'gojek', 'tokopedia', 'rugi', 'ipo', 'gross transaction value', 'ebitda'],
+        'UNVR' => ['consumer', 'fmcg', 'produk rumah tangga', 'dividen', 'laba'],
+        'INDF' => ['consumer', 'makanan', 'minuman', 'laba', 'dividen'],
+        'ICBP' => ['consumer', 'makanan', 'minuman', 'laba', 'dividen'],
+        'ADRO' => ['batubara', 'coal', 'pertambangan', 'royalty', 'dividen', 'produksi', 'harga batu bara', 'energi'],
     ];
 
     public function keywords(Stock $stock): array
@@ -60,7 +105,8 @@ class StockKeywordMapper
 
     public function exclusionKeywords(Stock $stock): array
     {
-        return $this->exclusions[$stock->code] ?? [];
+        $perStock = $this->exclusions[$stock->code] ?? [];
+        return array_values(array_unique(array_merge($this->globalExclusions, $perStock)));
     }
 
     public function queryString(Stock $stock): string
@@ -73,14 +119,41 @@ class StockKeywordMapper
     {
         $ctx = $context ?? config('news.context_keywords', []);
         $left = '(' . $this->queryString($stock) . ')';
-        $right = '';
+        $rightParts = [];
+
         if ($ctx && count($ctx)) {
-            $right = ' AND (' . collect($ctx)->map(function ($w) {
+            $rightParts[] = '(' . collect($ctx)->map(function ($w) {
                 $w = trim($w);
                 return $w ? "\"{$w}\"" : null;
             })->filter()->implode(' OR ') . ')';
         }
 
+        $sectorCtx = $this->sectorKeywords[$stock->code] ?? [];
+        if ($sectorCtx) {
+            $rightParts[] = '(' . collect($sectorCtx)->map(function ($w) {
+                $w = trim($w);
+                return $w ? "\"{$w}\"" : null;
+            })->filter()->implode(' OR ') . ')';
+        }
+
+        $right = '';
+        if ($rightParts) {
+            $right = ' AND (' . implode(' OR ', $rightParts) . ')';
+        }
+
         return trim($left . $right);
+    }
+
+    /**
+     * Berikan akses sektor keywords untuk builder luar jika perlu.
+     */
+    public function sectorKeywords(Stock $stock): array
+    {
+        return $this->sectorKeywords[$stock->code] ?? [];
+    }
+
+    public function globalExclusions(): array
+    {
+        return $this->globalExclusions;
     }
 }

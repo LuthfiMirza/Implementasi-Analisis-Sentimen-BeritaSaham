@@ -55,6 +55,7 @@ class FinnhubNewsFetcher implements NewsFetcherInterface
                     $slug = Str::slug($title).'-'.Str::random(4);
 
                     return [
+                        'provider' => 'finnhub',
                         'title' => $title,
                         'slug' => $slug,
                         'source_name' => $item['source'] ?? 'Finnhub',

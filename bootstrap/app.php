@@ -20,9 +20,15 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\SentimentComparisonCommand::class,
         \App\Console\Commands\SyncLivePricesCommand::class,
         \App\Console\Commands\NewsCoverageReportCommand::class,
+        \App\Console\Commands\RescoreNewsQualityCommand::class,
+        \App\Console\Commands\RescoreNewsSentimentCommand::class,
+        \App\Console\Commands\FetchStockHistoryCommand::class,
     ])
     ->withSchedule(function (Schedule $schedule): void {
-        $schedule->command('news:fetch')->hourly();
+        // Fetch news multi-provider tiap 2 jam
+        $schedule->command('news:fetch --limit=15')->everyTwoHours()->withoutOverlapping()->runInBackground();
+        // Fetch RSS lokal lebih sering (sumber cepat)
+        $schedule->command('news:fetch --provider=rss_local --limit=20')->hourly()->withoutOverlapping()->runInBackground();
         $schedule->command('news:analyze')->hourly();
         $schedule->command('stocks:update-snapshots')->dailyAt('16:15');
     })

@@ -26,22 +26,19 @@ class NewsApiFetcher implements NewsFetcherInterface
             return [];
         }
 
-        $query = $this->mapper->contextualQuery($stock);
+        $queries = $this->buildQueries($stock);
         $paramsBase = [
-            'q' => $query,
             'searchIn' => 'title,description,content',
             'sortBy' => 'publishedAt',
             'pageSize' => $limit,
-        ];
-
-        $attempts = [
-            array_filter([...$paramsBase, 'language' => $language]),
-            array_filter([...$paramsBase, 'language' => 'en']),
-            $paramsBase,
+            'language' => $language,
         ];
 
         $articles = [];
-        foreach ($attempts as $params) {
+        $attemptIndex = 0;
+        foreach ($queries as $q) {
+            $attemptIndex++;
+            $params = array_merge($paramsBase, ['q' => $q, 'language' => 'id']);
             try {
                 $response = Http::withHeaders([
                     'X-Api-Key' => $apiKey,
@@ -64,7 +61,7 @@ class NewsApiFetcher implements NewsFetcherInterface
 
             $json = $response->json();
             if (! is_array($json) || ! isset($json['articles']) || ! is_array($json['articles'])) {
-                Log::warning('NewsAPI invalid payload', ['payload' => $json]);
+                Log::warning('NewsAPI invalid payload', ['payload' => $json, 'params' => $params]);
                 continue;
             }
 
@@ -72,13 +69,54 @@ class NewsApiFetcher implements NewsFetcherInterface
             if (count($articles)) {
                 break;
             }
+
+            Log::info('NewsAPI returned empty articles', [
+                'stock' => $stock->code,
+                'query' => $params['q'] ?? null,
+                'language' => $params['language'] ?? null,
+                'attempt' => $attemptIndex,
+                'status' => $json['status'] ?? null,
+                'totalResults' => $json['totalResults'] ?? null,
+            ]);
         }
 
         if (! $articles) {
             return [];
         }
 
-        return collect($articles)->take($limit)->map(function ($item) use ($stock) {
+        $blacklistDomains = [
+            'globenewswire.com', 'prnewswire.com', 'businesswire.com',
+            'accesswire.com', 'einpresswire.com', 'markets.businessinsider.com',
+            'finance.yahoo.com',
+        ];
+
+        $preferredDomains = [
+            'cnbcindonesia.com', 'kontan.co.id', 'bisnis.com',
+            'detik.com', 'kompas.com', 'idx.co.id', 'investor.id', 'katadata.co.id',
+        ];
+
+        $articles = collect($articles)
+            ->filter(function ($item) use ($blacklistDomains) {
+                $domain = strtolower(parse_url($item['url'] ?? '', PHP_URL_HOST) ?? '');
+                foreach ($blacklistDomains as $bl) {
+                    if (str_contains($domain, $bl)) {
+                        return false;
+                    }
+                }
+                return true;
+            })
+            ->sortByDesc(function ($item) use ($preferredDomains) {
+                $domain = strtolower(parse_url($item['url'] ?? '', PHP_URL_HOST) ?? '');
+                foreach ($preferredDomains as $i => $pd) {
+                    if (str_contains($domain, $pd)) {
+                        return 100 - $i;
+                    }
+                }
+                return 0;
+            })
+            ->take($limit);
+
+        return $articles->map(function ($item) use ($stock) {
             $title = $item['title'] ?? 'Berita '.$stock->code;
             $slug = Str::slug($title).'-'.Str::random(4);
 
@@ -96,5 +134,45 @@ class NewsApiFetcher implements NewsFetcherInterface
                 'raw_payload' => $item,
             ];
         })->all();
+    }
+
+    /**
+     * Bangun query pendek untuk NewsAPI agar tidak memicu queryTooLong.
+     * - Prioritas: alias utama (kode + nama pendek) + subset konteks.
+     * - Truncation jika masih > 480 chars.
+     */
+    protected function buildQueries(Stock $stock): array
+    {
+        $aliasOnly = $this->mapper->queryString($stock);
+        $ctxShort = array_slice(config('news.context_keywords', []), 0, 5);
+        $queryCtx = $this->mapper->contextualQuery($stock, $ctxShort);
+
+        $candidates = array_values(array_filter([$aliasOnly, $queryCtx]));
+
+        return collect($candidates)->map(function ($q) {
+            $max = 480;
+            if (strlen($q) <= $max) {
+                return $q;
+            }
+            // Potong query OR menjadi segmen pendek
+            $parts = preg_split('/\s+OR\s+/i', $q);
+            $trimmed = [];
+            $length = 0;
+            foreach ($parts as $part) {
+                $part = trim($part);
+                if ($part === '') {
+                    continue;
+                }
+                $candidateLen = ($length === 0 ? strlen($part) : $length + 4 + strlen($part)); // 4 for ' OR '
+                if ($candidateLen > $max) {
+                    break;
+                }
+                $trimmed[] = $part;
+                $length = $candidateLen;
+            }
+            $short = implode(' OR ', $trimmed);
+            Log::info('NewsAPI query truncated', ['original_len' => strlen($q), 'final_len' => strlen($short)]);
+            return $short;
+        })->unique()->values()->all();
     }
 }

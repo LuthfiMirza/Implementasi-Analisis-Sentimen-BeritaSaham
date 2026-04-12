@@ -61,11 +61,27 @@ class RssLocalFetcher implements NewsFetcherInterface
                 $link = (string) ($item['link'] ?? '');
                 $pubDate = (string) ($item['pubDate'] ?? '');
 
-                // filter relevansi
-                $text = strtolower($title.' '.$description);
-                $isRelevant = collect($keywords)->contains(function ($kw) use ($text) {
-                    return Str::contains($text, strtolower($kw));
-                });
+                $titleText = strtolower($title);
+                $fullText = strtolower($title.' '.$description);
+
+                $isRelevant = collect($keywords)->contains(fn ($kw) => Str::contains($titleText, strtolower($kw)));
+                if (! $isRelevant) {
+                    $isRelevant = Str::contains($fullText, strtolower($stock->code));
+                }
+                if (! $isRelevant) {
+                    $isRelevant = collect($keywords)->contains(fn ($kw) => Str::contains($fullText, strtolower($kw)));
+                }
+
+                if (! $isRelevant) {
+                    $financialKeywords = [
+                        'saham', 'bursa', 'ihsg', 'bank', 'investasi',
+                        'laba', 'dividen', 'emiten', 'idx', 'bei',
+                        'keuangan', 'pasar modal', 'obligasi',
+                    ];
+                    $hits = collect($financialKeywords)->filter(fn ($kw) => Str::contains($fullText, $kw))->count();
+                    $isRelevant = $hits >= 2;
+                }
+
                 if (! $isRelevant) {
                     continue;
                 }
@@ -94,8 +110,10 @@ class RssLocalFetcher implements NewsFetcherInterface
         $env = env('NEWS_RSS_SOURCES', '');
         $defaults = [
             'https://www.cnbcindonesia.com/market/rss',
-            'https://www.kontan.co.id/rss/finansial',
-            'https://www.bisnis.com/rss/finansial',
+            'https://www.cnbcindonesia.com/tech/rss',
+            'https://www.cnbcindonesia.com/news/rss',
+            'https://finance.detik.com/bursa-dan-valas/rss',
+            'https://finance.detik.com/moneter/rss',
         ];
 
         $custom = collect(preg_split('/[;,]/', $env))

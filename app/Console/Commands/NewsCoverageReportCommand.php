@@ -65,9 +65,9 @@ class NewsCoverageReportCommand extends Command
             })->toArray()
         );
 
-        $this->info('Ringkasan provider (total/high-quality):');
+        $this->info('Ringkasan provider (total/high-quality/missingQuality):');
         foreach ($aggregate['providers'] as $prov => $data) {
-            $this->line("- {$prov}: {$data['total']} / {$data['high_quality']} high");
+            $this->line("- {$prov}: {$data['total']} / {$data['high_quality']} high (missing quality: {$data['missing_quality']})");
         }
 
         if ($save) {
@@ -105,9 +105,10 @@ class NewsCoverageReportCommand extends Command
         $avgRelevance = round((float) $items->avg('relevance_score'), 3);
         $avgQuality = round((float) $items->avg('final_quality_score'), 3);
 
-        $providers = $items->groupBy('source_provider')->map(fn ($c) => [
+        $providers = $items->groupBy(fn ($a) => $a->source_provider ?: 'unknown')->map(fn ($c) => [
             'total' => $c->count(),
             'high_quality' => $c->where('quality_band', 'high')->count(),
+            'missing_quality' => $c->whereNull('quality_band')->count(),
         ])->sortByDesc('total')->toArray();
 
         $evaluationReady = $articleCount >= 15 && $daysWithSentiment >= 10;
@@ -134,9 +135,10 @@ class NewsCoverageReportCommand extends Command
 
     protected function summarizeAggregate(Collection $items): array
     {
-        $providers = $items->groupBy('source_provider')->map(fn ($c) => [
+        $providers = $items->groupBy(fn ($a) => $a->source_provider ?: 'unknown')->map(fn ($c) => [
             'total' => $c->count(),
             'high_quality' => $c->where('quality_band', 'high')->count(),
+            'missing_quality' => $c->whereNull('quality_band')->count(),
         ])->sortByDesc('total')->toArray();
 
         $byStock = $items->groupBy(fn ($a) => $a->stock?->code ?? 'GEN')->map->count();

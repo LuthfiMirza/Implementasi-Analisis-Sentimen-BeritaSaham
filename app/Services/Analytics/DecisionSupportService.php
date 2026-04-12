@@ -88,6 +88,25 @@ class DecisionSupportService
         $risks = array_merge($risks, $fundamental['risks'] ?? []);
         $invalidation = $this->invalidationRules($technical);
 
+        // Prediction integration
+        $featureBuilder = app(\App\Services\Prediction\FeatureBuilderService::class);
+        $predictor = app(\App\Services\Prediction\BaselinePredictionService::class);
+        $predictionFeatures = $featureBuilder->build($stock, $orderedPrices, $articles, $analytics, 30);
+        $predictionResult = $predictor->predict($predictionFeatures);
+        $lastCloseVal = (float) ($orderedPrices->last()->close ?? 0);
+        $tradingSignal = $this->calculateTradingSignal(
+            lastClose: $lastCloseVal,
+            technical: $technical,
+            atr: $atr,
+            vwap: $vwap,
+            bollinger: $bollinger,
+            adx: $adx,
+            macd: $macd,
+            obv: $obv,
+            stochastic: $stochastic,
+            prediction: $predictionResult['predicted_direction'] ?? 'flat'
+        );
+
         return [
             'stock' => $stock->code,
             'sentiment_average' => $analytics['average_sentiment'] ?? 0,
@@ -113,6 +132,162 @@ class DecisionSupportService
             'narrative' => $this->narrativeSummary($status, $analytics, $technical, $confidence),
             'scenarios' => $this->scenarios($analytics, $technical),
             'insights' => $this->insights($analytics, $technical, $supporting, $weakening),
+            'prediction' => $predictionResult['predicted_direction'] ?? null,
+            'prediction_confidence' => $predictionResult['confidence'] ?? null,
+            'prediction_method' => $predictionResult['method'] ?? null,
+            'prediction_basis' => $predictionResult['prediction_basis'] ?? null,
+            'scenario_bullish' => $predictionResult['scenario_bullish'] ?? null,
+            'scenario_neutral' => $predictionResult['scenario_neutral'] ?? null,
+            'scenario_bearish' => $predictionResult['scenario_bearish'] ?? null,
+            'prediction_features' => $predictionFeatures,
+            'trading_signal' => $tradingSignal,
+        ];
+    }
+
+    private function calculateTradingSignal(
+        float $lastClose,
+        array $technical,
+        ?array $atr,
+        ?array $vwap,
+        ?array $bollinger,
+        ?array $adx,
+        ?array $macd,
+        ?array $obv,
+        ?array $stochastic,
+        string $prediction
+    ): array {
+        if (! $atr || $lastClose <= 0) {
+            return ['valid' => false, 'reason' => 'Data tidak cukup untuk sinyal trading'];
+        }
+
+        $atrValue = $atr['atr'];
+        $atrPct = $atr['atr_percent'];
+        $ma5 = $technical['ma5'] ?? $lastClose;
+        $ma20 = $technical['ma20'] ?? $lastClose;
+        $support = $technical['support'] ?? ($lastClose * 0.97);
+        $resistance = $technical['resistance'] ?? ($lastClose * 1.03);
+        $bbUpper = $bollinger['upper'] ?? null;
+        $bbLower = $bollinger['lower'] ?? null;
+        $bbMiddle = $bollinger['middle'] ?? null;
+        $vwapVal = $vwap['vwap'] ?? null;
+
+        $confirmations = [];
+        $warnings = [];
+
+        if ($ma5 > $ma20) {
+            $confirmations[] = 'MA5 > MA20 — uptrend aktif';
+        } else {
+            $warnings[] = 'MA5 < MA20 — belum uptrend';
+        }
+
+        if ($vwapVal && $lastClose > $vwapVal) {
+            $confirmations[] = 'Harga di atas VWAP — buyer in control';
+        } else {
+            $warnings[] = 'Harga di bawah VWAP — waspadai tekanan jual';
+        }
+
+        if (($macd['trend'] ?? '') === 'bullish') {
+            $confirmations[] = 'MACD bullish — momentum positif';
+        } else {
+            $warnings[] = 'MACD belum bullish';
+        }
+
+        $adxStrength = $adx['strength'] ?? 'weak';
+        if ($adxStrength === 'strong') {
+            $confirmations[] = 'ADX strong — tren kuat terkonfirmasi';
+        } elseif ($adxStrength === 'weak') {
+            $warnings[] = 'ADX weak — tren belum kuat, hati-hati false breakout';
+        }
+
+        if (($obv['trend'] ?? '') === 'rising') {
+            $confirmations[] = 'OBV rising — volume mendukung kenaikan';
+        }
+
+        if ($atrPct > 4) {
+            $warnings[] = 'Volatilitas sangat tinggi (ATR '.$atrPct.'%) — perlebar stop loss';
+        } elseif ($atrPct < 1) {
+            $warnings[] = 'Volatilitas sangat rendah — momentum mungkin lemah';
+        }
+
+        $entryIdeal = round($lastClose, 0);
+        $entryZoneLow = round(max($ma20, $vwapVal ?? $ma20) * 0.999, 0);
+        $entryZoneHigh = round($lastClose * 1.005, 0);
+
+        $stopConservative = round($entryIdeal - ($atrValue * 1.5), 0);
+        $stopAggressive = round($entryIdeal - ($atrValue * 1.0), 0);
+        $stopBBLower = $bbLower ? round($bbLower - ($atrValue * 0.3), 0) : null;
+
+        $stopRecommended = $stopConservative;
+        if ($stopBBLower && $stopBBLower > $stopConservative) {
+            $stopRecommended = $stopBBLower;
+        }
+
+        $risk = $entryIdeal - $stopRecommended;
+        $atrTarget2R = round($entryIdeal + ($risk * 2), 0);
+        $atrTarget3R = round($entryIdeal + ($risk * 3), 0);
+
+        $target2R = $atrTarget2R;
+        $target3R = $atrTarget3R;
+
+        $targetNote = '';
+        if ($resistance && $target2R > $resistance * 1.05) {
+            $targetNote = 'Target melewati resistance — pertimbangkan partial profit di '.number_format($resistance);
+        }
+
+        $rrRatio2 = $risk > 0 ? round(($target2R - $entryIdeal) / $risk, 2) : 0;
+        $rrRatio3 = $risk > 0 ? round(($target3R - $entryIdeal) / $risk, 2) : 0;
+
+        $modalDefault = 10_000_000;
+        $riskPctPerTrade = 0.02;
+        $riskAmount = $modalDefault * $riskPctPerTrade;
+        $lotSize = $risk > 0 ? floor($riskAmount / $risk) : 0;
+        $lotValue = $lotSize * $entryIdeal;
+
+        $confirmCount = count($confirmations);
+        $warnCount = count($warnings);
+
+        $quality = match (true) {
+            $confirmCount >= 4 && $warnCount === 0 => 'strong',
+            $confirmCount >= 3 && $warnCount <= 1 => 'moderate',
+            $confirmCount >= 2 => 'weak',
+            default => 'invalid',
+        };
+
+        $isValid = $prediction === 'up'
+            && in_array($quality, ['strong', 'moderate'])
+            && $rrRatio2 >= 1.5;
+
+        return [
+            'valid' => $isValid,
+            'quality' => $quality,
+            'prediction' => $prediction,
+            'entry' => $entryIdeal,
+            'entry_zone_low' => $entryZoneLow,
+            'entry_zone_high' => $entryZoneHigh,
+            'stop_recommended' => $stopRecommended,
+            'stop_conservative' => $stopConservative,
+            'stop_aggressive' => $stopAggressive,
+            'target_2r' => $target2R,
+            'target_3r' => $target3R,
+            'risk_per_share' => round($risk, 0),
+            'rr_ratio_2r' => $rrRatio2,
+            'rr_ratio_3r' => $rrRatio3,
+            'atr_value' => round($atrValue, 0),
+            'atr_percent' => $atrPct,
+            'target_note' => $targetNote,
+            'lot_size' => $lotSize,
+            'lot_value' => $lotValue,
+            'risk_amount' => $riskAmount,
+            'confirmations' => $confirmations,
+            'warnings' => $warnings,
+            'confirm_count' => $confirmCount,
+            'warn_count' => $warnCount,
+            'vwap' => $vwapVal,
+            'ma20' => $ma20,
+            'bb_upper' => $bbUpper,
+            'bb_lower' => $bbLower,
+            'support' => $support,
+            'resistance' => $resistance,
         ];
     }
 

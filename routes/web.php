@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\StockController as AdminStockController;
 use App\Http\Controllers\Admin\SystemController as AdminSystemController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EvaluasiController;
+use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StockController;
@@ -23,6 +25,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/watchlist/{stock}', [WatchlistController::class, 'destroy'])->name('watchlist.destroy');
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+    Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
+    Route::get('/evaluasi/{code}', [EvaluasiController::class, 'show'])->name('evaluasi.show');
+    Route::get('/evaluation', [EvaluationController::class, 'index'])->name('evaluation.index');
+    Route::post('/api/news/refresh/{code}', [NewsController::class, 'refresh'])->name('news.refresh');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

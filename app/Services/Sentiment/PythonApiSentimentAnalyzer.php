@@ -3,6 +3,7 @@
 namespace App\Services\Sentiment;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class PythonApiSentimentAnalyzer implements SentimentAnalyzerInterface
@@ -15,46 +16,81 @@ class PythonApiSentimentAnalyzer implements SentimentAnalyzerInterface
 
     public function analyze(string $text, array $context = []): array
     {
-        $endpoint = function_exists('config') ? config('sentiment.python_endpoint', env('PYTHON_SENTIMENT_ENDPOINT')) : env('PYTHON_SENTIMENT_ENDPOINT');
-        $timeout = (int) (function_exists('config') ? config('sentiment.python_timeout', env('PYTHON_SENTIMENT_TIMEOUT', 5)) : env('PYTHON_SENTIMENT_TIMEOUT', 5));
+        $endpoint = config('sentiment.python_endpoint', env('PYTHON_SENTIMENT_ENDPOINT'));
+        $token = config('sentiment.huggingface_token', env('HUGGINGFACE_API_TOKEN'));
+        $timeout = (int) config('sentiment.python_timeout', env('PYTHON_SENTIMENT_TIMEOUT', 15));
 
         if (! $endpoint) {
             return $this->fallback->analyze($text, $context);
         }
 
+        $inputText = trim(implode('. ', array_filter([
+            $context['title'] ?? null,
+            $context['summary'] ?? null,
+            $text,
+        ])));
+        $inputText = mb_substr($inputText, 0, 512);
+
         try {
-            $payload = [
-                'text' => $text,
-                'context' => [
-                    'title' => $context['title'] ?? null,
-                    'summary' => $context['summary'] ?? null,
-                    'body' => $context['body'] ?? $context['content'] ?? null,
-                ],
-                'language' => $context['language'] ?? 'id',
-            ];
-            $response = Http::timeout($timeout)->post($endpoint, $payload);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                $fallback = $this->fallback->analyze($text, $context);
-
-                if ($this->isValidPayload($data)) {
-                    $score = isset($data['score']) ? (float) $data['score'] : ($fallback['score'] ?? 0.0);
-                    $confidence = isset($data['confidence']) ? (float) $data['confidence'] : ($fallback['confidence'] ?? null);
-
-                    return [
-                        'label' => Str::lower((string) $data['label']),
-                        'score' => $this->normalizeScore($score),
-                        'confidence' => $confidence !== null ? min(1, max(0, round($confidence, 2))) : null,
-                        'method' => 'python',
-                        'matched_positive_terms' => $data['matched_positive_terms'] ?? $fallback['matched_positive_terms'] ?? [],
-                        'matched_negative_terms' => $data['matched_negative_terms'] ?? $fallback['matched_negative_terms'] ?? [],
-                        'reason_summary' => $data['reason_summary'] ?? $fallback['reason_summary'] ?? null,
-                    ];
-                }
+            $headers = ['Accept' => 'application/json'];
+            if ($token) {
+                $headers['Authorization'] = 'Bearer '.$token;
             }
+
+            $response = Http::withHeaders($headers)
+                ->timeout($timeout)
+                ->post($endpoint, ['inputs' => $inputText]);
+
+            if (! $response->successful()) {
+                Log::warning('HuggingFace sentiment failed', [
+                    'status' => $response->status(),
+                    'body' => substr($response->body(), 0, 200),
+                ]);
+
+                return $this->fallback->analyze($text, $context);
+            }
+
+            $data = $response->json();
+            $predictions = $data[0] ?? $data ?? [];
+
+            if (empty($predictions)) {
+                return $this->fallback->analyze($text, $context);
+            }
+
+            $best = collect($predictions)->sortByDesc('score')->first();
+            $label = Str::lower($best['label'] ?? 'neutral');
+            $confidence = round((float) ($best['score'] ?? 0.5), 4);
+
+            $label = match ($label) {
+                'positive', 'pos', 'label_2' => 'positive',
+                'negative', 'neg', 'label_0' => 'negative',
+                default => 'neutral',
+            };
+
+            $score = match ($label) {
+                'positive' => round($confidence, 2),
+                'negative' => round(-$confidence, 2),
+                default => 0.0,
+            };
+
+            $ruleResult = $this->fallback->analyze($text, $context);
+
+            return [
+                'label' => $label,
+                'score' => $this->normalizeScore($score),
+                'confidence' => $confidence !== null ? min(1, max(0, round($confidence, 2))) : null,
+                'method' => 'python',
+                'matched_positive_terms' => $ruleResult['matched_positive_terms'] ?? [],
+                'matched_negative_terms' => $ruleResult['matched_negative_terms'] ?? [],
+                'reason_summary' => 'IndoBERT: '.$label.' ('.round($confidence * 100, 1).'%) | Rule: '.($ruleResult['label'] ?? 'neutral'),
+                'ml_label' => $label,
+                'ml_confidence' => $confidence,
+                'ml_score' => $score,
+                'rule_label' => $ruleResult['label'] ?? 'neutral',
+                'rule_score' => $ruleResult['score'] ?? 0,
+            ];
         } catch (\Throwable $e) {
-            // Silent fallback to rule-based when API is unreachable
+            Log::warning('HuggingFace sentiment exception', ['error' => $e->getMessage()]);
         }
 
         return $this->fallback->analyze($text, $context);

@@ -65,8 +65,8 @@
                         </div>
                         <div class="text-[11px] text-slate-400">Marker ⬆︎ event sentimen tinggi</div>
                     </div>
-                    @if(($chartData['prices'] ?? collect())->filter()->count() === 0)
-                        <p class="text-sm text-slate-400">Data harga atau sentimen belum tersedia untuk periode ini.</p>
+                    @if(($chartData['prices'] ?? collect())->filter()->count() < 5)
+                        <p class="text-sm text-slate-400">Data harga belum cukup (minimal 5 hari). Jalankan: <code class="text-slate-300">php artisan stocks:fetch-history</code></p>
                     @else
                         <canvas id="priceSentimentChart" class="h-80"></canvas>
                     @endif
@@ -87,6 +87,205 @@
                         <x-metric-card label="MA Gap" :value="is_null($decision['technical']['ma_gap'] ?? null) ? 'N/A' : number_format(($decision['technical']['ma_gap'])*100,2).'%' " />
                         <x-metric-card label="RSI" :value="$decision['technical']['rsi'] ?? 'N/A'" />
                     </div>
+
+                    {{-- TradingView Chart --}}
+                    <div class="glass-card border border-slate-800/80 rounded-2xl overflow-hidden my-6">
+                        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+                            <div>
+                                <p class="text-xs text-slate-400 uppercase">Chart</p>
+                                <h3 class="font-semibold">Tren Harga — {{ $stock->code }}</h3>
+                            </div>
+                            <x-timeframe-tabs :active="$period" :code="$stock->code" routeName="analytics.index" />
+                        </div>
+                        <div class="h-80">
+                            @php
+                                $tvInterval = match($period ?? '30') {
+                                    '7'  => 'D',
+                                    '30' => 'D',
+                                    '90' => 'W',
+                                    '180', '365' => 'W',
+                                    default => 'D',
+                                };
+                            @endphp
+                            <iframe
+                                src="https://s.tradingview.com/widgetembed/?symbol={{ urlencode($stock->tradingview_symbol ?? ('IDX:'.$stock->code)) }}&interval={{ $tvInterval }}&symboledit=0&saveimage=0&toolbarbg=0f172a&studies=[]&theme=dark&style=1&locale=id&hide_top_toolbar=0&hide_legend=0&allow_symbol_change=0"
+                                class="w-full h-full"
+                                allowtransparency="true"
+                                frameborder="0">
+                            </iframe>
+                        </div>
+                    </div>
+
+                    @php $signal = $decision['trading_signal'] ?? null; @endphp
+                    @if($signal)
+                        <div class="mt-6">
+                            <div class="text-xs text-slate-500 uppercase font-medium mb-3">Trading Signal</div>
+                            <div class="glass-card border rounded-2xl p-5 mb-4
+                                {{ $signal['valid']
+                                    ? ($signal['quality'] === 'strong'
+                                        ? 'border-green-500/40 bg-green-500/5'
+                                        : 'border-sky-500/40 bg-sky-500/5')
+                                    : 'border-slate-700 bg-slate-900/50' }}">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <div class="text-xs text-slate-400 uppercase font-medium">Signal Status</div>
+                                        <div class="text-xl font-bold mt-1 {{ $signal['valid'] ? 'text-green-400' : 'text-slate-400' }}">
+                                            {{ $signal['valid'] ? '✅ VALID — ENTRY ZONE' : '⏸ WAIT — Belum Ada Signal' }}
+                                        </div>
+                                        <div class="text-sm text-slate-400 mt-0.5">
+                                            Kualitas:
+                                            <span class="font-medium {{ $signal['quality'] === 'strong' ? 'text-green-400' : ($signal['quality'] === 'moderate' ? 'text-sky-400' : 'text-slate-400') }}">
+                                                {{ strtoupper($signal['quality']) }}
+                                            </span>
+                                            • {{ $signal['confirm_count'] }} konfirmasi, {{ $signal['warn_count'] }} peringatan
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-slate-500">R:R Ratio</div>
+                                        <div class="text-3xl font-bold {{ $signal['rr_ratio_2r'] >= 2 ? 'text-green-400' : 'text-amber-400' }}">
+                                            1:{{ $signal['rr_ratio_2r'] }}
+                                        </div>
+                                        <div class="text-xs text-slate-500">Target 2R</div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                    <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800">
+                                        <div class="text-[10px] text-slate-500 uppercase mb-1">Entry Zone</div>
+                                        <div class="font-mono font-bold text-sky-400 text-lg">
+                                            {{ number_format($signal['entry_zone_low']) }}
+                                            <span class="text-slate-500 text-sm">–</span>
+                                            {{ number_format($signal['entry_zone_high']) }}
+                                        </div>
+                                        <div class="text-[10px] text-slate-500">Last: {{ number_format($signal['entry']) }}</div>
+                                    </div>
+
+                                    <div class="bg-rose-500/5 rounded-xl p-3 border border-rose-500/20">
+                                        <div class="text-[10px] text-rose-400 uppercase mb-1">Stop Loss</div>
+                                        <div class="font-mono font-bold text-rose-400 text-lg">
+                                            {{ number_format($signal['stop_recommended']) }}
+                                        </div>
+                                        <div class="text-[10px] text-slate-500">
+                                            Risk: Rp {{ number_format($signal['risk_per_share']) }}/lembar
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-green-500/5 rounded-xl p-3 border border-green-500/20">
+                                        <div class="text-[10px] text-green-400 uppercase mb-1">Target 1 (2R)</div>
+                                        <div class="font-mono font-bold text-green-400 text-lg">
+                                            {{ number_format($signal['target_2r']) }}
+                                        </div>
+                                        <div class="text-[10px] text-slate-500">R:R = 1:{{ $signal['rr_ratio_2r'] }}</div>
+                                    </div>
+
+                                <div class="bg-emerald-500/5 rounded-xl p-3 border border-emerald-500/20">
+                                    <div class="text-[10px] text-emerald-400 uppercase mb-1">Target 2 (3R)</div>
+                                    <div class="font-mono font-bold text-emerald-400 text-lg">
+                                        {{ number_format($signal['target_3r']) }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-500">R:R = 1:{{ $signal['rr_ratio_3r'] }}</div>
+                                </div>
+                            </div>
+                            @if(!empty($signal['target_note']))
+                                <div class="text-[11px] text-amber-400 mt-2 flex gap-1">
+                                    <span>⚠</span><span>{{ $signal['target_note'] }}</span>
+                                </div>
+                            @endif
+
+                            <div class="border-t border-slate-800 pt-3 mb-3">
+                                <div class="text-xs text-slate-500 uppercase mb-2">
+                                    Position Sizing (Modal Rp 10jt • Risk 2%)
+                                </div>
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <div class="text-[10px] text-slate-500">Lot Size</div>
+                                            <div class="font-mono font-bold text-slate-200">
+                                                {{ number_format($signal['lot_size']) }} lembar
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="text-[10px] text-slate-500">Nilai Posisi</div>
+                                            <div class="font-mono font-bold text-slate-200">
+                                                Rp {{ number_format($signal['lot_value']) }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="text-[10px] text-slate-500">Max Loss</div>
+                                            <div class="font-mono font-bold text-rose-400">
+                                                Rp {{ number_format($signal['risk_amount']) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-slate-800 pt-3 mb-3">
+                                    <div class="text-xs text-slate-500 uppercase mb-2">Level Kunci</div>
+                                    <div class="flex flex-wrap gap-2 text-[11px]">
+                                        @if($signal['vwap'])
+                                            <span class="px-2 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300">
+                                                VWAP: {{ number_format($signal['vwap'], 0) }}
+                                            </span>
+                                        @endif
+                                        <span class="px-2 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
+                                            MA20: {{ number_format($signal['ma20'], 0) }}
+                                        </span>
+                                        @if($signal['bb_upper'])
+                                            <span class="px-2 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                                                BB Upper: {{ number_format($signal['bb_upper'], 0) }}
+                                            </span>
+                                        @endif
+                                        @if($signal['bb_lower'])
+                                            <span class="px-2 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                                                BB Lower: {{ number_format($signal['bb_lower'], 0) }}
+                                            </span>
+                                        @endif
+                                        <span class="px-2 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-300">
+                                            Resistance: {{ number_format($signal['resistance'], 0) }}
+                                        </span>
+                                        <span class="px-2 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300">
+                                            Support: {{ number_format($signal['support'], 0) }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    @if(count($signal['confirmations']) > 0)
+                                        <div>
+                                            <div class="text-xs text-green-400 uppercase mb-1">✓ Konfirmasi</div>
+                                            <div class="space-y-1">
+                                                @foreach($signal['confirmations'] as $c)
+                                                    <div class="text-[11px] text-green-300 flex gap-1">
+                                                        <span>✓</span><span>{{ $c }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if(count($signal['warnings']) > 0)
+                                        <div>
+                                            <div class="text-xs text-amber-400 uppercase mb-1">⚠ Peringatan</div>
+                                            <div class="space-y-1">
+                                                @foreach($signal['warnings'] as $w)
+                                                    <div class="text-[11px] text-amber-300 flex gap-1">
+                                                        <span>⚠</span><span>{{ $w }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="mt-3 pt-3 border-t border-slate-800">
+                                    <p class="text-[10px] text-slate-600">
+                                        ⚠ Sinyal bersifat indikatif berdasarkan analisis teknikal dan sentimen.
+                                        Bukan rekomendasi investasi. Position sizing asumsi modal Rp 10jt dan risk 2%.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="text-xs text-slate-500 uppercase font-medium mt-6 mb-3">Indikator Teknikal Lanjutan</div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @php $macd = $decision['indicators']['macd'] ?? null; @endphp
@@ -235,92 +434,6 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="text-xs text-slate-500 uppercase font-medium mt-6 mb-3">Analisis Fundamental</div>
-                    @php $fundamental = $decision['indicators']['fundamental'] ?? null; @endphp
-                    @if($fundamental)
-                        <div class="glass-card border border-slate-800/80 rounded-2xl p-5">
-                            <div class="flex items-center justify-between mb-4">
-                                <div>
-                                    <span class="text-xs text-slate-400 uppercase font-medium">Fundamental Score</span>
-                                    <div class="text-2xl font-bold mt-1 {{ $fundamental['score'] >= 70 ? 'text-green-400' : ($fundamental['score'] >= 55 ? 'text-slate-200' : ($fundamental['score'] <= 35 ? 'text-rose-400' : 'text-amber-400')) }}">
-                                        {{ $fundamental['score'] }}/100
-                                    </div>
-                                </div>
-                                <span class="px-3 py-1 rounded-full text-sm font-medium {{ $fundamental['rating'] === 'attractive'
-                                    ? 'bg-green-500/10 text-green-400 border border-green-500/30'
-                                    : ($fundamental['rating'] === 'expensive'
-                                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                                        : 'bg-slate-800 text-slate-300 border border-slate-700') }}">
-                                    {{ strtoupper($fundamental['rating']) }}
-                                </span>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2 mb-4">
-                                <div class="h-2 rounded-full {{ $fundamental['score'] >= 70 ? 'bg-green-500' : ($fundamental['score'] >= 55 ? 'bg-sky-500' : ($fundamental['score'] <= 35 ? 'bg-rose-500' : 'bg-amber-500')) }}"
-                                     style="width: {{ $fundamental['score'] }}%"></div>
-                            </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                                <div class="bg-slate-900/50 rounded-xl p-3">
-                                    <div class="text-[10px] text-slate-500 uppercase mb-1">PBV</div>
-                                    <div class="text-lg font-mono font-bold text-slate-100">{{ $fundamental['pbv'] !== null ? number_format($fundamental['pbv'], 1).'x' : 'N/A' }}</div>
-                                    <div class="text-[10px] text-slate-500">Price / Book</div>
-                                </div>
-                                <div class="bg-slate-900/50 rounded-xl p-3">
-                                    <div class="text-[10px] text-slate-500 uppercase mb-1">PER</div>
-                                    <div class="text-lg font-mono font-bold {{ $fundamental['per'] && $fundamental['per'] < 15 ? 'text-green-400' : ($fundamental['per'] && $fundamental['per'] > 25 ? 'text-rose-400' : 'text-slate-100') }}">
-                                        {{ $fundamental['per'] !== null && $fundamental['per'] > 0 ? number_format($fundamental['per'], 1).'x' : 'N/A' }}
-                                    </div>
-                                    <div class="text-[10px] text-slate-500">Price / Earnings</div>
-                                </div>
-                                <div class="bg-slate-900/50 rounded-xl p-3">
-                                    <div class="text-[10px] text-slate-500 uppercase mb-1">ROE</div>
-                                    <div class="text-lg font-mono font-bold {{ $fundamental['roe'] && $fundamental['roe'] >= 15 ? 'text-green-400' : ($fundamental['roe'] && $fundamental['roe'] < 0 ? 'text-rose-400' : 'text-slate-100') }}">
-                                        {{ $fundamental['roe'] !== null ? number_format($fundamental['roe'], 1).'%' : 'N/A' }}
-                                    </div>
-                                    <div class="text-[10px] text-slate-500">Return on Equity</div>
-                                </div>
-                                <div class="bg-slate-900/50 rounded-xl p-3">
-                                    <div class="text-[10px] text-slate-500 uppercase mb-1">DER</div>
-                                    <div class="text-lg font-mono font-bold text-slate-100">{{ $fundamental['der'] !== null ? number_format($fundamental['der'], 1).'x' : 'N/A' }}</div>
-                                    <div class="text-[10px] text-slate-500">Debt / Equity</div>
-                                </div>
-                                <div class="bg-slate-900/50 rounded-xl p-3">
-                                    <div class="text-[10px] text-slate-500 uppercase mb-1">EPS</div>
-                                    <div class="text-lg font-mono font-bold text-slate-100">{{ $fundamental['eps'] !== null ? 'Rp '.number_format($fundamental['eps'], 0) : 'N/A' }}</div>
-                                    <div class="text-[10px] text-slate-500">Earnings / Share</div>
-                                </div>
-                                <div class="bg-slate-900/50 rounded-xl p-3">
-                                    <div class="text-[10px] text-slate-500 uppercase mb-1">Div. Yield</div>
-                                    <div class="text-lg font-mono font-bold {{ $fundamental['dividend_yield'] && $fundamental['dividend_yield'] >= 5 ? 'text-green-400' : 'text-slate-100' }}">
-                                        {{ $fundamental['dividend_yield'] !== null ? number_format($fundamental['dividend_yield'], 1).'%' : 'N/A' }}
-                                    </div>
-                                    <div class="text-[10px] text-slate-500">Dividend Yield</div>
-                                </div>
-                            </div>
-                            @if(count($fundamental['signals'] ?? []) > 0)
-                                <div class="space-y-1 mb-3">
-                                    @foreach($fundamental['signals'] as $sig)
-                                        <div class="flex items-start gap-2 text-sm text-green-400">
-                                            <span>✓</span><span>{{ $sig }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                            @if(count($fundamental['risks'] ?? []) > 0)
-                                <div class="space-y-1">
-                                    @foreach($fundamental['risks'] as $risk)
-                                        <div class="flex items-start gap-2 text-sm text-rose-400">
-                                            <span>⚠</span><span>{{ $risk }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                            @if($fundamental['updated_at'])
-                                <div class="text-[10px] text-slate-600 mt-3 text-right">
-                                    Data per: {{ \Illuminate\Support\Carbon::parse($fundamental['updated_at'])->format('Y-m-d') }}
-                                </div>
-                            @endif
-                        </div>
-                    @endif
                     <div class="text-xs text-slate-500 uppercase font-medium mt-6 mb-3">Indikator Fase 2 — Trend Strength & Volatilitas</div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @php $adx = $decision['indicators']['adx'] ?? null; @endphp
@@ -504,6 +617,93 @@
                             @endif
                         </div>
                     </div>
+
+                    <div class="text-xs text-slate-500 uppercase font-medium mt-6 mb-3">Analisis Fundamental</div>
+                    @php $fundamental = $decision['indicators']['fundamental'] ?? null; @endphp
+                    @if($fundamental)
+                        <div class="glass-card border border-slate-800/80 rounded-2xl p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <span class="text-xs text-slate-400 uppercase font-medium">Fundamental Score</span>
+                                    <div class="text-2xl font-bold mt-1 {{ $fundamental['score'] >= 70 ? 'text-green-400' : ($fundamental['score'] >= 55 ? 'text-slate-200' : ($fundamental['score'] <= 35 ? 'text-rose-400' : 'text-amber-400')) }}">
+                                        {{ $fundamental['score'] }}/100
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-sm font-medium {{ $fundamental['rating'] === 'attractive'
+                                    ? 'bg-green-500/10 text-green-400 border border-green-500/30'
+                                    : ($fundamental['rating'] === 'expensive'
+                                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                                        : 'bg-slate-800 text-slate-300 border border-slate-700') }}">
+                                    {{ strtoupper($fundamental['rating']) }}
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2 mb-4">
+                                <div class="h-2 rounded-full {{ $fundamental['score'] >= 70 ? 'bg-green-500' : ($fundamental['score'] >= 55 ? 'bg-sky-500' : ($fundamental['score'] <= 35 ? 'bg-rose-500' : 'bg-amber-500')) }}"
+                                     style="width: {{ $fundamental['score'] }}%"></div>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                                <div class="bg-slate-900/50 rounded-xl p-3">
+                                    <div class="text-[10px] text-slate-500 uppercase mb-1">PBV</div>
+                                    <div class="text-lg font-mono font-bold text-slate-100">{{ $fundamental['pbv'] !== null ? number_format($fundamental['pbv'], 1).'x' : 'N/A' }}</div>
+                                    <div class="text-[10px] text-slate-500">Price / Book</div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded-xl p-3">
+                                    <div class="text-[10px] text-slate-500 uppercase mb-1">PER</div>
+                                    <div class="text-lg font-mono font-bold {{ $fundamental['per'] && $fundamental['per'] < 15 ? 'text-green-400' : ($fundamental['per'] && $fundamental['per'] > 25 ? 'text-rose-400' : 'text-slate-100') }}">
+                                        {{ $fundamental['per'] !== null && $fundamental['per'] > 0 ? number_format($fundamental['per'], 1).'x' : 'N/A' }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-500">Price / Earnings</div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded-xl p-3">
+                                    <div class="text-[10px] text-slate-500 uppercase mb-1">ROE</div>
+                                    <div class="text-lg font-mono font-bold {{ $fundamental['roe'] && $fundamental['roe'] >= 15 ? 'text-green-400' : ($fundamental['roe'] && $fundamental['roe'] < 0 ? 'text-rose-400' : 'text-slate-100') }}">
+                                        {{ $fundamental['roe'] !== null ? number_format($fundamental['roe'], 1).'%' : 'N/A' }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-500">Return on Equity</div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded-xl p-3">
+                                    <div class="text-[10px] text-slate-500 uppercase mb-1">DER</div>
+                                    <div class="text-lg font-mono font-bold text-slate-100">{{ $fundamental['der'] !== null ? number_format($fundamental['der'], 1).'x' : 'N/A' }}</div>
+                                    <div class="text-[10px] text-slate-500">Debt / Equity</div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded-xl p-3">
+                                    <div class="text-[10px] text-slate-500 uppercase mb-1">EPS</div>
+                                    <div class="text-lg font-mono font-bold text-slate-100">{{ $fundamental['eps'] !== null ? 'Rp '.number_format($fundamental['eps'], 0) : 'N/A' }}</div>
+                                    <div class="text-[10px] text-slate-500">Earnings / Share</div>
+                                </div>
+                                <div class="bg-slate-900/50 rounded-xl p-3">
+                                    <div class="text-[10px] text-slate-500 uppercase mb-1">Div. Yield</div>
+                                    <div class="text-lg font-mono font-bold {{ $fundamental['dividend_yield'] && $fundamental['dividend_yield'] >= 5 ? 'text-green-400' : 'text-slate-100' }}">
+                                        {{ $fundamental['dividend_yield'] !== null ? number_format($fundamental['dividend_yield'], 1).'%' : 'N/A' }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-500">Dividend Yield</div>
+                                </div>
+                            </div>
+                            @if(count($fundamental['signals'] ?? []) > 0)
+                                <div class="space-y-1 mb-3">
+                                    @foreach($fundamental['signals'] as $sig)
+                                        <div class="flex items-start gap-2 text-sm text-green-400">
+                                            <span>✓</span><span>{{ $sig }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                            @if(count($fundamental['risks'] ?? []) > 0)
+                                <div class="space-y-1">
+                                    @foreach($fundamental['risks'] as $risk)
+                                        <div class="flex items-start gap-2 text-sm text-rose-400">
+                                            <span>⚠</span><span>{{ $risk }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                            @if($fundamental['updated_at'])
+                                <div class="text-[10px] text-slate-600 mt-3 text-right">
+                                    Data per: {{ \Illuminate\Support\Carbon::parse($fundamental['updated_at'])->format('Y-m-d') }}
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
                             <p class="text-xs uppercase text-rose-400 mb-2">Risk Factors</p>
@@ -701,6 +901,7 @@
     </div>
 
     @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <script>
             const priceSentimentCtx = document.getElementById('priceSentimentChart');
             const chartData = @json($chartData);
@@ -825,6 +1026,53 @@
                     },
                 });
             }
+
+            @if(!empty($ts))
+            const internalCtx = document.getElementById('internalChart');
+            if (internalCtx) {
+                const labels2   = @json($chartLabels ?? []);
+                const closes2   = @json($chartClose ?? []);
+                const ma5data   = @json($ma5data ?? []);
+                const ma20data  = @json($ma20data ?? []);
+                const entryVal  = {{ $ts['entry_ideal'] ?? 'null' }};
+                const stopVal   = {{ $ts['stop_loss'] ?? 'null' }};
+                const targetVal = {{ $ts['target_1'] ?? 'null' }};
+
+                const makeLine = (val) => (val !== null && labels2.length) ? labels2.map(() => val) : [];
+
+                new window.Chart(internalCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels2,
+                        datasets: [
+                            { label: 'Harga', data: closes2, borderColor: '#94a3b8', backgroundColor: 'rgba(148,163,184,0.15)', borderWidth: 1.5, pointRadius: 0, tension: 0.25, fill: true },
+                            { label: 'MA5', data: ma5data, borderColor: '#38bdf8', borderWidth: 1.5, pointRadius: 0, tension: 0.25, fill: false },
+                            { label: 'MA20', data: ma20data, borderColor: '#fbbf24', borderWidth: 1.5, pointRadius: 0, tension: 0.25, fill: false },
+                            { label: 'Entry', data: makeLine(entryVal), borderColor: '#38bdf8', borderWidth: 1, borderDash: [6,3], pointRadius: 0, fill: false },
+                            { label: 'Stop', data: makeLine(stopVal), borderColor: '#f43f5e', borderWidth: 1, borderDash: [4,4], pointRadius: 0, fill: false },
+                            { label: 'Target', data: makeLine(targetVal), borderColor: '#22c55e', borderWidth: 1, borderDash: [6,3], pointRadius: 0, fill: false },
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y ? ctx.parsed.y.toLocaleString('id-ID') : '-'}`
+                                }
+                            }
+                        },
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: { grid: { color: 'rgba(148,163,184,0.06)' }, ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 10 } },
+                            y: { grid: { color: 'rgba(148,163,184,0.06)' }, ticks: { color: '#64748b', font: { size: 10 }, callback: (v) => v.toLocaleString('id-ID') } },
+                        },
+                    }
+                });
+            }
+            @endif
         </script>
     @endpush
 </x-app-layout>

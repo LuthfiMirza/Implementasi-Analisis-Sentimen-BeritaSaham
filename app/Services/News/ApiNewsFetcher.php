@@ -17,6 +17,7 @@ class ApiNewsFetcher implements NewsFetcherInterface
         $language = config('services.news.language', env('NEWS_API_LANGUAGE', 'id'));
 
         if (! $baseUrl || ! $apiKey) {
+            Log::info('ApiNewsFetcher missing baseUrl/apiKey', ['baseUrl' => $baseUrl ? 'set' : 'null', 'apiKey' => $apiKey ? 'set' : 'null']);
             return [];
         }
 
@@ -77,6 +78,7 @@ class ApiNewsFetcher implements NewsFetcherInterface
                 $slug = Str::slug($title).'-'.Str::random(4);
 
                 return [
+                    'provider' => 'api',
                     'title' => $title,
                     'slug' => $slug,
                     'source_name' => data_get($item, 'source.name'),

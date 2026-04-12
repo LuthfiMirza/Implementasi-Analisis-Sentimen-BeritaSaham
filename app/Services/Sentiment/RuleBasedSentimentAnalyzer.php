@@ -12,6 +12,21 @@ class RuleBasedSentimentAnalyzer implements SentimentAnalyzerInterface
         'positif', 'rebound', 'solid', 'stabil', 'menggeliat', 'kuat', 'membaik', 'pulih',
         // Finance specific
         'dividen', 'oversubscribed', 'buyback', 'kontrak', 'laba', 'recovery',
+        // Pergerakan harga positif
+        'melesat', 'terbang', 'melonjak', 'rebound', 'rally', 'all time high', 'ath', 'bullish', 'hijau', 'lompat', 'meroket',
+        // Kinerja keuangan positif
+        'profit', 'pertumbuhan', 'tumbuh', 'rekor', 'tertinggi', 'surplus', 'optimis',
+        // Aksi korporasi positif
+        'ekspansi', 'akuisisi', 'merger', 'rights issue', 'ipo', 'listing', 'upgrade',
+        // Rating/rek hit
+        'overweight', 'outperform', 'buy', 'strong buy',
+        'dividen jumbo', 'laba bersih', 'laba naik', 'pendapatan naik', 'aset naik',
+        'npf turun', 'npl turun', 'car naik', 'saham bonus', 'akuisisi strategis',
+        'kinerja positif', 'melampaui ekspektasi', 'beat ekspektasi',
+        'pemangkasan suku bunga', 'bi rate turun', 'suku bunga turun',
+        'capital inflow', 'net buy', 'beli bersih', 'foreign buy',
+        'rekor tertinggi', 'level tertinggi', 'capai rekor',
+        'ihsg melesat', 'ihsg naik', 'ihsg menguat', 'ihsg hijau', 'ihsg lompat', 'ihsg terbang', 'pasar modal menguat',
     ];
 
     /**
@@ -22,6 +37,19 @@ class RuleBasedSentimentAnalyzer implements SentimentAnalyzerInterface
         'negatif', 'terkoreksi', 'tertekan', 'downtrend', 'kontraksi',
         // Finance specific
         'gagal', 'default', 'suspensi', 'tekanan', 'margin',
+        // Pergerakan harga negatif
+        'jatuh', 'terpuruk', 'ambruk', 'longsor', 'merah', 'koreksi', 'all time low', 'atl', 'tertekan',
+        // Risiko
+        'risiko tinggi', 'krisis', 'gagal bayar', 'delisting', 'sanksi ojk', 'denda ojk',
+        // Makro negatif
+        'inflasi tinggi', 'resesi', 'pelemahan rupiah',
+        'melemah', 'bearish', 'tekanan jual', 'profit taking', 'aksi jual',
+        'defisit', 'kerugian bersih', 'rugi bersih', 'pendapatan turun', 'laba turun', 'laba merosot',
+        'npl naik', 'kredit macet', 'pembekuan', 'sanksi ojk', 'denda ojk',
+        'underweight', 'underperform', 'sell', 'strong sell',
+        'stagflasi', 'rupiah melemah', 'capital outflow', 'net sell', 'jual bersih', 'foreign sell',
+        'ihsg anjlok', 'ihsg turun', 'ihsg melemah', 'ihsg merah', 'pasar saham turun', 'bursa melemah',
+        'krisis likuiditas',
     ];
 
     /**
@@ -35,6 +63,14 @@ class RuleBasedSentimentAnalyzer implements SentimentAnalyzerInterface
         'buyback',
         'oversubscribed',
         'kinerja solid',
+        'all time high',
+        'hak memesan efek terlebih dahulu',
+        'overweight',
+        'outperform',
+        'strong buy',
+        'laba bersih naik',
+        'pendapatan naik',
+        'bi rate turun',
     ];
 
     /**
@@ -47,6 +83,39 @@ class RuleBasedSentimentAnalyzer implements SentimentAnalyzerInterface
         'penurunan pendapatan',
         'suspensi',
         'default',
+        'all time low',
+        'ancaman delisting',
+        'underweight',
+        'underperform',
+        'strong sell',
+        'laba turun',
+        'pendapatan turun',
+        'pelemahan rupiah',
+        'net sell',
+    ];
+
+    protected array $neutralPatterns = [
+        'jadwal', 'operasional', 'libur lebaran', 'libur nasional',
+        'agenda', 'rapat umum', 'rups',
+    ];
+
+    protected array $strongPositivePhrases = [
+        'buyback saham', 'bagi dividen', 'tebar dividen', 'dividen jumbo',
+        'laba bersih naik', 'ihsg melesat', 'ihsg lompat', 'ihsg menguat',
+        'ihsg terbang', 'ihsg happy', 'saham naik', 'menguat signifikan',
+        'rekor tertinggi', 'net buy asing', 'foreign net buy', 'bi rate turun',
+        'simak jadwal buyback', 'jadwal buyback', 'saham bonus',
+        'dividen rp', 'tebar dividen', 'sepakat bagi dividen',
+        'laba rp', 'catat laba', 'raup laba', 'cetak laba',
+        'melesat', 'lompat', 'terbang', 'melonjak',
+    ];
+
+    protected array $strongNegativePhrases = [
+        'ihsg anjlok', 'ihsg turun', 'ihsg melemah', 'saham anjlok',
+        'gagal bayar', 'kredit macet', 'net sell asing', 'asing jual',
+        'laba turun', 'rugi bersih', 'delisting paksa',
+        'jatuh ke bawah', 'pangsa pasar jatuh', 'volume menyusut',
+        'di bawah 50', 'ambruk', 'longsor', 'terpuruk',
     ];
 
     protected array $negations = ['tidak', 'bukan', 'belum'];
@@ -57,6 +126,7 @@ class RuleBasedSentimentAnalyzer implements SentimentAnalyzerInterface
 
         $positiveScore = 0.0;
         $negativeScore = 0.0;
+        $strongScore = 0.0;
         $matchedPositive = [];
         $matchedNegative = [];
         $negationTriggered = false;
@@ -64,6 +134,27 @@ class RuleBasedSentimentAnalyzer implements SentimentAnalyzerInterface
         foreach ($segments as $segment) {
             $lowerText = mb_strtolower($segment['text']);
             $tokens = $this->tokenize($segment['text']);
+            $neutralHit = false;
+
+            // Strong phrase detection (override tendency)
+            foreach ($this->strongNegativePhrases as $phrase) {
+                if (str_contains($lowerText, $phrase)) {
+                    $strongScore -= 2.0 * $segment['weight'];
+                    $matchedNegative[] = $phrase;
+                }
+            }
+            foreach ($this->strongPositivePhrases as $phrase) {
+                if (str_contains($lowerText, $phrase)) {
+                    $strongScore += 2.0 * $segment['weight'];
+                    $matchedPositive[] = $phrase;
+                }
+            }
+
+            foreach ($this->neutralPatterns as $neutral) {
+                if (str_contains($lowerText, $neutral)) {
+                    $neutralHit = true;
+                }
+            }
 
             // Phrase-level detection
             foreach ($this->positivePhrases as $phrase) {
@@ -110,10 +201,16 @@ class RuleBasedSentimentAnalyzer implements SentimentAnalyzerInterface
                     $matchedNegative[] = $token;
                 }
             }
+
+            // If segment only matched neutral patterns and no pos/neg yet, keep neutral
+            if ($neutralHit && $positiveScore === 0.0 && $negativeScore === 0.0) {
+                continue;
+            }
         }
 
-        $total = max($positiveScore + $negativeScore, 1);
-        $score = ($positiveScore - $negativeScore) / $total;
+        $rawScore = $strongScore + ($positiveScore - $negativeScore);
+        $signalStrength = max(abs($strongScore) + $positiveScore + $negativeScore, 1);
+        $score = max(-1, min(1, $rawScore / $signalStrength));
 
         $label = $this->scoreToLabel($score);
         $confidence = $this->confidence($score, $positiveScore + $negativeScore);
@@ -159,11 +256,11 @@ class RuleBasedSentimentAnalyzer implements SentimentAnalyzerInterface
 
     protected function scoreToLabel(float $score): string
     {
-        if ($score >= 0.15) {
+        if ($score >= 0.10) {
             return 'positive';
         }
 
-        if ($score <= -0.15) {
+        if ($score <= -0.10) {
             return 'negative';
         }
 

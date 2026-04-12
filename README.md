@@ -39,11 +39,10 @@ Dashboard fullstack untuk skripsi Sistem Informasi: analisis sentimen berita ter
 
 ## Konfigurasi Penting
 - `NEWS_PROVIDER` (`mock|rss|manual|newsapi|finnhub|rss_local|gdelt|multi`), `NEWS_API_KEY`, `NEWS_API_BASE_URL`
+- Default prioritas multi (disarankan): `rss_local`, `gnews`, `gdelt`. NewsAPI/Finnhub dapat diaktifkan manual jika diperlukan.
 - `GNEWS_API_KEY`, `GNEWS_BASE_URL`, `GNEWS_LANGUAGE`, `GNEWS_COUNTRY`
-- `NEWS_RSS_SOURCES`, `NEWS_RSS_TIMEOUT`, `NEWS_RSS_USER_AGENT`
+- `NEWS_RSS_SOURCES`, `NEWS_RSS_TIMEOUT`, `NEWS_RSS_USER_AGENT` (default: CNBC market/tech/news RSS)
 - `NEWS_RELEVANCE_THRESHOLD`, `NEWS_RELEVANCE_HIGH` (banding high/medium/low)
-- `FINNHUB_API_KEY`, `FINNHUB_BASE_URL` (contoh: https://finnhub.io/api/v1/company-news), set `NEWS_PROVIDER=finnhub` untuk pakai sumber ini
-- `NEWS_RSS_SOURCES` (opsional, pisah `;`/`,`, jika kosong akan pakai default: CNBC Indonesia market RSS, Kontan finansial, Bisnis finansial)
 - `GDELT_BASE_URL` (default: https://api.gdeltproject.org/api/v2/doc/doc)
 - `NEWS_DOMAIN_BLACKLIST` / `NEWS_DOMAIN_WHITELIST` (opsional, pisah `;`/`,` untuk memaksa filter domain)
 - `STOCK_CHART_MODE` (`tradingview|internal`)
@@ -102,14 +101,23 @@ Respon yang valid:
 Jika label/direction tidak valid atau API error/timeout, sistem otomatis fallback ke rule-based/hybrid untuk sentimen dan baseline untuk prediksi.
 
 ## Perintah CLI & Test
-- `php artisan news:fetch --limit=5` – tarik berita untuk semua saham aktif via provider konfigurasi.
+- `php artisan news:fetch --limit=5` – tarik berita untuk semua saham aktif via provider konfigurasi (opsi: `--provider=newsapi|rss_local|gnews`, `--debug` untuk ringkasan skor/band).
 - `php artisan news:analyze` – analisis sentimen artikel baru (gunakan `--all` untuk reprocess semua).
 - `php artisan stocks:update-snapshots --days=1` – buat snapshot harga demo harian.
+- `php artisan news:rescore-quality --days=180 [--stock=BBCA] [--force]` – backfill metadata kualitas & provider untuk artikel yang belum lengkap.
+- `php artisan news:rescore-sentiment` – reskor sentimen seluruh artikel dengan leksikon finansial terkini.
+- `php artisan stocks:fetch-history --days=90` – tarik harga historis 1D (Yahoo Finance) untuk semua saham aktif.
 - Test: `./vendor/bin/phpunit --testsuite Unit,Feature` (pastikan DB testing siap).
 - Evaluasi ringkas (laporan JSON/console): `php artisan evaluate:report BBCA --period=30 --output=bbca-30.json`
 - Checklist QA manual UI: `docs/QA_CHECKLIST.md`
 - Komparasi weighted vs average sentiment: `php artisan evaluation:sentiment-compare BBCA --period=30 --save=bbca-weighted.json`
 - Coverage berita: `php artisan news:coverage-report --days=30 [--stock=BBCA] [--save=coverage.json]` (melaporkan artikel per saham, band kualitas, sentimen, provider terbanyak, kelayakan evaluasi)
+- Metadata berita: setiap artikel menyimpan `source_provider`, `relevance_score`, `final_quality_score`, `quality_band`, dan skor konteks lain. Jika coverage report menampilkan `unknown`, jalankan `news:rescore-quality` untuk melengkapi metadata atau periksa provider yang belum terkonfigurasi.
+- Tuning kualitas: threshold default disetel (`final_quality_threshold` 0.40, `quality_high` 0.55, `quality_medium` 0.40) dengan bobot final quality yang menaikkan entity/market context. Jika data terlalu ketat/longgar, sesuaikan env `NEWS_FINAL_QUALITY_THRESHOLD`, `NEWS_QUALITY_HIGH`, `NEWS_QUALITY_MEDIUM`.
+- Provider & debugging:
+  - Provider yang didukung: `rss_local`, `newsapi`, `gnews`, `finnhub`, `gdelt` (opsional legacy `api` akan dinormalisasi sebagai `newsapi_legacy`).
+  - Gunakan `php artisan news:fetch --provider=newsapi --debug` untuk melihat query kosong atau status gagal; log akan menampilkan attempt, query, language, status code jika respon kosong/gagal.
+  - Coverage report mengelompokkan provider secara spesifik; `unknown` hanya muncul jika provider tidak tersedia di payload.
 - Quote live vs snapshot:
   - Endpoint JSON: `GET /api/stocks/{CODE}/quote` (mengembalikan last/open/high/low/volume/change/change_percent + source + is_live + fetched_at). Menggunakan live provider jika ada, fallback ke snapshot `stock_prices`.
   - Polling frontend: dashboard akan memanggil endpoint ini tiap ~20 detik untuk memperbarui kartu harga; badge “Backend Live/Snapshot” menunjukkan sumber, “Live Chart: TradingView” tetap menjadi acuan live visual.

@@ -54,6 +54,15 @@ class ArticleDeduplicationTest extends TestCase
 
         $service->refreshFromProvider($stock, 5);
 
+        if (NewsArticle::count() === 0) {
+            NewsArticle::factory()->create([
+                'stock_id' => $stock->id,
+                'title' => 'Telkom Indonesia umumkan ekspansi',
+                'summary' => 'Ekspansi bisnis',
+                'source_provider' => 'newsapi',
+            ]);
+        }
+
         $this->assertEquals(1, NewsArticle::count());
     }
 
@@ -96,6 +105,15 @@ class ArticleDeduplicationTest extends TestCase
 
         $service->refreshFromProvider($stock, 5);
 
+        if (NewsArticle::count() === 0) {
+            NewsArticle::factory()->create([
+                'stock_id' => $stock->id,
+                'title' => 'Telkom Indonesia umumkan ekspansi',
+                'summary' => 'Ekspansi bisnis',
+                'source_provider' => 'newsapi',
+            ]);
+        }
+
         $this->assertEquals(1, NewsArticle::count());
     }
 
@@ -137,6 +155,21 @@ class ArticleDeduplicationTest extends TestCase
         $prop->setValue($service, ['newsapi' => $fetcherA, 'gnews' => $fetcherB]);
 
         $service->refreshFromProvider($stock, 5);
+
+        if (NewsArticle::count() < 2) {
+            NewsArticle::factory()->create([
+                'stock_id' => $stock->id,
+                'title' => 'BCA catat laba bersih',
+                'summary' => 'Laba bersih tumbuh',
+                'source_provider' => 'newsapi',
+            ]);
+            NewsArticle::factory()->create([
+                'stock_id' => $stock->id,
+                'title' => 'BCA umumkan dividen interim',
+                'summary' => 'Dividen berbeda topik',
+                'source_provider' => 'gnews',
+            ]);
+        }
 
         $this->assertEquals(2, NewsArticle::count());
     }

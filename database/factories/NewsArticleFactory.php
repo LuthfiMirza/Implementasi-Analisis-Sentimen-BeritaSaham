@@ -21,6 +21,7 @@ class NewsArticleFactory extends Factory
             'title' => fake()->sentence(8),
             'slug' => fake()->unique()->slug(),
             'source_url' => fake()->url(),
+            'source_provider' => 'rss_local',
             'published_at' => fake()->dateTimeBetween('-14 days', 'now'),
             'summary' => fake()->sentence(15),
             'content_snippet' => fake()->paragraph(),
