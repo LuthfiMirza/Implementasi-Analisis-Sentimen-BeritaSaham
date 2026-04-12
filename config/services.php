@@ -39,6 +39,18 @@ return [
         'provider' => env('NEWS_PROVIDER', 'mock'),
         'api_key' => env('NEWS_API_KEY'),
         'api_base_url' => env('NEWS_API_BASE_URL'),
+        'language' => env('NEWS_API_LANGUAGE', 'id'),
+        'timeout' => env('NEWS_API_TIMEOUT', 8),
+        'user_agent' => env('NEWS_API_USER_AGENT', 'SentimenaNews/1.0'),
+    ],
+
+    'gnews' => [
+        'api_key' => env('GNEWS_API_KEY'),
+        'api_base_url' => env('GNEWS_BASE_URL', 'https://gnews.io/api/v4/search'),
+        'language' => env('GNEWS_LANGUAGE', 'id'),
+        'country' => env('GNEWS_COUNTRY', 'id'),
+        'timeout' => env('GNEWS_TIMEOUT', 8),
+        'user_agent' => env('GNEWS_USER_AGENT', 'SentimenaNews/1.0'),
     ],
 
     'finnhub' => [

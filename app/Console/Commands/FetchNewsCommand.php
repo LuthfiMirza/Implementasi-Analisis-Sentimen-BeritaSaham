@@ -10,8 +10,8 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('news:fetch {--limit=5}')]
-#[Description('Ambil berita terbaru untuk semua saham aktif')]
+#[Signature('news:fetch {--limit=20} {--stock=}')]
+#[Description('Ambil berita terbaru untuk semua saham aktif atau 1 saham')]
 class FetchNewsCommand extends Command
 {
     /**
@@ -20,19 +20,37 @@ class FetchNewsCommand extends Command
     public function handle(NewsAggregationService $newsAggregationService)
     {
         $limit = (int) $this->option('limit');
-        $stocks = Stock::where('is_active', true)->get();
+        $single = $this->option('stock');
+        $stocks = $single
+            ? Stock::where('code', strtoupper($single))->get()
+            : Stock::where('is_active', true)->get();
+
+        $fetched = 0;
+        $errors = 0;
+        $provider = config('services.news.provider', env('NEWS_PROVIDER', 'mock'));
 
         foreach ($stocks as $stock) {
-            $newsAggregationService->refreshFromProvider($stock, $limit);
-            $this->info("Berita {$stock->code} diperbarui.");
+            try {
+                $before = now();
+                $newsAggregationService->refreshFromProvider($stock, $limit);
+                $this->info("Berita {$stock->code} diperbarui (waktu: ".now()->diffInSeconds($before)."s).");
+                $fetched += $limit;
+            } catch (\Throwable $e) {
+                $errors++;
+                $this->error("Gagal fetch {$stock->code}: ".$e->getMessage());
+                \Log::error('news:fetch error', ['stock' => $stock->code, 'error' => $e->getMessage()]);
+                continue;
+            }
         }
 
         FetchLog::create([
-            'source_name' => config('services.news.provider', 'mock'),
-            'status' => 'success',
+            'source_name' => $provider,
+            'status' => $errors ? 'partial' : 'success',
             'message' => 'Fetch via command',
-            'records_count' => $stocks->count() * $limit,
+            'records_count' => $fetched,
             'ran_at' => Carbon::now(),
         ]);
+
+        $this->line("Summary: stok diproses {$stocks->count()}, fetched target ~{$fetched}, error {$errors}, provider {$provider}");
     }
 }

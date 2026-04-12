@@ -25,31 +25,39 @@ class AnalyzeSentimentCommand extends Command
         }
 
         $count = 0;
+        $failed = 0;
         foreach ($query->cursor() as $article) {
-            $result = $analyzer->analyze(
-                $article->summary ?? $article->content_snippet ?? $article->title,
-                [
-                    'title' => $article->title,
-                    'summary' => $article->summary,
-                    'body' => $article->full_text ?? $article->content_snippet,
-                    'language' => $article->language ?? 'id',
-                ]
-            );
-            $article->update([
-                'sentiment_label' => $result['label'],
-                'sentiment_score' => $result['score'],
-                'sentiment_confidence' => $result['confidence'] ?? null,
-                'sentiment_method' => $result['method'] ?? 'rule_based',
-                'sentiment_meta' => [
-                    'matched_positive_terms' => $result['matched_positive_terms'] ?? [],
-                    'matched_negative_terms' => $result['matched_negative_terms'] ?? [],
-                    'reason_summary' => $result['reason_summary'] ?? null,
-                ],
-                'analyzed_at' => now(),
-            ]);
-            $count++;
+            try {
+                $result = $analyzer->analyze(
+                    $article->summary ?? $article->content_snippet ?? $article->title,
+                    [
+                        'title' => $article->title,
+                        'summary' => $article->summary,
+                        'body' => $article->full_text ?? $article->content_snippet,
+                        'language' => $article->language ?? 'id',
+                    ]
+                );
+                $article->update([
+                    'sentiment_label' => $result['label'],
+                    'sentiment_score' => $result['score'],
+                    'sentiment_confidence' => $result['confidence'] ?? null,
+                    'sentiment_method' => $result['method'] ?? 'rule_based',
+                    'sentiment_meta' => [
+                        'matched_positive_terms' => $result['matched_positive_terms'] ?? [],
+                        'matched_negative_terms' => $result['matched_negative_terms'] ?? [],
+                        'reason_summary' => $result['reason_summary'] ?? null,
+                    ],
+                    'analyzed_at' => now(),
+                ]);
+                $count++;
+            } catch (\Throwable $e) {
+                $failed++;
+                $this->error("Gagal analisis ID {$article->id}: ".$e->getMessage());
+                \Log::error('news:analyze error', ['id' => $article->id, 'error' => $e->getMessage()]);
+                continue;
+            }
         }
 
-        $this->info("Analisis selesai untuk {$count} artikel.");
+        $this->info("Analisis selesai. Berhasil: {$count}, gagal: {$failed}");
     }
 }

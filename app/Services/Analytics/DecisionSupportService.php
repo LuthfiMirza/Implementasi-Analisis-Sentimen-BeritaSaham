@@ -26,16 +26,36 @@ class DecisionSupportService
         $supportResistance = $this->supportResistance($orderedPrices);
         $breakout = $this->breakoutStatus($orderedPrices, $supportResistance);
 
+        $closes = $orderedPrices->pluck('close')->map(fn ($v) => (float) $v)->values()->all();
+        $opens = $orderedPrices->pluck('open')->map(fn ($v) => (float) $v)->values()->all();
+        $highs = $orderedPrices->pluck('high')->map(fn ($v) => (float) $v)->values()->all();
+        $lows = $orderedPrices->pluck('low')->map(fn ($v) => (float) $v)->values()->all();
+        $volumes = $orderedPrices->pluck('volume')->map(fn ($v) => (float) $v)->values()->all();
+
+        $macd = count($closes) >= 35 ? $this->calculateMACD($closes) : null;
+        $bollinger = count($closes) >= 20 ? $this->calculateBollingerBands($closes) : null;
+        $stochastic = count($closes) >= 17 ? $this->calculateStochastic($highs, $lows, $closes) : null;
+        $obv = count($closes) >= 2 ? $this->calculateOBV($closes, $volumes) : null;
+        $adx = count($closes) >= 28 ? $this->calculateADX($highs, $lows, $closes) : null;
+        $atr = count($closes) >= 15 ? $this->calculateATR($highs, $lows, $closes) : null;
+        $vwap = count($closes) >= 5 ? $this->calculateVWAP($highs, $lows, $closes, $volumes) : null;
+        $candles = count($closes) >= 3 ? $this->detectCandlestickPatterns($opens, $highs, $lows, $closes) : null;
+        $fundamental = $this->calculateFundamentalScore($stock);
+
         $sentimentScore = $this->normalizeComponent($analytics['weighted_sentiment'] ?? $analytics['average_sentiment'] ?? 0);
-        $trendScore = $this->trendScore($analytics['price_trend'] ?? 'datar', $analytics['cumulative_return'] ?? 0, $maGap);
-        $momentumScore = $this->momentumScore($momentum, $rsi, $maGap);
-        $volumeScore = $this->volumeScore($analytics['news_volume'] ?? 0, $orderedPrices->count());
+        $trendScore = $this->trendScore($analytics['price_trend'] ?? 'datar', $analytics['cumulative_return'] ?? 0, $maGap, $macd, $adx, $vwap);
+        $momentumScore = $this->momentumScore($momentum, $rsi, $maGap, $stochastic, $candles);
+        $volumeScore = $this->volumeScore($analytics['news_volume'] ?? 0, $orderedPrices->count(), $obv, $analytics['price_trend'] ?? 'datar');
+        $volatilityScore = $this->volatilityScore($bollinger);
+        $fundamentalScore = $fundamental['score'] ?? 0;
 
         $finalScore = round(
-            0.35 * $sentimentScore +
-            0.30 * $trendScore +
-            0.20 * $momentumScore +
-            0.15 * $volumeScore,
+            0.20 * $sentimentScore +
+            0.22 * $trendScore +
+            0.18 * $momentumScore +
+            0.13 * $volumeScore +
+            0.12 * $volatilityScore +
+            0.15 * $fundamentalScore,
             2
         );
 
@@ -50,11 +70,22 @@ class DecisionSupportService
             'support' => $supportResistance['support'] ?? null,
             'resistance' => $supportResistance['resistance'] ?? null,
             'breakout' => $breakout,
+            'macd' => $macd,
+            'bollinger' => $bollinger,
+            'stochastic' => $stochastic,
+            'obv' => $obv,
+            'adx' => $adx,
+            'atr' => $atr,
+            'vwap' => $vwap,
+            'candles' => $candles,
+            'fundamental' => $fundamental,
         ];
 
         $supporting = $this->supportingFactors($analytics, $technical);
         $weakening = $this->weakeningFactors($analytics, $technical);
         $risks = $this->riskFactors($analytics, $technical);
+        $supporting = array_merge($supporting, $fundamental['signals'] ?? []);
+        $risks = array_merge($risks, $fundamental['risks'] ?? []);
         $invalidation = $this->invalidationRules($technical);
 
         return [
@@ -73,6 +104,8 @@ class DecisionSupportService
             'confidence' => $confidence,
             'final_score' => $finalScore,
             'technical' => $technical,
+            'indicators' => $technical,
+            'fundamental' => $fundamental,
             'supporting_factors' => $supporting,
             'weakening_factors' => $weakening,
             'risk_factors' => $risks,
@@ -191,7 +224,7 @@ class DecisionSupportService
         return (($clamped - $min) / ($max - $min)) * 100;
     }
 
-    protected function trendScore(string $priceTrend, ?float $cumulativeReturn, ?float $maGap): float
+    protected function trendScore(string $priceTrend, ?float $cumulativeReturn, ?float $maGap, ?array $macd, ?array $adx, ?array $vwap): float
     {
         $score = 50;
         $score += match ($priceTrend) {
@@ -203,10 +236,43 @@ class DecisionSupportService
         $score += $cumulativeReturn !== null ? max(-10, min(10, $cumulativeReturn / 3)) : 0;
         $score += $maGap !== null ? max(-10, min(10, $maGap * 100)) : 0;
 
+        if ($macd) {
+            $score += match ($macd['trend'] ?? 'neutral') {
+                'bullish' => 10,
+                'bearish' => -10,
+                default => 0,
+            };
+            $hist = $macd['histogram'] ?? 0;
+            if ($hist > 0) {
+                $score += 5;
+            } elseif ($hist < 0) {
+                $score -= 5;
+            }
+        }
+
+        if ($adx) {
+            $strength = $adx['strength'] ?? 'weak';
+            $dir = $adx['direction'] ?? 'neutral';
+            if ($strength === 'strong') {
+                $score += $dir === 'bullish' ? 10 : ($dir === 'bearish' ? -10 : 0);
+            } elseif ($strength === 'moderate') {
+                $score += $dir === 'bullish' ? 5 : ($dir === 'bearish' ? -5 : 0);
+            }
+        }
+
+        if ($vwap) {
+            $pos = $vwap['position'] ?? 'neutral';
+            if ($pos === 'above') {
+                $score += 5;
+            } elseif ($pos === 'below') {
+                $score -= 5;
+            }
+        }
+
         return max(0, min(100, $score));
     }
 
-    protected function momentumScore(string $momentum, ?float $rsi, ?float $maGap): float
+    protected function momentumScore(string $momentum, ?float $rsi, ?float $maGap, ?array $stoch, ?array $candles): float
     {
         $score = 50;
         $score += match ($momentum) {
@@ -223,6 +289,26 @@ class DecisionSupportService
             }
         }
 
+        if ($stoch && isset($stoch['k'])) {
+            $k = $stoch['k'];
+            $stochScore = 50;
+            if ($k < 20) {
+                $stochScore = 80;
+            } elseif ($k > 80) {
+                $stochScore = 20;
+            }
+            $score = (0.6 * $score) + (0.4 * $stochScore);
+        }
+
+        if ($candles && isset($candles['signal'])) {
+            $signal = $candles['signal'];
+            if ($signal === 'bullish') {
+                $score += 8;
+            } elseif ($signal === 'bearish') {
+                $score -= 8;
+            }
+        }
+
         if ($maGap !== null) {
             $score += max(-8, min(8, $maGap * 100));
         }
@@ -230,15 +316,599 @@ class DecisionSupportService
         return max(0, min(100, $score));
     }
 
-    protected function volumeScore(int $newsVolume, int $pricePoints): float
+    protected function volumeScore(int $newsVolume, int $pricePoints, ?array $obv, string $priceTrend): float
     {
-        $expected = max(3, (int) ($pricePoints / 6));
-        if ($newsVolume === 0) {
-            return 25;
+        $score = 50;
+
+        if ($obv) {
+            $trend = $obv['obv_trend'] ?? 'neutral';
+            $div = $obv['divergence'] ?? null;
+            if ($div === 'bullish') {
+                $score = 85;
+            } elseif ($div === 'bearish') {
+                $score = 15;
+            } elseif ($trend === 'rising' && $priceTrend === 'naik') {
+                $score = 80;
+            } elseif ($trend === 'falling' && $priceTrend === 'turun') {
+                $score = 20;
+            }
+        } else {
+            $expected = max(3, (int) ($pricePoints / 6));
+            if ($newsVolume === 0) {
+                return 25;
+            }
+            $ratio = $newsVolume / $expected;
+            $score = max(0, min(100, 45 + ($ratio * 20)));
         }
 
-        $ratio = $newsVolume / $expected;
-        return max(0, min(100, 45 + ($ratio * 20)));
+        return max(0, min(100, $score));
+    }
+
+    protected function volatilityScore(?array $bollinger): float
+    {
+        if (! $bollinger) {
+            return 50;
+        }
+        $position = $bollinger['position'] ?? 'neutral';
+        return match ($position) {
+            'oversold' => 80,
+            'overbought' => 20,
+            default => 50,
+        };
+    }
+
+    protected function calculateADX(array $highs, array $lows, array $closes, int $period = 14): ?array
+    {
+        $len = count($closes);
+        if ($len < $period * 2) {
+            return null;
+        }
+
+        $trs = $pdm = $mdm = [];
+        for ($i = 1; $i < $len; $i++) {
+            $tr = max(
+                $highs[$i] - $lows[$i],
+                abs($highs[$i] - $closes[$i - 1]),
+                abs($lows[$i] - $closes[$i - 1])
+            );
+            $trs[] = $tr;
+
+            $upMove = $highs[$i] - $highs[$i - 1];
+            $downMove = $lows[$i - 1] - $lows[$i];
+
+            $pdm[] = ($upMove > $downMove && $upMove > 0) ? $upMove : 0;
+            $mdm[] = ($downMove > $upMove && $downMove > 0) ? $downMove : 0;
+        }
+
+        $smooth = function (array $values) use ($period) {
+            $s = array_sum(array_slice($values, 0, $period));
+            $smoothed = [$s];
+            for ($i = $period; $i < count($values); $i++) {
+                $s = $s - ($s / $period) + $values[$i];
+                $smoothed[] = $s;
+            }
+            return $smoothed;
+        };
+
+        $trSmooth = $smooth($trs);
+        $pdmSmooth = $smooth($pdm);
+        $mdmSmooth = $smooth($mdm);
+
+        $plusDI = [];
+        $minusDI = [];
+        foreach ($trSmooth as $i => $trVal) {
+            if ($trVal == 0) {
+                $plusDI[] = 0;
+                $minusDI[] = 0;
+                continue;
+            }
+            $plusDI[] = 100 * ($pdmSmooth[$i] ?? 0) / $trVal;
+            $minusDI[] = 100 * ($mdmSmooth[$i] ?? 0) / $trVal;
+        }
+
+        $dx = [];
+        foreach ($plusDI as $i => $pdi) {
+            $mdi = $minusDI[$i] ?? 0;
+            $den = $pdi + $mdi;
+            $dx[] = $den == 0 ? 0 : 100 * abs($pdi - $mdi) / $den;
+        }
+
+        if (count($dx) < $period) {
+            return null;
+        }
+
+        $adxSeries = [];
+        $adxInit = array_sum(array_slice($dx, 0, $period)) / $period;
+        $adxSeries[] = $adxInit;
+        for ($i = $period; $i < count($dx); $i++) {
+            $adxInit = (($adxInit * ($period - 1)) + $dx[$i]) / $period;
+            $adxSeries[] = $adxInit;
+        }
+
+        $adxVal = end($adxSeries);
+        $plus = end($plusDI);
+        $minus = end($minusDI);
+
+        $strength = 'weak';
+        if ($adxVal > 40) {
+            $strength = 'strong';
+        } elseif ($adxVal >= 25) {
+            $strength = 'moderate';
+        }
+
+        $direction = 'neutral';
+        if ($plus > $minus) {
+            $direction = 'bullish';
+        } elseif ($minus > $plus) {
+            $direction = 'bearish';
+        }
+
+        return [
+            'adx' => round($adxVal, 2),
+            'plus_di' => round($plus, 2),
+            'minus_di' => round($minus, 2),
+            'strength' => $strength,
+            'direction' => $direction,
+        ];
+    }
+
+    protected function calculateATR(array $highs, array $lows, array $closes, int $period = 14): ?array
+    {
+        $len = count($closes);
+        if ($len < $period + 1) {
+            return null;
+        }
+
+        $trs = [];
+        for ($i = 1; $i < $len; $i++) {
+            $trs[] = max(
+                $highs[$i] - $lows[$i],
+                abs($highs[$i] - $closes[$i - 1]),
+                abs($lows[$i] - $closes[$i - 1])
+            );
+        }
+
+        $atr = array_sum(array_slice($trs, 0, $period)) / $period;
+        for ($i = $period; $i < count($trs); $i++) {
+            $atr = (($atr * ($period - 1)) + $trs[$i]) / $period;
+        }
+
+        $lastClose = end($closes);
+        $atrPct = $lastClose > 0 ? ($atr / $lastClose) * 100 : 0;
+        $volatility = 'normal';
+        if ($atrPct > 3) {
+            $volatility = 'high';
+        } elseif ($atrPct < 1) {
+            $volatility = 'low';
+        }
+
+        return [
+            'atr' => round($atr, 4),
+            'atr_percent' => round($atrPct, 2),
+            'volatility' => $volatility,
+        ];
+    }
+
+    protected function calculateVWAP(array $highs, array $lows, array $closes, array $volumes, int $period = 20): ?array
+    {
+        $len = count($closes);
+        if ($len < 3 || count($volumes) !== $len) {
+            return null;
+        }
+        $slice = array_slice($closes, -$period);
+        $sliceHighs = array_slice($highs, -$period);
+        $sliceLows = array_slice($lows, -$period);
+        $sliceVolumes = array_slice($volumes, -$period);
+
+        $tpVolSum = 0;
+        $volSum = 0;
+        foreach ($slice as $i => $close) {
+            $tp = ($sliceHighs[$i] + $sliceLows[$i] + $close) / 3;
+            $vol = $sliceVolumes[$i] ?? 0;
+            $tpVolSum += $tp * $vol;
+            $volSum += $vol;
+        }
+        if ($volSum == 0) {
+            return null;
+        }
+        $vwap = $tpVolSum / $volSum;
+        $lastClose = end($closes);
+        $distance = $vwap != 0 ? abs(($lastClose - $vwap) / $vwap) * 100 : null;
+        $position = $lastClose > $vwap ? 'above' : ($lastClose < $vwap ? 'below' : 'neutral');
+
+        return [
+            'vwap' => round($vwap, 4),
+            'position' => $position,
+            'distance' => $distance !== null ? round($distance, 2) : null,
+        ];
+    }
+
+    protected function detectCandlestickPatterns(array $opens, array $highs, array $lows, array $closes): ?array
+    {
+        $n = count($closes);
+        if ($n < 3) {
+            return null;
+        }
+
+        $patterns = [];
+
+        $c0 = $closes[$n - 1]; $o0 = $opens[$n - 1];
+        $h0 = $highs[$n - 1];  $l0 = $lows[$n - 1];
+        $c1 = $closes[$n - 2]; $o1 = $opens[$n - 2];
+        $h1 = $highs[$n - 2];  $l1 = $lows[$n - 2];
+        $c2 = $closes[$n - 3]; $o2 = $opens[$n - 3];
+
+        $body0 = abs($c0 - $o0);
+        $body1 = abs($c1 - $o1);
+        $range0 = $h0 - $l0;
+        $range1 = $h1 - $l1;
+
+        if ($range0 > 0 && ($body0 / $range0) < 0.1) {
+            $patterns[] = ['name' => 'Doji', 'signal' => 'neutral', 'description' => 'Indecision — potential reversal'];
+        }
+
+        $lowerShadow0 = min($o0, $c0) - $l0;
+        $upperShadow0 = $h0 - max($o0, $c0);
+        if ($body0 > 0 && $lowerShadow0 >= 2 * $body0 && $upperShadow0 <= $body0 * 0.5) {
+            $patterns[] = ['name' => 'Hammer', 'signal' => 'bullish', 'description' => 'Potential bullish reversal'];
+        }
+        if ($body0 > 0 && $upperShadow0 >= 2 * $body0 && $lowerShadow0 <= $body0 * 0.5) {
+            $patterns[] = ['name' => 'Shooting Star', 'signal' => 'bearish', 'description' => 'Potential bearish reversal'];
+        }
+
+        if ($c1 < $o1 && $c0 > $o0 && $o0 < $c1 && $c0 > $o1) {
+            $patterns[] = ['name' => 'Bullish Engulfing', 'signal' => 'bullish', 'description' => 'Strong bullish reversal signal'];
+        }
+        if ($c1 > $o1 && $c0 < $o0 && $o0 > $c1 && $c0 < $o1) {
+            $patterns[] = ['name' => 'Bearish Engulfing', 'signal' => 'bearish', 'description' => 'Strong bearish reversal signal'];
+        }
+
+        $body2 = abs($c2 - $o2);
+        if ($c2 < $o2 && ($body1 / ($h1 - $l1 + 0.01)) < 0.3 && $c0 > $o0 && $c0 > ($o2 + $c2) / 2) {
+            $patterns[] = ['name' => 'Morning Star', 'signal' => 'bullish', 'description' => 'Strong bullish reversal — 3 candle pattern'];
+        }
+        if ($c2 > $o2 && ($body1 / ($h1 - $l1 + 0.01)) < 0.3 && $c0 < $o0 && $c0 < ($o2 + $c2) / 2) {
+            $patterns[] = ['name' => 'Evening Star', 'signal' => 'bearish', 'description' => 'Strong bearish reversal — 3 candle pattern'];
+        }
+
+        $bullish = count(array_filter($patterns, fn ($p) => $p['signal'] === 'bullish'));
+        $bearish = count(array_filter($patterns, fn ($p) => $p['signal'] === 'bearish'));
+        $signal = 'neutral';
+        if ($bullish > $bearish) {
+            $signal = 'bullish';
+        } elseif ($bearish > $bullish) {
+            $signal = 'bearish';
+        }
+
+        return [
+            'patterns' => $patterns,
+            'signal' => $signal,
+            'count' => count($patterns),
+        ];
+    }
+
+    protected function calculateFundamentalScore(Stock $stock): array
+    {
+        $score = 50;
+        $signals = [];
+        $risks = [];
+
+        if ($stock->pbv !== null) {
+            if ($stock->pbv < 1.0) {
+                $score += 15;
+                $signals[] = "PBV {$stock->pbv}x — saham undervalued, di bawah book value";
+            } elseif ($stock->pbv < 2.0) {
+                $score += 8;
+                $signals[] = "PBV {$stock->pbv}x — valuasi wajar";
+            } elseif ($stock->pbv < 4.0) {
+                $score += 2;
+            } else {
+                $score -= 8;
+                $risks[] = "PBV {$stock->pbv}x — valuasi premium, risiko koreksi jika earning miss";
+            }
+        }
+
+        if ($stock->per !== null && $stock->per > 0) {
+            if ($stock->per < 8) {
+                $score += 12;
+                $signals[] = "PER {$stock->per}x — sangat murah, potensi value trap atau undervalued";
+            } elseif ($stock->per < 15) {
+                $score += 6;
+                $signals[] = "PER {$stock->per}x — valuasi menarik";
+            } elseif ($stock->per < 25) {
+                $score += 0;
+            } else {
+                $score -= 6;
+                $risks[] = "PER {$stock->per}x — premium tinggi, priced for perfection";
+            }
+        } elseif ($stock->per === null || $stock->per <= 0) {
+            $score -= 10;
+            $risks[] = "PER negatif/N/A — perusahaan masih merugi";
+        }
+
+        if ($stock->roe !== null) {
+            if ($stock->roe >= 20) {
+                $score += 12;
+                $signals[] = "ROE {$stock->roe}% — profitabilitas sangat baik";
+            } elseif ($stock->roe >= 15) {
+                $score += 7;
+                $signals[] = "ROE {$stock->roe}% — profitabilitas baik";
+            } elseif ($stock->roe >= 10) {
+                $score += 2;
+            } elseif ($stock->roe >= 0) {
+                $score -= 3;
+            } else {
+                $score -= 12;
+                $risks[] = "ROE {$stock->roe}% — perusahaan sedang merugi";
+            }
+        }
+
+        if ($stock->der !== null) {
+            $isBank = in_array($stock->sector, ['Perbankan', 'Keuangan', 'Bank']);
+            if ($isBank) {
+                if ($stock->der >= 4 && $stock->der <= 9) {
+                    $score += 3;
+                } elseif ($stock->der > 9) {
+                    $score -= 5;
+                    $risks[] = "DER {$stock->der}x — leverage bank sangat tinggi";
+                }
+            } else {
+                if ($stock->der < 0.5) {
+                    $score += 10;
+                    $signals[] = "DER {$stock->der}x — leverage sangat rendah, neraca kuat";
+                } elseif ($stock->der < 1.5) {
+                    $score += 5;
+                    $signals[] = "DER {$stock->der}x — leverage moderat, sehat";
+                } elseif ($stock->der < 3.0) {
+                    $score -= 3;
+                    $risks[] = "DER {$stock->der}x — leverage tinggi, pantau cashflow";
+                } else {
+                    $score -= 10;
+                    $risks[] = "DER {$stock->der}x — leverage sangat tinggi, risiko finansial";
+                }
+            }
+        }
+
+        if ($stock->dividend_yield !== null && $stock->dividend_yield > 0) {
+            if ($stock->dividend_yield >= 5) {
+                $score += 5;
+                $signals[] = "Dividend yield {$stock->dividend_yield}% — income stock menarik";
+            } elseif ($stock->dividend_yield >= 2) {
+                $score += 2;
+            }
+        }
+
+        $score = max(0, min(100, $score));
+        $rating = 'neutral';
+        if ($score >= 70) {
+            $rating = 'attractive';
+        } elseif ($score >= 55) {
+            $rating = 'fair';
+        } elseif ($score <= 35) {
+            $rating = 'expensive';
+        }
+
+        return [
+            'score' => $score,
+            'rating' => $rating,
+            'pbv' => $stock->pbv,
+            'per' => $stock->per,
+            'roe' => $stock->roe,
+            'der' => $stock->der,
+            'eps' => $stock->eps,
+            'dividend_yield' => $stock->dividend_yield,
+            'updated_at' => $stock->fundamentals_updated_at,
+            'signals' => $signals,
+            'risks' => $risks,
+        ];
+    }
+
+    protected function calculateMACD(array $closes): ?array
+    {
+        if (count($closes) < 35) {
+            return null;
+        }
+
+        $ema12 = $this->ema(array_slice($closes, -35), 12);
+        $ema26 = $this->ema(array_slice($closes, -35), 26);
+        if ($ema12 === null || $ema26 === null) {
+            return null;
+        }
+        $macdLine = $ema12 - $ema26;
+
+        // Build MACD series for last 9 periods to get signal
+        $macdSeries = [];
+        $slice = array_slice($closes, -35);
+        foreach ($slice as $i => $price) {
+            $segment = array_slice($slice, 0, $i + 1);
+            $e12 = $this->ema($segment, 12);
+            $e26 = $this->ema($segment, 26);
+            if ($e12 !== null && $e26 !== null) {
+                $macdSeries[] = $e12 - $e26;
+            }
+        }
+
+        $signal = $this->ema($macdSeries, 9);
+        if ($signal === null) {
+            return null;
+        }
+        $histogram = $macdLine - $signal;
+
+        $trend = 'neutral';
+        if ($macdLine > $signal && $histogram > 0) {
+            $trend = 'bullish';
+        } elseif ($macdLine < $signal && $histogram < 0) {
+            $trend = 'bearish';
+        }
+
+        return [
+            'macd' => round($macdLine, 4),
+            'signal' => round($signal, 4),
+            'histogram' => round($histogram, 4),
+            'trend' => $trend,
+        ];
+    }
+
+    protected function calculateBollingerBands(array $closes, int $period = 20, float $stdDev = 2.0): ?array
+    {
+        if (count($closes) < $period) {
+            return null;
+        }
+
+        $slice = array_slice($closes, -$period);
+        $middle = array_sum($slice) / $period;
+
+        $variance = 0.0;
+        foreach ($slice as $price) {
+            $variance += pow($price - $middle, 2);
+        }
+        $variance /= $period;
+        $std = sqrt($variance);
+
+        $upper = $middle + ($stdDev * $std);
+        $lower = $middle - ($stdDev * $std);
+        $lastClose = end($closes);
+
+        $position = 'neutral';
+        if ($lastClose > $upper) {
+            $position = 'overbought';
+        } elseif ($lastClose < $lower) {
+            $position = 'oversold';
+        }
+
+        $bandwidth = $middle != 0.0 ? (($upper - $lower) / $middle) * 100 : null;
+        $percentB = ($upper - $lower) != 0.0 ? ($lastClose - $lower) / ($upper - $lower) : null;
+
+        return [
+            'upper' => round($upper, 4),
+            'middle' => round($middle, 4),
+            'lower' => round($lower, 4),
+            'bandwidth' => $bandwidth !== null ? round($bandwidth, 4) : null,
+            'percent_b' => $percentB !== null ? round($percentB, 4) : null,
+            'position' => $position,
+        ];
+    }
+
+    protected function calculateStochastic(array $highs, array $lows, array $closes, int $kPeriod = 14, int $dPeriod = 3): ?array
+    {
+        if (count($highs) < ($kPeriod + $dPeriod)) {
+            return null;
+        }
+
+        $recentHighs = array_slice($highs, -$kPeriod);
+        $recentLows = array_slice($lows, -$kPeriod);
+        $recentCloses = array_slice($closes, -($kPeriod + $dPeriod));
+
+        $highestHigh = max($recentHighs);
+        $lowestLow = min($recentLows);
+        $lastClose = end($closes);
+
+        $denominator = $highestHigh - $lowestLow;
+        if ($denominator == 0.0) {
+            return null;
+        }
+
+        $k = (($lastClose - $lowestLow) / $denominator) * 100;
+
+        // build %K series for last dPeriod to compute %D
+        $kSeries = [];
+        for ($i = $dPeriod - 1; $i >= 0; $i--) {
+            $subsetCloses = array_slice($recentCloses, -$kPeriod - $i, $kPeriod);
+            $hh = max(array_slice($highs, -$kPeriod - $i, $kPeriod));
+            $ll = min(array_slice($lows, -$kPeriod - $i, $kPeriod));
+            $den = $hh - $ll;
+            if ($den == 0.0) {
+                continue;
+            }
+            $kSeries[] = ((end($subsetCloses) - $ll) / $den) * 100;
+        }
+        $d = count($kSeries) ? array_sum($kSeries) / count($kSeries) : null;
+
+        $signal = 'neutral';
+        if ($k > 80) {
+            $signal = 'overbought';
+        } elseif ($k < 20) {
+            $signal = 'oversold';
+        }
+
+        $cross = null;
+        if ($d !== null) {
+            $prevK = count($kSeries) > 1 ? $kSeries[count($kSeries) - 2] : null;
+            $prevD = count($kSeries) > 1 ? array_sum(array_slice($kSeries, 0, -1)) / (count($kSeries) - 1) : null;
+            if ($prevK !== null && $prevD !== null) {
+                if ($prevK < $prevD && $k > $d && $k < 20) {
+                    $cross = 'bullish';
+                } elseif ($prevK > $prevD && $k < $d && $k > 80) {
+                    $cross = 'bearish';
+                }
+            }
+        }
+
+        return [
+            'k' => round($k, 2),
+            'd' => $d !== null ? round($d, 2) : null,
+            'signal' => $signal,
+            'cross' => $cross,
+        ];
+    }
+
+    protected function calculateOBV(array $closes, array $volumes): ?array
+    {
+        if (count($closes) < 2 || count($closes) !== count($volumes)) {
+            return null;
+        }
+
+        $obvSeries = [];
+        $obv = $volumes[0] ?? 0;
+        $obvSeries[] = $obv;
+        for ($i = 1; $i < count($closes); $i++) {
+            if ($closes[$i] > $closes[$i - 1]) {
+                $obv += $volumes[$i];
+            } elseif ($closes[$i] < $closes[$i - 1]) {
+                $obv -= $volumes[$i];
+            }
+            $obvSeries[] = $obv;
+        }
+
+        $obvTrend = 'neutral';
+        if (count($obvSeries) > 5) {
+            $prev = $obvSeries[count($obvSeries) - 6];
+            if ($obv > $prev) {
+                $obvTrend = 'rising';
+            } elseif ($obv < $prev) {
+                $obvTrend = 'falling';
+            }
+        }
+
+        $divergence = null;
+        if (count($closes) > 5) {
+            $priceChange = $closes[count($closes) - 1] - $closes[count($closes) - 6];
+            $obvChange = $obv - $obvSeries[count($obvSeries) - 6];
+            if ($priceChange < 0 && $obvChange > 0) {
+                $divergence = 'bullish';
+            } elseif ($priceChange > 0 && $obvChange < 0) {
+                $divergence = 'bearish';
+            }
+        }
+
+        return [
+            'obv' => $obv,
+            'obv_trend' => $obvTrend,
+            'divergence' => $divergence,
+        ];
+    }
+
+    protected function ema(array $values, int $period): ?float
+    {
+        if (count($values) < $period) {
+            return null;
+        }
+        $k = 2 / ($period + 1);
+        $ema = $values[0];
+        foreach ($values as $price) {
+            $ema = ($price * $k) + ($ema * (1 - $k));
+        }
+        return $ema;
     }
 
     protected function statusAndConfidence(float $finalScore, array $analytics, Collection $prices): array
@@ -269,6 +939,14 @@ class DecisionSupportService
             ($technical['rsi'] ?? 0) >= 55 ? 'RSI berada di zona momentum sehat.' : null,
             ($technical['breakout'] ?? null) === 'breakout' ? 'Harga menembus resistance, indikasi breakout.' : null,
             ($analytics['same_day_correlation'] ?? 0) > 0.2 ? 'Korelasi sentimen-return selaras (same-day).' : null,
+            ($technical['macd']['trend'] ?? null) === 'bullish' ? 'MACD bullish — momentum positif terkonfirmasi.' : null,
+            ($technical['bollinger']['position'] ?? null) === 'oversold' ? 'Harga di zona oversold Bollinger — potensi rebound.' : null,
+            (($technical['stochastic']['k'] ?? null) !== null && ($technical['stochastic']['k'] < 20) && ($technical['stochastic']['cross'] ?? null) === 'bullish') ? 'Stochastic: sinyal beli dari zona oversold.' : null,
+            ($technical['obv']['divergence'] ?? null) === 'bullish' ? 'OBV divergensi bullish — akumulasi terdeteksi.' : null,
+            ($technical['obv']['obv_trend'] ?? null) === 'rising' ? 'Volume terbobot (OBV) mengkonfirmasi kenaikan harga.' : null,
+            ($technical['adx']['strength'] ?? null) === 'strong' && ($technical['adx']['direction'] ?? null) === 'bullish' ? 'ADX kuat dengan arah bullish — tren solid.' : null,
+            ($technical['candles']['signal'] ?? null) === 'bullish' ? 'Pola candlestick bullish terdeteksi: '.implode(', ', array_map(fn($p) => $p['name'], $technical['candles']['patterns'] ?? [])) : null,
+            ($technical['atr']['volatility'] ?? null) === 'low' ? 'ATR rendah — volatilitas terkontrol.' : null,
         ]));
     }
 
@@ -280,6 +958,12 @@ class DecisionSupportService
             ($technical['rsi'] ?? 50) <= 45 ? 'RSI rendah, momentum terbatas.' : null,
             ($technical['breakout'] ?? null) === 'breakdown' ? 'Harga menembus support, risiko breakdown.' : null,
             ($analytics['lag_correlations']['h1'] ?? 0) < -0.2 ? 'Lag H+1 negatif: sentimen buruk diikuti return negatif.' : null,
+            ($technical['macd']['trend'] ?? null) === 'bearish' ? 'MACD bearish — momentum negatif, waspadai penurunan.' : null,
+            ($technical['bollinger']['position'] ?? null) === 'overbought' ? 'Harga di zona overbought Bollinger — risiko koreksi.' : null,
+            (($technical['stochastic']['k'] ?? null) !== null && ($technical['stochastic']['k'] > 80) && ($technical['stochastic']['cross'] ?? null) === 'bearish') ? 'Stochastic: sinyal jual dari zona overbought.' : null,
+            ($technical['obv']['divergence'] ?? null) === 'bearish' ? 'OBV divergensi bearish — distribusi terdeteksi.' : null,
+            ($technical['adx']['strength'] ?? null) === 'strong' && ($technical['adx']['direction'] ?? null) === 'bearish' ? 'ADX kuat dengan arah bearish — tren turun solid.' : null,
+            ($technical['candles']['signal'] ?? null) === 'bearish' ? 'Pola candlestick bearish terdeteksi: '.implode(', ', array_map(fn($p) => $p['name'], $technical['candles']['patterns'] ?? [])) : null,
         ]));
     }
 
@@ -289,6 +973,7 @@ class DecisionSupportService
             isset($analytics['volatility']) && $analytics['volatility'] > 5 ? 'Volatilitas tinggi, pergerakan harga lebih liar.' : null,
             ($analytics['event_study']['negative_events'][0]['sentiment'] ?? null) ? 'Ada lonjakan sentimen negatif, pantau dampak pasca-event.' : null,
             ($technical['breakout'] ?? null) === 'breakdown' ? 'Harga di bawah support meningkatkan risiko invalidasi.' : null,
+            ($technical['atr']['volatility'] ?? null) === 'high' ? 'ATR tinggi ('.($technical['atr']['atr_percent'] ?? '-').'%) — risiko stop-loss lebih besar.' : null,
         ]));
     }
 
@@ -339,8 +1024,8 @@ class DecisionSupportService
     {
         return array_values(array_filter([
             'Dominasi sentimen: '.($analytics['sentiment_dominance'] ?? 'neutral'),
-            $analytics['news_volume'] ? 'Volume berita: '.$analytics['news_volume'] : null,
-            $analytics['same_day_correlation'] !== null ? 'Korelasi same-day: '.$analytics['same_day_correlation'] : null,
+            ($analytics['news_volume'] ?? 0) ? 'Volume berita: '.($analytics['news_volume'] ?? 0) : null,
+            ($analytics['same_day_correlation'] ?? null) !== null ? 'Korelasi same-day: '.($analytics['same_day_correlation'] ?? null) : null,
             $technical['breakout'] ? 'Status harga: '.$technical['breakout'] : null,
             $supporting ? 'Faktor pendukung: '.implode('; ', array_slice($supporting, 0, 2)) : null,
             $weakening ? 'Faktor pelemah: '.implode('; ', array_slice($weakening, 0, 2)) : null,

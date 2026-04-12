@@ -124,13 +124,11 @@
                             </template>
                         </div>
                     </div>
-                    <div class="hidden md:flex items-center gap-3 text-xs">
+                    <div class="hidden md:flex items-center gap-3 text-xs" x-data="marketClock()" x-init="start()">
                         <div class="px-3 py-2 rounded-lg border border-slate-800 bg-slate-900/70">
-                            Market: <span class="text-green-400 font-semibold">OPEN</span>
+                            Market: <span class="font-semibold" :class="statusClass" x-text="statusLabel"></span>
                         </div>
-                        <div class="px-3 py-2 rounded-lg border border-slate-800 bg-slate-900/70">
-                            {{ now()->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB
-                        </div>
+                        <div class="px-3 py-2 rounded-lg border border-slate-800 bg-slate-900/70" x-text="timeText + ' WIB'"></div>
                     </div>
                     <div class="relative" x-data="{ open: false }">
                         <button class="flex items-center gap-3 focus:outline-none" x-on:click="open = !open">
@@ -161,6 +159,55 @@
             </main>
         </div>
     </div>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            window.marketClock = function () {
+                return {
+                    statusLabel: 'CLOSED',
+                    statusClass: 'text-slate-400',
+                    timeText: '',
+                    start() {
+                        this.update();
+                        setInterval(() => this.update(), 1000);
+                    },
+                    update() {
+                        const nowJkt = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+                        this.timeText = nowJkt.toLocaleString('id-ID', {
+                            timeZone: 'Asia/Jakarta',
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false,
+                        });
+
+                        const day = nowJkt.getDay(); // 0 Sunday, 6 Saturday
+                        const h = nowJkt.getHours();
+                        const m = nowJkt.getMinutes();
+                        const openMorning = (h > 9 || (h === 9 && m >= 0)) && (h < 12 || (h === 12 && m === 0));
+                        const openAfternoon = (h > 13 || (h === 13 && m >= 30)) && (h < 15 || (h === 15 && m === 0));
+                        const onBreak = (h === 12) || (h === 13 && m < 30);
+
+                        if (day === 0 || day === 6) {
+                            this.statusLabel = 'CLOSED';
+                            this.statusClass = 'text-slate-400';
+                        } else if (openMorning || openAfternoon) {
+                            this.statusLabel = 'OPEN';
+                            this.statusClass = 'text-green-400';
+                        } else if (onBreak) {
+                            this.statusLabel = 'BREAK';
+                            this.statusClass = 'text-amber-400';
+                        } else {
+                            this.statusLabel = 'CLOSED';
+                            this.statusClass = 'text-slate-400';
+                        }
+                    },
+                };
+            };
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

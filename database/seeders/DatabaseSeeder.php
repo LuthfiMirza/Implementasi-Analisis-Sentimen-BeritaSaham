@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             StockSeeder::class,
             NewsSeeder::class,
+            FundamentalStockSeeder::class,
         ]);
 
         FetchLog::factory(5)->create();

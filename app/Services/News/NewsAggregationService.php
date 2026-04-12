@@ -8,12 +8,15 @@ use App\Models\Stock;
 use App\Services\News\ApiNewsFetcher;
 use App\Services\News\FinnhubNewsFetcher;
 use App\Services\News\GdeltFetcher;
+use App\Services\News\GNewsFetcher;
 use App\Services\News\ManualNewsFetcher;
 use App\Services\News\MockNewsFetcher;
 use App\Services\News\NewsApiFetcher;
 use App\Services\News\RssLocalFetcher;
 use App\Services\News\RssNewsFetcher;
 use App\Services\News\StockKeywordMapper;
+use App\Services\News\RelevanceScoringService;
+use App\Services\News\ArticleDeduplicationService;
 use App\Services\Sentiment\SentimentAnalyzerInterface;
 use App\Services\Sentiment\SentimentEngineManager;
 use App\Models\SystemSetting;
@@ -31,10 +34,14 @@ class NewsAggregationService
         protected ?SentimentAnalyzerInterface $analyzer = null,
         protected ?StockKeywordMapper $keywordMapper = null,
         protected ?SentimentEngineManager $sentimentEngineManager = null,
+        protected ?RelevanceScoringService $relevanceScoringService = null,
+        protected ?ArticleDeduplicationService $deduper = null,
     ) {
         $this->sentimentEngineManager ??= new SentimentEngineManager();
         $this->analyzer ??= $this->sentimentEngineManager->getAnalyzer();
         $this->keywordMapper ??= new StockKeywordMapper();
+        $this->relevanceScoringService ??= new RelevanceScoringService($this->keywordMapper);
+        $this->deduper ??= new ArticleDeduplicationService();
         $this->fetchers = [
             'mock' => new MockNewsFetcher(),
             'manual' => new ManualNewsFetcher(),
@@ -42,6 +49,7 @@ class NewsAggregationService
             'api' => new ApiNewsFetcher(),
             'finnhub' => new FinnhubNewsFetcher(),
             'newsapi' => new NewsApiFetcher($this->keywordMapper),
+            'gnews' => new GNewsFetcher($this->keywordMapper),
             'rss_local' => new RssLocalFetcher($this->keywordMapper),
             'gdelt' => new GdeltFetcher($this->keywordMapper),
         ];
@@ -51,7 +59,8 @@ class NewsAggregationService
     {
         return NewsArticle::with('source')
             ->where('stock_id', $stock->id)
-            ->latest('published_at')
+            ->orderByDesc('final_quality_score')
+            ->orderByDesc('published_at')
             ->limit($limit)
             ->get();
     }
@@ -62,7 +71,7 @@ class NewsAggregationService
             ?? config('services.news.provider', env('NEWS_PROVIDER', 'mock'));
 
         $providers = $providerKey === 'multi'
-            ? ['newsapi', 'rss_local', 'gdelt', 'finnhub']
+            ? (config('news.source_priority', ['newsapi', 'gnews', 'rss_local', 'gdelt', 'finnhub']))
             : [$providerKey];
 
         $rawArticles = collect();
@@ -71,7 +80,12 @@ class NewsAggregationService
             if (! $fetcher) {
                 continue;
             }
-            $rawArticles = $rawArticles->merge($fetcher->fetchForStock($stock, $limit));
+            $rawArticles = $rawArticles->merge(
+                collect($fetcher->fetchForStock($stock, $limit))->map(function ($item) use ($key) {
+                    $item['provider'] = $item['provider'] ?? $key;
+                    return $item;
+                })
+            );
         }
 
         $source = $this->resolveSource($providerKey);
@@ -81,9 +95,39 @@ class NewsAggregationService
         $exclusions = $this->keywordMapper->exclusionKeywords($stock);
         $domainWhitelist = $this->domainList(env('NEWS_DOMAIN_WHITELIST', ''));
         $domainBlacklist = $this->domainList(env('NEWS_DOMAIN_BLACKLIST', ''));
+        $threshold = (float) config('news.relevance_threshold', 0.35);
+        $finalThreshold = (float) config('news.final_quality_threshold', 0.4);
+        $this->deduper->reset();
 
-        foreach ($rawArticles->unique('source_url') as $rawArticle) {
-            if (! $this->isRelevant($rawArticle, $keywords, $exclusions, $domainWhitelist, $domainBlacklist)) {
+        $scoredArticles = $rawArticles
+            ->filter(fn ($raw) => $this->passesDomainAndExclusion($raw, $exclusions, $domainWhitelist, $domainBlacklist))
+            ->map(function ($raw) use ($stock) {
+                $score = $this->relevanceScoringService->score($stock, $raw, $raw['provider'] ?? null);
+                return array_merge($raw, $score);
+            })
+            ->filter(function ($row) use ($threshold, $finalThreshold) {
+                $lang = strtolower($row['detected_language'] ?? $row['language'] ?? '');
+                if ($lang && ! in_array($lang, ['id', 'en'])) {
+                    return false;
+                }
+                if (($row['relevance_score'] ?? 0) < $threshold) {
+                    return false;
+                }
+                $finalScore = $row['final_quality_score'] ?? $row['relevance_score'] ?? 0;
+                if ($finalScore < $finalThreshold) {
+                    return false;
+                }
+                return true;
+            })
+            ->sortByDesc('final_quality_score')
+            ->values();
+
+        foreach ($scoredArticles as $rawArticle) {
+            if ($this->deduper->shouldSkip($rawArticle)) {
+                continue;
+            }
+
+            if (! $this->isRelevant($rawArticle, $keywords)) {
                 continue;
             }
 
@@ -94,7 +138,7 @@ class NewsAggregationService
                 'title' => $title,
                 'summary' => $summary,
                 'body' => $rawArticle['full_text'] ?? $rawArticle['content_snippet'] ?? null,
-                'language' => $rawArticle['language'] ?? 'id',
+                'language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
             ]);
             $sourceUrl = $rawArticle['source_url'] ?? null;
 
@@ -112,6 +156,8 @@ class NewsAggregationService
                 'slug' => $slug,
                 'stock_id' => $stock->id,
                 'news_source_id' => $source?->id,
+                'source_provider' => $rawArticle['provider'] ?? $providerKey,
+                'source_weight' => $rawArticle['source_weight'] ?? null,
                 'title' => $title,
                 'source_url' => $sourceUrl ?? 'https://news.local/'.$slug,
                 'published_at' => $rawArticle['published_at'] ?? Carbon::now(),
@@ -122,28 +168,31 @@ class NewsAggregationService
                 'sentiment_score' => $rawArticle['sentiment_score'] ?? $analysis['score'],
                 'sentiment_confidence' => $rawArticle['sentiment_confidence'] ?? $analysis['confidence'] ?? null,
                 'sentiment_method' => $rawArticle['sentiment_method'] ?? $analysis['method'] ?? 'rule_based',
+                'relevance_score' => $rawArticle['relevance_score'] ?? null,
+                'relevance_band' => $rawArticle['relevance_band'] ?? null,
+                'entity_match_score' => $rawArticle['entity_match_score'] ?? null,
+                'market_context_score' => $rawArticle['market_context_score'] ?? null,
+                'language_score' => $rawArticle['language_score'] ?? null,
+                'final_quality_score' => $rawArticle['final_quality_score'] ?? null,
+                'quality_band' => $rawArticle['quality_band'] ?? null,
+                'matched_keywords' => $rawArticle['matched_keywords'] ?? null,
+                'quality_flags' => $rawArticle['quality_flags'] ?? null,
                 'sentiment_meta' => [
                     'matched_positive_terms' => $analysis['matched_positive_terms'] ?? [],
                     'matched_negative_terms' => $analysis['matched_negative_terms'] ?? [],
                     'reason_summary' => $analysis['reason_summary'] ?? null,
                 ],
                 'analyzed_at' => Carbon::now(),
-                'language' => $rawArticle['language'] ?? 'id',
+                'language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
+                'detected_language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
                 'raw_payload' => $rawArticle['raw_payload'] ?? null,
                 'fetched_at' => Carbon::now(),
             ]);
         }
     }
 
-    protected function isRelevant(array $rawArticle, array $keywords, array $exclusions, array $domainWhitelist, array $domainBlacklist): bool
+    protected function passesDomainAndExclusion(array $rawArticle, array $exclusions, array $domainWhitelist, array $domainBlacklist): bool
     {
-        $text = strtolower(implode(' ', array_filter([
-            $rawArticle['title'] ?? '',
-            $rawArticle['summary'] ?? '',
-            $rawArticle['content_snippet'] ?? '',
-            $rawArticle['full_text'] ?? '',
-        ])));
-
         $domain = $this->extractDomain($rawArticle['source_url'] ?? null);
         if ($domain && in_array($domain, $domainBlacklist, true)) {
             return false;
@@ -153,10 +202,29 @@ class NewsAggregationService
         }
 
         foreach ($exclusions as $ex) {
+            $text = strtolower(implode(' ', array_filter([
+                $rawArticle['title'] ?? '',
+                $rawArticle['summary'] ?? '',
+                $rawArticle['content_snippet'] ?? '',
+                $rawArticle['full_text'] ?? '',
+            ])));
+
             if ($ex && str_contains($text, strtolower($ex))) {
                 return false;
             }
         }
+
+        return true;
+    }
+
+    protected function isRelevant(array $rawArticle, array $keywords): bool
+    {
+        $text = strtolower(implode(' ', array_filter([
+            $rawArticle['title'] ?? '',
+            $rawArticle['summary'] ?? '',
+            $rawArticle['content_snippet'] ?? '',
+            $rawArticle['full_text'] ?? '',
+        ])));
 
         foreach ($keywords as $kw) {
             if ($kw && str_contains($text, strtolower($kw))) {

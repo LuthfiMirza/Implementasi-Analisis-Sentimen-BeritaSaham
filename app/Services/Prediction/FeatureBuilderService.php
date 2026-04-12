@@ -23,6 +23,7 @@ class FeatureBuilderService
             'period' => $periodDays,
             'sentiment_average' => $analytics['average_sentiment'] ?? 0,
             'weighted_sentiment' => $analytics['weighted_sentiment'] ?? 0,
+            'weighted_sentiment_quality' => data_get($analytics, 'weighted_sentiment_stats.weighted_sentiment_average', $analytics['weighted_sentiment'] ?? 0),
             'sentiment_dominance' => $analytics['sentiment_dominance'] ?? 'neutral',
             'news_volume' => $analytics['news_volume'] ?? 0,
             'positive_news_count' => $analytics['counts']['positive'] ?? 0,

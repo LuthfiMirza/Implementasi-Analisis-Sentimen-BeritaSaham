@@ -29,6 +29,7 @@ class StockKeywordMapper
      */
     protected array $exclusions = [
         'GOTO' => ['goto islands', 'goto island', 'camellia', 'nagasaki', 'archipelago', 'tsubaki'],
+        'ASII' => ['asia', 'asian', 'asii express', 'asia express', 'asia finance'],
     ];
 
     public function keywords(Stock $stock): array
@@ -66,5 +67,20 @@ class StockKeywordMapper
     {
         $keywords = $this->keywords($stock);
         return collect($keywords)->map(fn ($k) => "\"{$k}\"")->implode(' OR ');
+    }
+
+    public function contextualQuery(Stock $stock, ?array $context = null): string
+    {
+        $ctx = $context ?? config('news.context_keywords', []);
+        $left = '(' . $this->queryString($stock) . ')';
+        $right = '';
+        if ($ctx && count($ctx)) {
+            $right = ' AND (' . collect($ctx)->map(function ($w) {
+                $w = trim($w);
+                return $w ? "\"{$w}\"" : null;
+            })->filter()->implode(' OR ') . ')';
+        }
+
+        return trim($left . $right);
     }
 }

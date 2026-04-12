@@ -23,6 +23,7 @@ class SentimentPriceAnalyticsService
         $dominance = $this->dominantSentiment($counts);
 
         $weightedSentiment = $this->weightedSentiment($articles, $stock, $periodDays);
+        $weightedStats = $this->weightedSentimentStats($articles, $stock, $periodDays);
         $newsVolume = $articles->count();
         $dailyReturn = $this->latestReturn($returns);
         $cumulativeReturn = $this->cumulativeReturn($orderedPrices);
@@ -43,6 +44,7 @@ class SentimentPriceAnalyticsService
         return [
             'average_sentiment' => $averageSentiment,
             'weighted_sentiment' => $weightedSentiment,
+            'weighted_sentiment_stats' => $weightedStats,
             'sentiment_dominance' => $dominance,
             'counts' => $counts,
             'news_volume' => $newsVolume,
@@ -151,6 +153,47 @@ class SentimentPriceAnalyticsService
         $weight *= max(0.6, $recencyFactor);
 
         return $weight;
+    }
+
+    protected function weightedSentimentStats(Collection $articles, Stock $stock, int $periodDays): array
+    {
+        $sum = 0.0;
+        $total = 0.0;
+        $pos = 0.0;
+        $neg = 0.0;
+        $neu = 0.0;
+
+        foreach ($articles as $article) {
+            $baseWeight = $this->articleWeight($article, $stock, $periodDays);
+            $relevance = (float) ($article->relevance_score ?? 1.0);
+            $sourceWeight = (float) ($article->source_weight ?? 1.0);
+            $effective = $baseWeight * max(0.1, $relevance) * max(0.5, $sourceWeight);
+
+            $score = (float) ($article->sentiment_score ?? 0);
+            $label = $article->sentiment_label ?? 'neutral';
+
+            $sum += $score * $effective;
+            $total += $effective;
+
+            if ($label === 'positive') {
+                $pos += $effective;
+            } elseif ($label === 'negative') {
+                $neg += $effective;
+            } else {
+                $neu += $effective;
+            }
+        }
+
+        $avg = $total > 0 ? round($sum / $total, 3) : 0.0;
+
+        return [
+            'weighted_sentiment_score' => $sum,
+            'weighted_sentiment_average' => $avg,
+            'weighted_positive_count' => round($pos, 3),
+            'weighted_negative_count' => round($neg, 3),
+            'weighted_neutral_count' => round($neu, 3),
+            'total_effective_weight' => round($total, 3),
+        ];
     }
 
     protected function dailyReturns(Collection $prices): array

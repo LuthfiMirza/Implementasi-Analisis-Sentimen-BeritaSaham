@@ -23,17 +23,35 @@ class RssLocalFetcher implements NewsFetcherInterface
 
         $keywords = $this->mapper->keywords($stock);
         $articles = collect();
+        $timeout = config('news.rss_timeout', env('NEWS_RSS_TIMEOUT', 8));
+        $userAgent = config('news.rss_user_agent', env('NEWS_RSS_USER_AGENT', 'SentimenaBot/1.0 (+https://sentimena.app)'));
 
         foreach ($feeds as $feedUrl) {
             $resp = Http::withHeaders([
-                'User-Agent' => 'Sentimena/1.0 (+https://sentimena.local)',
-            ])->get($feedUrl);
+                'User-Agent' => $userAgent,
+                'Accept' => 'application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.1',
+            ])->timeout($timeout)->get($feedUrl);
+
             if (! $resp->successful()) {
                 Log::warning('RSS fetch failed', ['feed' => $feedUrl, 'status' => $resp->status()]);
                 continue;
             }
-            $items = $this->parseFeedItems($resp->body());
+
+            $body = trim($resp->body());
+            if ($body === '') {
+                Log::warning('RSS empty body', ['feed' => $feedUrl]);
+                continue;
+            }
+
+            $contentType = strtolower($resp->header('Content-Type') ?? '');
+            if (str_contains($contentType, 'html') || stripos($body, '<html') !== false) {
+                Log::warning('RSS returned HTML, skipped', ['feed' => $feedUrl]);
+                continue;
+            }
+
+            $items = $this->parseFeedItems($body, $feedUrl);
             if (! count($items)) {
+                Log::warning('RSS parsed 0 items', ['feed' => $feedUrl]);
                 continue;
             }
 
@@ -60,6 +78,7 @@ class RssLocalFetcher implements NewsFetcherInterface
                     'published_at' => $pubDate ? Carbon::parse($pubDate, 'Asia/Jakarta') : Carbon::now('Asia/Jakarta'),
                     'summary' => Str::limit(strip_tags($description), 300),
                     'content_snippet' => Str::limit(strip_tags($description), 300),
+                    'provider' => 'rss_local',
                     'sentiment_label' => null,
                     'sentiment_score' => null,
                     'raw_payload' => ['feed' => $feedUrl, 'title' => $title, 'description' => $description],
@@ -87,10 +106,14 @@ class RssLocalFetcher implements NewsFetcherInterface
         return collect($custom ?: $defaults)->unique()->values()->all();
     }
 
-    protected function parseFeedItems(string $xmlString): array
+    protected function parseFeedItems(string $xmlString, string $feedUrl): array
     {
+        libxml_use_internal_errors(true);
         $xml = @simplexml_load_string($xmlString);
-        if (! $xml) {
+        $errors = libxml_get_errors();
+        libxml_clear_errors();
+        if (! $xml || $errors) {
+            Log::warning('RSS invalid XML', ['feed' => $feedUrl, 'errors' => collect($errors)->pluck('message')->take(2)->all()]);
             return [];
         }
 
@@ -110,7 +133,7 @@ class RssLocalFetcher implements NewsFetcherInterface
                 $items[] = [
                     'title' => (string) $item->title,
                     'description' => (string) ($item->summary ?? ''),
-                    'link' => (string) optional($item->link)['href'] ?? '',
+                    'link' => (string) (isset($item->link['href']) ? $item->link['href'] : ($item->link ?? '')),
                     'pubDate' => (string) ($item->updated ?? $item->published ?? ''),
                     'source' => (string) ($item->author->name ?? ''),
                 ];

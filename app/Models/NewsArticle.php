@@ -29,6 +29,18 @@ class NewsArticle extends Model
         'raw_payload',
         'fetched_at',
         'analyzed_at',
+        'relevance_score',
+        'relevance_band',
+        'source_provider',
+        'source_weight',
+        'matched_keywords',
+        'detected_language',
+        'entity_match_score',
+        'market_context_score',
+        'language_score',
+        'final_quality_score',
+        'quality_band',
+        'quality_flags',
     ];
 
     protected $casts = [
@@ -39,6 +51,14 @@ class NewsArticle extends Model
         'raw_payload' => 'array',
         'sentiment_meta' => 'array',
         'analyzed_at' => 'datetime',
+        'relevance_score' => 'float',
+        'source_weight' => 'float',
+        'matched_keywords' => 'array',
+        'entity_match_score' => 'float',
+        'market_context_score' => 'float',
+        'language_score' => 'float',
+        'final_quality_score' => 'float',
+        'quality_flags' => 'array',
     ];
 
     public function stock()

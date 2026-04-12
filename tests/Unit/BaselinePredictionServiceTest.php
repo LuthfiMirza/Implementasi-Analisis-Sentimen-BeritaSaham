@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Services\Prediction\BaselinePredictionService;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Http;
 
 class BaselinePredictionServiceTest extends TestCase
 {
@@ -40,5 +41,42 @@ class BaselinePredictionServiceTest extends TestCase
         $result = $service->predict($features);
 
         $this->assertSame('down', $result['predicted_direction']);
+    }
+
+    public function test_python_prediction_success(): void
+    {
+        config()->set('prediction.engine', 'python');
+        $endpoint = 'http://python.test/predict';
+
+        Http::fake([
+            $endpoint => Http::response([
+                'predicted_direction' => 'up',
+                'probability' => 0.82,
+                'basis' => 'Model eksternal',
+            ], 200),
+        ]);
+
+        $service = new BaselinePredictionService($endpoint, 3);
+        $result = $service->predict(['sentiment_average' => 0.3]);
+
+        $this->assertSame('python', $result['method']);
+        $this->assertSame('up', $result['predicted_direction']);
+        $this->assertEquals(0.82, $result['confidence']);
+    }
+
+    public function test_python_prediction_invalid_payload_fallbacks_to_baseline(): void
+    {
+        config()->set('prediction.engine', 'python');
+        $endpoint = 'http://python.test/predict';
+
+        Http::fake([
+            $endpoint => Http::response(['probability' => 0.5], 200), // missing predicted_direction
+        ]);
+
+        $service = new BaselinePredictionService($endpoint, 3);
+        $result = $service->predict(['sentiment_average' => -0.3]);
+
+        $this->assertSame('baseline_fallback', $result['method']);
+        $this->assertContains($result['predicted_direction'], ['up', 'down', 'flat']);
     }
 }

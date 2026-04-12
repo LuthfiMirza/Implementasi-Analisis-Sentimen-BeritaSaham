@@ -38,7 +38,7 @@ class PythonApiSentimentAnalyzer implements SentimentAnalyzerInterface
                 $data = $response->json();
                 $fallback = $this->fallback->analyze($text, $context);
 
-                if (isset($data['label'])) {
+                if ($this->isValidPayload($data)) {
                     $score = isset($data['score']) ? (float) $data['score'] : ($fallback['score'] ?? 0.0);
                     $confidence = isset($data['confidence']) ? (float) $data['confidence'] : ($fallback['confidence'] ?? null);
 
@@ -63,5 +63,21 @@ class PythonApiSentimentAnalyzer implements SentimentAnalyzerInterface
     protected function normalizeScore(float $score): float
     {
         return max(-1.0, min(1.0, round($score, 2)));
+    }
+
+    protected function isValidPayload(?array $data): bool
+    {
+        if (! is_array($data)) {
+            return false;
+        }
+
+        if (! isset($data['label'])) {
+            return false;
+        }
+
+        $label = Str::lower((string) $data['label']);
+        $allowed = ['positive', 'neutral', 'negative'];
+
+        return in_array($label, $allowed, true);
     }
 }

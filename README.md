@@ -39,6 +39,9 @@ Dashboard fullstack untuk skripsi Sistem Informasi: analisis sentimen berita ter
 
 ## Konfigurasi Penting
 - `NEWS_PROVIDER` (`mock|rss|manual|newsapi|finnhub|rss_local|gdelt|multi`), `NEWS_API_KEY`, `NEWS_API_BASE_URL`
+- `GNEWS_API_KEY`, `GNEWS_BASE_URL`, `GNEWS_LANGUAGE`, `GNEWS_COUNTRY`
+- `NEWS_RSS_SOURCES`, `NEWS_RSS_TIMEOUT`, `NEWS_RSS_USER_AGENT`
+- `NEWS_RELEVANCE_THRESHOLD`, `NEWS_RELEVANCE_HIGH` (banding high/medium/low)
 - `FINNHUB_API_KEY`, `FINNHUB_BASE_URL` (contoh: https://finnhub.io/api/v1/company-news), set `NEWS_PROVIDER=finnhub` untuk pakai sumber ini
 - `NEWS_RSS_SOURCES` (opsional, pisah `;`/`,`, jika kosong akan pakai default: CNBC Indonesia market RSS, Kontan finansial, Bisnis finansial)
 - `GDELT_BASE_URL` (default: https://api.gdeltproject.org/api/v2/doc/doc)
@@ -48,24 +51,93 @@ Dashboard fullstack untuk skripsi Sistem Informasi: analisis sentimen berita ter
 - Sentimen: `SENTIMENT_ENGINE=rule_based|python|hybrid`, `PYTHON_SENTIMENT_ENDPOINT`, `PYTHON_SENTIMENT_TIMEOUT`
 - Prediksi: `PREDICTION_ENGINE=baseline`, `PYTHON_PREDICTION_ENDPOINT`, `PYTHON_PREDICTION_TIMEOUT`
 
+### Contoh Endpoint Python
+**Sentiment (POST ke `PYTHON_SENTIMENT_ENDPOINT`)**
+```json
+{
+  "text": "Laba tumbuh dan dividen diumumkan",
+  "context": {
+    "title": "Laba tumbuh",
+    "summary": "Perusahaan mencatat kenaikan laba",
+    "body": "..."
+  },
+  "language": "id"
+}
+```
+Respon yang valid:
+```json
+{
+  "label": "positive",          // wajib: positive|neutral|negative
+  "score": 0.72,                // -1..1
+  "confidence": 0.88,           // 0..1
+  "matched_positive_terms": ["laba tumbuh"],
+  "matched_negative_terms": [],
+  "reason_summary": "Model yakin karena kata laba tumbuh"
+}
+```
+
+**Prediction (POST ke `PYTHON_PREDICTION_ENDPOINT`)**
+```json
+{
+  "features": {
+    "sentiment_average": 0.2,
+    "weighted_sentiment": 0.25,
+    "ma_gap": 0.03,
+    "daily_return_lag1": 0.4,
+    "daily_return_lag3": 0.9
+  }
+}
+```
+Respon yang valid:
+```json
+{
+  "predicted_direction": "up",  // wajib: up|down|flat
+  "probability": 0.78,          // atau "confidence"
+  "basis": "Model eksternal",
+  "scenario_bullish": "...",
+  "scenario_neutral": "...",
+  "scenario_bearish": "..."
+}
+```
+Jika label/direction tidak valid atau API error/timeout, sistem otomatis fallback ke rule-based/hybrid untuk sentimen dan baseline untuk prediksi.
+
 ## Perintah CLI & Test
 - `php artisan news:fetch --limit=5` – tarik berita untuk semua saham aktif via provider konfigurasi.
 - `php artisan news:analyze` – analisis sentimen artikel baru (gunakan `--all` untuk reprocess semua).
 - `php artisan stocks:update-snapshots --days=1` – buat snapshot harga demo harian.
 - Test: `./vendor/bin/phpunit --testsuite Unit,Feature` (pastikan DB testing siap).
+- Evaluasi ringkas (laporan JSON/console): `php artisan evaluate:report BBCA --period=30 --output=bbca-30.json`
+- Checklist QA manual UI: `docs/QA_CHECKLIST.md`
+- Komparasi weighted vs average sentiment: `php artisan evaluation:sentiment-compare BBCA --period=30 --save=bbca-weighted.json`
+- Coverage berita: `php artisan news:coverage-report --days=30 [--stock=BBCA] [--save=coverage.json]` (melaporkan artikel per saham, band kualitas, sentimen, provider terbanyak, kelayakan evaluasi)
+- Quote live vs snapshot:
+  - Endpoint JSON: `GET /api/stocks/{CODE}/quote` (mengembalikan last/open/high/low/volume/change/change_percent + source + is_live + fetched_at). Menggunakan live provider jika ada, fallback ke snapshot `stock_prices`.
+  - Polling frontend: dashboard akan memanggil endpoint ini tiap ~20 detik untuk memperbarui kartu harga; badge “Backend Live/Snapshot” menunjukkan sumber, “Live Chart: TradingView” tetap menjadi acuan live visual.
+  - Pastikan env: `STOCK_DATA_SOURCE=live`, `LIVE_MARKET_PROVIDER=http|demo`, `MARKET_DATA_BASE_URL=...`, `MARKET_DATA_API_KEY=...`, `MARKET_DATA_TIMEOUT=8`, `FALLBACK_TO_SNAPSHOT=true`. Uji dengan `curl http://localhost/api/stocks/BBCA/quote` dan lihat `is_live`.
+
+## Evaluasi Ilmiah (Sentimen & Prediksi)
+- Jalankan `php artisan evaluate:report BBCA --period=30` untuk ringkasan korelasi, distribusi metode sentimen (python vs fallback), tren harga/sentimen, status decision support, dan prediksi saat ini. Tambahkan `--output=nama.json` untuk menyimpan ke `storage/app/evaluations/`.
+- Analisis korelasi: lihat same-day dan lag H+1/H+3/H+7 pada laporan untuk indikasi hubungan sentimen-return.
+- Event study: cek hitungan event positif/negatif dan impact H+1/H+3/H+7 pada laporan.
+- Jika punya label ground-truth sentimen atau arah harga, Anda bisa memperluas evaluator dengan perhitungan akurasi/F1 atau hit rate prediksi menggunakan kerangka ini.
 
 ## Arsitektur Berita & Sentimen (Multi-Source)
 - **Fetcher sumber**:
   - `NewsApiFetcher` (NewsAPI, bahasa id → en → fallback)
+  - `GNewsFetcher` (GNews search, language/country filter)
   - `FinnhubNewsFetcher` (ticker otomatis tambah `.JK`)
   - `RssLocalFetcher` (RSS CNBC Indonesia, Kontan, Bisnis; bisa override via `NEWS_RSS_SOURCES`)
   - `GdeltFetcher` (filter bahasa Indonesia/English)
   - `Mock/Manual/RSS` bawaan untuk demo
 - **Aggregator**: `NewsAggregationService`
-  - `NEWS_PROVIDER=multi` akan memanggil berurutan: `newsapi`, `rss_local`, `gdelt`, `finnhub`, deduplikasi `source_url`
+  - `NEWS_PROVIDER=multi` akan memanggil berurutan: `newsapi`, `gnews`, `rss_local`, `gdelt`, `finnhub`, deduplikasi berlapis (source_url/canonical → hash judul ternormalisasi → judul+domain+jendela tanggal)
   - Analisis sentimen rule-based otomatis saat simpan (jika label/score belum ada)
   - Filter relevansi: wajib mengandung kata kunci emiten; ada pengecualian per emiten (mis. GOTO skip “goto islands”, “camellia”, dll)
+  - Filter bahasa: hanya id/en yang diterima; bahasa lain ditolak
+  - Market context filter: wajib ada konteks pasar modal (saham, emiten, IHSG, laba, dividen, rights issue, buyback, dll)
+  - Quality scoring transparan: relevance_score, entity_match_score, market_context_score, language_score, source_weight → final_quality_score + band high/medium/low. Artikel di bawah `NEWS_FINAL_QUALITY_THRESHOLD` dibuang; default sorting /news berdasarkan final_quality_score desc lalu published_at desc.
   - Dukungan whitelist/blacklist domain via env
+  - Relevance scoring transparan: ticker/nama/alias di judul/badan, konteks kata kunci (saham, emiten, idx, bei, ihsg, dividen, laba, pendapatan, rights issue, buyback, target harga, rekomendasi), bobot sumber, kualitas struktur (judul/published/summary/url). Output: `relevance_score`, `relevance_band`, `source_weight`, `matched_keywords`. Artikel di bawah `NEWS_RELEVANCE_THRESHOLD` di-drop.
 - **Mapping saham**: `StockKeywordMapper`
   - Kata kunci: kode + nama emiten (dibersihkan) + alias override per saham populer (BBCA, BBRI, BMRI, TLKM, ASII, GOTO, UNVR, INDF, ICBP, ADRO)
   - Query builder: `"kw1" OR "kw2" ...` untuk API/news search
@@ -89,6 +161,23 @@ NEWS_DOMAIN_BLACKLIST=japantrends.com
 2) Bersihkan cache: `php artisan config:clear && php artisan cache:clear`
 3) Jalankan: `php artisan news:fetch --limit=5`
 4) Cek `/news` atau `/dashboard`; sumber mock tidak dipakai jika provider bukan `mock`.
+
+### Debug RSS Lokal
+- Pastikan feed mengembalikan XML/RSS/Atom; jika HTML/redirect/empty, sistem otomatis skip dan log per feed.
+- Set `NEWS_RSS_USER_AGENT` bila feed menolak UA default; atur `NEWS_RSS_TIMEOUT` jika sering timeout.
+- Gunakan `NEWS_RSS_SOURCES` untuk override daftar feed; pisahkan dengan `;` atau `,`.
+
+### Relevance Scoring & Threshold
+- Skor dihitung dari: kemunculan ticker/nama/alias di judul/badan, kata kunci konteks pasar, bobot sumber, kualitas struktur (judul/published/summary/url).
+- Output: `relevance_score` (0..1), `relevance_band` (high/medium/low), `source_weight`, `matched_keywords`.
+- Artikel dengan skor < `NEWS_RELEVANCE_THRESHOLD` tidak disimpan; band high jika skor >= `NEWS_RELEVANCE_HIGH`.
+- Prioritas sumber multi: NewsAPI, GNews, RSS lokal, GDELT, Finnhub (dapat diubah via `config/news.php`).
+
+### Evaluasi Weighted vs Average Sentiment
+- Command: `php artisan evaluation:sentiment-compare {CODE} --period=30 [--save=report.json]`
+- Metrik: korelasi same-day & lag H+1/H+3/H+7 (avg vs weighted), event study lonjakan sentimen (avg vs weighted), backtest sinyal arah bullish/netral/bearish di H+1/H+3/H+7 (directional accuracy, hit rate, avg return per sinyal).
+- Prediction impact (heuristik): Mode A (tanpa weighted_sentiment_quality) vs Mode B (dengan), dibandingkan dengan arah return H+1 terakhir.
+- Output JSON + narasi ringkas; bisa disimpan ke `storage/app/evaluations/`.
 
 ## Decision Support & Analytics
 - `SentimentPriceAnalyticsService`: average/weighted sentiment, dominasi, hitung volume berita, return harian/kumulatif, volatilitas, tren harga/sentimen, korelasi same-day & lag (H+1/H+3/H+7), event study lonjakan sentimen, volume→volatilitas.

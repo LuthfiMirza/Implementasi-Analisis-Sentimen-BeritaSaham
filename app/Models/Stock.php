@@ -19,6 +19,23 @@ class Stock extends Model
         'tradingview_symbol',
         'yahoo_symbol',
         'is_active',
+        'pbv',
+        'per',
+        'roe',
+        'der',
+        'eps',
+        'dividend_yield',
+        'fundamentals_updated_at',
+    ];
+
+    protected $casts = [
+        'pbv' => 'float',
+        'per' => 'float',
+        'roe' => 'float',
+        'der' => 'float',
+        'eps' => 'float',
+        'dividend_yield' => 'float',
+        'fundamentals_updated_at' => 'date',
     ];
 
     public function aliases()

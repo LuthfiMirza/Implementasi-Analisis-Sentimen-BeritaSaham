@@ -19,6 +19,14 @@ class PriceSeriesService
             ->values();
     }
 
+    public function latestSnapshot(Stock $stock, string $interval = '1d')
+    {
+        return StockPrice::where('stock_id', $stock->id)
+            ->when($interval, fn ($q) => $q->where('interval_type', $interval))
+            ->orderByDesc('price_date')
+            ->first();
+    }
+
     public function latestWithChange(Stock $stock, string $interval = '1d'): array
     {
         $latest = StockPrice::where('stock_id', $stock->id)

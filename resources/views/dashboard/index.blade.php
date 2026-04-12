@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout x-data="watchlistToggle()" x-init="init()">
     @php
         $pricePoints = $price_series->map(fn ($p) => [
             'date' => $p->price_date?->format('d M'),
@@ -6,7 +6,19 @@
         ]);
     @endphp
 
-    <div class="grid grid-cols-12 gap-6">
+    <div class="grid grid-cols-12 gap-6 relative">
+        {{-- Floating handle to reopen sidebar --}}
+        <div class="hidden lg:block fixed left-4 top-28 z-30" x-show="!open">
+            <button type="button"
+                    class="inline-flex items-center gap-2 px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-900/80 hover:border-slate-600 transition shadow-lg shadow-slate-900/40"
+                    x-on:click="open = true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10"/>
+                </svg>
+                Buka Watchlist
+            </button>
+        </div>
+
         @if(($watchlist_alerts ?? collect())->isNotEmpty())
             <div class="col-span-12">
                 <div class="rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-3 text-sm text-rose-100">
@@ -20,12 +32,27 @@
             </div>
         @endif
         {{-- Sidebar Watchlist --}}
-        <div class="col-span-12 lg:col-span-3 space-y-4">
+        <div class="col-span-12 lg:col-span-3 space-y-4" x-show="open" x-cloak>
             @include('dashboard.partials.sidebar', ['watchlist' => $watchlist, 'stocks' => $stocks, 'watchlistInsights' => $watchlist_insights ?? collect()])
         </div>
 
         {{-- Main Center --}}
-        <div class="col-span-12 lg:col-span-6 space-y-5">
+        @php
+            $initialQuote = [
+                'stock_code' => $stock->code,
+                'last' => isset($live_quote['last']) ? (float) $live_quote['last'] : ($latest_price?->close !== null ? (float) $latest_price->close : null),
+                'open' => isset($live_quote['open']) ? (float) $live_quote['open'] : ($latest_price?->open !== null ? (float) $latest_price->open : null),
+                'high' => isset($live_quote['high']) ? (float) $live_quote['high'] : ($latest_price?->high !== null ? (float) $latest_price->high : null),
+                'low' => isset($live_quote['low']) ? (float) $live_quote['low'] : ($latest_price?->low !== null ? (float) $latest_price->low : null),
+                'volume' => isset($live_quote['volume']) ? (int) $live_quote['volume'] : ($latest_price?->volume !== null ? (int) $latest_price->volume : null),
+                'change_percent' => $live_quote['change_percent'] ?? $price_change_pct,
+                'source' => $live_quote['source'] ?? 'snapshot',
+                'is_live' => $live_quote['is_live'] ?? false,
+                'fetched_at' => $live_quote['fetched_at'] ?? ($latest_price?->price_date?->toDateTimeString()),
+            ];
+        @endphp
+        <div class="col-span-12" :class="open ? 'lg:col-span-6' : 'lg:col-span-9'">
+            <div x-data="priceQuote({{ json_encode($initialQuote) }}, {{ json_encode($price_change_pct) }})" x-init="startPolling('/api/stocks/{{ $stock->code }}/quote')">
             <x-panel padding="p-5">
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -36,19 +63,50 @@
                         </div>
                         <div class="text-sm text-slate-400">{{ $stock->sector ?? 'Sektor tidak diketahui' }}</div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-3xl font-bold">{{ $latest_price?->close ? number_format($latest_price->close, 2) : '-' }}</div>
-                        <div class="text-sm {{ ($price_change_pct ?? 0) >=0 ? 'text-green-400' : 'text-rose-400' }}">
-                            {{ $price_change_pct ? number_format($price_change_pct, 2) : '0.00' }}%
+                    <div class="text-right space-y-1">
+                        <div class="flex items-center justify-end gap-2 flex-wrap">
+                            <div class="text-3xl font-bold" x-text="formatNumber(quote.last)">{{ $initialQuote['last'] ? number_format($initialQuote['last'], 2) : '-' }}</div>
+                            <span class="px-2 py-1 rounded-full text-[11px]" :class="quote.is_live ? 'bg-green-500/10 text-green-300 border border-green-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700'">
+                                <span x-text="quote.is_live ? 'Backend Live' : 'Backend Snapshot'"></span>
+                            </span>
+                            @if($chart_mode === 'tradingview')
+                                <span class="px-2 py-1 rounded-full text-[11px] border border-sky-500/40 text-sky-200 bg-sky-500/10">
+                                    Live Chart: TradingView
+                                </span>
+                            @endif
                         </div>
+                        <div class="text-sm" :class="changePercent() >=0 ? 'text-green-400' : 'text-rose-400'" x-text="formatPercent(changePercent())">
+                            {{ $price_change_pct ? number_format($price_change_pct, 2).'%' : '0.00%' }}
+                        </div>
+                        <div class="text-[11px] text-slate-500 leading-snug">
+                            <span x-text="'Sumber kartu: ' + (quote.source ?? 'backend') + ' • ' + (quote.fetched_at ?? 'baru')"></span>
+                        </div>
+                        @if($chart_mode === 'tradingview')
+                            <div class="text-[11px] text-sky-200/80 leading-snug">Harga acuan live: TradingView (chart di bawah).</div>
+                        @endif
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                    <x-metric-card label="Open" :value="$latest_price?->open ? number_format($latest_price->open, 2) : '-'" />
-                    <x-metric-card label="High" :value="$latest_price?->high ? number_format($latest_price->high, 2) : '-'" />
-                    <x-metric-card label="Low" :value="$latest_price?->low ? number_format($latest_price->low, 2) : '-'" />
-                    <x-metric-card label="Volume" :value="$latest_price?->volume ? number_format($latest_price->volume) : '-'" />
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-1">
+                    <div class="rounded-xl border-b border-l border-r border-slate-800 border-t-4 border-t-slate-500 bg-slate-900/70 p-3 min-h-[90px]">
+                        <p class="text-[11px] uppercase text-slate-400">Open</p>
+                        <p class="text-2xl font-bold text-slate-50" x-text="quote.open != null ? formatNumber(quote.open) : '—'">{{ $initialQuote['open'] ? number_format($initialQuote['open'], 2) : '—' }}</p>
+                    </div>
+                    <div class="rounded-xl border-b border-l border-r border-slate-800 border-t-4 border-t-green-500 bg-slate-900/70 p-3 min-h-[90px]">
+                        <p class="text-[11px] uppercase text-slate-400">High</p>
+                        <p class="text-2xl font-bold" :class="quote.high != null ? 'text-green-400' : 'text-slate-500'" x-text="quote.high != null ? formatNumber(quote.high) : '—'">{{ $initialQuote['high'] ? number_format($initialQuote['high'], 2) : '—' }}</p>
+                    </div>
+                    <div class="rounded-xl border-b border-l border-r border-slate-800 border-t-4 border-t-rose-500 bg-slate-900/70 p-3 min-h-[90px]">
+                        <p class="text-[11px] uppercase text-slate-400">Low</p>
+                        <p class="text-2xl font-bold" :class="quote.low != null ? 'text-rose-400' : 'text-slate-500'" x-text="quote.low != null ? formatNumber(quote.low) : '—'">{{ $initialQuote['low'] ? number_format($initialQuote['low'], 2) : '—' }}</p>
+                    </div>
+                    <div class="rounded-xl border-b border-l border-r border-slate-800 border-t-4 border-t-sky-500 bg-slate-900/70 p-3 min-h-[90px]">
+                        <p class="text-[11px] uppercase text-slate-400">Volume</p>
+                        <p class="text-2xl font-bold text-slate-50" x-text="quote.volume != null ? formatVolume(quote.volume) : '—'">{{ $initialQuote['volume'] ? number_format($initialQuote['volume']) : '—' }}</p>
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-500 mt-2 leading-snug">
+                    <span x-text="quote.is_live ? 'Kartu: backend live • Chart live: TradingView.' : 'Kartu: snapshot backend terakhir • Acuan live: TradingView (chart di bawah).'"></span>
                 </div>
             </x-panel>
 
@@ -108,11 +166,12 @@
                     @endif
                 </div>
             </x-panel>
+            </div>
         </div>
 
         {{-- Right Column --}}
-        <div class="col-span-12 lg:col-span-3 space-y-4">
-            <x-panel>
+        <div class="col-span-12 lg:col-span-3 flex flex-col gap-4">
+            <x-panel class="flex-none">
                 <div class="flex items-center justify-between mb-2">
                     <div>
                         <p class="text-xs text-slate-400 uppercase">Sentimen</p>
@@ -135,31 +194,35 @@
                 </div>
             </x-panel>
 
-            <x-panel>
+            <x-panel class="flex-1 flex flex-col min-h-[360px]">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-semibold">Berita Terkini</h3>
                     <a href="{{ route('news.index', ['code' => $stock->code]) }}" class="text-xs text-sky-400">Lihat semua</a>
                 </div>
-                <div class="overflow-hidden rounded-xl border border-slate-800/80">
-                    <table class="w-full text-sm">
-                        <tbody class="divide-y divide-slate-800">
-                            @forelse($news as $article)
-                                <tr class="hover:bg-slate-900/60">
-                                    <td class="px-3 py-3">
-                                        <div class="flex items-center justify-between gap-2">
-                                            <div>
-                                                <p class="font-semibold text-[13px] leading-tight">{{ Str::limit($article->title, 72) }}</p>
-                                                <p class="text-[11px] text-slate-400">{{ $article->published_at?->format('d M H:i') }} • {{ $article->source?->name ?? 'Sumber' }}</p>
-                                            </div>
-                                            <x-sentiment-badge :label="$article->sentiment_label ?? 'neutral'" />
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr><td class="px-3 py-3 text-sm text-slate-400">Belum ada berita.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <div class="overflow-hidden rounded-xl border border-slate-800/80 flex-1">
+                    <div class="max-h-[520px] overflow-y-auto divide-y divide-slate-800">
+                        @forelse($news as $article)
+                            <div class="px-3 py-3 hover:bg-slate-900/60 transition">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-[13px] leading-tight truncate">{{ Str::limit($article->title, 90) }}</p>
+                                        <p class="text-[11px] text-slate-400">
+                                            {{ $article->published_at?->format('d M H:i') }} • {{ $article->source?->name ?? 'Sumber' }}
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <x-sentiment-badge :label="$article->sentiment_label ?? 'neutral'" />
+                                        <span class="px-2 py-1 rounded-full text-[10px] border border-slate-700 bg-slate-800/60 text-slate-100">
+                                            {{ $article->quality_band ? ucfirst($article->quality_band) : 'Quality?' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p class="text-[12px] text-slate-300 mt-1 line-clamp-2">{{ Str::limit($article->summary ?? $article->content_snippet, 120) }}</p>
+                            </div>
+                        @empty
+                            <div class="px-3 py-3 text-sm text-slate-400">Belum ada berita.</div>
+                        @endforelse
+                    </div>
                 </div>
             </x-panel>
         </div>

@@ -29,6 +29,7 @@ class AnalyticsController extends Controller
         $stockCode = $request->query('code', config('dashboard.default_stock', 'BBCA'));
         $period = (int) $request->query('period', 30);
         $period = in_array($period, [7, 30, 90]) ? $period : 30;
+        $priceLimit = max(60, $period);
         $stock = Stock::where('code', $stockCode)->firstOrFail();
 
         $articles = NewsArticle::with('stock')
@@ -39,7 +40,8 @@ class AnalyticsController extends Controller
             ->get();
 
         $summary = $this->sentimentSummaryService->summarize($articles);
-        $priceSeries = $this->priceSeriesService->getSeries($stock, '1d', $period)->values();
+        $priceSeries = $this->priceSeriesService->getSeries($stock, '1d', $priceLimit)->values();
+        $liveQuote = app(\App\Services\MarketData\LiveMarketDataService::class)->quote($stock);
         $analytics = $this->sentimentPriceAnalyticsService->analyze($stock, $priceSeries, $articles, $period);
         $decision = $this->decisionSupportService->analyze($stock, $priceSeries, $articles, $analytics);
         $features = $this->featureBuilderService->build($stock, $priceSeries, $articles, $analytics, $period);
@@ -82,6 +84,7 @@ class AnalyticsController extends Controller
             'topRiskArticles' => $topRiskArticles,
             'latestPrice' => $priceMeta['latest'],
             'priceChange' => $priceMeta['change_pct'],
+            'liveQuote' => $liveQuote,
         ]);
     }
 }

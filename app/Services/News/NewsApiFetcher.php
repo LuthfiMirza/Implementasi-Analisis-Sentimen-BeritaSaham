@@ -19,12 +19,14 @@ class NewsApiFetcher implements NewsFetcherInterface
         $baseUrl = config('services.news.api_base_url', env('NEWS_API_BASE_URL'));
         $apiKey = config('services.news.api_key', env('NEWS_API_KEY'));
         $language = config('services.news.language', env('NEWS_API_LANGUAGE', 'id'));
+        $timeout = config('services.news.timeout', env('NEWS_API_TIMEOUT', 8));
+        $userAgent = config('services.news.user_agent', env('NEWS_API_USER_AGENT', 'SentimenaNews/1.0'));
 
         if (! $baseUrl || ! $apiKey) {
             return [];
         }
 
-        $query = $this->mapper->queryString($stock);
+        $query = $this->mapper->contextualQuery($stock);
         $paramsBase = [
             'q' => $query,
             'searchIn' => 'title,description,content',
@@ -40,9 +42,16 @@ class NewsApiFetcher implements NewsFetcherInterface
 
         $articles = [];
         foreach ($attempts as $params) {
-            $response = Http::withHeaders([
-                'X-Api-Key' => $apiKey,
-            ])->get($baseUrl, $params);
+            try {
+                $response = Http::withHeaders([
+                    'X-Api-Key' => $apiKey,
+                    'User-Agent' => $userAgent,
+                    'Accept' => 'application/json',
+                ])->timeout($timeout)->get($baseUrl, $params);
+            } catch (\Throwable $e) {
+                Log::warning('NewsAPI request exception', ['error' => $e->getMessage(), 'params' => $params]);
+                continue;
+            }
 
             if (! $response->successful()) {
                 Log::warning('NewsAPI request failed', [
@@ -53,7 +62,13 @@ class NewsApiFetcher implements NewsFetcherInterface
                 continue;
             }
 
-            $articles = $response->json('articles', []);
+            $json = $response->json();
+            if (! is_array($json) || ! isset($json['articles']) || ! is_array($json['articles'])) {
+                Log::warning('NewsAPI invalid payload', ['payload' => $json]);
+                continue;
+            }
+
+            $articles = $json['articles'];
             if (count($articles)) {
                 break;
             }
@@ -75,6 +90,7 @@ class NewsApiFetcher implements NewsFetcherInterface
                 'published_at' => $item['publishedAt'] ? Carbon::parse($item['publishedAt']) : Carbon::now(),
                 'summary' => $item['description'] ?? null,
                 'content_snippet' => $item['content'] ?? null,
+                'provider' => 'newsapi',
                 'sentiment_label' => null,
                 'sentiment_score' => null,
                 'raw_payload' => $item,

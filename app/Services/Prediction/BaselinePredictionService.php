@@ -46,16 +46,17 @@ class BaselinePredictionService
             }
 
             $data = $response->json();
-            if (! isset($data['predicted_direction'])) {
+            if (! $this->isValidPrediction($data)) {
                 return null;
             }
 
             $confidence = isset($data['probability'])
                 ? (float) $data['probability']
                 : (isset($data['confidence']) ? (float) $data['confidence'] : 0.5);
+            $direction = strtolower((string) $data['predicted_direction']);
 
             return [
-                'predicted_direction' => strtolower((string) $data['predicted_direction']),
+                'predicted_direction' => $direction,
                 'confidence' => round(min(0.99, max(0.01, $confidence)), 2),
                 'method' => 'python',
                 'prediction_basis' => $data['basis'] ?? 'Prediksi dari model Python eksternal.',
@@ -132,5 +133,20 @@ class BaselinePredictionService
     protected function cfg(string $key, $default = null)
     {
         return function_exists('config') ? config($key, $default) : $default;
+    }
+
+    protected function isValidPrediction(?array $data): bool
+    {
+        if (! is_array($data)) {
+            return false;
+        }
+
+        if (! isset($data['predicted_direction'])) {
+            return false;
+        }
+
+        $direction = strtolower((string) $data['predicted_direction']);
+
+        return in_array($direction, ['up', 'down', 'flat'], true);
     }
 }
