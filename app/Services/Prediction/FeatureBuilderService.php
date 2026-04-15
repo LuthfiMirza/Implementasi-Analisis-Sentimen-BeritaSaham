@@ -3,8 +3,9 @@
 namespace App\Services\Prediction;
 
 use App\Models\Stock;
-use Illuminate\Support\Collection;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 
 class FeatureBuilderService
 {
@@ -13,16 +14,15 @@ class FeatureBuilderService
         Collection $prices,
         Collection $articles,
         array $analytics,
-        int $periodDays = 30
+        int $periodDays = 30,
+        CarbonInterface|string|null $referenceDate = null
     ): array {
         $orderedPrices = $prices->sortBy('price_date')->values();
+        $referencePoint = $this->resolveReferenceDate($referenceDate, $orderedPrices);
         $ma5 = $this->movingAverage($orderedPrices, 5);
         $ma20 = $this->movingAverage($orderedPrices, 20);
 
-        $articlesInPeriod = $articles->filter(function ($a) use ($periodDays) {
-            $published = $a->published_at instanceof Carbon ? $a->published_at : Carbon::parse($a->published_at);
-            return $published >= now()->subDays($periodDays);
-        });
+        $articlesInPeriod = $this->articlesInPeriod($articles, $periodDays, $referencePoint);
 
         $sentimentMap = ['positive' => 1, 'neutral' => 0, 'negative' => -1];
         $scores = $articlesInPeriod->map(function ($a) use ($sentimentMap) {
@@ -64,6 +64,7 @@ class FeatureBuilderService
             'sentiment_dominance' => $analytics['sentiment_dominance'] ?? 'neutral',
             'news_volume' => $newsVolume,
             'positive_news_count' => $articlesInPeriod->where('sentiment_label', 'positive')->count(),
+            'neutral_news_count' => $articlesInPeriod->where('sentiment_label', 'neutral')->count(),
             'negative_news_count' => $articlesInPeriod->where('sentiment_label', 'negative')->count(),
             'daily_return_lag1' => $this->lagReturn($orderedPrices, 1),
             'daily_return_lag3' => $this->lagReturn($orderedPrices, 3),
@@ -73,8 +74,15 @@ class FeatureBuilderService
             'ma_gap' => $this->maGap($ma5, $ma20),
             'volatility' => $volatility,
             'rsi' => $this->rsi($orderedPrices),
-            'headline_count' => $this->headlineCount($articles, $stock),
+            'headline_count' => $this->headlineCount($articlesInPeriod, $stock),
             'last_close' => $orderedPrices->last()->close ?? null,
+            'price_trend' => $analytics['price_trend'] ?? 'datar',
+            'cumulative_return' => $analytics['cumulative_return'] ?? null,
+            'same_day_correlation' => $analytics['same_day_correlation'] ?? null,
+            'lag_correlation_h1' => data_get($analytics, 'lag_correlations.h1'),
+            'lag_correlation_h3' => data_get($analytics, 'lag_correlations.h3'),
+            'lag_correlation_h7' => data_get($analytics, 'lag_correlations.h7'),
+            'reference_date' => $referencePoint?->toDateString(),
         ];
     }
 
@@ -119,9 +127,9 @@ class FeatureBuilderService
 
         $gains = [];
         $losses = [];
-        $ordered = $prices->values();
+        $ordered = $prices->take(-($period + 1))->values();
 
-        for ($i = 1; $i <= $period; $i++) {
+        for ($i = 1; $i < $ordered->count(); $i++) {
             $change = ($ordered[$i]->close - $ordered[$i - 1]->close);
             if ($change > 0) {
                 $gains[] = $change;
@@ -152,5 +160,53 @@ class FeatureBuilderService
             $title = mb_strtolower((string) $article->title);
             return str_contains($title, $code) || ($name && str_contains($title, $name));
         })->count();
+    }
+
+    protected function resolveReferenceDate(CarbonInterface|string|null $referenceDate, Collection $prices): CarbonInterface
+    {
+        if ($referenceDate instanceof CarbonInterface) {
+            return $referenceDate;
+        }
+
+        if (is_string($referenceDate) && trim($referenceDate) !== '') {
+            return Carbon::parse($referenceDate);
+        }
+
+        $lastPriceDate = $prices->last()?->price_date;
+        if ($lastPriceDate instanceof CarbonInterface) {
+            return $lastPriceDate;
+        }
+
+        if ($lastPriceDate) {
+            return Carbon::parse($lastPriceDate);
+        }
+
+        return now();
+    }
+
+    protected function articlesInPeriod(Collection $articles, int $periodDays, CarbonInterface $referencePoint): Collection
+    {
+        $periodStart = $referencePoint->copy()->subDays(max(1, $periodDays));
+        $qualityThreshold = (float) config('news.final_quality_threshold', 0.4);
+
+        return $articles
+            ->filter(function ($article) use ($periodStart, $referencePoint, $qualityThreshold) {
+                if (! $article->published_at) {
+                    return false;
+                }
+
+                if ($article->final_quality_score !== null && (float) $article->final_quality_score < $qualityThreshold) {
+                    return false;
+                }
+
+                $published = $article->published_at instanceof CarbonInterface
+                    ? $article->published_at->copy()
+                    : Carbon::parse($article->published_at);
+
+                return $published->greaterThanOrEqualTo($periodStart)
+                    && $published->lessThanOrEqualTo($referencePoint);
+            })
+            ->sortBy('published_at')
+            ->values();
     }
 }

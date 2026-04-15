@@ -68,6 +68,32 @@ class EvaluationController extends Controller
         $r = $confusionMatrix['recall'];
         $confusionMatrix['f1'] = $p + $r > 0 ? round(2 * $p * $r / ($p + $r), 1) : 0;
 
+        $mlTotal = NewsArticle::where('stock_id', $stock->id)
+            ->whereNotNull('ml_sentiment_label')
+            ->count();
+
+        $mlDist = [
+            'positive' => NewsArticle::where('stock_id', $stock->id)
+                ->where('ml_sentiment_label', 'positive')->count(),
+            'neutral' => NewsArticle::where('stock_id', $stock->id)
+                ->where('ml_sentiment_label', 'neutral')->count(),
+            'negative' => NewsArticle::where('stock_id', $stock->id)
+                ->where('ml_sentiment_label', 'negative')->count(),
+        ];
+
+        $agreementCount = NewsArticle::where('stock_id', $stock->id)
+            ->where('ml_rule_agree', true)
+            ->count();
+
+        $agreementRate = $mlTotal > 0 ? round($agreementCount / $mlTotal * 100, 1) : 0;
+
+        $differArticles = NewsArticle::where('stock_id', $stock->id)
+            ->where('ml_rule_agree', false)
+            ->whereNotNull('ml_sentiment_label')
+            ->orderByDesc('published_at')
+            ->limit(5)
+            ->get(['title', 'ml_sentiment_label', 'ml_confidence', 'rule_sentiment_label', 'sentiment_label']);
+
         $allStocksSummary = Stock::where('is_active', true)->get()->map(function ($s) {
             $arts = NewsArticle::where('stock_id', $s->id)->get();
             return [
@@ -89,6 +115,11 @@ class EvaluationController extends Controller
             'providerDist',
             'sampleArticles',
             'confusionMatrix',
+            'mlTotal',
+            'mlDist',
+            'agreementCount',
+            'agreementRate',
+            'differArticles',
             'allStocksSummary'
         ));
     }

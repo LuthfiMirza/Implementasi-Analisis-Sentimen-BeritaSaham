@@ -255,5 +255,118 @@
                 Sistem berhasil mengklasifikasi sentimen berita keuangan berbahasa Indonesia dengan akurasi {{ $confusionMatrix['accuracy'] }}% menggunakan pendekatan lexicon-based. Korelasi sentimen terhadap pergerakan harga saham BBCA mencapai 0.74 pada hari yang sama (same-day correlation), menunjukkan hubungan yang signifikan antara sentimen berita dengan pergerakan harga saham di Bursa Efek Indonesia.
             </div>
         </div>
+
+        {{-- Section 6 --}}
+        <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 space-y-4">
+            <h2 class="text-lg font-bold text-slate-100 mb-1">6. Perbandingan ML (IndoBERT) vs Rule-Based</h2>
+
+            <div class="overflow-hidden rounded-xl border border-slate-800">
+                <table class="min-w-full text-sm text-slate-200">
+                    <thead class="bg-slate-900 text-slate-400 text-xs uppercase">
+                        <tr>
+                            <th class="px-3 py-2 text-left">Metode</th>
+                            <th class="px-3 py-2 text-left">Positif</th><th class="px-3 py-2 text-left">%</th>
+                            <th class="px-3 py-2 text-left">Netral</th><th class="px-3 py-2 text-left">%</th>
+                            <th class="px-3 py-2 text-left">Negatif</th><th class="px-3 py-2 text-left">%</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        <tr class="hover:bg-slate-800/40">
+                            <td class="px-3 py-2 font-semibold">ML (IndoBERT)</td>
+                            <td class="px-3 py-2 text-green-400">{{ $mlDist['positive'] ?? 0 }}</td>
+                            <td class="px-3 py-2">{{ $mlTotal > 0 ? round(($mlDist['positive'] ?? 0)/$mlTotal*100,1) : 0 }}%</td>
+                            <td class="px-3 py-2 text-amber-300">{{ $mlDist['neutral'] ?? 0 }}</td>
+                            <td class="px-3 py-2">{{ $mlTotal > 0 ? round(($mlDist['neutral'] ?? 0)/$mlTotal*100,1) : 0 }}%</td>
+                            <td class="px-3 py-2 text-rose-400">{{ $mlDist['negative'] ?? 0 }}</td>
+                            <td class="px-3 py-2">{{ $mlTotal > 0 ? round(($mlDist['negative'] ?? 0)/$mlTotal*100,1) : 0 }}%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/40">
+                            <td class="px-3 py-2 font-semibold">Rule-Based (Lexicon)</td>
+                            <td class="px-3 py-2 text-green-400">{{ $sentimentDist['positive'] }}</td>
+                            <td class="px-3 py-2">{{ $articles->count() > 0 ? round($sentimentDist['positive']/$articles->count()*100,1) : 0 }}%</td>
+                            <td class="px-3 py-2 text-amber-300">{{ $sentimentDist['neutral'] }}</td>
+                            <td class="px-3 py-2">{{ $articles->count() > 0 ? round($sentimentDist['neutral']/$articles->count()*100,1) : 0 }}%</td>
+                            <td class="px-3 py-2 text-rose-400">{{ $sentimentDist['negative'] }}</td>
+                            <td class="px-3 py-2">{{ $articles->count() > 0 ? round($sentimentDist['negative']/$articles->count()*100,1) : 0 }}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-900/50 rounded-xl p-4 text-center border border-slate-700">
+                    <p class="text-3xl font-bold text-sky-400">{{ $agreementRate }}%</p>
+                    <p class="text-xs text-slate-400 mt-1">Agreement Rate<br>ML vs Rule-Based</p>
+                </div>
+                <div class="bg-slate-900/50 rounded-xl p-4 text-center border border-slate-700">
+                    <p class="text-3xl font-bold text-green-400">{{ $agreementCount }}</p>
+                    <p class="text-xs text-slate-400 mt-1">Artikel Sepakat<br>dari {{ $mlTotal }} dianalisis ML</p>
+                </div>
+                <div class="bg-slate-900/50 rounded-xl p-4 text-center border border-slate-700">
+                    <p class="text-3xl font-bold text-amber-400">{{ max(0, ($mlTotal ?? 0) - ($agreementCount ?? 0)) }}</p>
+                    <p class="text-xs text-slate-400 mt-1">Artikel Berbeda Pendapat</p>
+                </div>
+            </div>
+
+            @if(($differArticles->count() ?? 0) > 0)
+                <div>
+                    <p class="text-sm font-medium text-slate-300 mb-2">
+                        Contoh Artikel dengan Label Berbeda (ML ≠ Rule-Based):
+                    </p>
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="text-slate-400 border-b border-slate-700">
+                                <th class="pb-2 text-left">Judul</th>
+                                <th class="pb-2">ML</th>
+                                <th class="pb-2">Rule</th>
+                                <th class="pb-2">Konfiden ML</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700/50">
+                            @foreach($differArticles as $a)
+                                <tr class="text-slate-300">
+                                    <td class="py-2">{{ Str::limit($a->title, 55) }}</td>
+                                    <td class="py-2 text-center">
+                                        <span class="px-1.5 py-0.5 rounded text-xs
+                                            {{ $a->ml_sentiment_label === 'positive' ? 'bg-green-500/20 text-green-400'
+                                                : ($a->ml_sentiment_label === 'negative' ? 'bg-red-500/20 text-red-400'
+                                                : 'bg-gray-500/20 text-gray-400') }}">
+                                            {{ ucfirst($a->ml_sentiment_label) }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        <span class="px-1.5 py-0.5 rounded text-xs
+                                            {{ $a->rule_sentiment_label === 'positive' ? 'bg-green-500/20 text-green-400'
+                                                : ($a->rule_sentiment_label === 'negative' ? 'bg-red-500/20 text-red-400'
+                                                : 'bg-gray-500/20 text-gray-400') }}">
+                                            {{ ucfirst($a->rule_sentiment_label) }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2 text-center text-slate-400">
+                                        {{ number_format(($a->ml_confidence ?? 0) * 100, 1) }}%
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+
+            <div class="mt-4 p-4 bg-slate-900/50 rounded-xl border border-slate-700 text-sm text-slate-300">
+                <p class="font-semibold text-white mb-2">Analisis Perbandingan</p>
+                <p class="leading-relaxed">
+                    Model ML berbasis IndoBERT cenderung mengklasifikasikan artikel sebagai
+                    <strong class="text-yellow-400">netral ({{ $mlTotal > 0 ? round(($mlDist['neutral'] ?? 0)/$mlTotal*100,1) : 0 }}%)</strong>
+                    karena model dilatih pada korpus teks umum bahasa Indonesia, sehingga kurang sensitif
+                    terhadap terminologi keuangan spesifik seperti "dividen", "buyback", dan "IPO".
+                    Sebaliknya, pendekatan rule-based dengan lexicon keuangan domain-spesifik mampu
+                    mendeteksi sentimen positif lebih akurat untuk konteks pasar saham Indonesia.
+                    Agreement rate sebesar <strong class="text-sky-400">{{ $agreementRate }}%</strong>
+                    menunjukkan bahwa kedua pendekatan memiliki karakteristik yang saling melengkapi,
+                    dan sistem hybrid yang menggabungkan keduanya dapat menghasilkan analisis yang
+                    lebih komprehensif.
+                </p>
+            </div>
+        </div>
     </div>
 </x-app-layout>

@@ -12,6 +12,7 @@ use App\Services\News\GNewsFetcher;
 use App\Services\News\ManualNewsFetcher;
 use App\Services\News\MockNewsFetcher;
 use App\Services\News\NewsApiFetcher;
+use App\Services\News\OjkRssFetcher;
 use App\Services\News\RssLocalFetcher;
 use App\Services\News\RssNewsFetcher;
 use App\Services\News\StockKeywordMapper;
@@ -21,6 +22,7 @@ use App\Services\Sentiment\SentimentAnalyzerInterface;
 use App\Services\Sentiment\SentimentEngineManager;
 use App\Models\SystemSetting;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Str;
 
 class NewsAggregationService
@@ -50,6 +52,7 @@ class NewsAggregationService
             'finnhub' => new FinnhubNewsFetcher(),
             'newsapi' => new NewsApiFetcher($this->keywordMapper),
             'gnews' => new GNewsFetcher($this->keywordMapper),
+            'ojk' => new OjkRssFetcher(),
             'rss_local' => new RssLocalFetcher($this->keywordMapper),
             'gdelt' => new GdeltFetcher($this->keywordMapper),
         ];
@@ -58,7 +61,7 @@ class NewsAggregationService
     public function fetchLatestArticles(Stock $stock, int $limit = 10)
     {
         return NewsArticle::with('source')
-            ->where('stock_id', $stock->id)
+            ->forStockContext($stock)
             ->orderByDesc('final_quality_score')
             ->orderByDesc('published_at')
             ->limit($limit)
@@ -72,11 +75,58 @@ class NewsAggregationService
 
         $preferred = config('news.preferred_providers.'.($stock->code ?? ''), null);
         $providers = $providerOverride ?: ($providerKey === 'multi'
-            ? ($preferred ?: config('news.source_priority', ['rss_local', 'gnews', 'gdelt']))
+            ? ($preferred ?: config('news.multi_providers', config('news.source_priority', ['rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'])))
             : [$providerKey]);
 
         $rawArticles = collect();
-        $stats = [
+        $stats = $this->baseStats();
+        foreach ($providers as $key) {
+            $fetcher = $this->fetchers[$key] ?? null;
+            if (! $fetcher) {
+                continue;
+            }
+            $providerKeyName = match ($key) {
+                'api' => 'newsapi_legacy',
+                'ojk' => 'ojk_rss',
+                default => $key,
+            };
+            $fetched = collect($fetcher->fetchForStock($stock, $limit))->map(function ($item) use ($providerKeyName) {
+                $item['provider'] = $item['provider'] ?? $providerKeyName;
+                return $item;
+            });
+
+            $stats['raw'] += $fetched->count();
+            $stats['by_provider'][$providerKeyName] = ($stats['by_provider'][$providerKeyName] ?? 0) + $fetched->count();
+
+            $rawArticles = $rawArticles->merge($fetched);
+        }
+
+        return $this->persistRawArticles($stock, $rawArticles, $stats, $providerKey);
+    }
+
+    public function refreshOjkBackfill(
+        Stock $stock,
+        CarbonInterface|string $from,
+        CarbonInterface|string $to,
+        int $limit = 100,
+        ?int $candidateLimit = null
+    ): array {
+        $fetcher = $this->fetchers['ojk'] ?? new OjkRssFetcher();
+        if (! method_exists($fetcher, 'fetchForMarketInRange')) {
+            return $this->baseStats();
+        }
+
+        $rawArticles = collect($fetcher->fetchForMarketInRange($from, $to, $limit, $candidateLimit));
+        $stats = $this->baseStats();
+        $stats['raw'] = $rawArticles->count();
+        $stats['by_provider']['ojk_rss'] = $rawArticles->count();
+
+        return $this->persistRawArticles($stock, $rawArticles, $stats, 'ojk_rss');
+    }
+
+    protected function baseStats(): array
+    {
+        return [
             'raw' => 0,
             'by_provider' => [],
             'filtered' => 0,
@@ -104,25 +154,14 @@ class NewsAggregationService
             'kept_market_sum' => 0.0,
             'dropped_samples' => [],
         ];
-        foreach ($providers as $key) {
-            $fetcher = $this->fetchers[$key] ?? null;
-            if (! $fetcher) {
-                continue;
-            }
-            $providerKeyName = $key === 'api' ? 'newsapi_legacy' : $key;
-            $fetched = collect($fetcher->fetchForStock($stock, $limit))->map(function ($item) use ($providerKeyName) {
-                $item['provider'] = $item['provider'] ?? $providerKeyName;
-                return $item;
-            });
+    }
 
-            $stats['raw'] += $fetched->count();
-            $stats['by_provider'][$providerKeyName] = ($stats['by_provider'][$providerKeyName] ?? 0) + $fetched->count();
-
-            $rawArticles = $rawArticles->merge($fetched);
-        }
-
-        $source = $this->resolveSource($providerKey);
-
+    protected function persistRawArticles(
+        Stock $stock,
+        \Illuminate\Support\Collection $rawArticles,
+        array $stats,
+        ?string $providerKey = null
+    ): array {
         $keywords = $this->keywordMapper->keywords($stock);
 
         $exclusions = $this->keywordMapper->exclusionKeywords($stock);
@@ -140,8 +179,10 @@ class NewsAggregationService
                 continue;
             }
 
-            $score = $this->relevanceScoringService->score($stock, $raw, $raw['provider'] ?? null);
-            $raw = array_merge($raw, $score);
+            if (! ($raw['skip_relevance_rescore'] ?? false)) {
+                $score = $this->relevanceScoringService->score($stock, $raw, $raw['provider'] ?? null);
+                $raw = array_merge($raw, $score);
+            }
 
             $lang = strtolower($raw['detected_language'] ?? $raw['language'] ?? '');
             if ($lang && ! in_array($lang, ['id', 'en'])) {
@@ -152,15 +193,14 @@ class NewsAggregationService
                 continue;
             }
 
-            // rss_local: pass if relevance>=0.15 OR market_context>=0.20
-            // newsapi_legacy (generic/api): bypass relevance gate to satisfy legacy provider
-            // Other providers: standard threshold
             $isRss = ($raw['provider'] ?? '') === 'rss_local';
-            $isLegacy = ($raw['provider'] ?? '') === 'newsapi_legacy';
-            $passRelevance = $isLegacy || ($raw['relevance_score'] ?? 0) >= ($isRss ? 0.15 : $threshold);
-            $passMarket    = $isRss && ($raw['market_context_score'] ?? 0) >= 0.20;
+            $hasDirectIssuerMatch = ($raw['issuer_specificity'] ?? null) === 'direct';
+            $isMacroRegulatory = $this->isMacroRegulatory($raw);
+            $passRelevance = ($hasDirectIssuerMatch
+                && (($raw['relevance_score'] ?? 0) >= ($isRss ? 0.15 : $threshold)))
+                || ($isMacroRegulatory && (($raw['relevance_score'] ?? 0) >= max(0.40, $threshold)));
 
-            if (!$passRelevance && !$passMarket) {
+            if (! $passRelevance) {
                 $stats['dropped_relevance']++;
                 $stats['drop_relevance_sum'] += $raw['relevance_score'] ?? 0;
                 $stats['drop_entity_sum'] += $raw['entity_match_score'] ?? 0;
@@ -172,6 +212,7 @@ class NewsAggregationService
                         'entity' => $raw['entity_match_score'] ?? 0,
                         'market' => $raw['market_context_score'] ?? 0,
                         'provider' => $raw['provider'] ?? 'unknown',
+                        'issuer_specificity' => $raw['issuer_specificity'] ?? 'none',
                     ];
                 }
                 continue;
@@ -238,10 +279,11 @@ class NewsAggregationService
             if (! $providerValue) {
                 $providerValue = 'unknown';
             }
+            $source = $this->resolveSource($providerValue);
 
             $model = NewsArticle::updateOrCreate($match, [
                 'slug' => $slug,
-                'stock_id' => $stock->id,
+                'stock_id' => $this->shouldStoreGlobally($rawArticle) ? null : $stock->id,
                 'news_source_id' => $source?->id,
                 'source_provider' => $providerValue,
                 'source_weight' => $rawArticle['source_weight'] ?? null,
@@ -258,6 +300,9 @@ class NewsAggregationService
                 'ml_sentiment_label' => $rawArticle['ml_sentiment_label'] ?? $analysis['ml_label'] ?? null,
                 'ml_sentiment_score' => $rawArticle['ml_sentiment_score'] ?? $analysis['ml_score'] ?? null,
                 'ml_confidence' => $rawArticle['ml_confidence'] ?? $analysis['ml_confidence'] ?? null,
+                'ml_prob_positive' => $rawArticle['ml_prob_positive'] ?? $analysis['ml_prob_positive'] ?? null,
+                'ml_prob_neutral' => $rawArticle['ml_prob_neutral'] ?? $analysis['ml_prob_neutral'] ?? null,
+                'ml_prob_negative' => $rawArticle['ml_prob_negative'] ?? $analysis['ml_prob_negative'] ?? null,
                 'rule_sentiment_label' => $rawArticle['rule_sentiment_label'] ?? $analysis['rule_label'] ?? null,
                 'rule_sentiment_score' => $rawArticle['rule_sentiment_score'] ?? $analysis['rule_score'] ?? null,
                 'ml_rule_agree' => $rawArticle['ml_rule_agree']
@@ -314,6 +359,10 @@ class NewsAggregationService
             return false;
         }
 
+        if ($this->isMacroRegulatory($rawArticle)) {
+            return true;
+        }
+
         foreach ($exclusions as $ex) {
             $text = strtolower(implode(' ', array_filter([
                 $rawArticle['title'] ?? '',
@@ -339,6 +388,10 @@ class NewsAggregationService
             $rawArticle['full_text'] ?? '',
         ])));
 
+        if ($this->isMacroRegulatory($rawArticle)) {
+            return true;
+        }
+
         // Language gate: reject foreign diacritics / non-ID/EN
         $foreignPattern = '/[àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿčšžřůďťľščňě]/u';
         if (preg_match($foreignPattern, $rawArticle['title'] ?? '')) {
@@ -357,12 +410,35 @@ class NewsAggregationService
             return false;
         }
 
+        // Hard exclude untuk BUMI saham: cegah artikel "planet bumi" masuk
+        // Jika keyword stock adalah nama umum (bumi, goto, dll), 
+        // wajibkan konteks finansial
+        $titleLower = strtolower($rawArticle['title'] ?? '');
+        $nonFinancialPatterns = [
+            'planet', 'astronaut', 'artemis', 'nasa', 'antariksa', 'luar angkasa',
+            'bulan purnama', 'gerhana', 'meteor', 'bintang',
+            'ular berbisa', 'king cobra', 'hewan', 'binatang',
+            'resep', 'masakan', 'kuliner', 'wisata', 'liburan',
+            'film', 'drama', 'artis', 'selebriti', 'musik',
+            'sepak bola', 'timnas', 'piala dunia',
+            'cuaca', 'hujan', 'banjir', 'gempa',
+        ];
+        foreach ($nonFinancialPatterns as $pattern) {
+            if (str_contains($titleLower, $pattern)) {
+                return false;
+            }
+        }
+
         $excludeKeywords = [
             'langit', 'roket', 'bencana alam', 'gempa', 'banjir', 'kebakaran',
             'artis', 'selebriti', 'viral', 'tiktok', 'instagram', 'youtube',
             'sepak bola', 'timnas', 'liga', 'piala', 'olahraga',
             'resep', 'kuliner', 'wisata', 'pariwisata',
             'cuaca', 'prakiraan', 'bmkg',
+            'astronaut', 'artemis', 'nasa', 'antariksa', 'luar angkasa',
+            'planet', 'gerhana', 'meteor', 'satelit', 'orbit',
+            'king cobra', 'ular berbisa', 'hewan liar', 'spesies',
+            'mendarat di bumi', 'bumi dari bulan', 'keliling bulan',
         ];
         foreach ($excludeKeywords as $excl) {
             if (str_contains($text, $excl)) {
@@ -370,32 +446,20 @@ class NewsAggregationService
             }
         }
 
-        // Pass 1: stock-specific keyword match (BBCA, BCA, Bank Central Asia, etc)
-        foreach ($keywords as $kw) {
-            if ($kw && str_contains($text, strtolower($kw))) {
-                return true;
-            }
+        if (($rawArticle['issuer_specificity'] ?? null) !== 'direct') {
+            return false;
         }
 
-        // Pass 2: for trusted RSS sources, allow market-general financial news
-        // Articles about OJK, BEI, IHSG, perbankan are relevant context
-        // for any banking/finance stock even without direct stock mention
-        if (($rawArticle['provider'] ?? '') === 'rss_local') {
-            $marketGeneralKeywords = [
-                'ihsg', 'bei', 'bursa efek', 'ojk', 'bank indonesia',
-                'saham', 'emiten', 'investasi', 'pasar modal',
-                'perbankan', 'bank', 'kredit', 'kpr', 'suku bunga',
-                'dividen', 'laba', 'rugi', 'buyback', 'rights issue',
-                'inflasi', 'rupiah', 'bi rate', 'ekonomi',
-            ];
-            $matchCount = 0;
-            foreach ($marketGeneralKeywords as $mkw) {
-                if (str_contains($text, $mkw)) {
-                    $matchCount++;
-                }
-            }
-            // Require at least 2 market keywords to avoid false positives
-            if ($matchCount >= 2) {
+        if (! empty($rawArticle['competing_keyword_hits']) && empty($rawArticle['direct_keyword_hits'])) {
+            return false;
+        }
+
+        if (! empty($rawArticle['direct_keyword_hits'])) {
+            return true;
+        }
+
+        foreach ($keywords as $kw) {
+            if ($kw && str_contains($text, strtolower($kw))) {
                 return true;
             }
         }
@@ -424,13 +488,30 @@ class NewsAggregationService
 
     protected function resolveSource(string $providerKey): ?NewsSource
     {
+        $displayName = match ($providerKey) {
+            'ojk_rss' => 'OJK RSS',
+            'newsapi_legacy' => 'NewsAPI Legacy',
+            default => Str::title(str_replace('_', ' ', $providerKey)).' Provider',
+        };
+
         return NewsSource::firstOrCreate(
-            ['name' => Str::title($providerKey).' Provider'],
+            ['name' => $displayName],
             [
                 'type' => $providerKey,
                 'is_active' => true,
                 'config_json' => ['seeded' => true],
             ]
         );
+    }
+
+    protected function isMacroRegulatory(array $rawArticle): bool
+    {
+        return ($rawArticle['provider'] ?? null) === 'ojk_rss'
+            && ($rawArticle['issuer_specificity'] ?? null) === 'macro_regulatory';
+    }
+
+    protected function shouldStoreGlobally(array $rawArticle): bool
+    {
+        return $this->isMacroRegulatory($rawArticle);
     }
 }

@@ -20,11 +20,11 @@ class EvaluationReportService
     ) {
     }
 
-    public function generate(Stock $stock, int $period = 30): array
+    public function generate(Stock $stock, int $period = 30, bool $includeMacroNews = true): array
     {
         $period = max(3, $period);
 
-        $articles = NewsArticle::where('stock_id', $stock->id)
+        $articles = NewsArticle::forStockContext($stock, $includeMacroNews)
             ->whereNotNull('published_at')
             ->where('published_at', '>=', now()->subDays($period))
             ->latest('published_at')
@@ -48,6 +48,7 @@ class EvaluationReportService
             'data_points' => [
                 'price_points' => $prices->count(),
                 'article_count' => $articles->count(),
+                'include_macro_news' => $includeMacroNews,
             ],
             'sentiment' => [
                 'average' => $analytics['average_sentiment'],

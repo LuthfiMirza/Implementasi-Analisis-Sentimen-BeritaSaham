@@ -6,6 +6,10 @@
                 <h1 class="text-2xl font-bold text-slate-100">Evaluasi Model & Laporan Prediksi</h1>
                 <p class="text-sm text-slate-400">Tanggal: {{ now()->format('d M Y') }}</p>
                 <p class="text-xs text-slate-500 mt-1">Diperbarui: {{ now()->format('d M Y H:i') }} WIB</p>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('evaluasi.sentimen') }}" class="text-xs text-sky-400 hover:underline">Evaluasi Sentimen ML →</a>
+                    <a href="{{ route('backtest.all') }}" class="text-xs text-amber-400 hover:underline">Backtest DSS →</a>
+                </div>
             </div>
             <span class="px-3 py-1 rounded-full text-sm bg-slate-800 text-slate-200 border border-slate-700">
                 {{ $summary['total_stocks'] ?? 0 }} Saham Aktif

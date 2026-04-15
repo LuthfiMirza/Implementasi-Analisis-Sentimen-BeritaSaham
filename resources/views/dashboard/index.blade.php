@@ -69,6 +69,10 @@
                             <span class="px-2 py-1 rounded-full text-[11px]" :class="quote.is_live ? 'bg-green-500/10 text-green-300 border border-green-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700'">
                                 <span x-text="quote.is_live ? 'Backend Live' : 'Backend Snapshot'"></span>
                             </span>
+                            <span class="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] border border-slate-700 bg-slate-800/60">
+                                <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="marketStatus().dot"></span>
+                                <span :class="marketStatus().color" x-text="marketStatus().label">BEI</span>
+                            </span>
                             @if($chart_mode === 'tradingview')
                                 <span class="px-2 py-1 rounded-full text-[11px] border border-sky-500/40 text-sky-200 bg-sky-500/10">
                                     Live Chart: TradingView

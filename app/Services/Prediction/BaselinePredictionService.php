@@ -71,50 +71,127 @@ class BaselinePredictionService
 
     protected function baselineHeuristic(array $f): array
     {
-        $sentiment = (float) ($f['weighted_sentiment'] ?? $f['sentiment_average'] ?? 0);
+        $sentiment = (float) ($f['weighted_sentiment_quality'] ?? $f['weighted_sentiment'] ?? $f['sentiment_average'] ?? 0);
         $maGap = (float) ($f['ma_gap'] ?? 0);
         $rsi = $f['rsi'] ?? null;
-        $lag1 = $f['daily_return_lag1'] ?? 0;
-        $lag3 = $f['daily_return_lag3'] ?? 0;
+        $lag1 = (float) ($f['daily_return_lag1'] ?? 0);
+        $lag3 = (float) ($f['daily_return_lag3'] ?? 0);
+        $lag7 = (float) ($f['daily_return_lag7'] ?? 0);
+        $volatility = (float) ($f['volatility'] ?? 0);
+        $newsVolume = (int) ($f['news_volume'] ?? 0);
+        $positiveNews = (int) ($f['positive_news_count'] ?? 0);
+        $negativeNews = (int) ($f['negative_news_count'] ?? 0);
+        $neutralNews = (int) ($f['neutral_news_count'] ?? 0);
+        $cumulativeReturn = $f['cumulative_return'] ?? null;
+        $priceTrend = strtolower((string) ($f['price_trend'] ?? 'datar'));
+        $correlationH1 = $f['lag_correlation_h1'] ?? null;
+        $correlationH3 = $f['lag_correlation_h3'] ?? null;
+
+        $sentimentSignal = $this->clamp($sentiment / 0.35);
+        $maSignal = $this->clamp($maGap / 0.025);
+        $lag1Signal = $this->clamp($lag1 / 1.8);
+        $lag3Signal = $this->clamp($lag3 / 3.8);
+        $lag7Signal = $this->clamp($lag7 / 6.0);
+        $rsiSignal = $rsi !== null ? $this->clamp(((float) $rsi - 50) / 18) : 0.0;
+        $cumSignal = $cumulativeReturn !== null ? $this->clamp(((float) $cumulativeReturn) / 8) : 0.0;
+        $newsBalance = ($positiveNews + $negativeNews) > 0
+            ? $this->clamp(($positiveNews - $negativeNews) / max(1, $positiveNews + $negativeNews))
+            : 0.0;
+        $coverageFactor = $newsVolume > 0 ? min(1.0, $newsVolume / 8) : 0.0;
+        $trendSignal = match ($priceTrend) {
+            'naik' => 0.7,
+            'turun' => -0.7,
+            default => 0.0,
+        };
+        $corrSignal = $this->clamp((((float) ($correlationH1 ?? 0)) * 0.6) + (((float) ($correlationH3 ?? 0)) * 0.4), -0.6, 0.6);
+
+        $sentimentWeight = $coverageFactor >= 0.5 ? 0.24 : 0.10;
+        $newsFlowWeight = $coverageFactor >= 0.5 ? 0.12 : 0.04;
+
+        $directionalEdge =
+            ($sentimentSignal * $sentimentWeight) +
+            ($newsBalance * $newsFlowWeight) +
+            ($maSignal * 0.18) +
+            ($lag1Signal * 0.14) +
+            ($lag3Signal * 0.20) +
+            ($lag7Signal * 0.10) +
+            ($rsiSignal * 0.10) +
+            ($cumSignal * 0.06) +
+            ($trendSignal * 0.10) +
+            ($corrSignal * 0.06);
+
+        $componentSigns = collect([
+            $sentimentSignal,
+            $newsBalance,
+            $maSignal,
+            $lag1Signal,
+            $lag3Signal,
+            $lag7Signal,
+            $rsiSignal,
+            $trendSignal,
+        ])->filter(fn ($value) => abs($value) >= 0.15)->values();
+
+        $positiveComponents = $componentSigns->filter(fn ($value) => $value > 0)->count();
+        $negativeComponents = $componentSigns->filter(fn ($value) => $value < 0)->count();
+        $consensus = $componentSigns->count() > 0
+            ? abs($positiveComponents - $negativeComponents) / $componentSigns->count()
+            : 0.0;
+
+        $volatilityPenalty = $volatility > 2.5 ? min(0.12, ($volatility - 2.5) / 15) : 0.0;
+        $neutralityBoost = $neutralNews > ($positiveNews + $negativeNews) ? 0.04 : 0.0;
+        $conviction = max(0.0, abs($directionalEdge) - $volatilityPenalty - $neutralityBoost);
+
+        $upScore = $this->scorePercent(0.5 + max(0, $directionalEdge));
+        $downScore = $this->scorePercent(0.5 + max(0, -$directionalEdge));
+        $flatScore = $this->scorePercent(1 - min(0.9, $conviction + (abs($directionalEdge) * 0.5)));
 
         $direction = 'flat';
-        $confidence = 0.45;
-        $basis = [];
-
-        if ($sentiment > 0.2 && $maGap > 0 && $lag1 >= 0) {
+        if ($directionalEdge >= 0.16 && $conviction >= 0.12) {
             $direction = 'up';
-            $confidence = 0.6 + min(0.2, ($sentiment / 2) + ($maGap * 2));
-            $basis[] = 'Sentimen positif, harga di atas MA20, return pendek mendukung';
-        } elseif ($sentiment < -0.2 && $maGap < 0 && $lag1 < 0) {
+        } elseif ($directionalEdge <= -0.16 && $conviction >= 0.12) {
             $direction = 'down';
-            $confidence = 0.6 + min(0.2, (abs($sentiment) / 2) + abs($maGap));
-            $basis[] = 'Sentimen negatif, harga di bawah MA20, return melemah';
+        }
+
+        $confidence = 0.42
+            + min(0.28, $conviction * 0.65)
+            + min(0.10, $consensus * 0.10)
+            + min(0.08, $coverageFactor * 0.08)
+            - min(0.06, $volatilityPenalty * 0.5);
+
+        $basis = [];
+        if ($coverageFactor > 0) {
+            $basis[] = sprintf(
+                'Sentimen %s (%.2f) dengan coverage %d berita',
+                $sentiment > 0 ? 'positif' : ($sentiment < 0 ? 'negatif' : 'netral'),
+                $sentiment,
+                $newsVolume
+            );
         } else {
-            $direction = 'flat';
-            $confidence = 0.45 + min(0.15, abs($sentiment) / 3);
-            $basis[] = 'Sinyal campuran, kecenderungan netral';
+            $basis[] = 'Coverage berita tipis, model lebih mengandalkan price action';
+        }
+
+        if ($maSignal > 0.15) {
+            $basis[] = 'MA5 berada di atas MA20';
+        } elseif ($maSignal < -0.15) {
+            $basis[] = 'MA5 berada di bawah MA20';
+        }
+
+        if ($lag3Signal > 0.2 || $lag7Signal > 0.2) {
+            $basis[] = 'Momentum 3-7 hari mendukung kenaikan';
+        } elseif ($lag3Signal < -0.2 || $lag7Signal < -0.2) {
+            $basis[] = 'Momentum 3-7 hari mendukung pelemahan';
         }
 
         if ($rsi !== null) {
-            if ($direction === 'up' && $rsi >= 60) {
-                $confidence += 0.05;
-                $basis[] = 'RSI mendukung momentum naik';
-            } elseif ($direction === 'down' && $rsi <= 40) {
-                $confidence += 0.05;
-                $basis[] = 'RSI lemah mendukung tekanan turun';
-            } elseif ($rsi >= 70) {
-                $basis[] = 'RSI tinggi, waspadai jenuh beli';
+            if ($rsi >= 60) {
+                $basis[] = 'RSI mendukung momentum bullish';
+            } elseif ($rsi <= 40) {
+                $basis[] = 'RSI mendukung tekanan bearish';
             }
         }
 
-        if ($lag3 !== null && $direction === 'flat') {
-            if ($lag3 > 0.5 && $sentiment > 0) {
-                $direction = 'up';
-                $basis[] = 'Return 3 hari positif dan sentimen ikut naik';
-            } elseif ($lag3 < -0.5 && $sentiment < 0) {
-                $direction = 'down';
-                $basis[] = 'Return 3 hari negatif sejalan sentimen';
-            }
+        if ($direction === 'flat') {
+            $basis[] = 'Skor bullish dan bearish masih berdekatan';
         }
 
         $probability = round(min(0.95, max(0.35, $confidence)), 2);
@@ -122,7 +199,15 @@ class BaselinePredictionService
         return [
             'predicted_direction' => $direction,
             'confidence' => $probability,
-            'method' => 'baseline',
+            'method' => 'baseline_score',
+            'scores' => [
+                'up' => $upScore,
+                'flat' => $flatScore,
+                'down' => $downScore,
+                'edge' => round($directionalEdge, 4),
+                'conviction' => round($conviction, 4),
+                'consensus' => round($consensus, 4),
+            ],
             'prediction_basis' => implode('; ', $basis),
             'scenario_bullish' => 'Jika sentimen tetap positif dan harga bertahan di atas MA20, kecenderungan bullish berlanjut.',
             'scenario_neutral' => 'Jika sinyal bercampur, harga cenderung bergerak datar sambil menunggu katalis.',
@@ -148,5 +233,15 @@ class BaselinePredictionService
         $direction = strtolower((string) $data['predicted_direction']);
 
         return in_array($direction, ['up', 'down', 'flat'], true);
+    }
+
+    protected function clamp(float $value, float $min = -1.0, float $max = 1.0): float
+    {
+        return max($min, min($max, $value));
+    }
+
+    protected function scorePercent(float $value): float
+    {
+        return round(max(0, min(100, $value * 100)), 1);
     }
 }

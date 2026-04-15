@@ -42,6 +42,11 @@ class RelevanceScoringService
         $text = trim($textTitle.' '.$textBody);
 
         $keywords = $this->mapper->keywords($stock);
+        $directTitleHits = $this->mapper->directHits($stock, $textTitle);
+        $directBodyHits = $this->mapper->directHits($stock, $textBody);
+        $directHits = array_values(array_unique(array_merge($directTitleHits, $directBodyHits)));
+        $competingHits = $this->mapper->competingIssuerHits($stock, $text);
+
         $contextKeywords = config('news.context_keywords', []);
         $idxContextKeywords = [
             'saham', 'bursa', 'ihsg', 'idx', 'bei', 'emiten',
@@ -80,14 +85,20 @@ class RelevanceScoringService
         foreach ($keywords as $kw) {
             $low = strtolower($kw);
             if ($low && str_contains($textTitle, $low)) {
-                $relevanceScore += 0.4;
-                $entityScore += 0.55;
+                $relevanceScore += 0.34;
+                $entityScore += 0.48;
                 $matched[] = $kw;
             } elseif ($low && str_contains($textBody, $low)) {
-                $relevanceScore += 0.24;
-                $entityScore += 0.3;
+                $relevanceScore += 0.18;
+                $entityScore += 0.22;
                 $matched[] = $kw;
             }
+        }
+
+        $hasDirectMatch = count($directHits) > 0;
+        if ($hasDirectMatch && count($directTitleHits) > 0) {
+            $relevanceScore += 0.08;
+            $entityScore += 0.12;
         }
 
         // Context terms (pasar modal)
@@ -99,12 +110,19 @@ class RelevanceScoringService
                 $matched[] = $ctx;
             }
         }
-        $marketScore += min(0.35, $ctxMatches * 0.07);
-        $relevanceScore += min(0.25, $ctxMatches * 0.08);
-        if ($ctxMatches >= 2) {
-            $marketScore += 0.3;
-        } elseif ($ctxMatches === 1) {
-            $marketScore += 0.15;
+        $marketScore += min(0.30, $ctxMatches * 0.06);
+        if ($hasDirectMatch) {
+            $relevanceScore += min(0.18, $ctxMatches * 0.04);
+            if ($ctxMatches >= 2) {
+                $marketScore += 0.22;
+            } elseif ($ctxMatches === 1) {
+                $marketScore += 0.10;
+            }
+        } else {
+            $relevanceScore += min(0.08, $ctxMatches * 0.02);
+            if ($ctxMatches >= 2) {
+                $marketScore += 0.08;
+            }
         }
 
         // Sector-level entity hints (untuk artikel sektor yang tidak sebut ticker eksplisit)
@@ -117,10 +135,12 @@ class RelevanceScoringService
         $sectorEntityList = $sectorEntities[$stock->sector ?? ''] ?? [];
         if ($sectorEntityList) {
             $sectorMatches = collect($sectorEntityList)->filter(fn ($e) => $e && Str::contains($text, strtolower($e)))->count();
-            if ($sectorMatches >= 2) {
+            if ($hasDirectMatch && $sectorMatches >= 2) {
                 $entityScore = min(1.0, $entityScore + 0.25);
-            } elseif ($sectorMatches === 1) {
+            } elseif ($hasDirectMatch && $sectorMatches === 1) {
                 $entityScore = min(1.0, $entityScore + 0.10);
+            } elseif (! $hasDirectMatch && $sectorMatches >= 2) {
+                $entityScore = min(1.0, $entityScore + 0.05);
             }
         }
 
@@ -133,6 +153,18 @@ class RelevanceScoringService
                 $relevanceScore -= 0.1;
                 $flags[] = 'hit_exclusion:'.$ex;
             }
+        }
+
+        if (count($competingHits) > 0) {
+            foreach ($competingHits as $code => $hits) {
+                $flags[] = 'competing_issuer:'.$code;
+                $matched[] = $code;
+                $matched = array_merge($matched, $hits);
+            }
+
+            $competitorPenalty = min(0.45, count($competingHits) * 0.18);
+            $relevanceScore -= $competitorPenalty;
+            $entityScore -= min(0.30, count($competingHits) * 0.12);
         }
 
         // Structural quality
@@ -156,6 +188,18 @@ class RelevanceScoringService
         $marketScore = max(0.0, min(1.0, $marketScore));
         $languageScore = max(0.0, min(1.0, $languageScore));
 
+        $issuerSpecificity = match (true) {
+            $hasDirectMatch => 'direct',
+            count($competingHits) > 0 => 'competitor',
+            $ctxMatches >= 2 => 'sector_context',
+            default => 'none',
+        };
+
+        if ($issuerSpecificity !== 'direct') {
+            $relevanceScore = min($relevanceScore, 0.24);
+            $entityScore = min($entityScore, 0.18);
+        }
+
         // Trust bonus berdasarkan domain sumber
         $sourceUrl = $article['source_url'] ?? $article['url'] ?? '';
         $domain = strtolower(parse_url($sourceUrl, PHP_URL_HOST) ?? '');
@@ -176,6 +220,9 @@ class RelevanceScoringService
         );
 
         $finalQuality = max(0.0, min(1.0, $finalQuality + $trustBonus));
+        if ($issuerSpecificity !== 'direct') {
+            $finalQuality = min($finalQuality, 0.34);
+        }
 
         $high = (float) config('news.high_threshold', 0.65);
         $medium = (float) config('news.relevance_threshold', 0.35);
@@ -206,6 +253,9 @@ class RelevanceScoringService
             'quality_band' => $qualityBand,
             'source_weight' => $sourceWeight,
             'matched_keywords' => array_values(array_unique($matched)),
+            'direct_keyword_hits' => $directHits,
+            'competing_keyword_hits' => $competingHits,
+            'issuer_specificity' => $issuerSpecificity,
             'detected_language' => $language,
             'quality_flags' => $flags,
         ];

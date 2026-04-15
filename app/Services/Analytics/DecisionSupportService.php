@@ -3,6 +3,8 @@
 namespace App\Services\Analytics;
 
 use App\Models\Stock;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 class DecisionSupportService
@@ -16,7 +18,16 @@ class DecisionSupportService
     public function analyze(Stock $stock, Collection $prices, Collection $articles, ?array $analytics = null): array
     {
         $orderedPrices = $prices->sortBy('price_date')->values();
-        $analytics ??= $this->sentimentPriceAnalyticsService->analyze($stock, $orderedPrices, $articles, $orderedPrices->count() ?: 30);
+        $analysisDate = $this->analysisDate($orderedPrices);
+        if ($analytics === null || $analytics === []) {
+            $analytics = $this->sentimentPriceAnalyticsService->analyze(
+                $stock,
+                $orderedPrices,
+                $articles,
+                $orderedPrices->count() ?: 30,
+                $analysisDate
+            );
+        }
 
         $ma5 = $this->movingAverage($orderedPrices, 5);
         $ma20 = $this->movingAverage($orderedPrices, 20);
@@ -91,7 +102,7 @@ class DecisionSupportService
         // Prediction integration
         $featureBuilder = app(\App\Services\Prediction\FeatureBuilderService::class);
         $predictor = app(\App\Services\Prediction\BaselinePredictionService::class);
-        $predictionFeatures = $featureBuilder->build($stock, $orderedPrices, $articles, $analytics, 30);
+        $predictionFeatures = $featureBuilder->build($stock, $orderedPrices, $articles, $analytics, 30, $analysisDate);
         $predictionResult = $predictor->predict($predictionFeatures);
         $lastCloseVal = (float) ($orderedPrices->last()->close ?? 0);
         $tradingSignal = $this->calculateTradingSignal(
@@ -135,6 +146,7 @@ class DecisionSupportService
             'prediction' => $predictionResult['predicted_direction'] ?? null,
             'prediction_confidence' => $predictionResult['confidence'] ?? null,
             'prediction_method' => $predictionResult['method'] ?? null,
+            'prediction_scores' => $predictionResult['scores'] ?? null,
             'prediction_basis' => $predictionResult['prediction_basis'] ?? null,
             'scenario_bullish' => $predictionResult['scenario_bullish'] ?? null,
             'scenario_neutral' => $predictionResult['scenario_neutral'] ?? null,
@@ -157,7 +169,39 @@ class DecisionSupportService
         string $prediction
     ): array {
         if (! $atr || $lastClose <= 0) {
-            return ['valid' => false, 'reason' => 'Data tidak cukup untuk sinyal trading'];
+            return [
+                'valid' => false,
+                'quality' => 'invalid',
+                'prediction' => $prediction,
+                'entry' => 0,
+                'entry_zone_low' => 0,
+                'entry_zone_high' => 0,
+                'stop_recommended' => 0,
+                'stop_conservative' => 0,
+                'stop_aggressive' => 0,
+                'target_2r' => 0,
+                'target_3r' => 0,
+                'risk_per_share' => 0,
+                'rr_ratio_2r' => 0,
+                'rr_ratio_3r' => 0,
+                'atr_value' => 0,
+                'atr_percent' => 0,
+                'target_note' => '',
+                'lot_size' => 0,
+                'lot_value' => 0,
+                'risk_amount' => 0,
+                'confirmations' => [],
+                'warnings' => ['Data tidak cukup untuk sinyal trading'],
+                'confirm_count' => 0,
+                'warn_count' => 1,
+                'vwap' => null,
+                'ma20' => 0,
+                'bb_upper' => null,
+                'bb_lower' => null,
+                'support' => 0,
+                'resistance' => 0,
+                'reason' => 'Data tidak cukup untuk sinyal trading',
+            ];
         }
 
         $atrValue = $atr['atr'];
@@ -317,9 +361,9 @@ class DecisionSupportService
 
         $gains = [];
         $losses = [];
-        $ordered = $prices->values();
+        $ordered = $prices->take(-($period + 1))->values();
 
-        for ($i = 1; $i <= $period; $i++) {
+        for ($i = 1; $i < $ordered->count(); $i++) {
             $change = ($ordered[$i]->close - $ordered[$i - 1]->close);
             if ($change > 0) {
                 $gains[] = $change;
@@ -339,6 +383,20 @@ class DecisionSupportService
         $rsi = 100 - (100 / (1 + $rs));
 
         return round($rsi, 2);
+    }
+
+    protected function analysisDate(Collection $prices): CarbonInterface
+    {
+        $lastDate = $prices->last()?->price_date;
+        if ($lastDate instanceof CarbonInterface) {
+            return $lastDate;
+        }
+
+        if ($lastDate) {
+            return Carbon::parse($lastDate);
+        }
+
+        return now();
     }
 
     protected function momentumSignal(Collection $prices): string

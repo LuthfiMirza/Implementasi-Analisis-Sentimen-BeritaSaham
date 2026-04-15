@@ -152,4 +152,100 @@ class NewsAggregationRelevanceTest extends TestCase
         ]);
         $this->assertEquals('newsapi_legacy', $article->source_provider);
     }
+
+    public function test_competing_bank_article_is_not_saved_for_target_issuer(): void
+    {
+        config()->set('news.relevance_threshold', 0.2);
+        config()->set('news.final_quality_threshold', 0.2);
+
+        $stock = Stock::factory()->create([
+            'code' => 'BBCA',
+            'company_name' => 'Bank Central Asia',
+            'sector' => 'Perbankan',
+        ]);
+
+        $fetcher = new class implements NewsFetcherInterface {
+            public function fetchForStock(\App\Models\Stock $stock, int $limit = 5): array
+            {
+                return [
+                    [
+                        'title' => 'BRI tebar dividen jumbo setelah laba naik',
+                        'summary' => 'Bank Rakyat Indonesia dan BBRI membagikan dividen besar',
+                        'source_url' => 'https://example.com/bbri-dividen',
+                        'provider' => 'newsapi',
+                        'published_at' => now(),
+                    ],
+                ];
+            }
+        };
+
+        $service = new NewsAggregationService();
+        $ref = new \ReflectionClass($service);
+        $prop = $ref->getProperty('fetchers');
+        $prop->setAccessible(true);
+        $prop->setValue($service, [
+            'newsapi' => $fetcher,
+        ]);
+
+        $service->refreshFromProvider($stock, 3, ['newsapi']);
+
+        $this->assertEquals(0, NewsArticle::count());
+    }
+
+    public function test_ojk_macro_article_is_saved_once_as_global_context(): void
+    {
+        config()->set('news.relevance_threshold', 0.35);
+        config()->set('news.final_quality_threshold', 0.4);
+
+        $stock = Stock::factory()->create([
+            'code' => 'BBCA',
+            'company_name' => 'Bank Central Asia',
+            'sector' => 'Perbankan',
+        ]);
+
+        $fetcher = new class implements NewsFetcherInterface {
+            public function fetchForStock(\App\Models\Stock $stock, int $limit = 5): array
+            {
+                return [
+                    [
+                        'title' => 'OJK perketat regulasi pasar modal',
+                        'summary' => 'Pasar modal dan emiten wajib tingkatkan keterbukaan',
+                        'source_url' => 'https://www.ojk.go.id/id/berita/macro-1',
+                        'provider' => 'ojk_rss',
+                        'published_at' => now(),
+                        'language' => 'id',
+                        'detected_language' => 'id',
+                        'relevance_score' => 0.62,
+                        'relevance_band' => 'high',
+                        'entity_match_score' => 0.18,
+                        'market_context_score' => 0.76,
+                        'language_score' => 1.0,
+                        'final_quality_score' => 0.68,
+                        'quality_band' => 'high',
+                        'source_weight' => 1.1,
+                        'issuer_specificity' => 'macro_regulatory',
+                        'skip_relevance_rescore' => true,
+                        'matched_keywords' => ['pasar modal', 'emiten'],
+                        'quality_flags' => ['macro_regulatory', 'ojk_official'],
+                    ],
+                ];
+            }
+        };
+
+        $service = new NewsAggregationService();
+        $ref = new \ReflectionClass($service);
+        $prop = $ref->getProperty('fetchers');
+        $prop->setAccessible(true);
+        $prop->setValue($service, [
+            'ojk' => $fetcher,
+        ]);
+
+        $service->refreshFromProvider($stock, 3, ['ojk']);
+        $service->refreshFromProvider($stock, 3, ['ojk']);
+
+        $this->assertCount(1, NewsArticle::all());
+        $article = NewsArticle::first();
+        $this->assertNull($article->stock_id);
+        $this->assertSame('ojk_rss', $article->source_provider);
+    }
 }

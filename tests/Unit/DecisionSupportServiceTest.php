@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\Stock;
 use App\Models\StockPrice;
+use App\Models\NewsArticle;
 use App\Services\Analytics\DecisionSupportService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -73,5 +74,34 @@ class DecisionSupportServiceTest extends TestCase
 
         $this->assertSame('Warning', $result['status']);
         $this->assertNotSame('Tinggi', $result['confidence']);
+    }
+
+    public function test_empty_analytics_array_recomputes_metrics(): void
+    {
+        $service = new DecisionSupportService();
+        $stock = new Stock(['code' => 'ABC', 'company_name' => 'ABC Corp']);
+
+        $prices = new Collection();
+        for ($i = 0; $i < 20; $i++) {
+            $prices->push(new StockPrice([
+                'price_date' => Carbon::parse('2024-03-01')->addDays($i),
+                'close' => 100 + ($i * 1.0),
+            ]));
+        }
+
+        $articles = new Collection([
+            new NewsArticle([
+                'published_at' => Carbon::parse('2024-03-18'),
+                'sentiment_label' => 'positive',
+                'sentiment_score' => 0.5,
+                'title' => 'ABC cetak laba',
+            ]),
+        ]);
+
+        $result = $service->analyze($stock, $prices, $articles, []);
+
+        $this->assertGreaterThan(0, $result['sentiment_average']);
+        $this->assertGreaterThan(0, $result['news_volume']);
+        $this->assertSame('2024-03-20', $result['prediction_features']['reference_date']);
     }
 }

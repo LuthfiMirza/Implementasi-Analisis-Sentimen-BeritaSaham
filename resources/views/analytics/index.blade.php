@@ -192,6 +192,29 @@
                                 </div>
                             @endif
 
+                            @if($signal['valid'] ?? false)
+                                <div class="mt-3">
+                                    <a href="{{ route('trades.index', [
+                                        'stock_id' => $stock->id,
+                                        'entry_price' => $signal['entry'],
+                                        'stop_loss' => $signal['stop_recommended'],
+                                        'target_1' => $signal['target_2r'],
+                                        'target_2' => $signal['target_3r'],
+                                        'lot_size' => $signal['lot_size'],
+                                        'rr_ratio' => $signal['rr_ratio_2r'],
+                                        'dss_score' => $decision['final_score'] ?? 0,
+                                        'dss_prediction' => $decision['prediction'] ?? 'flat',
+                                        'dss_confidence' => $decision['prediction_confidence'] ?? 0,
+                                        'signal_quality' => $signal['quality'],
+                                        'entry_zone_low' => $signal['entry_zone_low'] ?? null,
+                                        'entry_zone_high' => $signal['entry_zone_high'] ?? null,
+                                    ]) }}"
+                                       class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 hover:bg-green-400 text-slate-900 font-semibold text-sm transition">
+                                        📝 Catat Trade
+                                    </a>
+                                </div>
+                            @endif
+
                             <div class="border-t border-slate-800 pt-3 mb-3">
                                 <div class="text-xs text-slate-500 uppercase mb-2">
                                     Position Sizing (Modal Rp 10jt • Risk 2%)

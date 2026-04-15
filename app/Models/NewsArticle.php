@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class NewsArticle extends Model
@@ -74,5 +75,32 @@ class NewsArticle extends Model
     public function entities()
     {
         return $this->hasMany(ArticleEntity::class);
+    }
+
+    public function scopeForStockContext(Builder $query, Stock|int|null $stock, bool $includeMacro = true): Builder
+    {
+        $stockId = $stock instanceof Stock ? $stock->id : $stock;
+        $macroProviders = (array) config('news.macro_global_providers', ['ojk_rss']);
+
+        if (! $includeMacro) {
+            return $stockId !== null
+                ? $query->where('stock_id', $stockId)
+                : $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function (Builder $builder) use ($stockId, $macroProviders) {
+            if ($stockId !== null) {
+                $builder->where('stock_id', $stockId)
+                    ->orWhere(function (Builder $macro) use ($macroProviders) {
+                        $macro->whereNull('stock_id')
+                            ->whereIn('source_provider', $macroProviders);
+                    });
+
+                return;
+            }
+
+            $builder->whereNull('stock_id')
+                ->whereIn('source_provider', $macroProviders);
+        });
     }
 }

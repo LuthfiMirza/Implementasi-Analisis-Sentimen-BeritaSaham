@@ -81,18 +81,19 @@ class RescoreNewsQualityCommand extends Command
                 ];
 
                 $score = $scorer->score($stock, $raw, $raw['provider']);
+                $overwrite = $force;
                 $article->forceFill([
-                    'source_provider' => $raw['provider'] ?: 'unknown',
-                    'relevance_score' => $article->relevance_score ?? $score['relevance_score'],
-                    'relevance_band' => $article->relevance_band ?? $score['relevance_band'],
-                    'entity_match_score' => $article->entity_match_score ?? $score['entity_match_score'],
-                    'market_context_score' => $article->market_context_score ?? $score['market_context_score'],
-                    'language_score' => $article->language_score ?? $score['language_score'],
-                    'final_quality_score' => $article->final_quality_score ?? $score['final_quality_score'],
-                    'quality_band' => $article->quality_band ?? $score['quality_band'],
-                    'quality_flags' => $article->quality_flags ?? $score['quality_flags'],
-                    'matched_keywords' => $article->matched_keywords ?: $score['matched_keywords'],
-                    'detected_language' => $article->detected_language ?? $score['detected_language'],
+                    'source_provider' => ($overwrite || ! $article->source_provider) ? ($raw['provider'] ?: 'unknown') : $article->source_provider,
+                    'relevance_score' => ($overwrite || $article->relevance_score === null) ? $score['relevance_score'] : $article->relevance_score,
+                    'relevance_band' => ($overwrite || ! $article->relevance_band) ? $score['relevance_band'] : $article->relevance_band,
+                    'entity_match_score' => ($overwrite || $article->entity_match_score === null) ? $score['entity_match_score'] : $article->entity_match_score,
+                    'market_context_score' => ($overwrite || $article->market_context_score === null) ? $score['market_context_score'] : $article->market_context_score,
+                    'language_score' => ($overwrite || $article->language_score === null) ? $score['language_score'] : $article->language_score,
+                    'final_quality_score' => ($overwrite || $article->final_quality_score === null) ? $score['final_quality_score'] : $article->final_quality_score,
+                    'quality_band' => ($overwrite || ! $article->quality_band) ? $score['quality_band'] : $article->quality_band,
+                    'quality_flags' => ($overwrite || empty($article->quality_flags)) ? $score['quality_flags'] : $article->quality_flags,
+                    'matched_keywords' => ($overwrite || empty($article->matched_keywords)) ? $score['matched_keywords'] : $article->matched_keywords,
+                    'detected_language' => ($overwrite || ! $article->detected_language) ? $score['detected_language'] : $article->detected_language,
                 ])->save();
 
                 $updated++;

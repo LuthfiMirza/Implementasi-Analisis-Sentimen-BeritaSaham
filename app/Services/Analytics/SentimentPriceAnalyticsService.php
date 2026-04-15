@@ -4,27 +4,36 @@ namespace App\Services\Analytics;
 
 use App\Models\Stock;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 class SentimentPriceAnalyticsService
 {
-    public function analyze(Stock $stock, Collection $prices, Collection $articles, int $periodDays = 30): array
+    public function analyze(
+        Stock $stock,
+        Collection $prices,
+        Collection $articles,
+        int $periodDays = 30,
+        CarbonInterface|string|null $referenceDate = null
+    ): array
     {
         $orderedPrices = $prices->sortBy('price_date')->values();
+        $referencePoint = $this->resolveReferenceDate($referenceDate, $orderedPrices);
+        $articlesInPeriod = $this->articlesInPeriod($articles, $periodDays, $referencePoint);
         $returns = $this->dailyReturns($orderedPrices);
-        $perDateSentiment = $this->sentimentByDate($articles, $stock, $periodDays);
+        $perDateSentiment = $this->sentimentByDate($articlesInPeriod, $stock, $periodDays, $referencePoint);
 
-        $averageSentiment = round((float) ($articles->avg('sentiment_score') ?? 0), 3);
+        $averageSentiment = round((float) ($articlesInPeriod->avg('sentiment_score') ?? 0), 3);
         $counts = [
-            'positive' => $articles->where('sentiment_label', 'positive')->count(),
-            'neutral' => $articles->where('sentiment_label', 'neutral')->count(),
-            'negative' => $articles->where('sentiment_label', 'negative')->count(),
+            'positive' => $articlesInPeriod->where('sentiment_label', 'positive')->count(),
+            'neutral' => $articlesInPeriod->where('sentiment_label', 'neutral')->count(),
+            'negative' => $articlesInPeriod->where('sentiment_label', 'negative')->count(),
         ];
         $dominance = $this->dominantSentiment($counts);
 
-        $weightedSentiment = $this->weightedSentiment($articles, $stock, $periodDays);
-        $weightedStats = $this->weightedSentimentStats($articles, $stock, $periodDays);
-        $newsVolume = $articles->count();
+        $weightedSentiment = $this->weightedSentiment($articlesInPeriod, $stock, $periodDays, $referencePoint);
+        $weightedStats = $this->weightedSentimentStats($articlesInPeriod, $stock, $periodDays, $referencePoint);
+        $newsVolume = $articlesInPeriod->count();
         $dailyReturn = $this->latestReturn($returns);
         $cumulativeReturn = $this->cumulativeReturn($orderedPrices);
         $volatility = $this->volatility($returns);
@@ -59,10 +68,11 @@ class SentimentPriceAnalyticsService
             'volume_impact' => $volumeImpact,
             'per_date_sentiment' => $perDateSentiment,
             'per_date_returns' => $returns,
+            'reference_date' => $referencePoint?->toDateString(),
         ];
     }
 
-    protected function weightedSentiment(Collection $articles, Stock $stock, int $periodDays): float
+    protected function weightedSentiment(Collection $articles, Stock $stock, int $periodDays, CarbonInterface $referencePoint): float
     {
         $weights = $this->cfg('analytics.source_weights', []);
         $headlineBonus = (float) $this->cfg('analytics.headline_bonus', 0.2);
@@ -82,7 +92,7 @@ class SentimentPriceAnalyticsService
                 $weight += $headlineBonus;
             }
 
-            $daysAgo = optional($article->published_at)->diffInDays(now()) ?? 0;
+            $daysAgo = optional($article->published_at)->diffInDays($referencePoint) ?? 0;
             $recencyFactor = 1 - (min($daysAgo, $periodDays) / max($periodDays, 1)) * $decay;
             $weight *= max(0.6, $recencyFactor);
 
@@ -110,15 +120,15 @@ class SentimentPriceAnalyticsService
         return str_contains($haystack, $code) || ($name && str_contains($haystack, $name));
     }
 
-    protected function sentimentByDate(Collection $articles, Stock $stock, int $periodDays): Collection
+    protected function sentimentByDate(Collection $articles, Stock $stock, int $periodDays, CarbonInterface $referencePoint): Collection
     {
         return $articles
-            ->groupBy(fn ($article) => optional($article->published_at)?->toDateString() ?? now()->toDateString())
-            ->map(function (Collection $group) use ($stock, $periodDays) {
+            ->groupBy(fn ($article) => optional($article->published_at)?->toDateString() ?? $referencePoint->toDateString())
+            ->map(function (Collection $group) use ($stock, $periodDays, $referencePoint) {
                 $weightedSum = 0.0;
                 $totalWeight = 0.0;
                 foreach ($group as $article) {
-                    $weight = $this->articleWeight($article, $stock, $periodDays);
+                    $weight = $this->articleWeight($article, $stock, $periodDays, $referencePoint);
                     $weightedSum += (float) ($article->sentiment_score ?? 0) * $weight;
                     $totalWeight += $weight;
                 }
@@ -132,7 +142,7 @@ class SentimentPriceAnalyticsService
             ->sortKeys();
     }
 
-    protected function articleWeight($article, Stock $stock, int $periodDays): float
+    protected function articleWeight($article, Stock $stock, int $periodDays, CarbonInterface $referencePoint): float
     {
         $weights = $this->cfg('analytics.source_weights', []);
         $headlineBonus = (float) $this->cfg('analytics.headline_bonus', 0.2);
@@ -148,14 +158,14 @@ class SentimentPriceAnalyticsService
             $weight += $headlineBonus;
         }
 
-        $daysAgo = optional($article->published_at)->diffInDays(now()) ?? 0;
+        $daysAgo = optional($article->published_at)->diffInDays($referencePoint) ?? 0;
         $recencyFactor = 1 - (min($daysAgo, $periodDays) / max($periodDays, 1)) * $decay;
         $weight *= max(0.6, $recencyFactor);
 
         return $weight;
     }
 
-    protected function weightedSentimentStats(Collection $articles, Stock $stock, int $periodDays): array
+    protected function weightedSentimentStats(Collection $articles, Stock $stock, int $periodDays, CarbonInterface $referencePoint): array
     {
         $sum = 0.0;
         $total = 0.0;
@@ -164,7 +174,7 @@ class SentimentPriceAnalyticsService
         $neu = 0.0;
 
         foreach ($articles as $article) {
-            $baseWeight = $this->articleWeight($article, $stock, $periodDays);
+            $baseWeight = $this->articleWeight($article, $stock, $periodDays, $referencePoint);
             $relevance = (float) ($article->relevance_score ?? 1.0);
             $sourceWeight = (float) ($article->source_weight ?? 1.0);
             $effective = $baseWeight * max(0.1, $relevance) * max(0.5, $sourceWeight);
@@ -194,6 +204,54 @@ class SentimentPriceAnalyticsService
             'weighted_neutral_count' => round($neu, 3),
             'total_effective_weight' => round($total, 3),
         ];
+    }
+
+    protected function resolveReferenceDate(CarbonInterface|string|null $referenceDate, Collection $prices): CarbonInterface
+    {
+        if ($referenceDate instanceof CarbonInterface) {
+            return $referenceDate;
+        }
+
+        if (is_string($referenceDate) && trim($referenceDate) !== '') {
+            return Carbon::parse($referenceDate);
+        }
+
+        $lastPriceDate = $prices->last()?->price_date;
+        if ($lastPriceDate instanceof CarbonInterface) {
+            return $lastPriceDate;
+        }
+
+        if ($lastPriceDate) {
+            return Carbon::parse($lastPriceDate);
+        }
+
+        return now();
+    }
+
+    protected function articlesInPeriod(Collection $articles, int $periodDays, CarbonInterface $referencePoint): Collection
+    {
+        $periodStart = $referencePoint->copy()->subDays(max(1, $periodDays));
+        $qualityThreshold = (float) config('news.final_quality_threshold', 0.4);
+
+        return $articles
+            ->filter(function ($article) use ($periodStart, $referencePoint, $qualityThreshold) {
+                if (! $article->published_at) {
+                    return false;
+                }
+
+                if ($article->final_quality_score !== null && (float) $article->final_quality_score < $qualityThreshold) {
+                    return false;
+                }
+
+                $published = $article->published_at instanceof CarbonInterface
+                    ? $article->published_at->copy()
+                    : Carbon::parse($article->published_at);
+
+                return $published->greaterThanOrEqualTo($periodStart)
+                    && $published->lessThanOrEqualTo($referencePoint);
+            })
+            ->sortBy('published_at')
+            ->values();
     }
 
     protected function dailyReturns(Collection $prices): array

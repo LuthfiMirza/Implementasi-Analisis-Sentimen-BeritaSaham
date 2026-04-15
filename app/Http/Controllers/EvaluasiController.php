@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\NewsArticle;
 use App\Models\Stock;
 use App\Services\Analytics\DecisionSupportService;
-use Illuminate\Support\Str;
 
 class EvaluasiController extends Controller
 {
@@ -120,5 +119,99 @@ class EvaluasiController extends Controller
             'priceChart' => $priceChart,
             'sentimentTrend' => $sentimentTrend,
         ]);
+    }
+
+    public function sentimen()
+    {
+        $articles = NewsArticle::whereNotNull('ml_sentiment_label')
+            ->whereNotNull('rule_sentiment_label')
+            ->get();
+
+        $total = $articles->count();
+        if ($total === 0) {
+            return view('evaluasi.sentimen', ['empty' => true]);
+        }
+
+        $agree = $articles->where('ml_rule_agree', true)->count();
+        $disagree = $articles->where('ml_rule_agree', false)->count();
+        $agreeRate = $total > 0 ? round($agree / $total * 100, 1) : 0;
+
+        $labels = ['positive', 'neutral', 'negative'];
+        $matrix = [];
+        foreach ($labels as $rule) {
+            foreach ($labels as $ml) {
+                $matrix[$rule][$ml] = $articles
+                    ->where('rule_sentiment_label', $rule)
+                    ->where('ml_sentiment_label', $ml)
+                    ->count();
+            }
+        }
+
+        $mlDist = [
+            'positive' => $articles->where('ml_sentiment_label', 'positive')->count(),
+            'neutral' => $articles->where('ml_sentiment_label', 'neutral')->count(),
+            'negative' => $articles->where('ml_sentiment_label', 'negative')->count(),
+        ];
+
+        $ruleDist = [
+            'positive' => $articles->where('rule_sentiment_label', 'positive')->count(),
+            'neutral' => $articles->where('rule_sentiment_label', 'neutral')->count(),
+            'negative' => $articles->where('rule_sentiment_label', 'negative')->count(),
+        ];
+
+        $metrics = [];
+        foreach ($labels as $label) {
+            $tp = $matrix[$label][$label] ?? 0;
+            $fp = array_sum(array_column($matrix, $label)) - $tp;
+            $fn = array_sum($matrix[$label] ?? []) - $tp;
+
+            $precision = ($tp + $fp) > 0 ? round($tp / ($tp + $fp), 3) : 0;
+            $recall = ($tp + $fn) > 0 ? round($tp / ($tp + $fn), 3) : 0;
+            $f1 = ($precision + $recall) > 0 ? round(2 * $precision * $recall / ($precision + $recall), 3) : 0;
+
+            $metrics[$label] = compact('precision', 'recall', 'f1', 'tp', 'fp', 'fn');
+        }
+
+        $disagreements = $articles->where('ml_rule_agree', false)
+            ->sortByDesc('ml_confidence')
+            ->take(10)
+            ->values();
+
+        $perStock = Stock::where('is_active', true)->get()->map(function ($stock) {
+            $arts = NewsArticle::where('stock_id', $stock->id)
+                ->whereNotNull('ml_sentiment_label')
+                ->whereNotNull('rule_sentiment_label')
+                ->get();
+
+            $total = $arts->count();
+            $agree = $arts->where('ml_rule_agree', true)->count();
+
+            return [
+                'code' => $stock->code,
+                'total' => $total,
+                'agree' => $agree,
+                'agree_rate' => $total > 0 ? round($agree / $total * 100, 1) : 0,
+                'ml_pos' => $arts->where('ml_sentiment_label', 'positive')->count(),
+                'ml_neu' => $arts->where('ml_sentiment_label', 'neutral')->count(),
+                'ml_neg' => $arts->where('ml_sentiment_label', 'negative')->count(),
+            ];
+        });
+
+        $avgMlConfidence = $articles->avg('ml_confidence') ?? 0;
+
+        return view('evaluasi.sentimen', compact(
+            'total',
+            'agree',
+            'disagree',
+            'agreeRate',
+            'matrix',
+            'mlDist',
+            'ruleDist',
+            'metrics',
+            'disagreements',
+            'perStock',
+            'labels',
+            'avgMlConfidence'
+        ));
     }
 }

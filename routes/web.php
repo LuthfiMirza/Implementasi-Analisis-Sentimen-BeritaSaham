@@ -8,6 +8,8 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluasiController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\TradeController;
+use App\Http\Controllers\BacktestController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StockController;
@@ -26,9 +28,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');
     Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
+    Route::get('/evaluasi/sentimen', [EvaluasiController::class, 'sentimen'])->name('evaluasi.sentimen');
     Route::get('/evaluasi/{code}', [EvaluasiController::class, 'show'])->name('evaluasi.show');
     Route::get('/evaluation', [EvaluationController::class, 'index'])->name('evaluation.index');
+    Route::get('/trades', [TradeController::class, 'index'])->name('trades.index');
+    Route::post('/trades', [TradeController::class, 'store'])->name('trades.store');
+    Route::post('/trades/{trade}/close', [TradeController::class, 'close'])->name('trades.close');
+    Route::delete('/trades/{trade}', [TradeController::class, 'destroy'])->name('trades.destroy');
     Route::post('/api/news/refresh/{code}', [NewsController::class, 'refresh'])->name('news.refresh');
+    Route::get('/backtest', [BacktestController::class, 'index'])->name('backtest.index');
+    Route::get('/backtest/all', [BacktestController::class, 'all'])->name('backtest.all');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

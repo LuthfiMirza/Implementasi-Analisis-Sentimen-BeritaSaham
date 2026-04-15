@@ -26,42 +26,54 @@ class GNewsFetcher implements NewsFetcherInterface
             return [];
         }
 
-        $keywords = $this->mapper->keywords($stock);
-        $query = collect($keywords)->take(3)->map(fn ($k) => '"'.$k.'"')->implode(' OR ');
+        $queries = $this->buildQueries($stock);
+        $articles = collect();
 
-        try {
-            $response = Http::withHeaders([
-                'User-Agent' => env('GNEWS_USER_AGENT', 'SentimenaNews/1.0'),
-            ])->timeout($timeout)->get($baseUrl, [
-                'q' => $query,
-                'lang' => $lang,
-                'country' => $country,
-                'token' => $apiKey,
-                'max' => min($limit, 10),
-                'sortby' => 'publishedAt',
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('GNews request failed', ['error' => $e->getMessage()]);
+        foreach ($queries as $query) {
+            try {
+                $response = Http::withHeaders([
+                    'User-Agent' => env('GNEWS_USER_AGENT', 'SentimenaNews/1.0'),
+                ])->timeout($timeout)->get($baseUrl, [
+                    'q' => $query,
+                    'lang' => $lang,
+                    'country' => $country,
+                    'token' => $apiKey,
+                    'max' => min(max($limit, 10), 10),
+                    'sortby' => 'publishedAt',
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('GNews request failed', ['error' => $e->getMessage()]);
+                continue;
+            }
+
+            if (! $response->successful()) {
+                Log::warning('GNews response error', [
+                    'status' => $response->status(),
+                    'body' => substr($response->body(), 0, 200),
+                    'query' => $query,
+                ]);
+                continue;
+            }
+
+            $json = $response->json();
+            $queryArticles = collect($json['articles'] ?? []);
+            if ($queryArticles->isEmpty()) {
+                Log::info('GNews returned 0 articles', ['stock' => $stock->code, 'query' => $query]);
+                continue;
+            }
+
+            $articles = $articles->merge($queryArticles);
+        }
+
+        if ($articles->isEmpty()) {
             return [];
         }
 
-        if (! $response->successful()) {
-            Log::warning('GNews response error', [
-                'status' => $response->status(),
-                'body' => substr($response->body(), 0, 200),
-            ]);
-            return [];
-        }
-
-        $json = $response->json();
-        $articles = $json['articles'] ?? [];
-
-        if (empty($articles)) {
-            Log::info('GNews returned 0 articles', ['stock' => $stock->code, 'query' => $query]);
-            return [];
-        }
-
-        return collect($articles)->take($limit)->map(function ($item) use ($stock) {
+        return $articles
+            ->unique(fn ($item) => $item['url'] ?? md5(($item['title'] ?? '').($item['publishedAt'] ?? '')))
+            ->sortByDesc('publishedAt')
+            ->take($limit)
+            ->map(function ($item) use ($stock) {
             $title = $item['title'] ?? 'Berita '.$stock->code;
             return [
                 'title' => $title,
@@ -76,6 +88,21 @@ class GNewsFetcher implements NewsFetcherInterface
                 'sentiment_score' => null,
                 'raw_payload' => $item,
             ];
-        })->all();
+            })->values()->all();
+    }
+
+    protected function buildQueries(Stock $stock): array
+    {
+        $aliases = collect($this->mapper->keywords($stock))->take(4);
+        $sectorTerms = collect($this->mapper->sectorKeywords($stock))->take(4);
+
+        $aliasGroup = $aliases->map(fn ($alias) => '"'.$alias.'"')->implode(' OR ');
+        $contextGroup = $sectorTerms->map(fn ($term) => '"'.$term.'"')->implode(' OR ');
+
+        return collect([
+            $contextGroup ? '('.$aliasGroup.') AND ('.$contextGroup.')' : null,
+            $aliasGroup,
+            '"'.$stock->code.'"',
+        ])->filter()->unique()->values()->all();
     }
 }

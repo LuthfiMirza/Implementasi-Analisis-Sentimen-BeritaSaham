@@ -38,10 +38,11 @@ Dashboard fullstack untuk skripsi Sistem Informasi: analisis sentimen berita ter
 - User: `user@sentimena.test` / `password`
 
 ## Konfigurasi Penting
-- `NEWS_PROVIDER` (`mock|rss|manual|newsapi|finnhub|rss_local|gdelt|multi`), `NEWS_API_KEY`, `NEWS_API_BASE_URL`
-- Default prioritas multi (disarankan): `rss_local`, `gnews`, `gdelt`. NewsAPI/Finnhub dapat diaktifkan manual jika diperlukan.
+- `NEWS_PROVIDER` (`mock|rss|manual|newsapi|finnhub|rss_local|gdelt|ojk|multi`), `NEWS_API_KEY`, `NEWS_API_BASE_URL`
+- Default prioritas multi (disarankan): `rss_local`, `ojk`, `gnews`, `gdelt`. NewsAPI/Finnhub dapat diaktifkan manual jika diperlukan.
 - `GNEWS_API_KEY`, `GNEWS_BASE_URL`, `GNEWS_LANGUAGE`, `GNEWS_COUNTRY`
 - `NEWS_RSS_SOURCES`, `NEWS_RSS_TIMEOUT`, `NEWS_RSS_USER_AGENT` (default: CNBC market/tech/news RSS)
+- OJK macro news: `NEWS_OJK_MAX_AGE_DAYS`, `NEWS_OJK_BACKFILL_CANDIDATE_LIMIT`, `NEWS_OJK_BACKFILL_MAX_PAGES`
 - `NEWS_RELEVANCE_THRESHOLD`, `NEWS_RELEVANCE_HIGH` (banding high/medium/low)
 - `GDELT_BASE_URL` (default: https://api.gdeltproject.org/api/v2/doc/doc)
 - `NEWS_DOMAIN_BLACKLIST` / `NEWS_DOMAIN_WHITELIST` (opsional, pisah `;`/`,` untuk memaksa filter domain)
@@ -102,6 +103,8 @@ Jika label/direction tidak valid atau API error/timeout, sistem otomatis fallbac
 
 ## Perintah CLI & Test
 - `php artisan news:fetch --limit=5` – tarik berita untuk semua saham aktif via provider konfigurasi (opsi: `--provider=newsapi|rss_local|gnews`, `--debug` untuk ringkasan skor/band).
+- `php artisan news:fetch-ojk --limit=20` – tarik berita OJK terbaru sebagai **macro/global news** (`stock_id = null`).
+- `php artisan news:fetch-ojk --backfill --from=2026-02-01 --to=2026-04-15 --limit=100 --scan-limit=200 --debug` – backfill historis OJK dari halaman resmi OJK untuk evaluasi/backtest.
 - `php artisan news:analyze` – analisis sentimen artikel baru (gunakan `--all` untuk reprocess semua).
 - `php artisan stocks:update-snapshots --days=1` – buat snapshot harga demo harian.
 - `php artisan news:rescore-quality --days=180 [--stock=BBCA] [--force]` – backfill metadata kualitas & provider untuk artikel yang belum lengkap.
@@ -109,13 +112,15 @@ Jika label/direction tidak valid atau API error/timeout, sistem otomatis fallbac
 - `php artisan stocks:fetch-history --days=90` – tarik harga historis 1D (Yahoo Finance) untuk semua saham aktif.
 - Test: `./vendor/bin/phpunit --testsuite Unit,Feature` (pastikan DB testing siap).
 - Evaluasi ringkas (laporan JSON/console): `php artisan evaluate:report BBCA --period=30 --output=bbca-30.json`
+- Evaluasi tanpa macro OJK: `php artisan evaluate:report BBCA --period=30 --no-macro`
 - Checklist QA manual UI: `docs/QA_CHECKLIST.md`
 - Komparasi weighted vs average sentiment: `php artisan evaluation:sentiment-compare BBCA --period=30 --save=bbca-weighted.json`
+- Komparasi tanpa macro OJK: `php artisan evaluation:sentiment-compare BBCA --period=30 --no-macro`
 - Coverage berita: `php artisan news:coverage-report --days=30 [--stock=BBCA] [--save=coverage.json]` (melaporkan artikel per saham, band kualitas, sentimen, provider terbanyak, kelayakan evaluasi)
 - Metadata berita: setiap artikel menyimpan `source_provider`, `relevance_score`, `final_quality_score`, `quality_band`, dan skor konteks lain. Jika coverage report menampilkan `unknown`, jalankan `news:rescore-quality` untuk melengkapi metadata atau periksa provider yang belum terkonfigurasi.
 - Tuning kualitas: threshold default disetel (`final_quality_threshold` 0.40, `quality_high` 0.55, `quality_medium` 0.40) dengan bobot final quality yang menaikkan entity/market context. Jika data terlalu ketat/longgar, sesuaikan env `NEWS_FINAL_QUALITY_THRESHOLD`, `NEWS_QUALITY_HIGH`, `NEWS_QUALITY_MEDIUM`.
 - Provider & debugging:
-  - Provider yang didukung: `rss_local`, `newsapi`, `gnews`, `finnhub`, `gdelt` (opsional legacy `api` akan dinormalisasi sebagai `newsapi_legacy`).
+  - Provider yang didukung: `rss_local`, `ojk`, `newsapi`, `gnews`, `finnhub`, `gdelt` (opsional legacy `api` akan dinormalisasi sebagai `newsapi_legacy`).
   - Gunakan `php artisan news:fetch --provider=newsapi --debug` untuk melihat query kosong atau status gagal; log akan menampilkan attempt, query, language, status code jika respon kosong/gagal.
   - Coverage report mengelompokkan provider secara spesifik; `unknown` hanya muncul jika provider tidak tersedia di payload.
 - Quote live vs snapshot:
@@ -134,16 +139,18 @@ Jika label/direction tidak valid atau API error/timeout, sistem otomatis fallbac
   - `NewsApiFetcher` (NewsAPI, bahasa id → en → fallback)
   - `GNewsFetcher` (GNews search, language/country filter)
   - `FinnhubNewsFetcher` (ticker otomatis tambah `.JK`)
+  - `OjkRssFetcher` (RSS + halaman resmi OJK; berita regulator disimpan sebagai macro/global news)
   - `RssLocalFetcher` (RSS CNBC Indonesia, Kontan, Bisnis; bisa override via `NEWS_RSS_SOURCES`)
   - `GdeltFetcher` (filter bahasa Indonesia/English)
   - `Mock/Manual/RSS` bawaan untuk demo
 - **Aggregator**: `NewsAggregationService`
-  - `NEWS_PROVIDER=multi` akan memanggil berurutan: `newsapi`, `gnews`, `rss_local`, `gdelt`, `finnhub`, deduplikasi berlapis (source_url/canonical → hash judul ternormalisasi → judul+domain+jendela tanggal)
+  - `NEWS_PROVIDER=multi` akan memanggil berurutan: `rss_local`, `ojk`, `gnews`, `newsapi`, `gdelt`, `finnhub`, deduplikasi berlapis (source_url/canonical → hash judul ternormalisasi → judul+domain+jendela tanggal)
   - Analisis sentimen rule-based otomatis saat simpan (jika label/score belum ada)
   - Filter relevansi: wajib mengandung kata kunci emiten; ada pengecualian per emiten (mis. GOTO skip “goto islands”, “camellia”, dll)
   - Filter bahasa: hanya id/en yang diterima; bahasa lain ditolak
   - Market context filter: wajib ada konteks pasar modal (saham, emiten, IHSG, laba, dividen, rights issue, buyback, dll)
   - Quality scoring transparan: relevance_score, entity_match_score, market_context_score, language_score, source_weight → final_quality_score + band high/medium/low. Artikel di bawah `NEWS_FINAL_QUALITY_THRESHOLD` dibuang; default sorting /news berdasarkan final_quality_score desc lalu published_at desc.
+  - Artikel `ojk_rss` yang lolos disimpan sebagai **macro/global news** (`stock_id = null`) agar dapat dibaca semua saham aktif tanpa duplikasi per emiten.
   - Dukungan whitelist/blacklist domain via env
   - Relevance scoring transparan: ticker/nama/alias di judul/badan, konteks kata kunci (saham, emiten, idx, bei, ihsg, dividen, laba, pendapatan, rights issue, buyback, target harga, rekomendasi), bobot sumber, kualitas struktur (judul/published/summary/url). Output: `relevance_score`, `relevance_band`, `source_weight`, `matched_keywords`. Artikel di bawah `NEWS_RELEVANCE_THRESHOLD` di-drop.
 - **Mapping saham**: `StockKeywordMapper`
@@ -186,6 +193,59 @@ NEWS_DOMAIN_BLACKLIST=japantrends.com
 - Metrik: korelasi same-day & lag H+1/H+3/H+7 (avg vs weighted), event study lonjakan sentimen (avg vs weighted), backtest sinyal arah bullish/netral/bearish di H+1/H+3/H+7 (directional accuracy, hit rate, avg return per sinyal).
 - Prediction impact (heuristik): Mode A (tanpa weighted_sentiment_quality) vs Mode B (dengan), dibandingkan dengan arah return H+1 terakhir.
 - Output JSON + narasi ringkas; bisa disimpan ke `storage/app/evaluations/`.
+
+## OJK Macro News
+- `ojk_rss` diposisikan sebagai berita regulator resmi OJK, sehingga diperlakukan sebagai **macro/global news** dan disimpan dengan `stock_id = null`.
+- Artikel global ini ikut terbaca oleh analytics, evaluation report, sentiment comparison, dashboard/news listing, dan backtest melalui scope konteks saham.
+- Untuk uji dampak OJK di evaluasi:
+  - Backtest UI: gunakan query `?include_macro_news=1` atau `?include_macro_news=0`
+  - Evaluation CLI: gunakan `--no-macro` untuk membandingkan hasil tanpa OJK
+  - Sentiment comparison CLI: gunakan `--no-macro` untuk membandingkan hasil tanpa OJK
+
+### Live Fetch OJK
+1. Jalankan `php artisan news:fetch-ojk --limit=20 --debug`
+2. Verifikasi artikel OJK masuk ke DB:
+```bash
+php artisan tinker --execute="
+echo App\Models\NewsArticle::where('source_provider','ojk_rss')->count();
+"
+```
+3. Artikel yang tersimpan seharusnya `stock_id = null` dan `source_provider = ojk_rss`.
+
+### Backfill Historis OJK
+Gunakan backfill jika Anda ingin menguji dampak macro news OJK pada periode backtest tertentu, misalnya `Februari 2026` sampai `April 2026`.
+
+```bash
+php artisan news:fetch-ojk \
+  --backfill \
+  --from=2026-02-01 \
+  --to=2026-04-15 \
+  --limit=100 \
+  --scan-limit=200 \
+  --debug
+```
+
+Catatan:
+- Backfill hanya memakai domain resmi `ojk.go.id`.
+- Fetcher akan membaca listing resmi OJK yang memiliki tanggal publikasi, lalu memproses hanya artikel dalam rentang tanggal yang diminta.
+- Command aman dijalankan berulang karena penyimpanan menggunakan dedup berbasis `source_url`.
+
+### Rerun Backtest Sesudah Backfill
+1. Ambil atau backfill berita OJK.
+2. Bersihkan view cache jika perlu: `php artisan view:clear`
+3. Bandingkan backtest:
+   - Dengan macro: `/backtest?code=BBCA&include_macro_news=1`
+   - Tanpa macro: `/backtest?code=BBCA&include_macro_news=0`
+4. Untuk evaluasi console:
+```bash
+php artisan evaluate:report BBCA --period=30
+php artisan evaluate:report BBCA --period=30 --no-macro
+```
+
+### Narasi Skripsi untuk Macro OJK
+- Berita `ojk_rss` digunakan sebagai sinyal regulasi makro yang dapat memengaruhi seluruh saham, sehingga tidak diikat ke satu emiten tertentu.
+- Artikel OJK disimpan sebagai berita global (`stock_id = null`) dan diikutsertakan dalam analisis hanya ketika mode evaluasi `include_macro_news` aktif.
+- Dengan pendekatan ini, peneliti dapat membandingkan performa model sebelum dan sesudah memasukkan konteks berita regulator resmi pada rentang waktu yang sama.
 
 ## Decision Support & Analytics
 - `SentimentPriceAnalyticsService`: average/weighted sentiment, dominasi, hitung volume berita, return harian/kumulatif, volatilitas, tren harga/sentimen, korelasi same-day & lag (H+1/H+3/H+7), event study lonjakan sentimen, volume→volatilitas.

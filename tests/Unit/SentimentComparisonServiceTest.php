@@ -46,4 +46,45 @@ class SentimentComparisonServiceTest extends TestCase
         $this->assertArrayHasKey('signal_backtest', $report);
         $this->assertEquals('BBCA', $report['stock']);
     }
+
+    public function test_comparison_can_include_or_exclude_macro_news(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'BBRI', 'company_name' => 'Bank Rakyat Indonesia']);
+
+        for ($i = 0; $i < 8; $i++) {
+            StockPrice::factory()->create([
+                'stock_id' => $stock->id,
+                'price_date' => Carbon::parse('2026-04-08')->addDays($i),
+                'close' => 1000 + ($i * 3),
+                'interval_type' => '1d',
+            ]);
+        }
+
+        NewsArticle::factory()->create([
+            'stock_id' => $stock->id,
+            'title' => 'BBRI ekspansi kredit',
+            'sentiment_label' => 'positive',
+            'sentiment_score' => 0.4,
+            'published_at' => Carbon::parse('2026-04-12'),
+        ]);
+
+        NewsArticle::factory()->create([
+            'stock_id' => null,
+            'source_provider' => 'ojk_rss',
+            'title' => 'OJK perkuat pengawasan emiten',
+            'summary' => 'Penguatan pengawasan pasar modal dan emiten diumumkan OJK.',
+            'sentiment_label' => 'neutral',
+            'sentiment_score' => 0.0,
+            'published_at' => Carbon::parse('2026-04-12'),
+        ]);
+
+        $service = $this->app->make(SentimentComparisonService::class);
+        $withMacro = $service->evaluate($stock, 7, true);
+        $withoutMacro = $service->evaluate($stock, 7, false);
+
+        $this->assertSame(2, $withMacro['data_points']['article_count']);
+        $this->assertSame(1, $withoutMacro['data_points']['article_count']);
+        $this->assertTrue($withMacro['data_points']['include_macro_news']);
+        $this->assertFalse($withoutMacro['data_points']['include_macro_news']);
+    }
 }

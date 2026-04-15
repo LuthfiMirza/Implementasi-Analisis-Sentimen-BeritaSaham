@@ -45,4 +45,45 @@ class EvaluationReportTest extends TestCase
         $this->assertNotEmpty($report['prediction']['method'] ?? null);
         $this->assertSame('TLKM', $report['stock']['code']);
     }
+
+    public function test_evaluation_report_can_include_or_exclude_macro_news(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'BBCA', 'company_name' => 'Bank Central Asia']);
+
+        for ($i = 0; $i < 5; $i++) {
+            StockPrice::factory()->create([
+                'stock_id' => $stock->id,
+                'price_date' => Carbon::parse('2026-04-10')->addDays($i),
+                'close' => 900 + ($i * 10),
+                'interval_type' => '1d',
+            ]);
+        }
+
+        NewsArticle::factory()->create([
+            'stock_id' => $stock->id,
+            'title' => 'BBCA catat kinerja positif',
+            'sentiment_label' => 'positive',
+            'sentiment_score' => 0.5,
+            'published_at' => Carbon::parse('2026-04-14'),
+        ]);
+
+        NewsArticle::factory()->create([
+            'stock_id' => null,
+            'source_provider' => 'ojk_rss',
+            'title' => 'OJK perkuat integritas pasar modal',
+            'summary' => 'Pasar modal dan emiten mendapat penguatan regulasi.',
+            'sentiment_label' => 'neutral',
+            'sentiment_score' => 0.0,
+            'published_at' => Carbon::parse('2026-04-14'),
+        ]);
+
+        $service = $this->app->make(EvaluationReportService::class);
+        $withMacro = $service->generate($stock, 7, true);
+        $withoutMacro = $service->generate($stock, 7, false);
+
+        $this->assertSame(2, $withMacro['data_points']['article_count']);
+        $this->assertSame(1, $withoutMacro['data_points']['article_count']);
+        $this->assertTrue($withMacro['data_points']['include_macro_news']);
+        $this->assertFalse($withoutMacro['data_points']['include_macro_news']);
+    }
 }

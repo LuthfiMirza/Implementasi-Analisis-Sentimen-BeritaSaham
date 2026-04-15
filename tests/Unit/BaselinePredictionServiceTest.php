@@ -79,4 +79,31 @@ class BaselinePredictionServiceTest extends TestCase
         $this->assertSame('baseline_fallback', $result['method']);
         $this->assertContains($result['predicted_direction'], ['up', 'down', 'flat']);
     }
+
+    public function test_score_based_classifier_can_use_price_action_when_news_is_thin(): void
+    {
+        $service = new BaselinePredictionService(null, 3);
+        $features = [
+            'weighted_sentiment' => 0.0,
+            'weighted_sentiment_quality' => 0.0,
+            'news_volume' => 0,
+            'positive_news_count' => 0,
+            'negative_news_count' => 0,
+            'neutral_news_count' => 0,
+            'ma_gap' => -0.035,
+            'daily_return_lag1' => -1.8,
+            'daily_return_lag3' => -4.1,
+            'daily_return_lag7' => -6.4,
+            'cumulative_return' => -8.5,
+            'price_trend' => 'turun',
+            'rsi' => 34,
+            'volatility' => 1.8,
+        ];
+
+        $result = $service->predict($features);
+
+        $this->assertSame('down', $result['predicted_direction']);
+        $this->assertArrayHasKey('scores', $result);
+        $this->assertGreaterThan($result['scores']['flat'], $result['scores']['down']);
+    }
 }

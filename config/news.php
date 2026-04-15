@@ -3,6 +3,9 @@
 return [
     'rss_timeout' => env('NEWS_RSS_TIMEOUT', 8),
     'rss_user_agent' => env('NEWS_RSS_USER_AGENT', 'SentimenaBot/1.0 (+https://sentimena.app)'),
+    'ojk_max_age_days' => env('NEWS_OJK_MAX_AGE_DAYS', 365),
+    'ojk_backfill_candidate_limit' => env('NEWS_OJK_BACKFILL_CANDIDATE_LIMIT', 200),
+    'ojk_backfill_max_pages' => env('NEWS_OJK_BACKFILL_MAX_PAGES', 18),
 
     'relevance_threshold' => env('NEWS_RELEVANCE_THRESHOLD', 0.35),
     'high_threshold' => env('NEWS_RELEVANCE_HIGH', 0.55),
@@ -16,6 +19,7 @@ return [
         'listed', 'exchange', 'market', 'ipo', 'rights issue', 'prospektus', 'dividend',
     ],
     'source_weights' => [
+        'ojk_rss' => 1.1,
         'rss_local' => 1.0,
         'newsapi' => 0.95,
         'gnews' => 0.9,
@@ -23,7 +27,9 @@ return [
         'gdelt' => 0.7,
         'mock' => 0.5,
     ],
-    'source_priority' => ['rss_local', 'gnews', 'gdelt'],
+    'multi_providers' => ['rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
+    'source_priority' => ['rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
+    'macro_global_providers' => ['ojk_rss'],
 
     // Optional preferensi per saham: jika di-set, urutan provider akan mengikuti mapping ini ketika mode multi.
     'preferred_providers' => [

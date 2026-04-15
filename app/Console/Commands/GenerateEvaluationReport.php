@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class GenerateEvaluationReport extends Command
 {
-    protected $signature = 'evaluate:report {code=BBCA} {--period=30} {--output=}';
+    protected $signature = 'evaluate:report {code=BBCA} {--period=30} {--output=} {--no-macro : Exclude global macro news such as OJK}';
 
     protected $description = 'Hasilkan ringkasan evaluasi sentimen, analytics, dan prediksi untuk satu saham';
 
@@ -24,7 +24,7 @@ class GenerateEvaluationReport extends Command
             return self::FAILURE;
         }
 
-        $report = $service->generate($stock, $period);
+        $report = $service->generate($stock, $period, ! $this->option('no-macro'));
 
         $this->info("Evaluasi {$code} ({$period} hari)");
         $this->line(json_encode($report, JSON_PRETTY_PRINT));

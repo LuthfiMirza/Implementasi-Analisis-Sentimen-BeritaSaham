@@ -29,11 +29,12 @@ class AnalyticsController extends Controller
         $stockCode = $request->query('code', config('dashboard.default_stock', 'BBCA'));
         $period = (int) $request->query('period', 30);
         $period = in_array($period, [7, 30, 90]) ? $period : 30;
+        $includeMacroNews = $request->boolean('include_macro_news', true);
         $priceLimit = max(60, $period);
         $stock = Stock::where('code', $stockCode)->firstOrFail();
 
         $articles = NewsArticle::with('stock')
-            ->when($stock, fn ($q) => $q->where('stock_id', $stock->id))
+            ->forStockContext($stock, $includeMacroNews)
             ->whereNotNull('published_at')
             ->where('published_at', '>=', now()->subDays($period))
             ->latest('published_at')
@@ -59,6 +60,7 @@ class AnalyticsController extends Controller
         ];
 
         $topStocks = NewsArticle::selectRaw('stock_id, count(*) as total')
+            ->whereNotNull('stock_id')
             ->groupBy('stock_id')
             ->with('stock')
             ->orderByDesc('total')
@@ -77,6 +79,7 @@ class AnalyticsController extends Controller
             'stocks' => Stock::orderBy('code')->get(),
             'chartData' => $chartData,
             'period' => $period,
+            'includeMacroNews' => $includeMacroNews,
             'decision' => $decision,
             'analytics' => $analytics,
             'prediction' => $prediction,

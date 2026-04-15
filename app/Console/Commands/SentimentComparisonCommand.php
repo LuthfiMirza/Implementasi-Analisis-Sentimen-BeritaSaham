@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class SentimentComparisonCommand extends Command
 {
-    protected $signature = 'evaluation:sentiment-compare {code?} {--period=30} {--save=}';
+    protected $signature = 'evaluation:sentiment-compare {code?} {--period=30} {--save=} {--no-macro : Exclude global macro news such as OJK}';
 
     protected $description = 'Bandingkan weighted vs average sentiment (korelasi, event, sinyal arah) untuk saham tertentu';
 
@@ -24,7 +24,7 @@ class SentimentComparisonCommand extends Command
             return self::FAILURE;
         }
 
-        $report = $service->evaluate($stock, $period);
+        $report = $service->evaluate($stock, $period, ! $this->option('no-macro'));
 
         $this->info("Evaluasi sentiment vs weighted ({$code}, {$period} hari)");
         $this->line(json_encode($report, JSON_PRETTY_PRINT));

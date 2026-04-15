@@ -13,8 +13,11 @@ class StockKeywordMapper
      */
     protected array $overrides = [
         'BBCA' => ['BBCA', 'BCA', 'Bank Central Asia', 'BCA Digital', 'BCA Finance'],
+        'BBNI' => ['BBNI', 'BNI', 'Bank Negara Indonesia'],
         'BBRI' => ['BBRI', 'BRI', 'Bank Rakyat Indonesia'],
+        'BBTN' => ['BBTN', 'BTN', 'Bank Tabungan Negara'],
         'BMRI' => ['BMRI', 'Bank Mandiri', 'Mandiri'],
+        'MEGA' => ['MEGA', 'Bank Mega'],
         'TLKM' => ['TLKM', 'Telkom', 'Telkom Indonesia', 'PT Telkom Indonesia', 'Telkomsel', 'IndiHome'],
         'ASII' => ['ASII', 'Astra', 'Astra International', 'Astra Otoparts'],
         'GOTO' => ['GOTO', 'GoTo Group', 'GoTo Gojek Tokopedia', 'Gojek', 'Tokopedia', 'PT GoTo Gojek Tokopedia'],
@@ -155,5 +158,73 @@ class StockKeywordMapper
     public function globalExclusions(): array
     {
         return $this->globalExclusions;
+    }
+
+    public function directHits(Stock $stock, ?string $text): array
+    {
+        return $this->matchKeywords($text, $this->keywords($stock));
+    }
+
+    public function competingIssuerHits(Stock $stock, ?string $text): array
+    {
+        $haystack = mb_strtolower((string) $text);
+        if ($haystack === '') {
+            return [];
+        }
+
+        $hits = [];
+        foreach ($this->issuerKeywordMap($stock->code) as $keyword => $code) {
+            $keyword = trim($keyword);
+            if ($keyword === '') {
+                continue;
+            }
+
+            if (str_contains($haystack, mb_strtolower($keyword))) {
+                $hits[$code][] = $keyword;
+            }
+        }
+
+        return collect($hits)
+            ->map(fn ($keywords) => array_values(array_unique($keywords)))
+            ->all();
+    }
+
+    public function issuerKeywordMap(?string $excludeCode = null): array
+    {
+        $map = [];
+
+        foreach ($this->overrides as $code => $keywords) {
+            if ($excludeCode && strtoupper($excludeCode) === $code) {
+                continue;
+            }
+
+            foreach (array_merge([$code], $keywords) as $keyword) {
+                $keyword = trim((string) $keyword);
+                if ($keyword === '' || mb_strlen($keyword) < 3) {
+                    continue;
+                }
+
+                $map[$keyword] = $code;
+            }
+        }
+
+        return $map;
+    }
+
+    protected function matchKeywords(?string $text, array $keywords): array
+    {
+        $haystack = mb_strtolower((string) $text);
+        if ($haystack === '') {
+            return [];
+        }
+
+        return collect($keywords)
+            ->filter(function ($keyword) use ($haystack) {
+                $keyword = trim((string) $keyword);
+                return $keyword !== '' && str_contains($haystack, mb_strtolower($keyword));
+            })
+            ->unique()
+            ->values()
+            ->all();
     }
 }

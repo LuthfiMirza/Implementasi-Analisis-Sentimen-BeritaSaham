@@ -21,7 +21,6 @@ class RssLocalFetcher implements NewsFetcherInterface
             return [];
         }
 
-        $keywords = $this->mapper->keywords($stock);
         $articles = collect();
         $timeout = config('news.rss_timeout', env('NEWS_RSS_TIMEOUT', 8));
         $userAgent = config('news.rss_user_agent', env('NEWS_RSS_USER_AGENT', 'SentimenaBot/1.0 (+https://sentimena.app)'));
@@ -64,23 +63,8 @@ class RssLocalFetcher implements NewsFetcherInterface
                 $titleText = strtolower($title);
                 $fullText = strtolower($title.' '.$description);
 
-                $isRelevant = collect($keywords)->contains(fn ($kw) => Str::contains($titleText, strtolower($kw)));
-                if (! $isRelevant) {
-                    $isRelevant = Str::contains($fullText, strtolower($stock->code));
-                }
-                if (! $isRelevant) {
-                    $isRelevant = collect($keywords)->contains(fn ($kw) => Str::contains($fullText, strtolower($kw)));
-                }
-
-                if (! $isRelevant) {
-                    $financialKeywords = [
-                        'saham', 'bursa', 'ihsg', 'bank', 'investasi',
-                        'laba', 'dividen', 'emiten', 'idx', 'bei',
-                        'keuangan', 'pasar modal', 'obligasi',
-                    ];
-                    $hits = collect($financialKeywords)->filter(fn ($kw) => Str::contains($fullText, $kw))->count();
-                    $isRelevant = $hits >= 2;
-                }
+                $isRelevant = count($this->mapper->directHits($stock, $titleText)) > 0
+                    || count($this->mapper->directHits($stock, $fullText)) > 0;
 
                 if (! $isRelevant) {
                     continue;
@@ -121,7 +105,7 @@ class RssLocalFetcher implements NewsFetcherInterface
             ->filter()
             ->all();
 
-        return collect($custom ?: $defaults)->unique()->values()->all();
+        return collect(array_merge($defaults, $custom))->unique()->values()->all();
     }
 
     protected function parseFeedItems(string $xmlString, string $feedUrl): array

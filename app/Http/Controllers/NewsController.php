@@ -33,7 +33,7 @@ class NewsController extends Controller
         if ($stockCode) {
             $stock = Stock::where('code', $stockCode)->first();
             if ($stock) {
-                $query->where('stock_id', $stock->id);
+                $query->forStockContext($stock);
             }
         }
 

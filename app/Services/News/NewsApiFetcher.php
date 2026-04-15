@@ -27,57 +27,59 @@ class NewsApiFetcher implements NewsFetcherInterface
         }
 
         $queries = $this->buildQueries($stock);
+        $languages = collect([$language, 'en'])->filter()->unique()->values()->all();
         $paramsBase = [
             'searchIn' => 'title,description,content',
             'sortBy' => 'publishedAt',
             'pageSize' => $limit,
-            'language' => $language,
         ];
 
         $articles = [];
         $attemptIndex = 0;
         foreach ($queries as $q) {
-            $attemptIndex++;
-            $params = array_merge($paramsBase, ['q' => $q, 'language' => 'id']);
-            try {
-                $response = Http::withHeaders([
-                    'X-Api-Key' => $apiKey,
-                    'User-Agent' => $userAgent,
-                    'Accept' => 'application/json',
-                ])->timeout($timeout)->get($baseUrl, $params);
-            } catch (\Throwable $e) {
-                Log::warning('NewsAPI request exception', ['error' => $e->getMessage(), 'params' => $params]);
-                continue;
-            }
+            foreach ($languages as $lang) {
+                $attemptIndex++;
+                $params = array_merge($paramsBase, ['q' => $q, 'language' => $lang]);
+                try {
+                    $response = Http::withHeaders([
+                        'X-Api-Key' => $apiKey,
+                        'User-Agent' => $userAgent,
+                        'Accept' => 'application/json',
+                    ])->timeout($timeout)->get($baseUrl, $params);
+                } catch (\Throwable $e) {
+                    Log::warning('NewsAPI request exception', ['error' => $e->getMessage(), 'params' => $params]);
+                    continue;
+                }
 
-            if (! $response->successful()) {
-                Log::warning('NewsAPI request failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                    'params' => $params,
-                ]);
-                continue;
-            }
+                if (! $response->successful()) {
+                    Log::warning('NewsAPI request failed', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                        'params' => $params,
+                    ]);
+                    continue;
+                }
 
-            $json = $response->json();
-            if (! is_array($json) || ! isset($json['articles']) || ! is_array($json['articles'])) {
-                Log::warning('NewsAPI invalid payload', ['payload' => $json, 'params' => $params]);
-                continue;
-            }
+                $json = $response->json();
+                if (! is_array($json) || ! isset($json['articles']) || ! is_array($json['articles'])) {
+                    Log::warning('NewsAPI invalid payload', ['payload' => $json, 'params' => $params]);
+                    continue;
+                }
 
-            $articles = $json['articles'];
-            if (count($articles)) {
-                break;
+                $queryArticles = $json['articles'];
+                if (count($queryArticles)) {
+                    $articles = array_merge($articles, $queryArticles);
+                } else {
+                    Log::info('NewsAPI returned empty articles', [
+                        'stock' => $stock->code,
+                        'query' => $params['q'] ?? null,
+                        'language' => $params['language'] ?? null,
+                        'attempt' => $attemptIndex,
+                        'status' => $json['status'] ?? null,
+                        'totalResults' => $json['totalResults'] ?? null,
+                    ]);
+                }
             }
-
-            Log::info('NewsAPI returned empty articles', [
-                'stock' => $stock->code,
-                'query' => $params['q'] ?? null,
-                'language' => $params['language'] ?? null,
-                'attempt' => $attemptIndex,
-                'status' => $json['status'] ?? null,
-                'totalResults' => $json['totalResults'] ?? null,
-            ]);
         }
 
         if (! $articles) {
@@ -96,6 +98,7 @@ class NewsApiFetcher implements NewsFetcherInterface
         ];
 
         $articles = collect($articles)
+            ->unique(fn ($item) => $item['url'] ?? md5(($item['title'] ?? '').($item['publishedAt'] ?? '')))
             ->filter(function ($item) use ($blacklistDomains) {
                 $domain = strtolower(parse_url($item['url'] ?? '', PHP_URL_HOST) ?? '');
                 foreach ($blacklistDomains as $bl) {
@@ -143,36 +146,60 @@ class NewsApiFetcher implements NewsFetcherInterface
      */
     protected function buildQueries(Stock $stock): array
     {
+        $aliases = collect($this->mapper->keywords($stock))->take(4)->values();
         $aliasOnly = $this->mapper->queryString($stock);
         $ctxShort = array_slice(config('news.context_keywords', []), 0, 5);
-        $queryCtx = $this->mapper->contextualQuery($stock, $ctxShort);
+        $sectorShort = array_slice($this->mapper->sectorKeywords($stock), 0, 4);
 
-        $candidates = array_values(array_filter([$aliasOnly, $queryCtx]));
+        $aliasGroup = $aliases->map(fn ($alias) => '"'.$alias.'"')->implode(' OR ');
+        $contextGroup = collect(array_merge($ctxShort, $sectorShort))
+            ->filter()
+            ->unique()
+            ->map(fn ($term) => '"'.$term.'"')
+            ->implode(' OR ');
 
-        return collect($candidates)->map(function ($q) {
-            $max = 480;
-            if (strlen($q) <= $max) {
-                return $q;
+        $candidates = array_values(array_filter([
+            $contextGroup ? '('.$aliasGroup.') AND ('.$contextGroup.')' : null,
+            $aliasOnly,
+            $this->mapper->contextualQuery($stock, $ctxShort),
+            $contextGroup ? '"'.$stock->code.'" AND ('.$contextGroup.')' : null,
+        ]));
+
+        return collect($candidates)
+            ->map(fn ($query) => $this->truncateQuery($query))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    protected function truncateQuery(string $query, int $max = 480): string
+    {
+        if (strlen($query) <= $max) {
+            return $query;
+        }
+
+        $parts = preg_split('/\s+OR\s+/i', $query);
+        $trimmed = [];
+        $length = 0;
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if ($part === '') {
+                continue;
             }
-            // Potong query OR menjadi segmen pendek
-            $parts = preg_split('/\s+OR\s+/i', $q);
-            $trimmed = [];
-            $length = 0;
-            foreach ($parts as $part) {
-                $part = trim($part);
-                if ($part === '') {
-                    continue;
-                }
-                $candidateLen = ($length === 0 ? strlen($part) : $length + 4 + strlen($part)); // 4 for ' OR '
-                if ($candidateLen > $max) {
-                    break;
-                }
-                $trimmed[] = $part;
-                $length = $candidateLen;
+
+            $candidateLen = ($length === 0 ? strlen($part) : $length + 4 + strlen($part));
+            if ($candidateLen > $max) {
+                break;
             }
-            $short = implode(' OR ', $trimmed);
-            Log::info('NewsAPI query truncated', ['original_len' => strlen($q), 'final_len' => strlen($short)]);
-            return $short;
-        })->unique()->values()->all();
+
+            $trimmed[] = $part;
+            $length = $candidateLen;
+        }
+
+        $short = implode(' OR ', $trimmed);
+        Log::info('NewsAPI query truncated', ['original_len' => strlen($query), 'final_len' => strlen($short)]);
+
+        return $short;
     }
 }

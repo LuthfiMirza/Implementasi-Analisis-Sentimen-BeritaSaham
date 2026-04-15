@@ -21,12 +21,12 @@ class SentimentComparisonService
     ) {
     }
 
-    public function evaluate(Stock $stock, int $period = 30): array
+    public function evaluate(Stock $stock, int $period = 30, bool $includeMacroNews = true): array
     {
         $period = max(7, $period);
         $prices = $this->priceSeriesService->getSeries($stock, '1d', $period + 7)->values();
 
-        $articles = NewsArticle::where('stock_id', $stock->id)
+        $articles = NewsArticle::forStockContext($stock, $includeMacroNews)
             ->whereNotNull('published_at')
             ->where('published_at', '>=', now()->subDays($period))
             ->orderBy('published_at')
@@ -52,6 +52,7 @@ class SentimentComparisonService
                 'price_points' => $prices->count(),
                 'article_count' => $articles->count(),
                 'days_with_sentiment' => $perDate->count(),
+                'include_macro_news' => $includeMacroNews,
             ],
             'correlation' => $corr,
             'event_study' => $events,
