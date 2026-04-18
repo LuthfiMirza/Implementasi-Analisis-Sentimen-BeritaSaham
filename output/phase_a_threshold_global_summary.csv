@@ -1,0 +1,5 @@
+threshold,ticker_count,eligible_ticker_count,low_trade_ticker_count,winner_ticker_count,priority_winner_ticker_count,total_trades_sum,total_trades_mean,win_rate_mean,average_return_mean,max_drawdown_mean,mean_score,median_score,trade_retention_vs_threshold_2_0_pct,win_rate_vs_threshold_2_0,average_return_vs_threshold_2_0,max_drawdown_vs_threshold_2_0,aggregate_score_vs_threshold_2_0,threshold_profile,selected_as_global_best
+1.5,10.0,10.0,0.0,1.0,0.0,6.0,0.6,0.0,-1.5820899999999998,0.03802,-47.1645,-53.0,120.0,0.0,-0.0603,0.038,0.2405,too_loose,True
+2.0,10.0,10.0,0.0,9.0,0.0,5.0,0.5,0.0,-1.52176,0.0,-47.2,-53.0,100.0,0.0,0.0,0.0,0.0,mixed,False
+2.5,10.0,10.0,0.0,0.0,0.0,5.0,0.5,0.0,-1.52176,0.0,-47.2,-53.0,100.0,0.0,0.0,0.0,0.0,mixed,False
+3.0,10.0,10.0,0.0,0.0,0.0,4.0,0.4,0.0,-1.5407699999999998,0.0,-48.05703,-53.0,80.0,0.0,-0.019,0.0,-2.457,mixed,False

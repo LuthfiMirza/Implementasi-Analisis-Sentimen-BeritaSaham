@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-04-17T02:00:17.660377+00:00",
+  "status": "blocked",
+  "reason": "Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.",
+  "baseline_status": "draft",
+  "readiness_status": "partially_ready",
+  "baseline_usable_now": false,
+  "baseline_final_now": false,
+  "strict_mode_final_now": false,
+  "core_phase_a_items_done": true,
+  "macro_regulatory_mode": "context_only_moderation",
+  "macro_ojk_neutral_only_policy": "note_if_macro_regulatory_signal_ready_else_blocker",
+  "macro_ojk_neutral_only_current_classification": "unknown_runtime",
+  "ui_manual_verification_blocker": false,
+  "ui_manual_verification_note": "Controller/report coverage sudah ada; verifikasi UI manual include_macro_news dan macro_regulatory_signal tetap berguna, tetapi bukan blocker formal.",
+  "closeout_artifact_available": true,
+  "baseline_artifact_available": true,
+  "ready_to_start_phase_b": false,
+  "ready_to_start_phase_b_reason": "Jangan masuk ke Fase B penuh sebelum baseline freeze real dan closeout runtime tervalidasi.",
+  "blocking_items": [
+    "Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+    "Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+    "Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.",
+    "Strict mode belum final karena masih subset-only atau belum terdefinisi."
+  ],
+  "notes": [
+    "Test suite inti tidak dijalankan pada closeout ini.",
+    "Controller/report coverage sudah ada; verifikasi UI manual include_macro_news dan macro_regulatory_signal tetap berguna, tetapi bukan blocker formal.",
+    "Status neutral-only OJK belum bisa diklasifikasikan penuh karena runtime closeout terakhir tidak dapat membaca database."
+  ]
+}

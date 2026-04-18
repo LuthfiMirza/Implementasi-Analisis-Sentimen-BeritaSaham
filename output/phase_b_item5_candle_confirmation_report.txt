@@ -1,0 +1,29 @@
+Phase B Item 5 Candle Confirmation Experiment
+=============================================
+
+- Comparison status: measured
+- Baseline config: output/phase_a_baseline_final.json
+- Candle confirmation threshold: 1.00
+- Ticker count: 10
+- Delta total trades sum: 0.0
+- Mean delta win rate: -3.3329999999999997
+- Mean delta average return: -0.026770000000000006
+- Mean delta max drawdown: 0.0
+
+Interpretation:
+- Control arm = frozen Phase A runtime settings without candle confirmation.
+- Experiment arm = same runtime settings plus bullish-candle and volume confirmation gate.
+
+Top average-return improvements:
+- ASII: delta_avg_return=0.0, delta_win_rate=0.0, delta_trades=0.0
+- BBCA: delta_avg_return=0.0, delta_win_rate=0.0, delta_trades=0.0
+- BBRI: delta_avg_return=0.0, delta_win_rate=0.0, delta_trades=0.0
+- BMRI: delta_avg_return=0.0, delta_win_rate=0.0, delta_trades=0.0
+- BUMI: delta_avg_return=0.0, delta_win_rate=0.0, delta_trades=0.0
+
+Largest trade reductions:
+- ASII: delta_trades=0.0, trade_retention_pct=100.0, delta_avg_return=0.0
+- BBCA: delta_trades=0.0, trade_retention_pct=None, delta_avg_return=0.0
+- BBRI: delta_trades=0.0, trade_retention_pct=None, delta_avg_return=0.0
+- BMRI: delta_trades=0.0, trade_retention_pct=100.0, delta_avg_return=0.0
+- BUMI: delta_trades=0.0, trade_retention_pct=None, delta_avg_return=0.0

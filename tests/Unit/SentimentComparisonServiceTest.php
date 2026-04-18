@@ -49,6 +49,8 @@ class SentimentComparisonServiceTest extends TestCase
 
     public function test_comparison_can_include_or_exclude_macro_news(): void
     {
+        config(['analytics.macro_regulatory_signal.enabled' => true]);
+
         $stock = Stock::factory()->create(['code' => 'BBRI', 'company_name' => 'Bank Rakyat Indonesia']);
 
         for ($i = 0; $i < 8; $i++) {
@@ -86,5 +88,7 @@ class SentimentComparisonServiceTest extends TestCase
         $this->assertSame(1, $withoutMacro['data_points']['article_count']);
         $this->assertTrue($withMacro['data_points']['include_macro_news']);
         $this->assertFalse($withoutMacro['data_points']['include_macro_news']);
+        $this->assertArrayHasKey('macro_regulatory', $withMacro);
+        $this->assertTrue($withMacro['macro_regulatory']['enabled']);
     }
 }

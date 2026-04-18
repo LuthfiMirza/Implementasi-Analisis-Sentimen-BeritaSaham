@@ -9,8 +9,10 @@ use App\Models\StockPrice;
 class BacktestService
 {
     public function __construct(
-        protected DecisionSupportService $dss
+        protected DecisionSupportService $dss,
+        protected ?SentimentPriceAnalyticsService $analyticsService = null,
     ) {
+        $this->analyticsService ??= new SentimentPriceAnalyticsService();
     }
 
     /**
@@ -23,7 +25,8 @@ class BacktestService
         int $forward = 5,
         int $step = 5,
         float $threshold = 1.0,
-        bool $includeMacroNews = true
+        bool $includeMacroNews = true,
+        ?bool $macroRegulatorySignal = null
     ): array {
         $allPrices = StockPrice::where('stock_id', $stock->id)
             ->where('interval_type', '1d')
@@ -53,7 +56,15 @@ class BacktestService
                 ->values();
 
             try {
-                $result = $this->dss->analyze($stock, $windowPrices, $windowArticles, null);
+                $analytics = $this->analyticsService->analyze(
+                    $stock,
+                    $windowPrices,
+                    $windowArticles,
+                    $lookback,
+                    $signalDate,
+                    $macroRegulatorySignal
+                );
+                $result = $this->dss->analyze($stock, $windowPrices, $windowArticles, $analytics);
             } catch (\Throwable $e) {
                 continue;
             }
@@ -74,6 +85,9 @@ class BacktestService
             $confidence = $result['prediction_confidence'] ?? 0;
             $finalScore = $result['final_score'] ?? 0;
             $sentimentAvg = $result['sentiment_average'] ?? 0;
+            $macroSignal = is_array($result['macro_regulatory_signal'] ?? null)
+                ? $result['macro_regulatory_signal']
+                : [];
 
             $results[] = [
                 'date' => $signalDate?->format('Y-m-d'),
@@ -86,6 +100,10 @@ class BacktestService
                 'sentiment_avg' => round($sentimentAvg, 4),
                 'entry_price' => $entryPrice,
                 'exit_price' => $exitPrice,
+                'macro_regulatory_attention_score' => round((float) ($macroSignal['context_score'] ?? 0), 3),
+                'macro_regulatory_regime' => (string) ($macroSignal['attention_regime'] ?? 'disabled'),
+                'macro_regulatory_caution_flag' => (bool) ($macroSignal['caution_flag'] ?? false),
+                'macro_regulatory_article_count' => (int) ($macroSignal['article_count'] ?? 0),
             ];
         }
 
@@ -118,6 +136,13 @@ class BacktestService
         $scores = array_column($results, 'final_score');
         $returns = array_column($results, 'actual_return');
         $correlation = $this->pearsonCorrelation($scores, $returns);
+        $regulatoryWatchCount = count(array_filter(
+            $results,
+            fn ($row) => (bool) ($row['macro_regulatory_caution_flag'] ?? false)
+        ));
+        $averageRegulatoryAttention = count($results) > 0
+            ? round(array_sum(array_column($results, 'macro_regulatory_attention_score')) / count($results), 3)
+            : 0.0;
 
         return [
             'stock' => $stock->code,
@@ -128,8 +153,13 @@ class BacktestService
             'avg_return_correct' => $avgReturnCorrect,
             'avg_return_wrong' => $avgReturnWrong,
             'correlation' => round($correlation, 3),
+            'macro_regulatory_summary' => [
+                'signal_enabled' => $macroRegulatorySignal ?? (bool) config('analytics.macro_regulatory_signal.enabled', true),
+                'regulatory_watch_count' => $regulatoryWatchCount,
+                'average_attention_score' => $averageRegulatoryAttention,
+            ],
             'results' => $results,
-            'params' => compact('lookback', 'forward', 'step', 'threshold', 'includeMacroNews'),
+            'params' => compact('lookback', 'forward', 'step', 'threshold', 'includeMacroNews', 'macroRegulatorySignal'),
         ];
     }
 
@@ -138,7 +168,8 @@ class BacktestService
         int $forward = 5,
         int $step = 5,
         float $threshold = 1.0,
-        bool $includeMacroNews = true
+        bool $includeMacroNews = true,
+        ?bool $macroRegulatorySignal = null
     ): array {
         $stocks = Stock::where('is_active', true)->get();
         $allResults = [];
@@ -149,7 +180,15 @@ class BacktestService
         ];
 
         foreach ($stocks as $stock) {
-            $result = $this->runForStock($stock, $lookback, $forward, $step, $threshold, $includeMacroNews);
+            $result = $this->runForStock(
+                $stock,
+                $lookback,
+                $forward,
+                $step,
+                $threshold,
+                $includeMacroNews,
+                $macroRegulatorySignal
+            );
             if (isset($result['error'])) {
                 continue;
             }

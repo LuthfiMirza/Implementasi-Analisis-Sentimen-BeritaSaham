@@ -1,0 +1,5 @@
+priority,experiment_id,experiment_name,objective,scope,reason,mandatory_before_phase_b
+1,threshold_sweep_looser,Sweep volume_ratio 1.5 vs 2.0,Cari apakah trade yang hilang bisa kembali tanpa menurunkan kualitas terlalu jauh.,Ticker/group dengan trade reduction paling besar.,Analyzer melihat trade turun terlalu dalam. Threshold 1.5 adalah eksperimen minimum yang paling logis sebelum melangkah ke fase berikutnya.,yes
+3,review_bucket_follow_up,Targeted review on uncertain tickers,"Pisahkan review list menjadi kandidat threshold 1.5, 2.5, atau drop.",5 ticker di bucket review_needed.,Review bucket masih cukup besar sehingga belum bisa dianggap final.,yes
+4,group_threshold_validation,Validate group-specific threshold,Uji apakah aturan by group benar-benar lebih stabil daripada baseline global.,Group dengan action test_looser_threshold atau test_tighter_threshold.,Ada sinyal group-specific yang cukup kuat untuk diuji secara terpisah.,no
+5,phase_b_gate,Freeze final Phase A baseline,"Bekukan whitelist, blacklist, dan threshold final sebelum masuk Fase B.","0 deploy, 1 watchlist, 5 review.",Fase B sebaiknya hanya dimulai setelah baseline keputusan cukup stabil.,yes

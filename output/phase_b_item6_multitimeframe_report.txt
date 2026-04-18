@@ -1,0 +1,23 @@
+Phase B Item 6 Multi-Timeframe Experiment
+==========================================
+
+- Comparison status: measured
+- Baseline config: output/phase_a_baseline_final.json
+- Weekly trend method: ema20
+- Weekly slope required: False
+- Ticker count: 10
+- Weekly-data-ready tickers: 10
+- Comparable baseline tickers: 4
+- Delta total trades sum: -3.0
+- Mean delta win rate: 0.0
+- Mean delta average return: 1.50275
+- Mean delta max drawdown: 0.0
+
+Decision:
+- no_go
+- next_action=stop
+
+Blocked from default:
+- Trade retention rata-rata masih terlalu rendah.
+- Tidak ada ticker comparable yang improve dengan retention memadai.
+- Ticker yang memburuk minimal sama banyak dengan yang improve.

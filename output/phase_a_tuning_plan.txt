@@ -1,0 +1,58 @@
+Phase A Tuning Decision
+=======================
+
+Kondisi sekarang:
+- Total ticker dievaluasi: 10
+- Deploy candidate: 0
+- Watchlist candidate: 1
+- Review needed: 5
+- Avoid for now: 4
+
+Keputusan threshold default:
+- Decision: test_threshold_1_5
+- Reason: Analyzer melihat trade turun terlalu dalam. Threshold 1.5 adalah eksperimen minimum yang paling logis sebelum melangkah ke fase berikutnya.
+
+Keputusan strict mode:
+- Decision: strict_default_no
+- Reason: Strict mode tidak menunjukkan manfaat yang cukup luas dan tidak layak dijadikan default.
+
+Ticker action list:
+- Deploy candidate: None
+- Watchlist candidate: ADRO
+- Review needed: BUMI, DEWA, BBRI, UNVR, BBCA
+- Avoid for now: ASII, BMRI, TLKM, GOTO
+
+Group action list:
+- category=finance: test_looser_threshold (test_threshold_1_5)
+- category=mining: test_looser_threshold (test_threshold_1_5)
+- category=automotive: insufficient_sample (insufficient_sample)
+- category=consumer: insufficient_sample (insufficient_sample)
+- category=energy: insufficient_sample (insufficient_sample)
+- category=technology: insufficient_sample (insufficient_sample)
+- category=telco: insufficient_sample (insufficient_sample)
+- sector=perbankan: test_looser_threshold (test_threshold_1_5)
+- sector=pertambangan: test_looser_threshold (test_threshold_1_5)
+- sector=energi: insufficient_sample (insufficient_sample)
+- sector=konsumsi: insufficient_sample (insufficient_sample)
+- sector=otomotif: insufficient_sample (insufficient_sample)
+- sector=teknologi: insufficient_sample (insufficient_sample)
+- sector=telekomunikasi: insufficient_sample (insufficient_sample)
+
+Eksperimen prioritas:
+- P1: Sweep volume_ratio 1.5 vs 2.0 | mandatory_before_phase_b=yes
+  Scope: Ticker/group dengan trade reduction paling besar.
+  Reason: Analyzer melihat trade turun terlalu dalam. Threshold 1.5 adalah eksperimen minimum yang paling logis sebelum melangkah ke fase berikutnya.
+- P3: Targeted review on uncertain tickers | mandatory_before_phase_b=yes
+  Scope: 5 ticker di bucket review_needed.
+  Reason: Review bucket masih cukup besar sehingga belum bisa dianggap final.
+- P4: Validate group-specific threshold | mandatory_before_phase_b=no
+  Scope: Group dengan action test_looser_threshold atau test_tighter_threshold.
+  Reason: Ada sinyal group-specific yang cukup kuat untuk diuji secara terpisah.
+
+Status menuju Fase B:
+- Ready status: not_ready
+- Reason: Keputusan tuning masih terlalu banyak bergantung pada review tambahan.
+- Blocking items:
+  - Threshold baseline belum final dan masih butuh eksperimen lanjutan.
+  - Jumlah ticker review_needed masih lebih besar daripada deploy_candidate.
+  - Masih ada group yang meminta tuning khusus.

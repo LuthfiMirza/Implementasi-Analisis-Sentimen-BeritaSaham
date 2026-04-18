@@ -1,0 +1,36 @@
+Phase B Item 5 Recommendations
+================================
+
+- Decision: no_go
+- Apakah item 5 layak lanjut: Tidak layak dipromosikan; item 5 sebaiknya dihentikan sebagai kandidat default.
+- Threshold terbaik global: 1.0
+- Apakah cocok global: tidak
+- Apakah hanya cocok subset: tidak
+- Apakah tetap experimental: tidak
+- Apakah item 6 boleh mulai sekarang: Item 6 boleh mulai sekarang karena keputusan item 5 sudah cukup tegas.
+
+Recommended groups:
+- none
+
+Recommended tickers:
+- none
+
+Blocked from default:
+- Skor global item 5 tidak positif.
+- Average return global tidak membaik.
+- Win rate global tidak membaik.
+- Ticker yang memburuk minimal sama banyak dengan yang improve.
+- Trade retention global terlalu rendah untuk default.
+- Semua threshold yang diuji collapse ke effective confirmation threshold 1.5 karena baseline Phase A aktif sudah menuntut volume_ratio minimal itu.
+- Tidak ada threshold item 5 yang memenuhi min_trades=8, jadi dukungan sampelnya belum cukup untuk promosi.
+
+Decision notes:
+- Semua threshold yang diuji collapse ke effective confirmation threshold 1.5 karena baseline Phase A aktif sudah menuntut volume_ratio minimal itu.
+- Tidak ada threshold item 5 yang memenuhi min_trades=8, jadi dukungan sampelnya belum cukup untuk promosi.
+
+Global best threshold snapshot:
+- mean_score=-50.4133
+- delta_win_rate_mean=-3.3330
+- delta_average_return_mean=-0.0268
+- trade_retention_mean_pct=40.00
+- threshold_profile=negative

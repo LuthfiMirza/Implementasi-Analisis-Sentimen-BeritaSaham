@@ -48,6 +48,8 @@ class EvaluationReportTest extends TestCase
 
     public function test_evaluation_report_can_include_or_exclude_macro_news(): void
     {
+        config(['analytics.macro_regulatory_signal.enabled' => true]);
+
         $stock = Stock::factory()->create(['code' => 'BBCA', 'company_name' => 'Bank Central Asia']);
 
         for ($i = 0; $i < 5; $i++) {
@@ -85,5 +87,39 @@ class EvaluationReportTest extends TestCase
         $this->assertSame(1, $withoutMacro['data_points']['article_count']);
         $this->assertTrue($withMacro['data_points']['include_macro_news']);
         $this->assertFalse($withoutMacro['data_points']['include_macro_news']);
+        $this->assertArrayHasKey('macro_regulatory', $withMacro);
+        $this->assertTrue($withMacro['macro_regulatory']['enabled']);
+        $this->assertTrue($withMacro['macro_regulatory']['active']);
+    }
+
+    public function test_evaluation_report_remains_stable_when_macro_regulatory_signal_is_disabled(): void
+    {
+        config(['analytics.macro_regulatory_signal.enabled' => false]);
+
+        $stock = Stock::factory()->create(['code' => 'BBRI', 'company_name' => 'Bank Rakyat Indonesia']);
+
+        for ($i = 0; $i < 5; $i++) {
+            StockPrice::factory()->create([
+                'stock_id' => $stock->id,
+                'price_date' => Carbon::parse('2026-04-10')->addDays($i),
+                'close' => 1000 + ($i * 10),
+                'interval_type' => '1d',
+            ]);
+        }
+
+        NewsArticle::factory()->create([
+            'stock_id' => null,
+            'source_provider' => 'ojk_rss',
+            'title' => 'OJK perketat pengawasan pasar modal',
+            'sentiment_label' => 'neutral',
+            'sentiment_score' => 0.0,
+            'published_at' => Carbon::parse('2026-04-14'),
+        ]);
+
+        $service = $this->app->make(EvaluationReportService::class);
+        $report = $service->generate($stock, 7, true, false);
+
+        $this->assertArrayHasKey('macro_regulatory', $report);
+        $this->assertFalse($report['macro_regulatory']['enabled']);
     }
 }

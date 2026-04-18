@@ -1,0 +1,68 @@
+section,metric,value,notes
+overall,ticker_count,10,Total ticker yang dianalisis.
+overall,cocok_count,0,Ticker yang cocok dengan Phase A.
+overall,netral_count,1,Ticker dengan hasil campuran.
+overall,tidak_cocok_count,9,Ticker yang tidak cocok dengan Phase A.
+overall,mean_delta_trades,-9.1,Rata-rata perubahan jumlah trade.
+overall,mean_delta_win_rate,-29.218,Rata-rata perubahan win rate.
+overall,mean_delta_average_return,-3.99768,Rata-rata perubahan average return.
+overall,median_trade_reduction_pct,-100.0,Median persentase penurunan trade vs baseline.
+overall,threshold_action,test_1_5,"Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat."
+aggregate_input,ticker_count,10.0,Nilai dari output aggregate evaluator.
+aggregate_input,baseline_total_trades_sum,96.0,Nilai dari output aggregate evaluator.
+aggregate_input,phase_a_total_trades_sum,5.0,Nilai dari output aggregate evaluator.
+aggregate_input,baseline_win_rate_mean,34.218,Nilai dari output aggregate evaluator.
+aggregate_input,phase_a_win_rate_mean,5.0,Nilai dari output aggregate evaluator.
+aggregate_input,baseline_average_return_mean,2.51608,Nilai dari output aggregate evaluator.
+aggregate_input,phase_a_average_return_mean,-1.4815999999999998,Nilai dari output aggregate evaluator.
+aggregate_input,delta_win_rate_mean,-29.218,Nilai dari output aggregate evaluator.
+aggregate_input,delta_average_return_mean,-3.99768,Nilai dari output aggregate evaluator.
+input_quality,skipped_file_count,0,Jumlah file yang di-skip evaluator sebelumnya.
+strict_mode,policy,terlalu_restriktif,Strict mode memangkas trade terlalu banyak atau manfaat kualitasnya tidak cukup luas.
+strict_mode,eligible_ticker_count,4,Ticker yang bisa dibandingkan Phase A vs strict.
+strict_mode,improved_share_pct,0.0,Persentase ticker yang membaik dengan strict.
+strict_mode,too_restrictive_share_pct,0.0,Persentase ticker yang kehilangan trade tanpa manfaat strict.
+strict_mode,mean_delta_trades,0.0,Rata-rata perubahan trade dari default ke strict.
+strict_mode,mean_delta_win_rate,-12.5,Rata-rata perubahan win rate dari default ke strict.
+strict_mode,mean_delta_average_return,-0.10039999999999999,Rata-rata perubahan average return dari default ke strict.
+metadata,group_row_count,14,Jumlah baris analisis group berdasarkan metadata ticker.
+top_win_rate,rank_1,ADRO,delta_win_rate=4.5500; delta_win_rate=4.5500; delta_average_return=-0.1915; delta_trades=-9.0000
+top_win_rate,rank_2,BMRI,delta_win_rate=-9.0900; delta_win_rate=-9.0900; delta_average_return=-2.1310; delta_trades=-10.0000
+top_win_rate,rank_3,GOTO,delta_win_rate=-22.2200; delta_win_rate=-22.2200; delta_average_return=-47.7629; delta_trades=-9.0000
+top_win_rate,rank_4,BBRI,delta_win_rate=-27.2700; delta_win_rate=-27.2700; delta_average_return=1.5541; delta_trades=-11.0000
+top_win_rate,rank_5,DEWA,delta_win_rate=-28.5700; delta_win_rate=-28.5700; delta_average_return=6.2739; delta_trades=-7.0000
+top_win_rate,rank_6,BUMI,delta_win_rate=-33.3300; delta_win_rate=-33.3300; delta_average_return=8.6729; delta_trades=-6.0000
+top_win_rate,rank_7,ASII,delta_win_rate=-36.3600; delta_win_rate=-36.3600; delta_average_return=-1.6139; delta_trades=-10.0000
+top_win_rate,rank_8,TLKM,delta_win_rate=-44.4400; delta_win_rate=-44.4400; delta_average_return=-4.8371; delta_trades=-8.0000
+top_win_rate,rank_9,BBCA,delta_win_rate=-45.4500; delta_win_rate=-45.4500; delta_average_return=-0.1864; delta_trades=-11.0000
+top_win_rate,rank_10,UNVR,delta_win_rate=-50.0000; delta_win_rate=-50.0000; delta_average_return=0.2451; delta_trades=-10.0000
+top_average_return,rank_1,BUMI,delta_average_return=8.6729; delta_win_rate=-33.3300; delta_average_return=8.6729; delta_trades=-6.0000
+top_average_return,rank_2,DEWA,delta_average_return=6.2739; delta_win_rate=-28.5700; delta_average_return=6.2739; delta_trades=-7.0000
+top_average_return,rank_3,BBRI,delta_average_return=1.5541; delta_win_rate=-27.2700; delta_average_return=1.5541; delta_trades=-11.0000
+top_average_return,rank_4,UNVR,delta_average_return=0.2451; delta_win_rate=-50.0000; delta_average_return=0.2451; delta_trades=-10.0000
+top_average_return,rank_5,BBCA,delta_average_return=-0.1864; delta_win_rate=-45.4500; delta_average_return=-0.1864; delta_trades=-11.0000
+top_average_return,rank_6,ADRO,delta_average_return=-0.1915; delta_win_rate=4.5500; delta_average_return=-0.1915; delta_trades=-9.0000
+top_average_return,rank_7,ASII,delta_average_return=-1.6139; delta_win_rate=-36.3600; delta_average_return=-1.6139; delta_trades=-10.0000
+top_average_return,rank_8,BMRI,delta_average_return=-2.1310; delta_win_rate=-9.0900; delta_average_return=-2.1310; delta_trades=-10.0000
+top_average_return,rank_9,TLKM,delta_average_return=-4.8371; delta_win_rate=-44.4400; delta_average_return=-4.8371; delta_trades=-8.0000
+top_average_return,rank_10,GOTO,delta_average_return=-47.7629; delta_win_rate=-22.2200; delta_average_return=-47.7629; delta_trades=-9.0000
+top_trade_reduction,rank_1,BBRI,delta_trades=-11.0000; delta_win_rate=-27.2700; delta_average_return=1.5541; delta_trades=-11.0000
+top_trade_reduction,rank_2,BBCA,delta_trades=-11.0000; delta_win_rate=-45.4500; delta_average_return=-0.1864; delta_trades=-11.0000
+top_trade_reduction,rank_3,BMRI,delta_trades=-10.0000; delta_win_rate=-9.0900; delta_average_return=-2.1310; delta_trades=-10.0000
+top_trade_reduction,rank_4,ASII,delta_trades=-10.0000; delta_win_rate=-36.3600; delta_average_return=-1.6139; delta_trades=-10.0000
+top_trade_reduction,rank_5,UNVR,delta_trades=-10.0000; delta_win_rate=-50.0000; delta_average_return=0.2451; delta_trades=-10.0000
+top_trade_reduction,rank_6,ADRO,delta_trades=-9.0000; delta_win_rate=4.5500; delta_average_return=-0.1915; delta_trades=-9.0000
+top_trade_reduction,rank_7,GOTO,delta_trades=-9.0000; delta_win_rate=-22.2200; delta_average_return=-47.7629; delta_trades=-9.0000
+top_trade_reduction,rank_8,TLKM,delta_trades=-8.0000; delta_win_rate=-44.4400; delta_average_return=-4.8371; delta_trades=-8.0000
+top_trade_reduction,rank_9,DEWA,delta_trades=-7.0000; delta_win_rate=-28.5700; delta_average_return=6.2739; delta_trades=-7.0000
+top_trade_reduction,rank_10,BUMI,delta_trades=-6.0000; delta_win_rate=-33.3300; delta_average_return=8.6729; delta_trades=-6.0000
+top_deterioration,rank_1,GOTO,delta_average_return=-47.7629; delta_win_rate=-22.2200; delta_average_return=-47.7629; delta_trades=-9.0000
+top_deterioration,rank_2,TLKM,delta_average_return=-4.8371; delta_win_rate=-44.4400; delta_average_return=-4.8371; delta_trades=-8.0000
+top_deterioration,rank_3,BMRI,delta_average_return=-2.1310; delta_win_rate=-9.0900; delta_average_return=-2.1310; delta_trades=-10.0000
+top_deterioration,rank_4,ASII,delta_average_return=-1.6139; delta_win_rate=-36.3600; delta_average_return=-1.6139; delta_trades=-10.0000
+top_deterioration,rank_5,ADRO,delta_average_return=-0.1915; delta_win_rate=4.5500; delta_average_return=-0.1915; delta_trades=-9.0000
+top_deterioration,rank_6,BBCA,delta_average_return=-0.1864; delta_win_rate=-45.4500; delta_average_return=-0.1864; delta_trades=-11.0000
+top_deterioration,rank_7,UNVR,delta_average_return=0.2451; delta_win_rate=-50.0000; delta_average_return=0.2451; delta_trades=-10.0000
+top_deterioration,rank_8,BBRI,delta_average_return=1.5541; delta_win_rate=-27.2700; delta_average_return=1.5541; delta_trades=-11.0000
+top_deterioration,rank_9,DEWA,delta_average_return=6.2739; delta_win_rate=-28.5700; delta_average_return=6.2739; delta_trades=-7.0000
+top_deterioration,rank_10,BUMI,delta_average_return=8.6729; delta_win_rate=-33.3300; delta_average_return=8.6729; delta_trades=-6.0000

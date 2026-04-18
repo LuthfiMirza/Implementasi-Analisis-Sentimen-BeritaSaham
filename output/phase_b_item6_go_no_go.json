@@ -1,0 +1,14 @@
+{
+  "decision": "no_go",
+  "experiment_status": "completed",
+  "promote_default": false,
+  "promote_subset_only": false,
+  "recommended_tickers": [],
+  "recommended_groups": [],
+  "next_action": "stop",
+  "blocked_from_default": [
+    "Trade retention rata-rata masih terlalu rendah.",
+    "Tidak ada ticker comparable yang improve dengan retention memadai.",
+    "Ticker yang memburuk minimal sama banyak dengan yang improve."
+  ]
+}

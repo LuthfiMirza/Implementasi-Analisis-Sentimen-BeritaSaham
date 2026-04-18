@@ -1,0 +1,37 @@
+Phase B Item 8 Adaptive Recommendations
+=======================================
+
+- Decision: no_go
+- Adaptive model supported: False
+- Promote ticker specific: False
+- Promote group specific: False
+- Next action: stop
+
+Recommended tickers:
+- none
+
+Recommended groups:
+- none
+
+Blocked from broader promotion:
+- Ticker yang benar-benar layak masih terlalu sedikit.
+- Belum ada group dengan sinyal adaptive yang cukup konsisten.
+- Sebagian ticker masih tidak punya kandidat yang lolos min_trades.
+- Ticker yang memburuk masih terlalu banyak dibanding yang improve.
+
+Top ticker selections:
+- ADRO: threshold_2.0_strict_false (score=-31.715, trades=2, usable=False)
+- ASII: threshold_1.5_strict_false (score=-51.000, trades=1, usable=False)
+- BMRI: threshold_1.5_strict_false (score=-51.000, trades=1, usable=False)
+- TLKM: threshold_1.5_strict_false (score=-51.000, trades=1, usable=False)
+- BBCA: threshold_1.5_strict_false (score=-64.000, trades=0, usable=False)
+
+Top group selections:
+- category=energy: threshold_2.0_strict_false (mean_score=-31.715, recommended=False)
+- sector=energi: threshold_2.0_strict_false (mean_score=-31.715, recommended=False)
+- category=automotive: threshold_1.5_strict_false (mean_score=-51.000, recommended=False)
+- category=telco: threshold_1.5_strict_false (mean_score=-51.000, recommended=False)
+- sector=otomotif: threshold_1.5_strict_false (mean_score=-51.000, recommended=False)
+
+Notes:
+- Tidak ada konfigurasi adaptive yang lolos min_trades=8 sekaligus memperbaiki baseline secara konsisten.

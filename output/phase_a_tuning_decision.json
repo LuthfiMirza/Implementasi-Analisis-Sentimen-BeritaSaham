@@ -1,0 +1,255 @@
+{
+  "default_threshold_decision": {
+    "decision_code": "test_threshold_1_5",
+    "reason": "Analyzer melihat trade turun terlalu dalam. Threshold 1.5 adalah eksperimen minimum yang paling logis sebelum melangkah ke fase berikutnya.",
+    "analyzer_action": "test_1_5",
+    "group_action_set": [
+      "test_threshold_1_5"
+    ],
+    "evidence": {
+      "ticker_count": 10,
+      "cocok_share_pct": 0.0,
+      "netral_share_pct": 10.0,
+      "tidak_cocok_share_pct": 90.0,
+      "deterioration_share_pct": 60.0,
+      "mean_delta_win_rate": -29.218,
+      "mean_delta_average_return": -3.99768,
+      "median_trade_reduction_pct": -100.0,
+      "keep_hint_share_pct": 0.0,
+      "looser_hint_share_pct": 100.0,
+      "tighter_hint_share_pct": 0.0,
+      "manual_review_hint_share_pct": 0.0
+    }
+  },
+  "strict_mode_decision": {
+    "decision_code": "strict_default_no",
+    "reason": "Strict mode tidak menunjukkan manfaat yang cukup luas dan tidak layak dijadikan default.",
+    "policy_source": "terlalu_restriktif",
+    "subset_tickers": [],
+    "subset_groups": [],
+    "metrics": {
+      "available": true,
+      "improved_share_pct": 0.0,
+      "mean_delta_trades": 0.0,
+      "mean_delta_win_rate": -12.5,
+      "mean_delta_average_return": -0.10039999999999998
+    }
+  },
+  "deploy_candidates": [],
+  "watchlist_candidates": [
+    "ADRO"
+  ],
+  "review_needed": [
+    "BUMI",
+    "DEWA",
+    "BBRI",
+    "UNVR",
+    "BBCA"
+  ],
+  "avoid_for_now": [
+    "ASII",
+    "BMRI",
+    "TLKM",
+    "GOTO"
+  ],
+  "group_actions": [
+    {
+      "group_field": "category",
+      "group_value": "finance",
+      "ticker_count": 3,
+      "group_threshold_decision": "test_threshold_1_5",
+      "group_action": "test_looser_threshold",
+      "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+      "strict_mode_action": "strict_not_recommended",
+      "sample_quality": "enough_sample"
+    },
+    {
+      "group_field": "category",
+      "group_value": "mining",
+      "ticker_count": 2,
+      "group_threshold_decision": "test_threshold_1_5",
+      "group_action": "test_looser_threshold",
+      "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "enough_sample"
+    },
+    {
+      "group_field": "category",
+      "group_value": "automotive",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    },
+    {
+      "group_field": "category",
+      "group_value": "consumer",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    },
+    {
+      "group_field": "category",
+      "group_value": "energy",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    },
+    {
+      "group_field": "category",
+      "group_value": "technology",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    },
+    {
+      "group_field": "category",
+      "group_value": "telco",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    },
+    {
+      "group_field": "sector",
+      "group_value": "perbankan",
+      "ticker_count": 3,
+      "group_threshold_decision": "test_threshold_1_5",
+      "group_action": "test_looser_threshold",
+      "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+      "strict_mode_action": "strict_not_recommended",
+      "sample_quality": "enough_sample"
+    },
+    {
+      "group_field": "sector",
+      "group_value": "pertambangan",
+      "ticker_count": 2,
+      "group_threshold_decision": "test_threshold_1_5",
+      "group_action": "test_looser_threshold",
+      "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "enough_sample"
+    },
+    {
+      "group_field": "sector",
+      "group_value": "energi",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    },
+    {
+      "group_field": "sector",
+      "group_value": "konsumsi",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    },
+    {
+      "group_field": "sector",
+      "group_value": "otomotif",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    },
+    {
+      "group_field": "sector",
+      "group_value": "teknologi",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    },
+    {
+      "group_field": "sector",
+      "group_value": "telekomunikasi",
+      "ticker_count": 1,
+      "group_threshold_decision": "insufficient_sample",
+      "group_action": "insufficient_sample",
+      "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+      "strict_mode_action": "insufficient_sample",
+      "sample_quality": "small_sample"
+    }
+  ],
+  "next_experiments": [
+    {
+      "priority": 1,
+      "experiment_id": "threshold_sweep_looser",
+      "experiment_name": "Sweep volume_ratio 1.5 vs 2.0",
+      "objective": "Cari apakah trade yang hilang bisa kembali tanpa menurunkan kualitas terlalu jauh.",
+      "scope": "Ticker/group dengan trade reduction paling besar.",
+      "reason": "Analyzer melihat trade turun terlalu dalam. Threshold 1.5 adalah eksperimen minimum yang paling logis sebelum melangkah ke fase berikutnya.",
+      "mandatory_before_phase_b": "yes"
+    },
+    {
+      "priority": 3,
+      "experiment_id": "review_bucket_follow_up",
+      "experiment_name": "Targeted review on uncertain tickers",
+      "objective": "Pisahkan review list menjadi kandidat threshold 1.5, 2.5, atau drop.",
+      "scope": "5 ticker di bucket review_needed.",
+      "reason": "Review bucket masih cukup besar sehingga belum bisa dianggap final.",
+      "mandatory_before_phase_b": "yes"
+    },
+    {
+      "priority": 4,
+      "experiment_id": "group_threshold_validation",
+      "experiment_name": "Validate group-specific threshold",
+      "objective": "Uji apakah aturan by group benar-benar lebih stabil daripada baseline global.",
+      "scope": "Group dengan action test_looser_threshold atau test_tighter_threshold.",
+      "reason": "Ada sinyal group-specific yang cukup kuat untuk diuji secara terpisah.",
+      "mandatory_before_phase_b": "no"
+    },
+    {
+      "priority": 5,
+      "experiment_id": "phase_b_gate",
+      "experiment_name": "Freeze final Phase A baseline",
+      "objective": "Bekukan whitelist, blacklist, dan threshold final sebelum masuk Fase B.",
+      "scope": "0 deploy, 1 watchlist, 5 review.",
+      "reason": "Fase B sebaiknya hanya dimulai setelah baseline keputusan cukup stabil.",
+      "mandatory_before_phase_b": "yes"
+    }
+  ],
+  "ready_for_phase_b": {
+    "status": "not_ready",
+    "is_ready": false,
+    "reason": "Keputusan tuning masih terlalu banyak bergantung pada review tambahan.",
+    "blocking_items": [
+      "Threshold baseline belum final dan masih butuh eksperimen lanjutan.",
+      "Jumlah ticker review_needed masih lebih besar daripada deploy_candidate.",
+      "Masih ada group yang meminta tuning khusus."
+    ],
+    "metrics": {
+      "ticker_count": 10,
+      "deploy_count": 0,
+      "watchlist_count": 1,
+      "review_count": 5,
+      "avoid_count": 4,
+      "deploy_share_pct": 0.0,
+      "review_share_pct": 50.0
+    }
+  },
+  "warnings": []
+}

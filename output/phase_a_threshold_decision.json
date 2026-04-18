@@ -1,0 +1,204 @@
+{
+  "config": {
+    "data_dir": "data",
+    "output_dir": "output",
+    "metadata_file": "data/ticker_metadata.csv",
+    "thresholds": [
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "tickers": [],
+    "strict_mode": true,
+    "hold_period": 5,
+    "allow_overlap": false,
+    "min_trades": 8,
+    "baseline_threshold": 2.0
+  },
+  "default_threshold_decision": {
+    "decision_code": "set_threshold_1_5",
+    "mode": "global_fixed",
+    "selected_default_threshold": 1.5,
+    "keep_default_2_0": false,
+    "decision_confidence": "low",
+    "decision_margin": 0.03550000000000608,
+    "reason": "Threshold 1.5 mengungguli baseline 2.0 secara global."
+  },
+  "adaptive_threshold_by_group": {
+    "supported": false,
+    "reason": "Adaptive threshold by group belum didukung cukup kuat karena winner group belum terpecah secara konsisten.",
+    "sufficient_group_count": 0,
+    "distinct_thresholds": []
+  },
+  "readiness": {
+    "status": "partially_ready",
+    "reason": "Sweep threshold sudah informatif, tetapi masih ada area ambigu yang harus ditutup.",
+    "ambiguous_tickers": [
+      "ADRO",
+      "ASII",
+      "BMRI",
+      "TLKM",
+      "BBCA",
+      "BBRI",
+      "BUMI",
+      "DEWA",
+      "GOTO",
+      "UNVR"
+    ],
+    "priority_ambiguous_tickers": [],
+    "blocking_items": [
+      "Keputusan threshold global masih lemah karena margin pemenang terlalu sempit."
+    ]
+  },
+  "global_summary": [
+    {
+      "threshold": 1.5,
+      "ticker_count": 10.0,
+      "eligible_ticker_count": 10.0,
+      "low_trade_ticker_count": 0.0,
+      "winner_ticker_count": 1.0,
+      "priority_winner_ticker_count": 0.0,
+      "total_trades_sum": 6.0,
+      "total_trades_mean": 0.6,
+      "win_rate_mean": 0.0,
+      "average_return_mean": -1.5820899999999998,
+      "max_drawdown_mean": 0.03802,
+      "mean_score": -47.1645,
+      "median_score": -53.0,
+      "trade_retention_vs_threshold_2_0_pct": 120.0,
+      "win_rate_vs_threshold_2_0": 0.0,
+      "average_return_vs_threshold_2_0": -0.0603,
+      "max_drawdown_vs_threshold_2_0": 0.038,
+      "aggregate_score_vs_threshold_2_0": 0.2405,
+      "threshold_profile": "too_loose",
+      "selected_as_global_best": true
+    },
+    {
+      "threshold": 2.0,
+      "ticker_count": 10.0,
+      "eligible_ticker_count": 10.0,
+      "low_trade_ticker_count": 0.0,
+      "winner_ticker_count": 9.0,
+      "priority_winner_ticker_count": 0.0,
+      "total_trades_sum": 5.0,
+      "total_trades_mean": 0.5,
+      "win_rate_mean": 0.0,
+      "average_return_mean": -1.52176,
+      "max_drawdown_mean": 0.0,
+      "mean_score": -47.2,
+      "median_score": -53.0,
+      "trade_retention_vs_threshold_2_0_pct": 100.0,
+      "win_rate_vs_threshold_2_0": 0.0,
+      "average_return_vs_threshold_2_0": 0.0,
+      "max_drawdown_vs_threshold_2_0": 0.0,
+      "aggregate_score_vs_threshold_2_0": 0.0,
+      "threshold_profile": "mixed",
+      "selected_as_global_best": false
+    },
+    {
+      "threshold": 2.5,
+      "ticker_count": 10.0,
+      "eligible_ticker_count": 10.0,
+      "low_trade_ticker_count": 0.0,
+      "winner_ticker_count": 0.0,
+      "priority_winner_ticker_count": 0.0,
+      "total_trades_sum": 5.0,
+      "total_trades_mean": 0.5,
+      "win_rate_mean": 0.0,
+      "average_return_mean": -1.52176,
+      "max_drawdown_mean": 0.0,
+      "mean_score": -47.2,
+      "median_score": -53.0,
+      "trade_retention_vs_threshold_2_0_pct": 100.0,
+      "win_rate_vs_threshold_2_0": 0.0,
+      "average_return_vs_threshold_2_0": 0.0,
+      "max_drawdown_vs_threshold_2_0": 0.0,
+      "aggregate_score_vs_threshold_2_0": 0.0,
+      "threshold_profile": "mixed",
+      "selected_as_global_best": false
+    },
+    {
+      "threshold": 3.0,
+      "ticker_count": 10.0,
+      "eligible_ticker_count": 10.0,
+      "low_trade_ticker_count": 0.0,
+      "winner_ticker_count": 0.0,
+      "priority_winner_ticker_count": 0.0,
+      "total_trades_sum": 4.0,
+      "total_trades_mean": 0.4,
+      "win_rate_mean": 0.0,
+      "average_return_mean": -1.5407699999999998,
+      "max_drawdown_mean": 0.0,
+      "mean_score": -48.05703,
+      "median_score": -53.0,
+      "trade_retention_vs_threshold_2_0_pct": 80.0,
+      "win_rate_vs_threshold_2_0": 0.0,
+      "average_return_vs_threshold_2_0": -0.019,
+      "max_drawdown_vs_threshold_2_0": 0.0,
+      "aggregate_score_vs_threshold_2_0": -2.457,
+      "threshold_profile": "mixed",
+      "selected_as_global_best": false
+    }
+  ],
+  "tickers_by_selected_threshold": {
+    "1.5": [
+      "ADRO"
+    ],
+    "2.0": [
+      "ASII",
+      "BMRI",
+      "TLKM",
+      "BBCA",
+      "BBRI",
+      "BUMI",
+      "DEWA",
+      "GOTO",
+      "UNVR"
+    ],
+    "2.5": [],
+    "3.0": []
+  },
+  "groups_by_selected_threshold": {
+    "1.5": [
+      "category=energy",
+      "sector=energi"
+    ],
+    "2.0": [
+      "category=automotive",
+      "category=telco",
+      "sector=otomotif",
+      "sector=telekomunikasi",
+      "category=finance",
+      "sector=perbankan",
+      "category=mining",
+      "sector=pertambangan",
+      "category=consumer",
+      "category=technology",
+      "sector=konsumsi",
+      "sector=teknologi"
+    ],
+    "2.5": [],
+    "3.0": []
+  },
+  "priority_ticker_summary": {
+    "priority_ticker_count": 0,
+    "priority_confirmed": 0,
+    "priority_contradicted": 0
+  },
+  "prior_artifact_comparison": {
+    "available": false,
+    "global_alignment": "not_available",
+    "previous_default_decision_code": null,
+    "previous_readiness_status": null,
+    "priority_ticker_confirmed": 0,
+    "priority_ticker_contradicted": 0,
+    "group_confirmed": 0,
+    "group_contradicted": 0
+  },
+  "next_required_experiments": [
+    "Jalankan validasi walk-forward 2-split untuk ticker ambigu: ADRO, ASII, BMRI, TLKM, BBCA, BBRI, BUMI, DEWA, GOTO, UNVR"
+  ],
+  "warnings": [],
+  "skipped_files": []
+}

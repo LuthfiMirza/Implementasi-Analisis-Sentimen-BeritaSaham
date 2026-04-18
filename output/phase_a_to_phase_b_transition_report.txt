@@ -1,0 +1,47 @@
+Phase A To Phase B Transition
+=============================
+
+- Generated at: 2026-04-18T13:08:54.338122+00:00
+- Phase A status: blocked
+- Transition status: limited_experiment
+- Transition reason: Decision artifact lengkap dan baseline minimal provisional, sehingga item 5 boleh masuk mode limited_experiment walau closeout runtime penuh belum final.
+- Blocked type: none
+- Phase B entry allowed: True
+- Phase B entry mode: limited_experiment
+
+Artifact checks:
+- Threshold decision valid: True
+- Tuning decision valid: True
+- Baseline status: provisional
+- Closeout interpreted status: blocked_environment
+- Closeout readable: True
+- Closeout tests clean: False
+
+Required minimum actions:
+- Aktifkan koneksi MySQL yang benar, pastikan artikel OJK historis tersedia, lalu rerun php artisan phase-a:closeout sampai status tidak lagi blocked.
+- Verifikasi UI /backtest dan /analytics dengan include_macro_news=1 dan macro_regulatory_signal=1 sebagai catatan penutup, bukan blocker formal.
+
+Phase B Item 5 Entry Gate:
+- Allowed: True
+- Mode: limited_experiment
+- Reason: Item 5 boleh dijalankan sebagai eksperimen resmi default-off.
+- Experiment status: failed
+- Next action: stop
+- Item 6 experiment status: failed
+- Item 6 next action: stop
+- Item 7 experiment status: failed
+- Item 7 next action: stop
+- Item 8 experiment status: failed
+- Item 8 next action: stop
+- Remaining notes:
+  - Runtime closeout masih pending untuk full_start: OJK runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)
+  - Runtime closeout masih pending untuk full_start: Macro runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)
+  - Runtime closeout masih pending untuk full_start: Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)
+  - Runtime closeout masih pending untuk full_start: Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)
+  - Test suite inti belum clean untuk full_start.
+  - Baseline belum final, jadi transisi maksimal hanya limited_experiment.
+
+Phase B Item 5 Execution:
+- Execution status: executed
+- Reason: Eksperimen item 5 berhasil dijalankan dan artifact terukur sudah ditulis.
+- Command: python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --require-candle-volume-confirmation --candle-volume-confirmation-threshold 1.00 --metadata-file data/ticker_metadata.csv

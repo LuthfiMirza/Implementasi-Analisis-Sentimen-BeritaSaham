@@ -1,0 +1,15 @@
+group_field,group_value,ticker_count,group_threshold_decision,group_action,group_action_reason,strict_mode_action,sample_quality
+category,finance,3,test_threshold_1_5,test_looser_threshold,"Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",strict_not_recommended,enough_sample
+category,mining,2,test_threshold_1_5,test_looser_threshold,"Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",insufficient_sample,enough_sample
+category,automotive,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample
+category,consumer,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample
+category,energy,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample
+category,technology,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample
+category,telco,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample
+sector,perbankan,3,test_threshold_1_5,test_looser_threshold,"Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",strict_not_recommended,enough_sample
+sector,pertambangan,2,test_threshold_1_5,test_looser_threshold,"Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",insufficient_sample,enough_sample
+sector,energi,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample
+sector,konsumsi,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample
+sector,otomotif,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample
+sector,teknologi,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample
+sector,telekomunikasi,1,insufficient_sample,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,insufficient_sample,small_sample

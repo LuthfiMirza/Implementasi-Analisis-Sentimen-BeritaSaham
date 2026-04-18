@@ -1,0 +1,33 @@
+Phase A Baseline Gate
+=====================
+
+- Current baseline status: provisional
+- Reason: Threshold/tuning decision artifacts sudah usable, tetapi closeout/support final belum lengkap.
+- Closeout support status: blocked_environment
+- Closeout support reason: Closeout artifact terbaca tetapi belum cukup untuk finalisasi baseline.
+
+Minimum requirements to reach provisional:
+- Threshold decision memilih default threshold yang eksplisit.
+- Threshold decision memiliki readiness.status.
+- Tuning decision memiliki strict_mode_decision.decision_code.
+- Tuning decision memiliki ready_for_phase_b.status.
+- Missing now: none
+
+Minimum requirements to reach final:
+- Baseline minimal sudah provisional.
+- Threshold readiness sudah ready.
+- Tuning readiness sudah ready.
+- Strict mode decision sudah final (strict_default_yes / strict_default_no).
+- Threshold confidence minimal moderate.
+- Closeout artifact mendukung finalisasi baseline.
+- Missing now:
+  - Threshold readiness belum ready.
+  - Tuning readiness belum ready.
+  - Threshold confidence belum cukup kuat untuk final.
+  - Closeout runtime masih blocked_environment, jadi baseline belum bisa final.
+
+Remaining gate blockers:
+- Threshold readiness belum ready.
+- Tuning readiness belum ready.
+- Threshold confidence belum cukup kuat untuk final.
+- Closeout runtime masih blocked_environment, jadi baseline belum bisa final.

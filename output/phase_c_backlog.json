@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-04-17T02:00:17.661001+00:00",
+  "phase_a_gate_status": "blocked",
+  "phase_c_should_start_now": false,
+  "phase_c_reason": "Fase C sebaiknya baru disentuh setelah Fase B selesai atau minimal closed_with_notes dengan baseline yang stabil.",
+  "items": [
+    {
+      "item_number": 9,
+      "item_name": "Net broker flow",
+      "current_status": "not_started",
+      "goal": "Tambahkan feature order-flow broker sebagai signal lanjutan setelah stack price/sentiment stabil.",
+      "depends_on_phase_b": [
+        "Item 5-8 selesai dan baseline baru sudah stabil",
+        "Sumber data broker flow dipilih"
+      ],
+      "effort_estimate": "high",
+      "ready_to_touch_when": "Setelah Fase B selesai dan ada vendor/data source broker flow yang jelas."
+    },
+    {
+      "item_number": 10,
+      "item_name": "Correlation IHSG",
+      "current_status": "not_started",
+      "goal": "Ukur korelasi saham vs IHSG untuk market-regime filtering dan context overlay.",
+      "depends_on_phase_b": [
+        "Item 6 multi-timeframe selesai",
+        "Tersedia seri IHSG yang bersih"
+      ],
+      "effort_estimate": "medium",
+      "ready_to_touch_when": "Setelah weekly trend dan sentiment momentum sudah stabil sehingga korelasi IHSG punya konteks pemakaian yang jelas."
+    },
+    {
+      "item_number": 11,
+      "item_name": "Python ML sentiment / IndoBERT",
+      "current_status": "partial",
+      "goal": "Naikkan jalur ML sentiment dari sekadar endpoint integration menjadi eksperimen model yang benar-benar dievaluasi.",
+      "depends_on_phase_b": [
+        "Fitur sinyal Phase B stabil sehingga uplift ML bisa diukur dengan fair",
+        "Dataset evaluasi/label cukup untuk membandingkan hybrid vs ML"
+      ],
+      "effort_estimate": "high",
+      "ready_to_touch_when": "Setelah baseline heuristik + hybrid sentiment tidak banyak berubah lagi."
+    },
+    {
+      "item_number": 12,
+      "item_name": "Trade journal analytics",
+      "current_status": "not_started",
+      "goal": "Bangun analytics journal trade untuk memahami setup mana yang paling efektif dari hasil backtest/live workflow.",
+      "depends_on_phase_b": [
+        "Setup sinyal Phase B stabil",
+        "Ada schema trade log/journal yang disepakati"
+      ],
+      "effort_estimate": "medium_high",
+      "ready_to_touch_when": "Setelah sinyal Phase B cukup stabil untuk menghasilkan trade windows yang pantas dijournal."
+    }
+  ]
+}

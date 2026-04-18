@@ -1,0 +1,907 @@
+{
+  "generated_at": "2026-04-18T13:08:54.338122+00:00",
+  "phase_a_status": "blocked",
+  "transition_status": "limited_experiment",
+  "transition_reason": "Decision artifact lengkap dan baseline minimal provisional, sehingga item 5 boleh masuk mode limited_experiment walau closeout runtime penuh belum final.",
+  "blocked_type": null,
+  "phase_b_entry_allowed": true,
+  "phase_b_entry_mode": "limited_experiment",
+  "remaining_blockers": [],
+  "required_minimum_actions": [
+    "Aktifkan koneksi MySQL yang benar, pastikan artikel OJK historis tersedia, lalu rerun php artisan phase-a:closeout sampai status tidak lagi blocked.",
+    "Verifikasi UI /backtest dan /analytics dengan include_macro_news=1 dan macro_regulatory_signal=1 sebagai catatan penutup, bukan blocker formal."
+  ],
+  "item5_gate": {
+    "generated_at": "2026-04-18T13:08:52.858169+00:00",
+    "allowed": true,
+    "mode": "limited_experiment",
+    "reason": "Item 5 boleh dijalankan sebagai eksperimen resmi default-off.",
+    "prerequisites_satisfied": [
+      "Threshold decision artifact valid.",
+      "Tuning decision artifact valid.",
+      "Baseline sudah provisional.",
+      "Closeout artifact dapat dibaca."
+    ],
+    "remaining_notes": [
+      "Runtime closeout masih pending untuk full_start: OJK runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+      "Runtime closeout masih pending untuk full_start: Macro runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+      "Runtime closeout masih pending untuk full_start: Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+      "Runtime closeout masih pending untuk full_start: Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+      "Test suite inti belum clean untuk full_start.",
+      "Baseline belum final, jadi transisi maksimal hanya limited_experiment."
+    ],
+    "remaining_blockers": []
+  },
+  "item5_experiment_status": "failed",
+  "item5_next_action": "stop",
+  "item6_experiment_status": "failed",
+  "item6_next_action": "stop",
+  "item7_experiment_status": "failed",
+  "item7_next_action": "stop",
+  "item8_experiment_status": "failed",
+  "item8_next_action": "stop",
+  "phase_a_resolution": {
+    "decision_artifacts": {
+      "status_file": "output/phase_a_decision_artifact_status.json",
+      "report_file": "output/phase_a_decision_artifact_report.txt",
+      "threshold_artifact": {
+        "path": "output/phase_a_threshold_decision.json",
+        "artifact_status": "valid",
+        "available": true,
+        "valid": true,
+        "readiness_status": "partially_ready",
+        "selected_default_threshold": 1.5,
+        "decision_confidence": "low",
+        "sufficient_for_minimum_gate": true,
+        "sufficient_for_full_start": false,
+        "warnings": [],
+        "blocking_reasons": [],
+        "payload": {
+          "config": {
+            "data_dir": "data",
+            "output_dir": "output",
+            "metadata_file": "data/ticker_metadata.csv",
+            "thresholds": [
+              1.5,
+              2.0,
+              2.5,
+              3.0
+            ],
+            "tickers": [],
+            "strict_mode": true,
+            "hold_period": 5,
+            "allow_overlap": false,
+            "min_trades": 8,
+            "baseline_threshold": 2.0
+          },
+          "default_threshold_decision": {
+            "decision_code": "set_threshold_1_5",
+            "mode": "global_fixed",
+            "selected_default_threshold": 1.5,
+            "keep_default_2_0": false,
+            "decision_confidence": "low",
+            "decision_margin": 0.03550000000000608,
+            "reason": "Threshold 1.5 mengungguli baseline 2.0 secara global."
+          },
+          "adaptive_threshold_by_group": {
+            "supported": false,
+            "reason": "Adaptive threshold by group belum didukung cukup kuat karena winner group belum terpecah secara konsisten.",
+            "sufficient_group_count": 0,
+            "distinct_thresholds": []
+          },
+          "readiness": {
+            "status": "partially_ready",
+            "reason": "Sweep threshold sudah informatif, tetapi masih ada area ambigu yang harus ditutup.",
+            "ambiguous_tickers": [
+              "ADRO",
+              "ASII",
+              "BMRI",
+              "TLKM",
+              "BBCA",
+              "BBRI",
+              "BUMI",
+              "DEWA",
+              "GOTO",
+              "UNVR"
+            ],
+            "priority_ambiguous_tickers": [],
+            "blocking_items": [
+              "Keputusan threshold global masih lemah karena margin pemenang terlalu sempit."
+            ]
+          },
+          "global_summary": [
+            {
+              "threshold": 1.5,
+              "ticker_count": 10.0,
+              "eligible_ticker_count": 10.0,
+              "low_trade_ticker_count": 0.0,
+              "winner_ticker_count": 1.0,
+              "priority_winner_ticker_count": 0.0,
+              "total_trades_sum": 6.0,
+              "total_trades_mean": 0.6,
+              "win_rate_mean": 0.0,
+              "average_return_mean": -1.5820899999999998,
+              "max_drawdown_mean": 0.03802,
+              "mean_score": -47.1645,
+              "median_score": -53.0,
+              "trade_retention_vs_threshold_2_0_pct": 120.0,
+              "win_rate_vs_threshold_2_0": 0.0,
+              "average_return_vs_threshold_2_0": -0.0603,
+              "max_drawdown_vs_threshold_2_0": 0.038,
+              "aggregate_score_vs_threshold_2_0": 0.2405,
+              "threshold_profile": "too_loose",
+              "selected_as_global_best": true
+            },
+            {
+              "threshold": 2.0,
+              "ticker_count": 10.0,
+              "eligible_ticker_count": 10.0,
+              "low_trade_ticker_count": 0.0,
+              "winner_ticker_count": 9.0,
+              "priority_winner_ticker_count": 0.0,
+              "total_trades_sum": 5.0,
+              "total_trades_mean": 0.5,
+              "win_rate_mean": 0.0,
+              "average_return_mean": -1.52176,
+              "max_drawdown_mean": 0.0,
+              "mean_score": -47.2,
+              "median_score": -53.0,
+              "trade_retention_vs_threshold_2_0_pct": 100.0,
+              "win_rate_vs_threshold_2_0": 0.0,
+              "average_return_vs_threshold_2_0": 0.0,
+              "max_drawdown_vs_threshold_2_0": 0.0,
+              "aggregate_score_vs_threshold_2_0": 0.0,
+              "threshold_profile": "mixed",
+              "selected_as_global_best": false
+            },
+            {
+              "threshold": 2.5,
+              "ticker_count": 10.0,
+              "eligible_ticker_count": 10.0,
+              "low_trade_ticker_count": 0.0,
+              "winner_ticker_count": 0.0,
+              "priority_winner_ticker_count": 0.0,
+              "total_trades_sum": 5.0,
+              "total_trades_mean": 0.5,
+              "win_rate_mean": 0.0,
+              "average_return_mean": -1.52176,
+              "max_drawdown_mean": 0.0,
+              "mean_score": -47.2,
+              "median_score": -53.0,
+              "trade_retention_vs_threshold_2_0_pct": 100.0,
+              "win_rate_vs_threshold_2_0": 0.0,
+              "average_return_vs_threshold_2_0": 0.0,
+              "max_drawdown_vs_threshold_2_0": 0.0,
+              "aggregate_score_vs_threshold_2_0": 0.0,
+              "threshold_profile": "mixed",
+              "selected_as_global_best": false
+            },
+            {
+              "threshold": 3.0,
+              "ticker_count": 10.0,
+              "eligible_ticker_count": 10.0,
+              "low_trade_ticker_count": 0.0,
+              "winner_ticker_count": 0.0,
+              "priority_winner_ticker_count": 0.0,
+              "total_trades_sum": 4.0,
+              "total_trades_mean": 0.4,
+              "win_rate_mean": 0.0,
+              "average_return_mean": -1.5407699999999998,
+              "max_drawdown_mean": 0.0,
+              "mean_score": -48.05703,
+              "median_score": -53.0,
+              "trade_retention_vs_threshold_2_0_pct": 80.0,
+              "win_rate_vs_threshold_2_0": 0.0,
+              "average_return_vs_threshold_2_0": -0.019,
+              "max_drawdown_vs_threshold_2_0": 0.0,
+              "aggregate_score_vs_threshold_2_0": -2.457,
+              "threshold_profile": "mixed",
+              "selected_as_global_best": false
+            }
+          ],
+          "tickers_by_selected_threshold": {
+            "1.5": [
+              "ADRO"
+            ],
+            "2.0": [
+              "ASII",
+              "BMRI",
+              "TLKM",
+              "BBCA",
+              "BBRI",
+              "BUMI",
+              "DEWA",
+              "GOTO",
+              "UNVR"
+            ],
+            "2.5": [],
+            "3.0": []
+          },
+          "groups_by_selected_threshold": {
+            "1.5": [
+              "category=energy",
+              "sector=energi"
+            ],
+            "2.0": [
+              "category=automotive",
+              "category=telco",
+              "sector=otomotif",
+              "sector=telekomunikasi",
+              "category=finance",
+              "sector=perbankan",
+              "category=mining",
+              "sector=pertambangan",
+              "category=consumer",
+              "category=technology",
+              "sector=konsumsi",
+              "sector=teknologi"
+            ],
+            "2.5": [],
+            "3.0": []
+          },
+          "priority_ticker_summary": {
+            "priority_ticker_count": 0,
+            "priority_confirmed": 0,
+            "priority_contradicted": 0
+          },
+          "prior_artifact_comparison": {
+            "available": false,
+            "global_alignment": "not_available",
+            "previous_default_decision_code": null,
+            "previous_readiness_status": null,
+            "priority_ticker_confirmed": 0,
+            "priority_ticker_contradicted": 0,
+            "group_confirmed": 0,
+            "group_contradicted": 0
+          },
+          "next_required_experiments": [
+            "Jalankan validasi walk-forward 2-split untuk ticker ambigu: ADRO, ASII, BMRI, TLKM, BBCA, BBRI, BUMI, DEWA, GOTO, UNVR"
+          ],
+          "warnings": [],
+          "skipped_files": []
+        }
+      },
+      "tuning_artifact": {
+        "path": "output/phase_a_tuning_decision.json",
+        "artifact_status": "valid",
+        "available": true,
+        "valid": true,
+        "readiness_status": "not_ready",
+        "strict_mode_decision_code": "strict_default_no",
+        "strict_mode_final": true,
+        "sufficient_for_minimum_gate": true,
+        "sufficient_for_full_start": false,
+        "warnings": [],
+        "blocking_reasons": [],
+        "payload": {
+          "default_threshold_decision": {
+            "decision_code": "test_threshold_1_5",
+            "reason": "Analyzer melihat trade turun terlalu dalam. Threshold 1.5 adalah eksperimen minimum yang paling logis sebelum melangkah ke fase berikutnya.",
+            "analyzer_action": "test_1_5",
+            "group_action_set": [
+              "test_threshold_1_5"
+            ],
+            "evidence": {
+              "ticker_count": 10,
+              "cocok_share_pct": 0.0,
+              "netral_share_pct": 10.0,
+              "tidak_cocok_share_pct": 90.0,
+              "deterioration_share_pct": 60.0,
+              "mean_delta_win_rate": -29.218,
+              "mean_delta_average_return": -3.99768,
+              "median_trade_reduction_pct": -100.0,
+              "keep_hint_share_pct": 0.0,
+              "looser_hint_share_pct": 100.0,
+              "tighter_hint_share_pct": 0.0,
+              "manual_review_hint_share_pct": 0.0
+            }
+          },
+          "strict_mode_decision": {
+            "decision_code": "strict_default_no",
+            "reason": "Strict mode tidak menunjukkan manfaat yang cukup luas dan tidak layak dijadikan default.",
+            "policy_source": "terlalu_restriktif",
+            "subset_tickers": [],
+            "subset_groups": [],
+            "metrics": {
+              "available": true,
+              "improved_share_pct": 0.0,
+              "mean_delta_trades": 0.0,
+              "mean_delta_win_rate": -12.5,
+              "mean_delta_average_return": -0.10039999999999998
+            }
+          },
+          "deploy_candidates": [],
+          "watchlist_candidates": [
+            "ADRO"
+          ],
+          "review_needed": [
+            "BUMI",
+            "DEWA",
+            "BBRI",
+            "UNVR",
+            "BBCA"
+          ],
+          "avoid_for_now": [
+            "ASII",
+            "BMRI",
+            "TLKM",
+            "GOTO"
+          ],
+          "group_actions": [
+            {
+              "group_field": "category",
+              "group_value": "finance",
+              "ticker_count": 3,
+              "group_threshold_decision": "test_threshold_1_5",
+              "group_action": "test_looser_threshold",
+              "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+              "strict_mode_action": "strict_not_recommended",
+              "sample_quality": "enough_sample"
+            },
+            {
+              "group_field": "category",
+              "group_value": "mining",
+              "ticker_count": 2,
+              "group_threshold_decision": "test_threshold_1_5",
+              "group_action": "test_looser_threshold",
+              "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "enough_sample"
+            },
+            {
+              "group_field": "category",
+              "group_value": "automotive",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            },
+            {
+              "group_field": "category",
+              "group_value": "consumer",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            },
+            {
+              "group_field": "category",
+              "group_value": "energy",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            },
+            {
+              "group_field": "category",
+              "group_value": "technology",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            },
+            {
+              "group_field": "category",
+              "group_value": "telco",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            },
+            {
+              "group_field": "sector",
+              "group_value": "perbankan",
+              "ticker_count": 3,
+              "group_threshold_decision": "test_threshold_1_5",
+              "group_action": "test_looser_threshold",
+              "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+              "strict_mode_action": "strict_not_recommended",
+              "sample_quality": "enough_sample"
+            },
+            {
+              "group_field": "sector",
+              "group_value": "pertambangan",
+              "ticker_count": 2,
+              "group_threshold_decision": "test_threshold_1_5",
+              "group_action": "test_looser_threshold",
+              "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "enough_sample"
+            },
+            {
+              "group_field": "sector",
+              "group_value": "energi",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            },
+            {
+              "group_field": "sector",
+              "group_value": "konsumsi",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            },
+            {
+              "group_field": "sector",
+              "group_value": "otomotif",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            },
+            {
+              "group_field": "sector",
+              "group_value": "teknologi",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            },
+            {
+              "group_field": "sector",
+              "group_value": "telekomunikasi",
+              "ticker_count": 1,
+              "group_threshold_decision": "insufficient_sample",
+              "group_action": "insufficient_sample",
+              "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+              "strict_mode_action": "insufficient_sample",
+              "sample_quality": "small_sample"
+            }
+          ],
+          "next_experiments": [
+            {
+              "priority": 1,
+              "experiment_id": "threshold_sweep_looser",
+              "experiment_name": "Sweep volume_ratio 1.5 vs 2.0",
+              "objective": "Cari apakah trade yang hilang bisa kembali tanpa menurunkan kualitas terlalu jauh.",
+              "scope": "Ticker/group dengan trade reduction paling besar.",
+              "reason": "Analyzer melihat trade turun terlalu dalam. Threshold 1.5 adalah eksperimen minimum yang paling logis sebelum melangkah ke fase berikutnya.",
+              "mandatory_before_phase_b": "yes"
+            },
+            {
+              "priority": 3,
+              "experiment_id": "review_bucket_follow_up",
+              "experiment_name": "Targeted review on uncertain tickers",
+              "objective": "Pisahkan review list menjadi kandidat threshold 1.5, 2.5, atau drop.",
+              "scope": "5 ticker di bucket review_needed.",
+              "reason": "Review bucket masih cukup besar sehingga belum bisa dianggap final.",
+              "mandatory_before_phase_b": "yes"
+            },
+            {
+              "priority": 4,
+              "experiment_id": "group_threshold_validation",
+              "experiment_name": "Validate group-specific threshold",
+              "objective": "Uji apakah aturan by group benar-benar lebih stabil daripada baseline global.",
+              "scope": "Group dengan action test_looser_threshold atau test_tighter_threshold.",
+              "reason": "Ada sinyal group-specific yang cukup kuat untuk diuji secara terpisah.",
+              "mandatory_before_phase_b": "no"
+            },
+            {
+              "priority": 5,
+              "experiment_id": "phase_b_gate",
+              "experiment_name": "Freeze final Phase A baseline",
+              "objective": "Bekukan whitelist, blacklist, dan threshold final sebelum masuk Fase B.",
+              "scope": "0 deploy, 1 watchlist, 5 review.",
+              "reason": "Fase B sebaiknya hanya dimulai setelah baseline keputusan cukup stabil.",
+              "mandatory_before_phase_b": "yes"
+            }
+          ],
+          "ready_for_phase_b": {
+            "status": "not_ready",
+            "is_ready": false,
+            "reason": "Keputusan tuning masih terlalu banyak bergantung pada review tambahan.",
+            "blocking_items": [
+              "Threshold baseline belum final dan masih butuh eksperimen lanjutan.",
+              "Jumlah ticker review_needed masih lebih besar daripada deploy_candidate.",
+              "Masih ada group yang meminta tuning khusus."
+            ],
+            "metrics": {
+              "ticker_count": 10,
+              "deploy_count": 0,
+              "watchlist_count": 1,
+              "review_count": 5,
+              "avoid_count": 4,
+              "deploy_share_pct": 0.0,
+              "review_share_pct": 50.0
+            }
+          },
+          "warnings": []
+        }
+      }
+    },
+    "baseline_artifact": {
+      "path": "output/phase_a_baseline_final.json",
+      "artifact_status": "valid",
+      "refresh_status": "passed",
+      "available": true,
+      "valid": true,
+      "baseline_status": "provisional",
+      "readiness_status": "partially_ready",
+      "usable_for_limited_experiment": true,
+      "final_for_full_start": false,
+      "strict_mode_final": true,
+      "warnings": [],
+      "payload": {
+        "default_volume_spike_threshold": 1.5,
+        "strict_mode_default": false,
+        "adaptive_threshold_enabled": false,
+        "group_threshold_overrides": [],
+        "min_trades_floor": 8,
+        "readiness_status": "partially_ready",
+        "baseline_status": "provisional",
+        "decision_source": [
+          "output/phase_a_threshold_decision.json",
+          "output/phase_a_tuning_decision.json",
+          "output/phase_a_threshold_best_by_group.csv",
+          "output/phase_a_threshold_best_by_ticker.csv"
+        ],
+        "generated_at": "2026-04-18T13:08:52.850231+00:00",
+        "strict_mode_decision_code": "strict_default_no",
+        "baseline_status_reason": "Threshold/tuning decision artifacts sudah usable, tetapi closeout/support final belum lengkap.",
+        "threshold_decision_confidence": "low",
+        "threshold_decision_margin": 0.03550000000000608,
+        "selected_threshold_mode": "global_fixed",
+        "best_threshold_counts": {
+          "1.5": 1,
+          "2.0": 9
+        },
+        "closeout_support_status": "blocked_environment",
+        "closeout_support_reason": "Closeout artifact terbaca tetapi belum cukup untuk finalisasi baseline.",
+        "provisional_requirements": [
+          "Threshold decision memilih default threshold yang eksplisit.",
+          "Threshold decision memiliki readiness.status.",
+          "Tuning decision memiliki strict_mode_decision.decision_code.",
+          "Tuning decision memiliki ready_for_phase_b.status."
+        ],
+        "provisional_requirements_met": true,
+        "provisional_missing_requirements": [],
+        "final_requirements": [
+          "Baseline minimal sudah provisional.",
+          "Threshold readiness sudah ready.",
+          "Tuning readiness sudah ready.",
+          "Strict mode decision sudah final (strict_default_yes / strict_default_no).",
+          "Threshold confidence minimal moderate.",
+          "Closeout artifact mendukung finalisasi baseline."
+        ],
+        "final_requirements_met": false,
+        "final_missing_requirements": [
+          "Threshold readiness belum ready.",
+          "Tuning readiness belum ready.",
+          "Threshold confidence belum cukup kuat untuk final.",
+          "Closeout runtime masih blocked_environment, jadi baseline belum bisa final."
+        ],
+        "remaining_gate_blockers": [
+          "Threshold readiness belum ready.",
+          "Tuning readiness belum ready.",
+          "Threshold confidence belum cukup kuat untuk final.",
+          "Closeout runtime masih blocked_environment, jadi baseline belum bisa final."
+        ],
+        "warnings": []
+      },
+      "gate_report_path": "output/phase_a_baseline_gate_report.txt"
+    },
+    "closeout_artifact": {
+      "path": "output/phase_a_closeout_status.json",
+      "artifact_status": "valid",
+      "available": true,
+      "valid": true,
+      "closeout_status": "blocked",
+      "raw_status": "blocked",
+      "interpreted_status": "blocked_environment",
+      "readable": true,
+      "ojk_runtime_validated": false,
+      "macro_runtime_validated": false,
+      "runtime_validated": false,
+      "tests_clean": false,
+      "tests": {
+        "python_status": "skipped",
+        "php_status": "skipped"
+      },
+      "environment_blockers": [
+        "OJK runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+        "Macro runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+        "Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+        "Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)"
+      ],
+      "artifact_blockers": [
+        "Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.",
+        "Strict mode belum final karena masih subset-only atau belum terdefinisi."
+      ],
+      "remaining_blockers": [
+        "OJK runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+        "Macro runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+        "Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+        "Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+        "Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.",
+        "Strict mode belum final karena masih subset-only atau belum terdefinisi."
+      ],
+      "notes": [
+        "Test suite inti tidak dijalankan pada closeout ini."
+      ],
+      "warnings": [],
+      "supports_limited_experiment": false,
+      "supports_final": false,
+      "payload": {
+        "generated_at": "2026-04-17T01:33:26+00:00",
+        "status": "blocked",
+        "reason": "Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.",
+        "blocking_items": [
+          "Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+          "Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+          "Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.",
+          "Strict mode belum final karena masih subset-only atau belum terdefinisi."
+        ],
+        "notes": [
+          "Test suite inti tidak dijalankan pada closeout ini."
+        ],
+        "baseline": {
+          "available": true,
+          "source_path": "/Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/output/phase_a_baseline_final.json",
+          "baseline_status": "draft",
+          "readiness_status": "partially_ready",
+          "default_volume_spike_threshold": 2,
+          "strict_mode_default": false,
+          "adaptive_threshold_enabled": false,
+          "group_override_count": 0,
+          "strict_mode_decision_code": "strict_default_not_available",
+          "warnings": [
+            "Threshold decision JSON not found: output/phase_a_threshold_decision.json.",
+            "Tuning decision JSON not found: output/phase_a_tuning_decision.json.",
+            "Threshold best-by-group CSV not found: output/phase_a_threshold_best_by_group.csv.",
+            "Threshold best-by-ticker CSV not found: output/phase_a_threshold_best_by_ticker.csv.",
+            "Threshold sweep decision not available. default_volume_spike_threshold falls back to 2.0.",
+            "Tuning decision not available. strict_mode_default falls back to false."
+          ]
+        },
+        "ojk_backfill": {
+          "available": false,
+          "ready": false,
+          "article_count": 0,
+          "neutral_article_count": 0,
+          "neutral_only": false,
+          "oldest_published_at": null,
+          "newest_published_at": null,
+          "min_article_count_required": 5,
+          "min_history_days_required": 30,
+          "error": "SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)"
+        },
+        "macro_regulatory_signal": {
+          "feature_flag_enabled": true,
+          "ready": false,
+          "signal": {
+            "attention_regime": "unavailable",
+            "confidence_multiplier": "n/a",
+            "narrative": "Macro regulatory signal tidak bisa dievaluasi karena akses database gagal."
+          },
+          "neutral_only_handled": false,
+          "error": "SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)"
+        },
+        "tests": {
+          "python": {
+            "status": "skipped",
+            "command": null,
+            "summary": "Skipped by --skip-tests"
+          },
+          "php": {
+            "status": "skipped",
+            "command": null,
+            "summary": "Skipped by --skip-tests"
+          }
+        }
+      }
+    }
+  },
+  "phase_a_final_status": {
+    "generated_at": "2026-04-18T13:08:52.857551+00:00",
+    "status": "blocked",
+    "reason": "Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.",
+    "baseline_status": "provisional",
+    "readiness_status": "partially_ready",
+    "baseline_usable_now": true,
+    "baseline_final_now": false,
+    "strict_mode_final_now": true,
+    "core_phase_a_items_done": true,
+    "macro_regulatory_mode": "context_only_moderation",
+    "macro_ojk_neutral_only_policy": "note_if_macro_regulatory_signal_ready_else_blocker",
+    "macro_ojk_neutral_only_current_classification": "unknown_runtime",
+    "ui_manual_verification_blocker": false,
+    "ui_manual_verification_note": "Controller/report coverage sudah ada; verifikasi UI manual include_macro_news dan macro_regulatory_signal tetap berguna, tetapi bukan blocker formal.",
+    "closeout_artifact_available": true,
+    "baseline_artifact_available": true,
+    "ready_to_start_phase_b": false,
+    "ready_to_start_phase_b_reason": "Jangan masuk ke Fase B penuh sebelum baseline freeze real dan closeout runtime tervalidasi.",
+    "blocking_items": [
+      "Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+      "Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+      "Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.",
+      "Strict mode belum final karena masih subset-only atau belum terdefinisi."
+    ],
+    "notes": [
+      "Test suite inti tidak dijalankan pada closeout ini.",
+      "Controller/report coverage sudah ada; verifikasi UI manual include_macro_news dan macro_regulatory_signal tetap berguna, tetapi bukan blocker formal.",
+      "Status neutral-only OJK belum bisa diklasifikasikan penuh karena runtime closeout terakhir tidak dapat membaca database."
+    ]
+  },
+  "transition_decision": {
+    "transition_status": "limited_experiment",
+    "transition_reason": "Decision artifact lengkap dan baseline minimal provisional, sehingga item 5 boleh masuk mode limited_experiment walau closeout runtime penuh belum final.",
+    "blocked_type": null,
+    "phase_b_entry_allowed": true,
+    "phase_b_entry_mode": "limited_experiment",
+    "remaining_blockers": [],
+    "remaining_notes": [
+      "Runtime closeout masih pending untuk full_start: OJK runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+      "Runtime closeout masih pending untuk full_start: Macro runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+      "Runtime closeout masih pending untuk full_start: Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+      "Runtime closeout masih pending untuk full_start: Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+      "Test suite inti belum clean untuk full_start.",
+      "Baseline belum final, jadi transisi maksimal hanya limited_experiment."
+    ]
+  },
+  "minimum_blockers": [
+    {
+      "priority": 1,
+      "blocker_code": "phase_a_runtime_closeout_not_validated",
+      "blocking_item": "Closeout runtime belum tervalidasi pada environment yang punya MySQL + OJK historical data aktif.",
+      "why_it_blocks": "Status final Phase A tidak bisa dipercaya jika baseline, backfill OJK, dan macro_regulatory_signal belum diperiksa pada runtime nyata.",
+      "minimum_action": "Pastikan MySQL aktif dan data OJK historis tersedia, lalu rerun closeout.",
+      "command_hint": "php artisan phase-a:closeout"
+    }
+  ],
+  "next_steps": [
+    "Aktifkan koneksi MySQL yang benar, pastikan artikel OJK historis tersedia, lalu rerun php artisan phase-a:closeout sampai status tidak lagi blocked.",
+    "Verifikasi UI /backtest dan /analytics dengan include_macro_news=1 dan macro_regulatory_signal=1 sebagai catatan penutup, bukan blocker formal."
+  ],
+  "phase_b_item5_entry_gate": {
+    "generated_at": "2026-04-18T13:08:52.858169+00:00",
+    "allowed": true,
+    "mode": "limited_experiment",
+    "reason": "Item 5 boleh dijalankan sebagai eksperimen resmi default-off.",
+    "prerequisites_satisfied": [
+      "Threshold decision artifact valid.",
+      "Tuning decision artifact valid.",
+      "Baseline sudah provisional.",
+      "Closeout artifact dapat dibaca."
+    ],
+    "remaining_notes": [
+      "Runtime closeout masih pending untuk full_start: OJK runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+      "Runtime closeout masih pending untuk full_start: Macro runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+      "Runtime closeout masih pending untuk full_start: Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+      "Runtime closeout masih pending untuk full_start: Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+      "Test suite inti belum clean untuk full_start.",
+      "Baseline belum final, jadi transisi maksimal hanya limited_experiment."
+    ],
+    "remaining_blockers": []
+  },
+  "phase_b_item5_official_experiment": {
+    "eligible_to_run": true,
+    "execution_status": "executed",
+    "reason": "Eksperimen item 5 berhasil dijalankan dan artifact terukur sudah ditulis.",
+    "command": "python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --require-candle-volume-confirmation --candle-volume-confirmation-threshold 1.00 --metadata-file data/ticker_metadata.csv",
+    "artifacts": {
+      "per_ticker_csv": "output/phase_b_item5_candle_confirmation_per_ticker.csv",
+      "summary_json": "output/phase_b_item5_candle_confirmation_summary.json",
+      "report_txt": "output/phase_b_item5_candle_confirmation_report.txt"
+    }
+  },
+  "phase_b_item5_post_transition_status": {
+    "available": true,
+    "path": "output/phase_b_item5_go_no_go.json",
+    "item5_experiment_status": "failed",
+    "item5_next_action": "stop",
+    "decision": "no_go",
+    "warnings": [],
+    "payload": {
+      "decision": "no_go",
+      "best_global_threshold": 1.0,
+      "promote_default": false,
+      "promote_subset_only": false,
+      "recommended_groups": [],
+      "recommended_tickers": [],
+      "blocked_from_default": [
+        "Skor global item 5 tidak positif.",
+        "Average return global tidak membaik.",
+        "Win rate global tidak membaik.",
+        "Ticker yang memburuk minimal sama banyak dengan yang improve.",
+        "Trade retention global terlalu rendah untuk default.",
+        "Semua threshold yang diuji collapse ke effective confirmation threshold 1.5 karena baseline Phase A aktif sudah menuntut volume_ratio minimal itu.",
+        "Tidak ada threshold item 5 yang memenuhi min_trades=8, jadi dukungan sampelnya belum cukup untuk promosi."
+      ],
+      "next_action": "stop",
+      "item5_experiment_status": "failed",
+      "item5_next_action": "stop"
+    }
+  },
+  "phase_b_item6_post_transition_status": {
+    "available": true,
+    "path": "output/phase_b_item6_go_no_go.json",
+    "item6_experiment_status": "failed",
+    "item6_next_action": "stop",
+    "decision": "no_go",
+    "warnings": [],
+    "payload": {
+      "decision": "no_go",
+      "experiment_status": "completed",
+      "promote_default": false,
+      "promote_subset_only": false,
+      "recommended_tickers": [],
+      "recommended_groups": [],
+      "next_action": "stop",
+      "blocked_from_default": [
+        "Trade retention rata-rata masih terlalu rendah.",
+        "Tidak ada ticker comparable yang improve dengan retention memadai.",
+        "Ticker yang memburuk minimal sama banyak dengan yang improve."
+      ]
+    }
+  },
+  "phase_b_item7_post_transition_status": {
+    "available": true,
+    "path": "output/phase_b_item7_go_no_go.json",
+    "item7_experiment_status": "failed",
+    "item7_next_action": "stop",
+    "decision": "no_go",
+    "warnings": [],
+    "payload": {
+      "decision": "no_go",
+      "experiment_status": "completed",
+      "promote_default": false,
+      "promote_subset_only": false,
+      "recommended_tickers": [],
+      "recommended_groups": [],
+      "next_action": "stop",
+      "blocked_from_default": [
+        "Trade retention rata-rata masih terlalu rendah.",
+        "Win rate rata-rata tidak membaik.",
+        "Tidak ada ticker comparable yang improve dengan retention memadai.",
+        "Ticker yang memburuk minimal sama banyak dengan yang improve."
+      ]
+    }
+  },
+  "phase_b_item8_post_transition_status": {
+    "available": true,
+    "path": "output/phase_b_item8_go_no_go.json",
+    "item8_experiment_status": "failed",
+    "item8_next_action": "stop",
+    "decision": "no_go",
+    "warnings": [],
+    "payload": {
+      "decision": "no_go",
+      "experiment_status": "completed",
+      "adaptive_model_supported": false,
+      "promote_ticker_specific": false,
+      "promote_group_specific": false,
+      "recommended_tickers": [],
+      "recommended_groups": [],
+      "blocked_from_broader_promotion": [
+        "Ticker yang benar-benar layak masih terlalu sedikit.",
+        "Belum ada group dengan sinyal adaptive yang cukup konsisten.",
+        "Sebagian ticker masih tidak punya kandidat yang lolos min_trades.",
+        "Ticker yang memburuk masih terlalu banyak dibanding yang improve."
+      ],
+      "next_action": "stop",
+      "item8_experiment_status": "failed",
+      "item8_next_action": "stop"
+    }
+  }
+}

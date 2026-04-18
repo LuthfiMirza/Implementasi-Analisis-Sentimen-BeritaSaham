@@ -30,6 +30,9 @@ class AnalyticsController extends Controller
         $period = (int) $request->query('period', 30);
         $period = in_array($period, [7, 30, 90]) ? $period : 30;
         $includeMacroNews = $request->boolean('include_macro_news', true);
+        $macroRegulatorySignal = $request->query->has('macro_regulatory_signal')
+            ? $request->boolean('macro_regulatory_signal')
+            : null;
         $priceLimit = max(60, $period);
         $stock = Stock::where('code', $stockCode)->firstOrFail();
 
@@ -43,7 +46,14 @@ class AnalyticsController extends Controller
         $summary = $this->sentimentSummaryService->summarize($articles);
         $priceSeries = $this->priceSeriesService->getSeries($stock, '1d', $priceLimit)->values();
         $liveQuote = app(\App\Services\MarketData\LiveMarketDataService::class)->quote($stock);
-        $analytics = $this->sentimentPriceAnalyticsService->analyze($stock, $priceSeries, $articles, $period);
+        $analytics = $this->sentimentPriceAnalyticsService->analyze(
+            $stock,
+            $priceSeries,
+            $articles,
+            $period,
+            null,
+            $macroRegulatorySignal
+        );
         $decision = $this->decisionSupportService->analyze($stock, $priceSeries, $articles, $analytics);
         $features = $this->featureBuilderService->build($stock, $priceSeries, $articles, $analytics, $period);
         $prediction = $this->predictionEngineManager->predict($features);
@@ -80,6 +90,7 @@ class AnalyticsController extends Controller
             'chartData' => $chartData,
             'period' => $period,
             'includeMacroNews' => $includeMacroNews,
+            'macroRegulatorySignal' => $macroRegulatorySignal,
             'decision' => $decision,
             'analytics' => $analytics,
             'prediction' => $prediction,

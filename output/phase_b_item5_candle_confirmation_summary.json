@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-04-18T13:08:54.332470+00:00",
+  "experiment_id": "phase_b_item5_candle_confirmation",
+  "comparison_status": "measured",
+  "comparison_scope": "baseline_phase_a_vs_baseline_plus_candle_confirmation",
+  "control_arm": {
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "candle_confirmation_enabled": false
+  },
+  "experiment_arm": {
+    "candle_confirmation_enabled": true,
+    "candle_volume_confirmation_threshold": 1.0
+  },
+  "aggregate": {
+    "ticker_count": 10,
+    "control_phase_a_total_trades_sum": 6.0,
+    "experiment_phase_a_total_trades_sum": 6.0,
+    "delta_phase_a_total_trades_sum": 0.0,
+    "trade_retention_mean_pct": 100.0,
+    "delta_phase_a_win_rate_mean": -3.3329999999999997,
+    "delta_phase_a_average_return_mean": -0.026770000000000006,
+    "delta_phase_a_max_drawdown_mean": 0.0,
+    "tickers_with_trade_reduction": 0,
+    "tickers_with_win_rate_improvement": 0,
+    "tickers_with_average_return_improvement": 0,
+    "tickers_with_lower_drawdown": 0
+  },
+  "top_average_return_improvements": [
+    {
+      "ticker": "ASII",
+      "delta_phase_a_average_return": 0.0,
+      "delta_phase_a_win_rate": 0.0,
+      "delta_phase_a_total_trades": 0.0
+    },
+    {
+      "ticker": "BBCA",
+      "delta_phase_a_average_return": 0.0,
+      "delta_phase_a_win_rate": 0.0,
+      "delta_phase_a_total_trades": 0.0
+    },
+    {
+      "ticker": "BBRI",
+      "delta_phase_a_average_return": 0.0,
+      "delta_phase_a_win_rate": 0.0,
+      "delta_phase_a_total_trades": 0.0
+    },
+    {
+      "ticker": "BMRI",
+      "delta_phase_a_average_return": 0.0,
+      "delta_phase_a_win_rate": 0.0,
+      "delta_phase_a_total_trades": 0.0
+    },
+    {
+      "ticker": "BUMI",
+      "delta_phase_a_average_return": 0.0,
+      "delta_phase_a_win_rate": 0.0,
+      "delta_phase_a_total_trades": 0.0
+    }
+  ],
+  "largest_trade_reductions": [
+    {
+      "ticker": "ASII",
+      "delta_phase_a_total_trades": 0.0,
+      "trade_retention_pct": 100.0,
+      "delta_phase_a_average_return": 0.0
+    },
+    {
+      "ticker": "BBCA",
+      "delta_phase_a_total_trades": 0.0,
+      "trade_retention_pct": null,
+      "delta_phase_a_average_return": 0.0
+    },
+    {
+      "ticker": "BBRI",
+      "delta_phase_a_total_trades": 0.0,
+      "trade_retention_pct": null,
+      "delta_phase_a_average_return": 0.0
+    },
+    {
+      "ticker": "BMRI",
+      "delta_phase_a_total_trades": 0.0,
+      "trade_retention_pct": 100.0,
+      "delta_phase_a_average_return": 0.0
+    },
+    {
+      "ticker": "BUMI",
+      "delta_phase_a_total_trades": 0.0,
+      "trade_retention_pct": null,
+      "delta_phase_a_average_return": 0.0
+    }
+  ]
+}

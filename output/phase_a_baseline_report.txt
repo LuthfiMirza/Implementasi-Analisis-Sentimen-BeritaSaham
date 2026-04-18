@@ -1,0 +1,21 @@
+Phase A Baseline Freeze
+=======================
+
+- Baseline status: provisional
+- Readiness status: partially_ready
+- Default threshold: 1.5
+- Strict mode default: False
+- Adaptive threshold enabled: False
+- Min trades floor: 8
+- Decision sources used: output/phase_a_threshold_decision.json, output/phase_a_tuning_decision.json, output/phase_a_threshold_best_by_group.csv, output/phase_a_threshold_best_by_ticker.csv
+
+Reasoning:
+- Threshold/tuning decision artifacts sudah usable, tetapi closeout/support final belum lengkap.
+- Closeout support: blocked_environment | Closeout artifact terbaca tetapi belum cukup untuk finalisasi baseline.
+
+Frozen group overrides:
+- none
+
+Best-by-ticker threshold counts:
+- threshold 1.5: 1 ticker
+- threshold 2.0: 9 ticker

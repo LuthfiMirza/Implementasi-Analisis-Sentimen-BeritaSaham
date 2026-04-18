@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-04-18T13:08:52.858169+00:00",
+  "allowed": true,
+  "mode": "limited_experiment",
+  "reason": "Item 5 boleh dijalankan sebagai eksperimen resmi default-off.",
+  "prerequisites_satisfied": [
+    "Threshold decision artifact valid.",
+    "Tuning decision artifact valid.",
+    "Baseline sudah provisional.",
+    "Closeout artifact dapat dibaca."
+  ],
+  "remaining_notes": [
+    "Runtime closeout masih pending untuk full_start: OJK runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+    "Runtime closeout masih pending untuk full_start: Macro runtime error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+    "Runtime closeout masih pending untuk full_start: Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+    "Runtime closeout masih pending untuk full_start: Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+    "Test suite inti belum clean untuk full_start.",
+    "Baseline belum final, jadi transisi maksimal hanya limited_experiment."
+  ],
+  "remaining_blockers": []
+}

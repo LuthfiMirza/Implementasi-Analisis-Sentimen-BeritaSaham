@@ -1,0 +1,161 @@
+{
+  "generated_at": "2026-04-18T12:56:45.739411+00:00",
+  "experiment_id": "phase_b_item7_sentiment_momentum",
+  "comparison_status": "measured",
+  "comparison_scope": "baseline_phase_a_vs_baseline_plus_sentiment_momentum",
+  "control_arm": {
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "sentiment_momentum_enabled": false
+  },
+  "experiment_arm": {
+    "sentiment_momentum_enabled": true,
+    "sentiment_momentum_mode": "weighted",
+    "sentiment_momentum_window": 3,
+    "sentiment_baseline_window": 7,
+    "sentiment_momentum_threshold": 0.0
+  },
+  "aggregate": {
+    "ticker_count": 10,
+    "sentiment_data_ready_ticker_count": 9,
+    "comparable_ticker_count": 4,
+    "baseline_total_trades_sum": 6.0,
+    "candidate_total_trades_sum": 0.0,
+    "delta_total_trades_sum": -6.0,
+    "trade_retention_mean_pct": 0.0,
+    "delta_win_rate_mean": -3.3329999999999997,
+    "delta_average_return_mean": 1.55532,
+    "delta_max_drawdown_mean": -0.03802,
+    "tickers_with_trade_reduction": 4,
+    "tickers_with_win_rate_improvement": 0,
+    "tickers_with_average_return_improvement": 4,
+    "tickers_with_lower_drawdown": 1
+  },
+  "group_snapshots": [
+    {
+      "group_value": "energi",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": 0.0,
+      "delta_win_rate_mean": -33.33,
+      "delta_average_return_mean": 0.5257,
+      "delta_max_drawdown_mean": -0.3802,
+      "group_field": "sector"
+    },
+    {
+      "group_value": "konsumsi",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": null,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 0.0,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "sector"
+    },
+    {
+      "group_value": "otomotif",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": 0.0,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 3.4221,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "sector"
+    },
+    {
+      "group_value": "perbankan",
+      "ticker_count": 3,
+      "trade_retention_mean_pct": 0.0,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 1.8108666666666666,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "sector"
+    },
+    {
+      "group_value": "pertambangan",
+      "ticker_count": 2,
+      "trade_retention_mean_pct": null,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 0.0,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "sector"
+    },
+    {
+      "group_value": "teknologi",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": null,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 0.0,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "sector"
+    },
+    {
+      "group_value": "telekomunikasi",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": 0.0,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 6.1728,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "sector"
+    },
+    {
+      "group_value": "automotive",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": 0.0,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 3.4221,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "category"
+    },
+    {
+      "group_value": "consumer",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": null,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 0.0,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "category"
+    },
+    {
+      "group_value": "energy",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": 0.0,
+      "delta_win_rate_mean": -33.33,
+      "delta_average_return_mean": 0.5257,
+      "delta_max_drawdown_mean": -0.3802,
+      "group_field": "category"
+    },
+    {
+      "group_value": "finance",
+      "ticker_count": 3,
+      "trade_retention_mean_pct": 0.0,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 1.8108666666666666,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "category"
+    },
+    {
+      "group_value": "mining",
+      "ticker_count": 2,
+      "trade_retention_mean_pct": null,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 0.0,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "category"
+    },
+    {
+      "group_value": "technology",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": null,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 0.0,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "category"
+    },
+    {
+      "group_value": "telco",
+      "ticker_count": 1,
+      "trade_retention_mean_pct": 0.0,
+      "delta_win_rate_mean": 0.0,
+      "delta_average_return_mean": 6.1728,
+      "delta_max_drawdown_mean": 0.0,
+      "group_field": "category"
+    }
+  ]
+}

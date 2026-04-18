@@ -1,0 +1,18 @@
+{
+  "decision": "no_go",
+  "experiment_status": "completed",
+  "adaptive_model_supported": false,
+  "promote_ticker_specific": false,
+  "promote_group_specific": false,
+  "recommended_tickers": [],
+  "recommended_groups": [],
+  "blocked_from_broader_promotion": [
+    "Ticker yang benar-benar layak masih terlalu sedikit.",
+    "Belum ada group dengan sinyal adaptive yang cukup konsisten.",
+    "Sebagian ticker masih tidak punya kandidat yang lolos min_trades.",
+    "Ticker yang memburuk masih terlalu banyak dibanding yang improve."
+  ],
+  "next_action": "stop",
+  "item8_experiment_status": "failed",
+  "item8_next_action": "stop"
+}

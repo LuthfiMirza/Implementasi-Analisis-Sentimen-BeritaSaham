@@ -1,0 +1,15 @@
+group_field,group_value,ticker_count,cocok_count,netral_count,tidak_cocok_count,cocok_share_pct,mean_delta_trades,mean_delta_win_rate,mean_delta_average_return,median_trade_reduction_pct,threshold_action,threshold_reason,strict_better_share_pct,strict_policy
+category,mining,2,0,0,2,0.0,-6.5,-30.95,7.4734,-100.0,test_1_5,"Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",,not_available
+category,consumer,1,0,0,1,0.0,-10.0,-50.0,0.2451,-100.0,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample
+category,energy,1,0,1,0,0.0,-9.0,4.549999999999997,-0.1915,-81.81818181818183,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample
+category,finance,3,0,0,3,0.0,-10.666666666666666,-27.27,-0.25443333333333323,-100.0,test_1_5,"Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",0.0,strict_kurang_menarik
+category,automotive,1,0,0,1,0.0,-10.0,-36.36,-1.6139,-90.9090909090909,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample
+category,telco,1,0,0,1,0.0,-8.0,-44.44,-4.8371,-88.88888888888889,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample
+category,technology,1,0,0,1,0.0,-9.0,-22.22,-47.7629,-100.0,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample
+sector,pertambangan,2,0,0,2,0.0,-6.5,-30.95,7.4734,-100.0,test_1_5,"Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",,not_available
+sector,konsumsi,1,0,0,1,0.0,-10.0,-50.0,0.2451,-100.0,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample
+sector,energi,1,0,1,0,0.0,-9.0,4.549999999999997,-0.1915,-81.81818181818183,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample
+sector,perbankan,3,0,0,3,0.0,-10.666666666666666,-27.27,-0.25443333333333323,-100.0,test_1_5,"Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",0.0,strict_kurang_menarik
+sector,otomotif,1,0,0,1,0.0,-10.0,-36.36,-1.6139,-90.9090909090909,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample
+sector,telekomunikasi,1,0,0,1,0.0,-8.0,-44.44,-4.8371,-88.88888888888889,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample
+sector,teknologi,1,0,0,1,0.0,-9.0,-22.22,-47.7629,-100.0,insufficient_sample,Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.,,insufficient_sample

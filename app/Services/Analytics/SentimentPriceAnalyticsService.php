@@ -9,17 +9,30 @@ use Illuminate\Support\Collection;
 
 class SentimentPriceAnalyticsService
 {
+    public function __construct(
+        protected ?MacroRegulatorySignalService $macroRegulatorySignalService = null,
+    ) {
+        $this->macroRegulatorySignalService ??= new MacroRegulatorySignalService();
+    }
+
     public function analyze(
         Stock $stock,
         Collection $prices,
         Collection $articles,
         int $periodDays = 30,
-        CarbonInterface|string|null $referenceDate = null
+        CarbonInterface|string|null $referenceDate = null,
+        ?bool $macroRegulatorySignal = null
     ): array
     {
         $orderedPrices = $prices->sortBy('price_date')->values();
         $referencePoint = $this->resolveReferenceDate($referenceDate, $orderedPrices);
         $articlesInPeriod = $this->articlesInPeriod($articles, $periodDays, $referencePoint);
+        $macroSignal = $this->macroRegulatorySignalService->evaluate(
+            $articlesInPeriod,
+            $periodDays,
+            $referencePoint,
+            $macroRegulatorySignal
+        );
         $returns = $this->dailyReturns($orderedPrices);
         $perDateSentiment = $this->sentimentByDate($articlesInPeriod, $stock, $periodDays, $referencePoint);
 
@@ -68,6 +81,7 @@ class SentimentPriceAnalyticsService
             'volume_impact' => $volumeImpact,
             'per_date_sentiment' => $perDateSentiment,
             'per_date_returns' => $returns,
+            'macro_regulatory_signal' => $macroSignal,
             'reference_date' => $referencePoint?->toDateString(),
         ];
     }

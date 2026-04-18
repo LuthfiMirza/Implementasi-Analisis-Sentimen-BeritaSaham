@@ -20,7 +20,12 @@ class EvaluationReportService
     ) {
     }
 
-    public function generate(Stock $stock, int $period = 30, bool $includeMacroNews = true): array
+    public function generate(
+        Stock $stock,
+        int $period = 30,
+        bool $includeMacroNews = true,
+        ?bool $macroRegulatorySignal = null
+    ): array
     {
         $period = max(3, $period);
 
@@ -31,7 +36,14 @@ class EvaluationReportService
             ->get();
 
         $prices = $this->priceSeriesService->getSeries($stock, '1d', $period + 5)->values();
-        $analytics = $this->analyticsService->analyze($stock, $prices, $articles, $period);
+        $analytics = $this->analyticsService->analyze(
+            $stock,
+            $prices,
+            $articles,
+            $period,
+            null,
+            $macroRegulatorySignal
+        );
         $decision = $this->decisionSupportService->analyze($stock, $prices, $articles, $analytics);
 
         $features = $this->featureBuilderService->build($stock, $prices, $articles, $analytics, $period);
@@ -49,6 +61,7 @@ class EvaluationReportService
                 'price_points' => $prices->count(),
                 'article_count' => $articles->count(),
                 'include_macro_news' => $includeMacroNews,
+                'macro_regulatory_signal_enabled' => (bool) ($analytics['macro_regulatory_signal']['enabled'] ?? false),
             ],
             'sentiment' => [
                 'average' => $analytics['average_sentiment'],
@@ -69,13 +82,22 @@ class EvaluationReportService
                 'cumulative_return' => $analytics['cumulative_return'],
                 'volatility' => $analytics['volatility'],
             ],
+            'macro_regulatory' => $analytics['macro_regulatory_signal'],
             'decision' => [
                 'status' => $decision['status'],
                 'confidence' => $decision['confidence'],
                 'final_score' => $decision['final_score'],
+                'final_score_before_macro' => $decision['final_score_before_macro'] ?? $decision['final_score'],
+                'macro_regulatory_adjusted' => (bool) ($decision['macro_regulatory_adjusted'] ?? false),
             ],
             'prediction' => $prediction,
-            'narrative' => $this->narrative($analytics, $decision, $prediction, $sentimentStats),
+            'narrative' => $this->narrative(
+                $analytics,
+                $decision,
+                $prediction,
+                $sentimentStats,
+                $analytics['macro_regulatory_signal'] ?? []
+            ),
         ];
     }
 
@@ -94,7 +116,13 @@ class EvaluationReportService
         ];
     }
 
-    protected function narrative(array $analytics, array $decision, array $prediction, array $sentimentStats): string
+    protected function narrative(
+        array $analytics,
+        array $decision,
+        array $prediction,
+        array $sentimentStats,
+        array $macroSignal = []
+    ): string
     {
         $avg = $analytics['average_sentiment'];
         $trend = $analytics['sentiment_trend'];
@@ -106,6 +134,9 @@ class EvaluationReportService
         $parts[] = "Sentimen rata-rata {$avg} dengan tren {$trend}, harga {$priceTrend}.";
         $parts[] = "Korelasi same-day " . ($corr === null ? 'n/a' : $corr) . ", lag H+1 " . ($lag1 === null ? 'n/a' : $lag1) . ".";
         $parts[] = "Metode Python terpakai " . ($sentimentStats['python_usage_rate'] * 100) . "%, fallback " . ($sentimentStats['fallback_rate'] * 100) . "%.";
+        if (($macroSignal['active'] ?? false) && ($macroSignal['enabled'] ?? false)) {
+            $parts[] = (string) ($macroSignal['narrative'] ?? 'Macro regulatory context aktif.');
+        }
         $parts[] = "Decision support: {$decision['status']} ({$decision['confidence']}), Prediksi: {$prediction['predicted_direction']} ({$prediction['confidence']}).";
 
         return implode(' ', $parts);

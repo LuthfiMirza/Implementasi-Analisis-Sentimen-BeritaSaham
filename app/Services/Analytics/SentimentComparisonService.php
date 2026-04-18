@@ -21,7 +21,12 @@ class SentimentComparisonService
     ) {
     }
 
-    public function evaluate(Stock $stock, int $period = 30, bool $includeMacroNews = true): array
+    public function evaluate(
+        Stock $stock,
+        int $period = 30,
+        bool $includeMacroNews = true,
+        ?bool $macroRegulatorySignal = null
+    ): array
     {
         $period = max(7, $period);
         $prices = $this->priceSeriesService->getSeries($stock, '1d', $period + 7)->values();
@@ -32,7 +37,14 @@ class SentimentComparisonService
             ->orderBy('published_at')
             ->get();
 
-        $analytics = $this->analyticsService->analyze($stock, $prices, $articles, $period);
+        $analytics = $this->analyticsService->analyze(
+            $stock,
+            $prices,
+            $articles,
+            $period,
+            null,
+            $macroRegulatorySignal
+        );
 
         $perDate = $analytics['per_date_sentiment'] ?? collect();
         $perDate = $perDate instanceof Collection ? $perDate : collect($perDate);
@@ -53,12 +65,19 @@ class SentimentComparisonService
                 'article_count' => $articles->count(),
                 'days_with_sentiment' => $perDate->count(),
                 'include_macro_news' => $includeMacroNews,
+                'macro_regulatory_signal_enabled' => (bool) ($analytics['macro_regulatory_signal']['enabled'] ?? false),
             ],
             'correlation' => $corr,
             'event_study' => $events,
             'signal_backtest' => $signals,
             'prediction_impact' => $predictionImpact,
-            'narrative' => $this->narrative($corr, $events, $signals),
+            'macro_regulatory' => $analytics['macro_regulatory_signal'],
+            'narrative' => $this->narrative(
+                $corr,
+                $events,
+                $signals,
+                $analytics['macro_regulatory_signal'] ?? []
+            ),
         ];
     }
 
@@ -406,7 +425,7 @@ class SentimentComparisonService
         return round(array_sum($arr) / count($arr), 3);
     }
 
-    protected function narrative(array $corr, array $events, array $signals): string
+    protected function narrative(array $corr, array $events, array $signals, array $macroSignal = []): string
     {
         $sameDayWeighted = $corr['same_day']['weighted'] ?? null;
         $sameDayAvg = $corr['same_day']['average'] ?? null;
@@ -420,7 +439,14 @@ class SentimentComparisonService
         $evA = count($events['average'] ?? []);
         $parts[] = "Event weighted: {$evW}, event average: {$evA}.";
 
-        $parts[] = "Hit rate sinyal bullish (weighted/avg): ".($signals['weighted']['bullish_hit_rate_h1'] ?? 'n/a')."/".($signals['average']['bullish_hit_rate_h1'] ?? 'n/a').".";
+        $parts[] = "Hit rate sinyal bullish H+1 (weighted/avg): "
+            .($signals['weighted']['h1']['bullish_hit_rate'] ?? 'n/a')
+            ."/"
+            .($signals['average']['h1']['bullish_hit_rate'] ?? 'n/a')
+            .".";
+        if (($macroSignal['active'] ?? false) && ($macroSignal['enabled'] ?? false)) {
+            $parts[] = (string) ($macroSignal['narrative'] ?? 'Macro regulatory context aktif.');
+        }
 
         return implode(' ', $parts);
     }

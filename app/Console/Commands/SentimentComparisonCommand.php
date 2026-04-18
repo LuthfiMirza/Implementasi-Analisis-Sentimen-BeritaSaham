@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class SentimentComparisonCommand extends Command
 {
-    protected $signature = 'evaluation:sentiment-compare {code?} {--period=30} {--save=} {--no-macro : Exclude global macro news such as OJK}';
+    protected $signature = 'evaluation:sentiment-compare {code?} {--period=30} {--save=} {--no-macro : Exclude global macro news such as OJK} {--macro-regulatory-signal= : Override macro regulatory signal with 1 or 0}';
 
     protected $description = 'Bandingkan weighted vs average sentiment (korelasi, event, sinyal arah) untuk saham tertentu';
 
@@ -17,6 +17,16 @@ class SentimentComparisonCommand extends Command
     {
         $code = $this->argument('code') ?? config('dashboard.default_stock', 'BBCA');
         $period = (int) $this->option('period');
+        $macroOption = $this->option('macro-regulatory-signal');
+        $macroRegulatorySignal = $macroOption === null
+            ? null
+            : filter_var($macroOption, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        if ($macroOption !== null && $macroRegulatorySignal === null) {
+            $this->error('Nilai --macro-regulatory-signal harus 1/0 atau true/false.');
+
+            return self::FAILURE;
+        }
 
         $stock = Stock::where('code', $code)->first();
         if (! $stock) {
@@ -24,7 +34,12 @@ class SentimentComparisonCommand extends Command
             return self::FAILURE;
         }
 
-        $report = $service->evaluate($stock, $period, ! $this->option('no-macro'));
+        $report = $service->evaluate(
+            $stock,
+            $period,
+            ! $this->option('no-macro'),
+            $macroRegulatorySignal
+        );
 
         $this->info("Evaluasi sentiment vs weighted ({$code}, {$period} hari)");
         $this->line(json_encode($report, JSON_PRETTY_PRINT));

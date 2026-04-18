@@ -1,0 +1,20 @@
+{
+  "decision": "no_go",
+  "best_global_threshold": 1.0,
+  "promote_default": false,
+  "promote_subset_only": false,
+  "recommended_groups": [],
+  "recommended_tickers": [],
+  "blocked_from_default": [
+    "Skor global item 5 tidak positif.",
+    "Average return global tidak membaik.",
+    "Win rate global tidak membaik.",
+    "Ticker yang memburuk minimal sama banyak dengan yang improve.",
+    "Trade retention global terlalu rendah untuk default.",
+    "Semua threshold yang diuji collapse ke effective confirmation threshold 1.5 karena baseline Phase A aktif sudah menuntut volume_ratio minimal itu.",
+    "Tidak ada threshold item 5 yang memenuhi min_trades=8, jadi dukungan sampelnya belum cukup untuk promosi."
+  ],
+  "next_action": "stop",
+  "item5_experiment_status": "failed",
+  "item5_next_action": "stop"
+}

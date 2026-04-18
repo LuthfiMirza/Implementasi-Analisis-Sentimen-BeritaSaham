@@ -247,6 +247,39 @@ php artisan evaluate:report BBCA --period=30 --no-macro
 - Artikel OJK disimpan sebagai berita global (`stock_id = null`) dan diikutsertakan dalam analisis hanya ketika mode evaluasi `include_macro_news` aktif.
 - Dengan pendekatan ini, peneliti dapat membandingkan performa model sebelum dan sesudah memasukkan konteks berita regulator resmi pada rentang waktu yang sama.
 
+## Phase A Close-Out Operasional
+- Baseline final Phase A dibekukan ke `output/phase_a_baseline_final.json` dan fallback statisnya tersedia di `config/phase_a_baseline.json`.
+- Baseline memuat threshold volume spike default, strict mode default, adaptive threshold by group, min trade floor, readiness, dan status baseline (`draft|provisional|final`).
+- Generate baseline final dari artifact sweep/tuning:
+```bash
+python3 -m quant.freeze_phase_a_baseline --output-dir output
+```
+- Evaluasi Python dapat membaca baseline final secara opsional tanpa memecahkan perilaku lama:
+```bash
+python3 -m quant.evaluate_phase_a_real_data \
+  --data-dir data \
+  --output-dir output \
+  --baseline-config output/phase_a_baseline_final.json \
+  --metadata-file data/ticker_metadata.csv
+```
+- Macro OJK neutral tidak dipaksa menjadi bullish/bearish. Sistem memakai `macro_regulatory_signal` untuk memberi konteks regulasi: menurunkan confidence directional yang terlalu ekstrem, menaikkan risk/caution overlay, dan mengencangkan threshold entry saat rezim regulasi sedang tinggi.
+- Feature flag default ada di `config/analytics.php` (`analytics.macro_regulatory_signal.enabled`) dan bisa dioverride per request/command:
+```bash
+php artisan evaluate:report BBCA --period=30 --macro-regulatory-signal=1
+php artisan evaluate:report BBCA --period=30 --macro-regulatory-signal=0
+php artisan evaluation:sentiment-compare BBCA --period=30 --macro-regulatory-signal=1
+```
+- Backtest/UI comparison tetap kompatibel:
+  - Dengan moderation: `/backtest?code=BBCA&include_macro_news=1&macro_regulatory_signal=1`
+  - Tanpa moderation: `/backtest?code=BBCA&include_macro_news=1&macro_regulatory_signal=0`
+- Close-out final Phase A:
+```bash
+php artisan phase-a:closeout
+```
+- Command close-out akan membekukan baseline jika perlu, memeriksa artifact baseline, status threshold/strict mode, kesiapan backfill OJK historis, kesiapan `macro_regulatory_signal`, menjalankan suite inti, lalu menulis:
+  - `output/phase_a_closeout_report.txt`
+  - `output/phase_a_closeout_status.json`
+
 ## Decision Support & Analytics
 - `SentimentPriceAnalyticsService`: average/weighted sentiment, dominasi, hitung volume berita, return harian/kumulatif, volatilitas, tren harga/sentimen, korelasi same-day & lag (H+1/H+3/H+7), event study lonjakan sentimen, volume→volatilitas.
 - `DecisionSupportService`: kombinasikan sentimen & teknikal (MA5/20, RSI, support/resistance, breakout), scoring berbobot, status (Bullish Support / Wait and See / Warning), confidence (Rendah/Sedang/Tinggi), faktor pendukung/pelemah/risiko, invalidation rules, narasi & skenario.

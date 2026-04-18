@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-04-18T12:56:44.977246+00:00",
+  "experiment_id": "phase_b_item7_schema_contract",
+  "required_columns": [
+    "date",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "sentiment_average_1d",
+    "sentiment_weighted_1d",
+    "sentiment_news_count_1d"
+  ],
+  "optional_columns": [],
+  "accepted_aliases": {
+    "sentiment_average_1d": [
+      "sentiment_score_daily",
+      "sentiment_average_daily"
+    ],
+    "sentiment_weighted_1d": [
+      "sentiment_score_weighted_daily",
+      "sentiment_weighted_daily"
+    ],
+    "sentiment_news_count_1d": [
+      "sentiment_article_count_daily",
+      "sentiment_count_daily"
+    ]
+  },
+  "invalid_patterns": [
+    "mixed_canonical_and_alias_columns_for_the_same_sentiment_field",
+    "multiple_aliases_for_one_sentiment_field",
+    "missing_any_required_sentiment_column_after_alias_normalization",
+    "blank_or_non_numeric_sentiment_scores",
+    "negative_or_fractional_sentiment_article_count",
+    "metadata_ticker_missing_when_metadata_file_is_supplied",
+    "history_shorter_than_sentiment_baseline_window"
+  ],
+  "canonical_export_columns": [
+    "date",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "sentiment_average_1d",
+    "sentiment_weighted_1d",
+    "sentiment_news_count_1d"
+  ],
+  "canonical_export_note": "Export resmi phase-a:export-real-data --include-sentiment-series selalu menulis nama kolom canonical. Alias hanya diterima untuk kompatibilitas evaluator.",
+  "example_valid_csv_header": "date,open,high,low,close,volume,sentiment_average_1d,sentiment_weighted_1d,sentiment_news_count_1d",
+  "next_action_if_missing": "refresh_sentiment_data"
+}

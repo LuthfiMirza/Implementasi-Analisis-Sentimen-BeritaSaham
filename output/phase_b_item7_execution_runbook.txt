@@ -1,0 +1,26 @@
+Phase B Item 7 Execution Runbook
+================================
+
+Step 1 - Pulihkan DB / MySQL
+- Pastikan mysqld aktif dan aplikasi bisa membuka 127.0.0.1:3306.
+- Pastikan tabel stocks, stock_prices, dan news_articles berisi data yang up-to-date.
+
+Step 2 - Jalankan export sentiment series
+php artisan phase-a:export-real-data --data-dir=data --metadata-file=data/ticker_metadata.csv --min-rows=50 --include-sentiment-series
+
+Step 3 - Validasi readiness dataset item 7
+python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --validate-item7-readiness --sentiment-momentum-window 3 --sentiment-baseline-window 7 --metadata-file data/ticker_metadata.csv
+- Baca output/phase_b_item7_data_readiness.json dan output/phase_b_item7_data_readiness_per_ticker.csv.
+- Lanjut jika dataset_is_item7_ready=true. Status bisa tetap partial bila ada subset ticker yang unusable tetapi sampel valid masih cukup untuk eksperimen.
+
+Step 4 - Rerun evaluator item 7
+python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --require-sentiment-momentum --sentiment-momentum-window 3 --sentiment-baseline-window 7 --sentiment-momentum-threshold 0.0 --sentiment-momentum-mode weighted --baseline-config output/phase_a_baseline_final.json --metadata-file data/ticker_metadata.csv
+
+Step 5 - Baca keputusan final
+- Cek output/phase_b_item7_go_no_go.json.
+- Decision final yang sah harus salah satu dari: no_go, keep_experimental, promote_for_subset, promote_global.
+
+Jika readiness belum ready
+- blocked_missing_sentiment_series: rerun export dengan --include-sentiment-series setelah DB valid.
+- sentiment_schema_invalid: perbaiki schema CSV agar cocok dengan phase_b_item7_schema_contract.
+- valid_but_unusable: tambahkan history/artikel sampai window 3d/7d menghasilkan sentiment_momentum_data_ready.

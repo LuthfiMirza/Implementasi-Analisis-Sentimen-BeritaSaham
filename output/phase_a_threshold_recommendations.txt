@@ -1,0 +1,38 @@
+Phase A Threshold Sweep Recommendation
+=====================================
+
+1. Apakah threshold default 2.0 tetap dipertahankan atau tidak?
+- Keputusan: tidak dipertahankan.
+- Policy: global_fixed
+- Threshold global terbaik: 1.5
+- Confidence: low
+- Reason: Threshold 1.5 mengungguli baseline 2.0 secara global.
+- Bukti global: mean_score=-47.16, winner_ticker_count=1, trade_retention_vs_2_0=120.0%.
+
+2. Ticker mana yang lebih cocok threshold 1.5?
+- ADRO
+
+3. Ticker mana yang lebih cocok threshold 2.5 atau 3.0?
+- Threshold 2.5: tidak ada
+- Threshold 3.0: tidak ada
+
+4. Apakah adaptive threshold by group benar-benar didukung data?
+- Keputusan: tidak
+- Reason: Adaptive threshold by group belum didukung cukup kuat karena winner group belum terpecah secara konsisten.
+
+5. Group mana yang cocok threshold lebih longgar?
+- tidak ada group dengan bukti cukup
+
+6. Group mana yang cocok threshold lebih ketat?
+- tidak ada group dengan bukti cukup
+
+7. Apakah hasil sweep cukup untuk menaikkan readiness dari partially_ready ke ready?
+- Status: partially_ready
+- Reason: Sweep threshold sudah informatif, tetapi masih ada area ambigu yang harus ditutup.
+- Blocking items: Keputusan threshold global masih lemah karena margin pemenang terlalu sempit.
+
+8. Eksperimen minimum berikutnya jika keputusan masih belum final?
+- Jalankan validasi walk-forward 2-split untuk ticker ambigu: ADRO, ASII, BMRI, TLKM, BBCA, BBRI, BUMI, DEWA, GOTO, UNVR
+
+Catatan sweep global:
+- Profil threshold universe: 1.5=too_loose, 2.0=mixed, 2.5=mixed, 3.0=mixed

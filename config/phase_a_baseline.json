@@ -1,0 +1,13 @@
+{
+  "default_volume_spike_threshold": 2.0,
+  "strict_mode_default": false,
+  "adaptive_threshold_enabled": false,
+  "group_threshold_overrides": [],
+  "min_trades_floor": 8,
+  "readiness_status": "partially_ready",
+  "baseline_status": "draft",
+  "decision_source": [
+    "config/phase_a_baseline.json"
+  ],
+  "generated_at": null
+}

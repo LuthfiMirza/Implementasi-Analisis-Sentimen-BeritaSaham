@@ -1,0 +1,56 @@
+Phase A Closeout Report
+======================
+
+Final status:
+- Status: blocked
+- Reason: Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.
+
+Baseline:
+- Available: yes
+- Source: /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/output/phase_a_baseline_final.json
+- Baseline status: draft
+- Readiness status: partially_ready
+- Default threshold: 2
+- Strict mode default: false
+- Adaptive threshold enabled: false
+- Group override count: 0
+
+OJK backfill:
+- Ready: no
+- Available: no
+- Article count: 0
+- Neutral article count: 0
+- Neutral only: no
+- Oldest published_at: n/a
+- Newest published_at: n/a
+- Error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)
+
+Macro regulatory signal:
+- Feature flag enabled: yes
+- Ready: no
+- Neutral-only handled: no
+- Attention regime: unavailable
+- Confidence multiplier: n/a
+- Narrative: Macro regulatory signal tidak bisa dievaluasi karena akses database gagal.
+- Error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)
+
+Core tests:
+- Python: skipped
+- PHP: skipped
+
+Blocking items:
+- Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)
+- Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)
+- Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.
+- Strict mode belum final karena masih subset-only atau belum terdefinisi.
+
+Notes:
+- Test suite inti tidak dijalankan pada closeout ini.
+
+Baseline warnings:
+- Threshold decision JSON not found: output/phase_a_threshold_decision.json.
+- Tuning decision JSON not found: output/phase_a_tuning_decision.json.
+- Threshold best-by-group CSV not found: output/phase_a_threshold_best_by_group.csv.
+- Threshold best-by-ticker CSV not found: output/phase_a_threshold_best_by_ticker.csv.
+- Threshold sweep decision not available. default_volume_spike_threshold falls back to 2.0.
+- Tuning decision not available. strict_mode_default falls back to false.

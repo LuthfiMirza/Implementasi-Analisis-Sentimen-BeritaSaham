@@ -1,0 +1,60 @@
+Phase A Result Analysis
+=======================
+
+Catatan penting:
+- Rekomendasi threshold di bawah ini adalah inferensi dari hasil threshold saat ini (volume_ratio >= 2.0).
+- Ini belum membuktikan bahwa 1.5 atau 2.5 lebih baik; rekomendasinya adalah prioritas eksperimen berikutnya.
+
+Ringkasan umum:
+- Total ticker dianalisis: 10
+- Cocok: 0
+- Netral: 1
+- Tidak cocok: 9
+- Rata-rata delta win rate: -29.2180
+- Rata-rata delta average return: -3.9977
+- Median penurunan trade vs baseline: -100.0000%
+- Kesimpulan umum: Phase A belum terlihat efektif secara luas pada kumpulan ticker ini.
+
+Ringkasan aggregate evaluator:
+- Baseline total trades sum: 96.0
+- Phase A total trades sum: 5.0
+- Mean delta win rate aggregate: -29.218
+- Mean delta average return aggregate: -3.99768
+
+Klasifikasi ticker:
+- Cocok biasanya berarti trade berkurang tetapi win rate dan average return membaik.
+- Tidak cocok berarti trade turun tanpa peningkatan kualitas, atau average return memburuk jelas.
+- File evaluator yang sebelumnya di-skip: 0
+
+Rekomendasi threshold:
+- Aksi utama: test_1_5
+- Alasan: Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.
+- Rekomendasi praktis: uji threshold 1.5 lebih dulu pada ticker dengan trade terlalu sedikit.
+
+Analisis strict mode:
+- Policy: terlalu_restriktif
+- Alasan: Strict mode memangkas trade terlalu banyak atau manfaat kualitasnya tidak cukup luas.
+- Persentase ticker yang membaik dengan strict: 0.0000%
+- Persentase ticker yang terlalu terpangkas oleh strict: 0.0000%
+- Rata-rata delta trades strict vs default: 0.0000
+- Rata-rata delta win rate strict vs default: -12.5000
+- Rata-rata delta average return strict vs default: -0.1004
+- Keputusan: strict mode jangan dijadikan default pada tahap ini.
+
+Analisis berdasarkan metadata:
+- category=mining: mean_delta_win_rate=-30.9500, mean_delta_average_return=7.4734, threshold=test_1_5.
+- category=finance: mean_delta_win_rate=-27.2700, mean_delta_average_return=-0.2544, threshold=test_1_5.
+- sector=pertambangan: mean_delta_win_rate=-30.9500, mean_delta_average_return=7.4734, threshold=test_1_5.
+- sector=perbankan: mean_delta_win_rate=-27.2700, mean_delta_average_return=-0.2544, threshold=test_1_5.
+
+Top movers:
+- Top delta win rate: ADRO, BMRI, GOTO, BBRI, DEWA, BUMI, ASII, TLKM, BBCA, UNVR
+- Top delta average return: BUMI, DEWA, BBRI, UNVR, BBCA, ADRO, ASII, BMRI, TLKM, GOTO
+- Trade reduction terbesar: BBRI, BBCA, BMRI, ASII, UNVR, ADRO, GOTO, TLKM, DEWA, BUMI
+- Memburuk paling jelas: GOTO, TLKM, BMRI, ASII, ADRO, BBCA, UNVR, BBRI, DEWA, BUMI
+
+Eksperimen berikutnya:
+- Pertahankan evaluator saat ini sebagai baseline kontrol.
+- Tambahkan pengujian threshold volume_ratio 1.5, 2.0, dan 2.5 pada ticker/group yang disarankan laporan ini.
+- Bandingkan default vs strict hanya pada ticker yang masih menghasilkan trade cukup.
+- Setelah metadata ticker lengkap, ulangi analisis untuk market_cap_group, sector, dan beta_group.

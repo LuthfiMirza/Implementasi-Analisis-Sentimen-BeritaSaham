@@ -60,7 +60,7 @@ class DecisionSupportService
         $volatilityScore = $this->volatilityScore($bollinger);
         $fundamentalScore = $fundamental['score'] ?? 0;
 
-        $finalScore = round(
+        $rawFinalScore = round(
             0.20 * $sentimentScore +
             0.22 * $trendScore +
             0.18 * $momentumScore +
@@ -70,7 +70,13 @@ class DecisionSupportService
             2
         );
 
+        $macroSignal = is_array($analytics['macro_regulatory_signal'] ?? null)
+            ? $analytics['macro_regulatory_signal']
+            : [];
+        $finalScore = $this->applyMacroRegulatoryModeration($rawFinalScore, $macroSignal);
+
         [$status, $confidence] = $this->statusAndConfidence($finalScore, $analytics, $orderedPrices);
+        $confidence = $this->moderateConfidenceByMacroSignal($confidence, $macroSignal);
 
         $technical = [
             'ma5' => $ma5,
@@ -133,6 +139,9 @@ class DecisionSupportService
             'status' => $status,
             'confidence' => $confidence,
             'final_score' => $finalScore,
+            'final_score_before_macro' => $rawFinalScore,
+            'macro_regulatory_adjusted' => (bool) ($macroSignal['caution_flag'] ?? false),
+            'macro_regulatory_signal' => $macroSignal,
             'technical' => $technical,
             'indicators' => $technical,
             'fundamental' => $fundamental,
@@ -154,6 +163,30 @@ class DecisionSupportService
             'prediction_features' => $predictionFeatures,
             'trading_signal' => $tradingSignal,
         ];
+    }
+
+    protected function applyMacroRegulatoryModeration(float $rawFinalScore, array $macroSignal): float
+    {
+        if (! ($macroSignal['caution_flag'] ?? false)) {
+            return $rawFinalScore;
+        }
+
+        $scoreMultiplier = (float) ($macroSignal['score_multiplier'] ?? 1.0);
+
+        return round($rawFinalScore * max(0.0, min(1.0, $scoreMultiplier)), 2);
+    }
+
+    protected function moderateConfidenceByMacroSignal(string $confidence, array $macroSignal): string
+    {
+        if (! ($macroSignal['caution_flag'] ?? false)) {
+            return $confidence;
+        }
+
+        return match ($confidence) {
+            'Tinggi' => 'Sedang',
+            'Sedang' => 'Rendah',
+            default => 'Rendah',
+        };
     }
 
     private function calculateTradingSignal(
@@ -1207,6 +1240,9 @@ class DecisionSupportService
             ($analytics['event_study']['negative_events'][0]['sentiment'] ?? null) ? 'Ada lonjakan sentimen negatif, pantau dampak pasca-event.' : null,
             ($technical['breakout'] ?? null) === 'breakdown' ? 'Harga di bawah support meningkatkan risiko invalidasi.' : null,
             ($technical['atr']['volatility'] ?? null) === 'high' ? 'ATR tinggi ('.($technical['atr']['atr_percent'] ?? '-').'%) — risiko stop-loss lebih besar.' : null,
+            ($analytics['macro_regulatory_signal']['caution_flag'] ?? false)
+                ? 'Rezim perhatian regulasi OJK tinggi. Confidence directional perlu dimoderasi.'
+                : null,
         ]));
     }
 
@@ -1224,6 +1260,9 @@ class DecisionSupportService
         $sent = round($analytics['weighted_sentiment'] ?? $analytics['average_sentiment'] ?? 0, 2);
         $trend = $analytics['price_trend'] ?? 'datar';
         $rsi = $technical['rsi'] ?? null;
+        $macroSignal = is_array($analytics['macro_regulatory_signal'] ?? null)
+            ? $analytics['macro_regulatory_signal']
+            : [];
         $maContext = $technical['ma_gap'] !== null
             ? ($technical['ma_gap'] > 0 ? 'harga di atas MA5/MA20' : 'harga di bawah MA20')
             : 'MA terbatas';
@@ -1233,6 +1272,7 @@ class DecisionSupportService
             'tren harga '.$trend,
             $maContext,
             $rsi ? 'RSI '.$rsi : null,
+            ($macroSignal['caution_flag'] ?? false) ? ($macroSignal['narrative'] ?? null) : null,
             'keputusan: '.$status.' (confidence '.$confidence.')',
         ];
 
@@ -1255,10 +1295,17 @@ class DecisionSupportService
 
     protected function insights(array $analytics, array $technical, array $supporting, array $weakening): array
     {
+        $macroSignal = is_array($analytics['macro_regulatory_signal'] ?? null)
+            ? $analytics['macro_regulatory_signal']
+            : [];
+
         return array_values(array_filter([
             'Dominasi sentimen: '.($analytics['sentiment_dominance'] ?? 'neutral'),
             ($analytics['news_volume'] ?? 0) ? 'Volume berita: '.($analytics['news_volume'] ?? 0) : null,
             ($analytics['same_day_correlation'] ?? null) !== null ? 'Korelasi same-day: '.($analytics['same_day_correlation'] ?? null) : null,
+            ($macroSignal['active'] ?? false)
+                ? 'Macro regulatory regime: '.($macroSignal['attention_regime'] ?? 'normal').' (score '.($macroSignal['context_score'] ?? 0).')'
+                : null,
             $technical['breakout'] ? 'Status harga: '.$technical['breakout'] : null,
             $supporting ? 'Faktor pendukung: '.implode('; ', array_slice($supporting, 0, 2)) : null,
             $weakening ? 'Faktor pelemah: '.implode('; ', array_slice($weakening, 0, 2)) : null,

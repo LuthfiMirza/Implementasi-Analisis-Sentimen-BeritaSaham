@@ -1,0 +1,68 @@
+{
+    "generated_at": "2026-04-17T01:33:26+00:00",
+    "status": "blocked",
+    "reason": "Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.",
+    "blocking_items": [
+        "Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+        "Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+        "Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.",
+        "Strict mode belum final karena masih subset-only atau belum terdefinisi."
+    ],
+    "notes": [
+        "Test suite inti tidak dijalankan pada closeout ini."
+    ],
+    "baseline": {
+        "available": true,
+        "source_path": "/Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/output/phase_a_baseline_final.json",
+        "baseline_status": "draft",
+        "readiness_status": "partially_ready",
+        "default_volume_spike_threshold": 2,
+        "strict_mode_default": false,
+        "adaptive_threshold_enabled": false,
+        "group_override_count": 0,
+        "strict_mode_decision_code": "strict_default_not_available",
+        "warnings": [
+            "Threshold decision JSON not found: output/phase_a_threshold_decision.json.",
+            "Tuning decision JSON not found: output/phase_a_tuning_decision.json.",
+            "Threshold best-by-group CSV not found: output/phase_a_threshold_best_by_group.csv.",
+            "Threshold best-by-ticker CSV not found: output/phase_a_threshold_best_by_ticker.csv.",
+            "Threshold sweep decision not available. default_volume_spike_threshold falls back to 2.0.",
+            "Tuning decision not available. strict_mode_default falls back to false."
+        ]
+    },
+    "ojk_backfill": {
+        "available": false,
+        "ready": false,
+        "article_count": 0,
+        "neutral_article_count": 0,
+        "neutral_only": false,
+        "oldest_published_at": null,
+        "newest_published_at": null,
+        "min_article_count_required": 5,
+        "min_history_days_required": 30,
+        "error": "SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)"
+    },
+    "macro_regulatory_signal": {
+        "feature_flag_enabled": true,
+        "ready": false,
+        "signal": {
+            "attention_regime": "unavailable",
+            "confidence_multiplier": "n/a",
+            "narrative": "Macro regulatory signal tidak bisa dievaluasi karena akses database gagal."
+        },
+        "neutral_only_handled": false,
+        "error": "SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)"
+    },
+    "tests": {
+        "python": {
+            "status": "skipped",
+            "command": null,
+            "summary": "Skipped by --skip-tests"
+        },
+        "php": {
+            "status": "skipped",
+            "command": null,
+            "summary": "Skipped by --skip-tests"
+        }
+    }
+}

@@ -1,0 +1,48 @@
+{
+  "generated_at": "2026-04-18T13:08:29.291120+00:00",
+  "experiment_id": "phase_b_item8_adaptive_backtest",
+  "data_dir": "data",
+  "output_dir": "output",
+  "baseline_config": "output/phase_a_baseline_final.json",
+  "metadata_file": "data/ticker_metadata.csv",
+  "thresholds_tested": [
+    1.5,
+    2.0,
+    2.5
+  ],
+  "strict_options_tested": [
+    false,
+    true
+  ],
+  "min_trades": 8,
+  "ticker_count": 10,
+  "evaluated_config_count": 60,
+  "eligible_best_ticker_count": 0,
+  "recommended_ticker_count": 0,
+  "recommended_group_count": 0,
+  "recommended_tickers": [],
+  "recommended_groups": [],
+  "best_config_distribution": {
+    "threshold_1.5_strict_false": 9,
+    "threshold_2.0_strict_false": 1
+  },
+  "ticker_outcome_counts": {
+    "improve": 0,
+    "neutral": 0,
+    "worsen": 10
+  },
+  "adaptive_model_supported": false,
+  "decision": "no_go",
+  "group_analysis_available": true,
+  "artifacts": {
+    "adaptive_results_csv": "output/phase_b_item8_adaptive_results.csv",
+    "best_config_per_ticker_csv": "output/phase_b_item8_best_config_per_ticker.csv",
+    "group_recommendations_csv": "output/phase_b_item8_group_recommendations.csv",
+    "global_summary_json": "output/phase_b_item8_global_summary.json",
+    "recommendations_txt": "output/phase_b_item8_recommendations.txt",
+    "go_no_go_json": "output/phase_b_item8_go_no_go.json"
+  },
+  "notes": [
+    "Tidak ada konfigurasi adaptive yang lolos min_trades=8 sekaligus memperbaiki baseline secara konsisten."
+  ]
+}

@@ -39,6 +39,9 @@ class FeatureBuilderService
         $weightedSentiment = $weightedScores->count() > 0 ? round($weightedScores->avg(), 4) : 0;
 
         $newsVolume = $articlesInPeriod->count();
+        $macroSignal = is_array($analytics['macro_regulatory_signal'] ?? null)
+            ? $analytics['macro_regulatory_signal']
+            : [];
 
         // Volatility (std dev of daily returns)
         $closes = $orderedPrices->pluck('close')->map(fn ($v) => (float) $v)->values()->all();
@@ -66,6 +69,16 @@ class FeatureBuilderService
             'positive_news_count' => $articlesInPeriod->where('sentiment_label', 'positive')->count(),
             'neutral_news_count' => $articlesInPeriod->where('sentiment_label', 'neutral')->count(),
             'negative_news_count' => $articlesInPeriod->where('sentiment_label', 'negative')->count(),
+            'macro_regulatory_signal_enabled' => (bool) ($macroSignal['enabled'] ?? false),
+            'macro_regulatory_signal_active' => (bool) ($macroSignal['active'] ?? false),
+            'macro_regulatory_attention_score' => (float) ($macroSignal['context_score'] ?? 0.0),
+            'macro_regulatory_article_count' => (int) ($macroSignal['article_count'] ?? 0),
+            'macro_regulatory_neutral_share' => (float) ($macroSignal['neutral_share'] ?? 0.0),
+            'macro_regulatory_caution_flag' => (bool) ($macroSignal['caution_flag'] ?? false),
+            'macro_regulatory_confidence_multiplier' => (float) ($macroSignal['confidence_multiplier'] ?? 1.0),
+            'macro_regulatory_score_multiplier' => (float) ($macroSignal['score_multiplier'] ?? 1.0),
+            'macro_regulatory_threshold_tightening_factor' => (float) ($macroSignal['threshold_tightening_factor'] ?? 1.0),
+            'macro_regulatory_attention_regime' => (string) ($macroSignal['attention_regime'] ?? 'normal'),
             'daily_return_lag1' => $this->lagReturn($orderedPrices, 1),
             'daily_return_lag3' => $this->lagReturn($orderedPrices, 3),
             'daily_return_lag7' => $this->lagReturn($orderedPrices, 7),

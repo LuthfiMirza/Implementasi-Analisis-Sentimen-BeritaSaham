@@ -1,0 +1,11 @@
+Phase B Item 7 Rerun Checklist
+==============================
+
+1. Cek MySQL aktif dan koneksi aplikasi sudah bisa membuka 127.0.0.1:3306.
+2. Jalankan export real data dengan sentiment series:
+php artisan phase-a:export-real-data --data-dir=data --include-sentiment-series --metadata-file=data/ticker_metadata.csv
+3. Validasi readiness dataset item 7:
+python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --validate-item7-readiness --sentiment-momentum-window 3 --sentiment-baseline-window 7 --metadata-file data/ticker_metadata.csv
+4. Rerun evaluator item 7:
+python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --require-sentiment-momentum --sentiment-momentum-window 3 --sentiment-baseline-window 7 --sentiment-momentum-threshold 0.0 --sentiment-momentum-mode weighted --baseline-config output/phase_a_baseline_final.json --metadata-file data/ticker_metadata.csv
+5. Baca keputusan final di output/phase_b_item7_go_no_go.json.

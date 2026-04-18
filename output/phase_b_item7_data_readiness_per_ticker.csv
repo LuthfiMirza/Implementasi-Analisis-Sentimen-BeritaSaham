@@ -1,0 +1,11 @@
+ticker,readiness_status,schema_status,has_sentiment_columns,has_weighted_sentiment,has_article_count,sufficient_history,usable_for_item7,metadata_synced,date_alignment_valid,rows,article_day_count,article_count_total,usable_row_count,blocker_reason
+ADRO,valid_but_unusable,valid_but_unusable,True,True,True,True,False,True,True,81,0,0,0,Kolom sentimen ada tetapi seluruh sentiment_news_count_1d bernilai 0.
+ASII,ready,valid,True,True,True,True,True,True,True,81,3,3,16,
+BBCA,ready,valid,True,True,True,True,True,True,True,81,2,2,13,
+BBRI,ready,valid,True,True,True,True,True,True,True,81,2,3,9,
+BMRI,ready,valid,True,True,True,True,True,True,True,81,4,7,5,
+BUMI,ready,valid,True,True,True,True,True,True,True,56,1,1,1,
+DEWA,ready,valid,True,True,True,True,True,True,True,56,2,17,2,
+GOTO,ready,valid,True,True,True,True,True,True,True,81,1,1,7,
+TLKM,ready,valid,True,True,True,True,True,True,True,81,3,4,6,
+UNVR,ready,valid,True,True,True,True,True,True,True,81,1,3,3,

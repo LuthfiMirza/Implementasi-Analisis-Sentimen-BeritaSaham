@@ -1,0 +1,270 @@
+{
+  "generated_at": "2026-04-17T02:00:17.661005+00:00",
+  "project_root": ".",
+  "phase_summary": {
+    "phase_a": {
+      "done": 4,
+      "partial": 0,
+      "not_started": 0,
+      "total": 4
+    },
+    "phase_b": {
+      "done": 0,
+      "partial": 4,
+      "not_started": 0,
+      "total": 4
+    },
+    "phase_c": {
+      "done": 0,
+      "partial": 1,
+      "not_started": 3,
+      "total": 4
+    }
+  },
+  "current_focus": "phase_a_closeout_and_phase_b_preparation",
+  "phase_a_final_status": {
+    "generated_at": "2026-04-17T02:00:17.660377+00:00",
+    "status": "blocked",
+    "reason": "Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.",
+    "baseline_status": "draft",
+    "readiness_status": "partially_ready",
+    "baseline_usable_now": false,
+    "baseline_final_now": false,
+    "strict_mode_final_now": false,
+    "core_phase_a_items_done": true,
+    "macro_regulatory_mode": "context_only_moderation",
+    "macro_ojk_neutral_only_policy": "note_if_macro_regulatory_signal_ready_else_blocker",
+    "macro_ojk_neutral_only_current_classification": "unknown_runtime",
+    "ui_manual_verification_blocker": false,
+    "ui_manual_verification_note": "Controller/report coverage sudah ada; verifikasi UI manual include_macro_news dan macro_regulatory_signal tetap berguna, tetapi bukan blocker formal.",
+    "closeout_artifact_available": true,
+    "baseline_artifact_available": true,
+    "ready_to_start_phase_b": false,
+    "ready_to_start_phase_b_reason": "Jangan masuk ke Fase B penuh sebelum baseline freeze real dan closeout runtime tervalidasi.",
+    "blocking_items": [
+      "Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
+      "Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
+      "Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.",
+      "Strict mode belum final karena masih subset-only atau belum terdefinisi."
+    ],
+    "notes": [
+      "Test suite inti tidak dijalankan pada closeout ini.",
+      "Controller/report coverage sudah ada; verifikasi UI manual include_macro_news dan macro_regulatory_signal tetap berguna, tetapi bukan blocker formal.",
+      "Status neutral-only OJK belum bisa diklasifikasikan penuh karena runtime closeout terakhir tidak dapat membaca database."
+    ]
+  },
+  "warnings": [],
+  "items": [
+    {
+      "phase": "phase_a",
+      "item_number": 1,
+      "item_name": "Volume spike detection",
+      "status": "done",
+      "evidence": [
+        "quant/phase_a.py menambahkan add_volume_features, volume_ratio, dan is_volume_spike.",
+        "quant/test_phase_a.py menguji volume spike dan threshold injection."
+      ],
+      "key_files": [
+        "quant/phase_a.py",
+        "quant/test_phase_a.py",
+        "quant/evaluate_phase_a_real_data.py"
+      ],
+      "remaining_gap": "Tidak ada gap fitur inti. Pertahankan sebagai baseline Phase A dan jangan ubah default tanpa evidence real-data.",
+      "recommended_next_action": "Pertahankan default threshold dari baseline freeze dan gunakan threshold sweep real sebagai satu-satunya dasar perubahan."
+    },
+    {
+      "phase": "phase_a",
+      "item_number": 2,
+      "item_name": "EMA50 trend filter",
+      "status": "done",
+      "evidence": [
+        "quant/phase_a.py menambahkan EMA50, trend_ok, dan ema50_slope_up.",
+        "quant/test_phase_a.py menguji trend filter Phase A."
+      ],
+      "key_files": [
+        "quant/phase_a.py",
+        "quant/test_phase_a.py",
+        "quant/evaluate_phase_a_real_data.py"
+      ],
+      "remaining_gap": "Tidak ada gap inti. EMA50 sudah menjadi bagian default pipeline Phase A.",
+      "recommended_next_action": "Bekukan EMA50 sebagai guardrail Phase A; eksperimen Fase B harus dibangun di atas filter ini, bukan menggantikannya."
+    },
+    {
+      "phase": "phase_a",
+      "item_number": 3,
+      "item_name": "Berita backfill Jan-Mar/Feb-Apr 2026",
+      "status": "done",
+      "evidence": [
+        "app/Services/News/OjkRssFetcher.php mendukung RSS + HTML fallback + paginated Default.aspx untuk backfill historis.",
+        "app/Console/Commands/FetchOjkNewsCommand.php menyediakan mode --backfill dengan --from/--to.",
+        "tests/Feature/FetchOjkNewsCommandTest.php menguji backfill dan idempotency untuk artikel OJK global.",
+        "phase_a_closeout_status.json mencatat inspeksi runtime OJK backfill saat closeout."
+      ],
+      "key_files": [
+        "app/Services/News/OjkRssFetcher.php",
+        "app/Console/Commands/FetchOjkNewsCommand.php",
+        "tests/Feature/FetchOjkNewsCommandTest.php"
+      ],
+      "remaining_gap": "Tidak ada gap implementasi inti. Gap yang tersisa hanya verifikasi runtime pada environment yang punya MySQL + data historis aktif.",
+      "recommended_next_action": "Perlakukan rerun closeout dengan MySQL aktif sebagai verifikasi operasional, bukan sebagai fitur baru."
+    },
+    {
+      "phase": "phase_a",
+      "item_number": 4,
+      "item_name": "OJK scheduler / macro news integration",
+      "status": "done",
+      "evidence": [
+        "OJK disimpan sebagai global news (stock_id = null) dan dibaca oleh jalur backtest/evaluation/comparison.",
+        "MacroRegulatorySignalService.php memberi moderation layer untuk OJK neutral-only tanpa memaksa arah bullish/bearish.",
+        "EvaluationReportTest dan MacroRegulatorySignalServiceTest menguji jalur macro news serta moderation output."
+      ],
+      "key_files": [
+        "app/Services/News/NewsAggregationService.php",
+        "app/Services/Analytics/MacroRegulatorySignalService.php",
+        "app/Services/Analytics/BacktestService.php",
+        "app/Services/Analytics/EvaluationReportService.php",
+        "app/Services/Analytics/SentimentComparisonService.php",
+        "tests/Feature/EvaluationReportTest.php",
+        "tests/Unit/MacroRegulatorySignalServiceTest.php"
+      ],
+      "remaining_gap": "Integrasi sudah selesai. Catatan yang tersisa ada pada kualitas pengaruh sinyal, bukan pada plumbing macro news.",
+      "recommended_next_action": "Pertahankan macro_regulatory_signal sebagai context-only moderation sampai ada bukti kuat untuk directional lift."
+    },
+    {
+      "phase": "phase_b",
+      "item_number": 5,
+      "item_name": "Volume confirmation per candlestick",
+      "status": "partial",
+      "evidence": [
+        "quant/phase_a.py sudah memiliki helper candlestick-volume confirmation yang default-off.",
+        "quant/evaluate_phase_a_real_data.py sudah dapat menjalankan evaluator dengan flag experimental candle confirmation.",
+        "quant/test_phase_a.py menguji bahwa filter ini hanya aktif bila diminta."
+      ],
+      "key_files": [
+        "quant/phase_a.py",
+        "quant/evaluate_phase_a_real_data.py",
+        "quant/test_phase_a.py"
+      ],
+      "remaining_gap": "Starter baru ada di engine/evaluator. Belum ada evidence sweep/backtest khusus yang memutuskan apakah rule ini layak dinaikkan menjadi default Fase B.",
+      "recommended_next_action": "Gunakan starter ini hanya sebagai arm eksperimen: bandingkan vs baseline Phase A beku sebelum memasukkannya ke threshold sweep atau default harian."
+    },
+    {
+      "phase": "phase_b",
+      "item_number": 6,
+      "item_name": "Multi-timeframe (weekly trend sebelum entry daily)",
+      "status": "partial",
+      "evidence": [
+        "PriceSeriesService.php sudah memiliki abstraksi interval_type yang bisa dipakai untuk 1d/1w."
+      ],
+      "key_files": [
+        "app/Services/Stocks/PriceSeriesService.php",
+        "app/Services/Analytics/BacktestService.php",
+        "quant/phase_a.py"
+      ],
+      "remaining_gap": "Belum ada rule weekly trend, belum ada resampling/ingestion 1w, dan belum ada test bahwa trend mingguan memfilter entry daily.",
+      "recommended_next_action": "Tambahkan ingestion/akses 1w lebih dulu, lalu buat weekly trend filter sebagai gate di atas sinyal daily yang sudah stabil."
+    },
+    {
+      "phase": "phase_b",
+      "item_number": 7,
+      "item_name": "Sentiment momentum (tren 3 hari terakhir)",
+      "status": "partial",
+      "evidence": [
+        "SentimentPriceAnalyticsService.php sudah menghasilkan per_date_sentiment dan sentiment_trend.",
+        "Watchlist/analytics sudah punya seri sentimen harian yang bisa menjadi fondasi momentum 3 hari."
+      ],
+      "key_files": [
+        "app/Services/Analytics/SentimentPriceAnalyticsService.php",
+        "app/Services/Analytics/DecisionSupportService.php",
+        "app/Services/Analytics/BacktestService.php"
+      ],
+      "remaining_gap": "Belum ada rule eksplisit rolling 3 hari, belum ada scoring/backtest untuk sentiment momentum, dan belum ada test dedicated.",
+      "recommended_next_action": "Tambahkan metrik 3-day sentiment momentum di analytics dulu, lalu injeksikan ke decision/backtest sebagai signal tambahan yang bisa dimatikan."
+    },
+    {
+      "phase": "phase_b",
+      "item_number": 8,
+      "item_name": "Backtest per saham / model adaptif per ticker",
+      "status": "partial",
+      "evidence": [
+        "Threshold sweep sudah tersedia per ticker/group/global.",
+        "Phase A baseline bisa dibekukan dan secara opsional diterapkan kembali ke evaluator lewat phase_a_baseline.py.",
+        "Adaptive runtime saat ini masih bergantung pada artifact freeze, belum menjadi model adaptif penuh lintas stack."
+      ],
+      "key_files": [
+        "quant/run_phase_a_threshold_sweep.py",
+        "quant/freeze_phase_a_baseline.py",
+        "quant/phase_a_baseline.py",
+        "quant/evaluate_phase_a_real_data.py"
+      ],
+      "remaining_gap": "Sudah ada fondasi riset adaptif, tetapi belum ada runtime adaptive model yang menyalurkan keputusan per ticker/group secara konsisten ke semua consumer.",
+      "recommended_next_action": "Pertahankan adaptive logic sebagai refinement Phase B: finalkan baseline global Phase A dulu, baru perluas override per ticker/group yang benar-benar punya sample kuat."
+    },
+    {
+      "phase": "phase_c",
+      "item_number": 9,
+      "item_name": "Net broker flow",
+      "status": "not_started",
+      "evidence": [
+        "Belum ada service, model, fetcher, atau test khusus net broker flow di codebase."
+      ],
+      "key_files": [
+        "app/Services",
+        "app/Models",
+        "tests"
+      ],
+      "remaining_gap": "Perlu sumber data broker flow, skema penyimpanan, feature engineering, dan backtest integration penuh.",
+      "recommended_next_action": "Tunda sampai Phase B stabil dan sumber data broker flow sudah dipilih."
+    },
+    {
+      "phase": "phase_c",
+      "item_number": 10,
+      "item_name": "Correlation IHSG",
+      "status": "not_started",
+      "evidence": [
+        "IHSG baru muncul sebagai keyword berita/relevansi, bukan sebagai seri data korelasi di analytics."
+      ],
+      "key_files": [
+        "app/Services/Analytics/SentimentPriceAnalyticsService.php",
+        "app/Services/Stocks/PriceSeriesService.php",
+        "tests/Unit/NewsRelevanceTest.php"
+      ],
+      "remaining_gap": "Belum ada ingestion indeks IHSG, belum ada join return saham vs IHSG, dan belum ada report/backtest untuk market correlation regime.",
+      "recommended_next_action": "Sentuh setelah multi-timeframe dan sentiment momentum Phase B stabil, supaya korelasi IHSG punya konteks pemakaian yang jelas."
+    },
+    {
+      "phase": "phase_c",
+      "item_number": 11,
+      "item_name": "Python ML sentiment / IndoBERT",
+      "status": "partial",
+      "evidence": [
+        "PythonApiSentimentAnalyzer.php sudah mendukung endpoint Python/HuggingFace dengan fallback rule-based.",
+        "Test unit sudah ada untuk payload valid, payload invalid, dan fallback error.",
+        "Belum ada model IndoBERT lokal/evaluasi eksperimen ML yang dibekukan di repo."
+      ],
+      "key_files": [
+        "app/Services/Sentiment/PythonApiSentimentAnalyzer.php",
+        "app/Services/Sentiment/HybridSentimentAnalyzer.php",
+        "tests/Unit/PythonApiSentimentAnalyzerTest.php",
+        "config/sentiment.php"
+      ],
+      "remaining_gap": "Integrasi endpoint sudah ada, tetapi model/evaluasi ML belum menjadi baseline resmi. Itu masih backlog lanjutan, bukan close-out Phase A/B.",
+      "recommended_next_action": "Tunda sampai fitur sinyal Phase B stabil, lalu ukur apakah ML sentiment benar-benar menambah edge dibanding hybrid rule/current API fallback."
+    },
+    {
+      "phase": "phase_c",
+      "item_number": 12,
+      "item_name": "Trade journal analytics",
+      "status": "not_started",
+      "evidence": [
+        "Belum ada persistence/jurnal trade khusus di repo. Backtest trades ada, tetapi belum diturunkan menjadi journal analytics."
+      ],
+      "key_files": [
+        "quant/phase_a.py",
+        "app/Services/Analytics/BacktestService.php"
+      ],
+      "remaining_gap": "Perlu penyimpanan journal, agregasi performa per setup, dan UI/report khusus trader workflow.",
+      "recommended_next_action": "Tunda sampai sinyal Phase B stabil, lalu putuskan schema journal yang mengikuti output backtest/trade windows yang sudah matang."
+    }
+  ]
+}

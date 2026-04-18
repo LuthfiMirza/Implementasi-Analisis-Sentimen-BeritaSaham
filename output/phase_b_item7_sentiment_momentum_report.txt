@@ -1,0 +1,27 @@
+Phase B Item 7 Sentiment Momentum Experiment
+===========================================
+
+- Comparison status: measured
+- Baseline config: output/phase_a_baseline_final.json
+- Sentiment momentum mode: weighted
+- Sentiment momentum window: 3
+- Sentiment baseline window: 7
+- Sentiment threshold: 0.0
+- Ticker count: 10
+- Sentiment-data-ready tickers: 9
+- Comparable baseline tickers: 4
+- Delta total trades sum: -6.0
+- Mean delta win rate: -3.3329999999999997
+- Mean delta average return: 1.55532
+- Mean delta max drawdown: -0.03802
+- Data readiness artifact: output/phase_b_item7_data_readiness.json
+
+Decision:
+- no_go
+- next_action=stop
+
+Blocked from default:
+- Trade retention rata-rata masih terlalu rendah.
+- Win rate rata-rata tidak membaik.
+- Tidak ada ticker comparable yang improve dengan retention memadai.
+- Ticker yang memburuk minimal sama banyak dengan yang improve.

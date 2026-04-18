@@ -1,0 +1,24 @@
+Phase C Backlog
+===============
+
+- Phase A gate status: blocked
+- Start now: False
+- Reason: Fase C sebaiknya baru disentuh setelah Fase B selesai atau minimal closed_with_notes dengan baseline yang stabil.
+
+Backlog items:
+- Item 9 Net broker flow [not_started]
+  Goal: Tambahkan feature order-flow broker sebagai signal lanjutan setelah stack price/sentiment stabil.
+  Effort: high
+  Ready when: Setelah Fase B selesai dan ada vendor/data source broker flow yang jelas.
+- Item 10 Correlation IHSG [not_started]
+  Goal: Ukur korelasi saham vs IHSG untuk market-regime filtering dan context overlay.
+  Effort: medium
+  Ready when: Setelah weekly trend dan sentiment momentum sudah stabil sehingga korelasi IHSG punya konteks pemakaian yang jelas.
+- Item 11 Python ML sentiment / IndoBERT [partial]
+  Goal: Naikkan jalur ML sentiment dari sekadar endpoint integration menjadi eksperimen model yang benar-benar dievaluasi.
+  Effort: high
+  Ready when: Setelah baseline heuristik + hybrid sentiment tidak banyak berubah lagi.
+- Item 12 Trade journal analytics [not_started]
+  Goal: Bangun analytics journal trade untuk memahami setup mana yang paling efektif dari hasil backtest/live workflow.
+  Effort: medium_high
+  Ready when: Setelah sinyal Phase B cukup stabil untuk menghasilkan trade windows yang pantas dijournal.

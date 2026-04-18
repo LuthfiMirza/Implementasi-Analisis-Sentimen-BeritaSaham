@@ -1,0 +1,517 @@
+{
+  "generated_at": "2026-04-18T13:08:52.837994+00:00",
+  "output_dir": "output",
+  "data_dir": "data",
+  "metadata_file": "data/ticker_metadata.csv",
+  "threshold_decision_exists": true,
+  "tuning_decision_exists": true,
+  "threshold_decision_valid": true,
+  "tuning_decision_valid": true,
+  "threshold_artifact": {
+    "path": "output/phase_a_threshold_decision.json",
+    "artifact_status": "valid",
+    "available": true,
+    "valid": true,
+    "readiness_status": "partially_ready",
+    "selected_default_threshold": 1.5,
+    "decision_confidence": "low",
+    "sufficient_for_minimum_gate": true,
+    "sufficient_for_full_start": false,
+    "warnings": [],
+    "blocking_reasons": [],
+    "payload": {
+      "config": {
+        "data_dir": "data",
+        "output_dir": "output",
+        "metadata_file": "data/ticker_metadata.csv",
+        "thresholds": [
+          1.5,
+          2.0,
+          2.5,
+          3.0
+        ],
+        "tickers": [],
+        "strict_mode": true,
+        "hold_period": 5,
+        "allow_overlap": false,
+        "min_trades": 8,
+        "baseline_threshold": 2.0
+      },
+      "default_threshold_decision": {
+        "decision_code": "set_threshold_1_5",
+        "mode": "global_fixed",
+        "selected_default_threshold": 1.5,
+        "keep_default_2_0": false,
+        "decision_confidence": "low",
+        "decision_margin": 0.03550000000000608,
+        "reason": "Threshold 1.5 mengungguli baseline 2.0 secara global."
+      },
+      "adaptive_threshold_by_group": {
+        "supported": false,
+        "reason": "Adaptive threshold by group belum didukung cukup kuat karena winner group belum terpecah secara konsisten.",
+        "sufficient_group_count": 0,
+        "distinct_thresholds": []
+      },
+      "readiness": {
+        "status": "partially_ready",
+        "reason": "Sweep threshold sudah informatif, tetapi masih ada area ambigu yang harus ditutup.",
+        "ambiguous_tickers": [
+          "ADRO",
+          "ASII",
+          "BMRI",
+          "TLKM",
+          "BBCA",
+          "BBRI",
+          "BUMI",
+          "DEWA",
+          "GOTO",
+          "UNVR"
+        ],
+        "priority_ambiguous_tickers": [],
+        "blocking_items": [
+          "Keputusan threshold global masih lemah karena margin pemenang terlalu sempit."
+        ]
+      },
+      "global_summary": [
+        {
+          "threshold": 1.5,
+          "ticker_count": 10.0,
+          "eligible_ticker_count": 10.0,
+          "low_trade_ticker_count": 0.0,
+          "winner_ticker_count": 1.0,
+          "priority_winner_ticker_count": 0.0,
+          "total_trades_sum": 6.0,
+          "total_trades_mean": 0.6,
+          "win_rate_mean": 0.0,
+          "average_return_mean": -1.5820899999999998,
+          "max_drawdown_mean": 0.03802,
+          "mean_score": -47.1645,
+          "median_score": -53.0,
+          "trade_retention_vs_threshold_2_0_pct": 120.0,
+          "win_rate_vs_threshold_2_0": 0.0,
+          "average_return_vs_threshold_2_0": -0.0603,
+          "max_drawdown_vs_threshold_2_0": 0.038,
+          "aggregate_score_vs_threshold_2_0": 0.2405,
+          "threshold_profile": "too_loose",
+          "selected_as_global_best": true
+        },
+        {
+          "threshold": 2.0,
+          "ticker_count": 10.0,
+          "eligible_ticker_count": 10.0,
+          "low_trade_ticker_count": 0.0,
+          "winner_ticker_count": 9.0,
+          "priority_winner_ticker_count": 0.0,
+          "total_trades_sum": 5.0,
+          "total_trades_mean": 0.5,
+          "win_rate_mean": 0.0,
+          "average_return_mean": -1.52176,
+          "max_drawdown_mean": 0.0,
+          "mean_score": -47.2,
+          "median_score": -53.0,
+          "trade_retention_vs_threshold_2_0_pct": 100.0,
+          "win_rate_vs_threshold_2_0": 0.0,
+          "average_return_vs_threshold_2_0": 0.0,
+          "max_drawdown_vs_threshold_2_0": 0.0,
+          "aggregate_score_vs_threshold_2_0": 0.0,
+          "threshold_profile": "mixed",
+          "selected_as_global_best": false
+        },
+        {
+          "threshold": 2.5,
+          "ticker_count": 10.0,
+          "eligible_ticker_count": 10.0,
+          "low_trade_ticker_count": 0.0,
+          "winner_ticker_count": 0.0,
+          "priority_winner_ticker_count": 0.0,
+          "total_trades_sum": 5.0,
+          "total_trades_mean": 0.5,
+          "win_rate_mean": 0.0,
+          "average_return_mean": -1.52176,
+          "max_drawdown_mean": 0.0,
+          "mean_score": -47.2,
+          "median_score": -53.0,
+          "trade_retention_vs_threshold_2_0_pct": 100.0,
+          "win_rate_vs_threshold_2_0": 0.0,
+          "average_return_vs_threshold_2_0": 0.0,
+          "max_drawdown_vs_threshold_2_0": 0.0,
+          "aggregate_score_vs_threshold_2_0": 0.0,
+          "threshold_profile": "mixed",
+          "selected_as_global_best": false
+        },
+        {
+          "threshold": 3.0,
+          "ticker_count": 10.0,
+          "eligible_ticker_count": 10.0,
+          "low_trade_ticker_count": 0.0,
+          "winner_ticker_count": 0.0,
+          "priority_winner_ticker_count": 0.0,
+          "total_trades_sum": 4.0,
+          "total_trades_mean": 0.4,
+          "win_rate_mean": 0.0,
+          "average_return_mean": -1.5407699999999998,
+          "max_drawdown_mean": 0.0,
+          "mean_score": -48.05703,
+          "median_score": -53.0,
+          "trade_retention_vs_threshold_2_0_pct": 80.0,
+          "win_rate_vs_threshold_2_0": 0.0,
+          "average_return_vs_threshold_2_0": -0.019,
+          "max_drawdown_vs_threshold_2_0": 0.0,
+          "aggregate_score_vs_threshold_2_0": -2.457,
+          "threshold_profile": "mixed",
+          "selected_as_global_best": false
+        }
+      ],
+      "tickers_by_selected_threshold": {
+        "1.5": [
+          "ADRO"
+        ],
+        "2.0": [
+          "ASII",
+          "BMRI",
+          "TLKM",
+          "BBCA",
+          "BBRI",
+          "BUMI",
+          "DEWA",
+          "GOTO",
+          "UNVR"
+        ],
+        "2.5": [],
+        "3.0": []
+      },
+      "groups_by_selected_threshold": {
+        "1.5": [
+          "category=energy",
+          "sector=energi"
+        ],
+        "2.0": [
+          "category=automotive",
+          "category=telco",
+          "sector=otomotif",
+          "sector=telekomunikasi",
+          "category=finance",
+          "sector=perbankan",
+          "category=mining",
+          "sector=pertambangan",
+          "category=consumer",
+          "category=technology",
+          "sector=konsumsi",
+          "sector=teknologi"
+        ],
+        "2.5": [],
+        "3.0": []
+      },
+      "priority_ticker_summary": {
+        "priority_ticker_count": 0,
+        "priority_confirmed": 0,
+        "priority_contradicted": 0
+      },
+      "prior_artifact_comparison": {
+        "available": false,
+        "global_alignment": "not_available",
+        "previous_default_decision_code": null,
+        "previous_readiness_status": null,
+        "priority_ticker_confirmed": 0,
+        "priority_ticker_contradicted": 0,
+        "group_confirmed": 0,
+        "group_contradicted": 0
+      },
+      "next_required_experiments": [
+        "Jalankan validasi walk-forward 2-split untuk ticker ambigu: ADRO, ASII, BMRI, TLKM, BBCA, BBRI, BUMI, DEWA, GOTO, UNVR"
+      ],
+      "warnings": [],
+      "skipped_files": []
+    }
+  },
+  "tuning_artifact": {
+    "path": "output/phase_a_tuning_decision.json",
+    "artifact_status": "valid",
+    "available": true,
+    "valid": true,
+    "readiness_status": "not_ready",
+    "strict_mode_decision_code": "strict_default_no",
+    "strict_mode_final": true,
+    "sufficient_for_minimum_gate": true,
+    "sufficient_for_full_start": false,
+    "warnings": [],
+    "blocking_reasons": [],
+    "payload": {
+      "default_threshold_decision": {
+        "decision_code": "test_threshold_1_5",
+        "reason": "Analyzer melihat trade turun terlalu dalam. Threshold 1.5 adalah eksperimen minimum yang paling logis sebelum melangkah ke fase berikutnya.",
+        "analyzer_action": "test_1_5",
+        "group_action_set": [
+          "test_threshold_1_5"
+        ],
+        "evidence": {
+          "ticker_count": 10,
+          "cocok_share_pct": 0.0,
+          "netral_share_pct": 10.0,
+          "tidak_cocok_share_pct": 90.0,
+          "deterioration_share_pct": 60.0,
+          "mean_delta_win_rate": -29.218,
+          "mean_delta_average_return": -3.99768,
+          "median_trade_reduction_pct": -100.0,
+          "keep_hint_share_pct": 0.0,
+          "looser_hint_share_pct": 100.0,
+          "tighter_hint_share_pct": 0.0,
+          "manual_review_hint_share_pct": 0.0
+        }
+      },
+      "strict_mode_decision": {
+        "decision_code": "strict_default_no",
+        "reason": "Strict mode tidak menunjukkan manfaat yang cukup luas dan tidak layak dijadikan default.",
+        "policy_source": "terlalu_restriktif",
+        "subset_tickers": [],
+        "subset_groups": [],
+        "metrics": {
+          "available": true,
+          "improved_share_pct": 0.0,
+          "mean_delta_trades": 0.0,
+          "mean_delta_win_rate": -12.5,
+          "mean_delta_average_return": -0.10039999999999998
+        }
+      },
+      "deploy_candidates": [],
+      "watchlist_candidates": [
+        "ADRO"
+      ],
+      "review_needed": [
+        "BUMI",
+        "DEWA",
+        "BBRI",
+        "UNVR",
+        "BBCA"
+      ],
+      "avoid_for_now": [
+        "ASII",
+        "BMRI",
+        "TLKM",
+        "GOTO"
+      ],
+      "group_actions": [
+        {
+          "group_field": "category",
+          "group_value": "finance",
+          "ticker_count": 3,
+          "group_threshold_decision": "test_threshold_1_5",
+          "group_action": "test_looser_threshold",
+          "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+          "strict_mode_action": "strict_not_recommended",
+          "sample_quality": "enough_sample"
+        },
+        {
+          "group_field": "category",
+          "group_value": "mining",
+          "ticker_count": 2,
+          "group_threshold_decision": "test_threshold_1_5",
+          "group_action": "test_looser_threshold",
+          "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "enough_sample"
+        },
+        {
+          "group_field": "category",
+          "group_value": "automotive",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        },
+        {
+          "group_field": "category",
+          "group_value": "consumer",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        },
+        {
+          "group_field": "category",
+          "group_value": "energy",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        },
+        {
+          "group_field": "category",
+          "group_value": "technology",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        },
+        {
+          "group_field": "category",
+          "group_value": "telco",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        },
+        {
+          "group_field": "sector",
+          "group_value": "perbankan",
+          "ticker_count": 3,
+          "group_threshold_decision": "test_threshold_1_5",
+          "group_action": "test_looser_threshold",
+          "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+          "strict_mode_action": "strict_not_recommended",
+          "sample_quality": "enough_sample"
+        },
+        {
+          "group_field": "sector",
+          "group_value": "pertambangan",
+          "ticker_count": 2,
+          "group_threshold_decision": "test_threshold_1_5",
+          "group_action": "test_looser_threshold",
+          "group_action_reason": "Trade turun terlalu dalam, tetapi kenaikan kualitas belum cukup luas. Threshold 2.0 tampak terlalu ketat.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "enough_sample"
+        },
+        {
+          "group_field": "sector",
+          "group_value": "energi",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        },
+        {
+          "group_field": "sector",
+          "group_value": "konsumsi",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        },
+        {
+          "group_field": "sector",
+          "group_value": "otomotif",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        },
+        {
+          "group_field": "sector",
+          "group_value": "teknologi",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        },
+        {
+          "group_field": "sector",
+          "group_value": "telekomunikasi",
+          "ticker_count": 1,
+          "group_threshold_decision": "insufficient_sample",
+          "group_action": "insufficient_sample",
+          "group_action_reason": "Ukuran sampel grup terlalu kecil untuk rekomendasi threshold yang meyakinkan.",
+          "strict_mode_action": "insufficient_sample",
+          "sample_quality": "small_sample"
+        }
+      ],
+      "next_experiments": [
+        {
+          "priority": 1,
+          "experiment_id": "threshold_sweep_looser",
+          "experiment_name": "Sweep volume_ratio 1.5 vs 2.0",
+          "objective": "Cari apakah trade yang hilang bisa kembali tanpa menurunkan kualitas terlalu jauh.",
+          "scope": "Ticker/group dengan trade reduction paling besar.",
+          "reason": "Analyzer melihat trade turun terlalu dalam. Threshold 1.5 adalah eksperimen minimum yang paling logis sebelum melangkah ke fase berikutnya.",
+          "mandatory_before_phase_b": "yes"
+        },
+        {
+          "priority": 3,
+          "experiment_id": "review_bucket_follow_up",
+          "experiment_name": "Targeted review on uncertain tickers",
+          "objective": "Pisahkan review list menjadi kandidat threshold 1.5, 2.5, atau drop.",
+          "scope": "5 ticker di bucket review_needed.",
+          "reason": "Review bucket masih cukup besar sehingga belum bisa dianggap final.",
+          "mandatory_before_phase_b": "yes"
+        },
+        {
+          "priority": 4,
+          "experiment_id": "group_threshold_validation",
+          "experiment_name": "Validate group-specific threshold",
+          "objective": "Uji apakah aturan by group benar-benar lebih stabil daripada baseline global.",
+          "scope": "Group dengan action test_looser_threshold atau test_tighter_threshold.",
+          "reason": "Ada sinyal group-specific yang cukup kuat untuk diuji secara terpisah.",
+          "mandatory_before_phase_b": "no"
+        },
+        {
+          "priority": 5,
+          "experiment_id": "phase_b_gate",
+          "experiment_name": "Freeze final Phase A baseline",
+          "objective": "Bekukan whitelist, blacklist, dan threshold final sebelum masuk Fase B.",
+          "scope": "0 deploy, 1 watchlist, 5 review.",
+          "reason": "Fase B sebaiknya hanya dimulai setelah baseline keputusan cukup stabil.",
+          "mandatory_before_phase_b": "yes"
+        }
+      ],
+      "ready_for_phase_b": {
+        "status": "not_ready",
+        "is_ready": false,
+        "reason": "Keputusan tuning masih terlalu banyak bergantung pada review tambahan.",
+        "blocking_items": [
+          "Threshold baseline belum final dan masih butuh eksperimen lanjutan.",
+          "Jumlah ticker review_needed masih lebih besar daripada deploy_candidate.",
+          "Masih ada group yang meminta tuning khusus."
+        ],
+        "metrics": {
+          "ticker_count": 10,
+          "deploy_count": 0,
+          "watchlist_count": 1,
+          "review_count": 5,
+          "avoid_count": 4,
+          "deploy_share_pct": 0.0,
+          "review_share_pct": 50.0
+        }
+      },
+      "warnings": []
+    }
+  },
+  "build_attempts": [],
+  "prerequisites": {
+    "data_dir": "data",
+    "data_dir_exists": true,
+    "ticker_csv_count": 10,
+    "metadata_file": "data/ticker_metadata.csv",
+    "metadata_exists": true,
+    "evaluator_outputs_ready": true,
+    "analysis_outputs_ready": true,
+    "files": {
+      "summary_file": "output/phase_a_summary.csv",
+      "aggregate_file": "output/phase_a_aggregate_summary.csv",
+      "skipped_file": "output/phase_a_skipped.csv",
+      "recommendations_file": "output/phase_a_recommendations.txt",
+      "classification_file": "output/phase_a_ticker_classification.csv",
+      "analysis_summary_file": "output/phase_a_analysis_summary.csv",
+      "group_analysis_file": "output/phase_a_group_analysis.csv"
+    }
+  },
+  "blockers": [],
+  "next_action": [],
+  "all_required_decisions_ready": true
+}

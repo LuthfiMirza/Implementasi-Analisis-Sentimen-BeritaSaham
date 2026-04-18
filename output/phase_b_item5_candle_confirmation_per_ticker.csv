@@ -1,0 +1,11 @@
+ticker,rows,date_start,date_end,phase_a_applied_threshold,phase_a_applied_strict_mode,control_phase_a_total_trades,experiment_phase_a_total_trades,delta_phase_a_total_trades,trade_retention_pct,control_phase_a_win_rate,experiment_phase_a_win_rate,delta_phase_a_win_rate,control_phase_a_average_return,experiment_phase_a_average_return,delta_phase_a_average_return,control_phase_a_max_drawdown,experiment_phase_a_max_drawdown,delta_phase_a_max_drawdown,candle_volume_confirmation_threshold,phase_a_baseline_source
+ASII,81,2026-01-12,2026-04-11,1.5,False,1,1,0,100.0,0.0,0.0,0.0,-3.4221,-3.4221,0.0,0.0,0.0,0.0,1.0,output/phase_a_baseline_final.json
+BBCA,81,2026-01-12,2026-04-11,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,output/phase_a_baseline_final.json
+BBRI,81,2026-01-12,2026-04-11,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,output/phase_a_baseline_final.json
+BMRI,81,2026-01-12,2026-04-11,1.5,False,1,1,0,100.0,0.0,0.0,0.0,-5.4326,-5.4326,0.0,0.0,0.0,0.0,1.0,output/phase_a_baseline_final.json
+BUMI,56,2026-01-12,2026-04-10,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,output/phase_a_baseline_final.json
+DEWA,56,2026-01-12,2026-04-10,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,output/phase_a_baseline_final.json
+GOTO,81,2026-01-12,2026-04-11,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,output/phase_a_baseline_final.json
+TLKM,81,2026-01-12,2026-04-11,1.5,False,1,1,0,100.0,0.0,0.0,0.0,-6.1728,-6.1728,0.0,0.0,0.0,0.0,1.0,output/phase_a_baseline_final.json
+UNVR,81,2026-01-12,2026-04-11,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,output/phase_a_baseline_final.json
+ADRO,81,2026-01-12,2026-04-11,1.5,False,3,3,0,100.0,33.33,0.0,-33.33,-0.5257,-0.7934,-0.26770000000000005,0.3802,0.3802,0.0,1.0,output/phase_a_baseline_final.json

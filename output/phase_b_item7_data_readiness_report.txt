@@ -1,0 +1,44 @@
+Phase B Item 7 Data Readiness
+=============================
+
+- Data dir: data
+- Readiness status: partial
+- Dataset has sentiment series: True
+- Dataset ready for item 7 rerun: True
+- Experiment can run: True
+- Selected ticker count: 10
+- Valid ticker count: 9
+- Invalid ticker count: 0
+- Unusable ticker count: 1
+- Metadata synced ticker count: 10
+- Missing columns: none
+- Insufficient history tickers: none
+- Next action: rerun_item7_experiment
+
+Required CSV schema:
+- date: Tanggal trading harian yang menjadi anchor evaluasi.
+- open: Harga open harian.
+- high: Harga high harian.
+- low: Harga low harian.
+- close: Harga close harian.
+- volume: Volume harian.
+- sentiment_average_1d: Rata-rata skor sentimen artikel pada window trade-date saat ini; 0.0 jika tidak ada artikel.
+- sentiment_weighted_1d: Rata-rata tertimbang skor sentimen artikel pada window trade-date saat ini; 0.0 jika tidak ada artikel.
+- sentiment_news_count_1d: Jumlah artikel pada window trade-date saat ini; 0 berarti tidak ada artikel dan membedakan dari netral murni.
+
+Aggregation contract:
+- Sentiment columns must exist on every trading row for every ticker.
+- Sentiment values are aligned to each trade date using articles after the previous trade date up to the current trade date, inclusive.
+- No-article windows must be exported as 0.0 / 0.0 / 0, not blank cells.
+
+Per ticker status:
+- ADRO: readiness=valid_but_unusable, schema=valid_but_unusable, usable_for_item7=False, metadata_synced=True, rows=81, article_count_total=0, usable_row_count=0, reason=Kolom sentimen ada tetapi seluruh sentiment_news_count_1d bernilai 0.
+- ASII: readiness=ready, schema=valid, usable_for_item7=True, metadata_synced=True, rows=81, article_count_total=3, usable_row_count=16, reason=ready
+- BBCA: readiness=ready, schema=valid, usable_for_item7=True, metadata_synced=True, rows=81, article_count_total=2, usable_row_count=13, reason=ready
+- BBRI: readiness=ready, schema=valid, usable_for_item7=True, metadata_synced=True, rows=81, article_count_total=3, usable_row_count=9, reason=ready
+- BMRI: readiness=ready, schema=valid, usable_for_item7=True, metadata_synced=True, rows=81, article_count_total=7, usable_row_count=5, reason=ready
+- BUMI: readiness=ready, schema=valid, usable_for_item7=True, metadata_synced=True, rows=56, article_count_total=1, usable_row_count=1, reason=ready
+- DEWA: readiness=ready, schema=valid, usable_for_item7=True, metadata_synced=True, rows=56, article_count_total=17, usable_row_count=2, reason=ready
+- GOTO: readiness=ready, schema=valid, usable_for_item7=True, metadata_synced=True, rows=81, article_count_total=1, usable_row_count=7, reason=ready
+- TLKM: readiness=ready, schema=valid, usable_for_item7=True, metadata_synced=True, rows=81, article_count_total=4, usable_row_count=6, reason=ready
+- UNVR: readiness=ready, schema=valid, usable_for_item7=True, metadata_synced=True, rows=81, article_count_total=3, usable_row_count=3, reason=ready

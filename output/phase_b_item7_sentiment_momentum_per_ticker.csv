@@ -1,0 +1,11 @@
+ticker,rows,date_start,date_end,phase_a_applied_threshold,phase_a_applied_strict_mode,baseline_total_trades,candidate_total_trades,delta_total_trades,trade_retention_pct,baseline_win_rate,candidate_win_rate,delta_win_rate,baseline_average_return,candidate_average_return,delta_average_return,baseline_max_drawdown,candidate_max_drawdown,delta_max_drawdown,sentiment_momentum_mode,sentiment_momentum_window,sentiment_baseline_window,sentiment_momentum_threshold,sentiment_data_ready,phase_a_baseline_source,category,market_cap_group,sector,beta_group
+TLKM,81,2026-01-12,2026-04-11,1.5,False,1,0,-1,0.0,0.0,0.0,0.0,-6.1728,0.0,6.1728,0.0,0.0,0.0,weighted,3,7,0.0,True,output/phase_a_baseline_final.json,telco,,telekomunikasi,
+BMRI,81,2026-01-12,2026-04-11,1.5,False,1,0,-1,0.0,0.0,0.0,0.0,-5.4326,0.0,5.4326,0.0,0.0,0.0,weighted,3,7,0.0,True,output/phase_a_baseline_final.json,finance,,perbankan,
+ASII,81,2026-01-12,2026-04-11,1.5,False,1,0,-1,0.0,0.0,0.0,0.0,-3.4221,0.0,3.4221,0.0,0.0,0.0,weighted,3,7,0.0,True,output/phase_a_baseline_final.json,automotive,,otomotif,
+ADRO,81,2026-01-12,2026-04-11,1.5,False,3,0,-3,0.0,33.33,0.0,-33.33,-0.5257,0.0,0.5257,0.3802,0.0,-0.3802,weighted,3,7,0.0,False,output/phase_a_baseline_final.json,energy,,energi,
+BBCA,81,2026-01-12,2026-04-11,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,weighted,3,7,0.0,True,output/phase_a_baseline_final.json,finance,,perbankan,
+BBRI,81,2026-01-12,2026-04-11,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,weighted,3,7,0.0,True,output/phase_a_baseline_final.json,finance,,perbankan,
+BUMI,56,2026-01-12,2026-04-10,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,weighted,3,7,0.0,True,output/phase_a_baseline_final.json,mining,,pertambangan,
+DEWA,56,2026-01-12,2026-04-10,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,weighted,3,7,0.0,True,output/phase_a_baseline_final.json,mining,,pertambangan,
+GOTO,81,2026-01-12,2026-04-11,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,weighted,3,7,0.0,True,output/phase_a_baseline_final.json,technology,,teknologi,
+UNVR,81,2026-01-12,2026-04-11,1.5,False,0,0,0,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,weighted,3,7,0.0,True,output/phase_a_baseline_final.json,consumer,,konsumsi,

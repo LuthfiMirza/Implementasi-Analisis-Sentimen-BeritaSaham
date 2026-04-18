@@ -15,6 +15,9 @@ class BacktestController extends Controller
         $step = (int) $request->get('step', 3);
         $threshold = (float) $request->get('threshold', 1.0);
         $includeMacroNews = $request->boolean('include_macro_news', true);
+        $macroRegulatorySignal = $request->query->has('macro_regulatory_signal')
+            ? $request->boolean('macro_regulatory_signal')
+            : null;
 
         $stock = Stock::where('code', strtoupper($code))
             ->where('is_active', true)
@@ -22,7 +25,15 @@ class BacktestController extends Controller
         $stocks = Stock::where('is_active', true)->orderBy('code')->get();
 
         $service = app(BacktestService::class);
-        $result = $service->runForStock($stock, 30, $forward, $step, $threshold, $includeMacroNews);
+        $result = $service->runForStock(
+            $stock,
+            30,
+            $forward,
+            $step,
+            $threshold,
+            $includeMacroNews,
+            $macroRegulatorySignal
+        );
 
         return view('backtest.index', compact(
             'result',
@@ -32,7 +43,8 @@ class BacktestController extends Controller
             'forward',
             'step',
             'threshold',
-            'includeMacroNews'
+            'includeMacroNews',
+            'macroRegulatorySignal'
         ));
     }
 
@@ -41,15 +53,18 @@ class BacktestController extends Controller
         $forward = (int) $request->get('forward', 5);
         $threshold = (float) $request->get('threshold', 1.0);
         $includeMacroNews = $request->boolean('include_macro_news', true);
+        $macroRegulatorySignal = $request->query->has('macro_regulatory_signal')
+            ? $request->boolean('macro_regulatory_signal')
+            : null;
 
         $service = app(BacktestService::class);
-        $data = $service->runAll(30, $forward, 3, $threshold, $includeMacroNews);
+        $data = $service->runAll(30, $forward, 3, $threshold, $includeMacroNews, $macroRegulatorySignal);
 
         $stocks = Stock::where('is_active', true)->orderBy('code')->get();
 
         return view('backtest.all', array_merge(
             $data,
-            compact('stocks', 'forward', 'threshold', 'includeMacroNews')
+            compact('stocks', 'forward', 'threshold', 'includeMacroNews', 'macroRegulatorySignal')
         ));
     }
 }

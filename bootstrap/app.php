@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\UpdateStockSnapshotsCommand::class,
         \App\Console\Commands\GenerateEvaluationReport::class,
         \App\Console\Commands\SentimentComparisonCommand::class,
+        \App\Console\Commands\PhaseACloseoutCommand::class,
+        \App\Console\Commands\ExportPhaseARealDataCommand::class,
         \App\Console\Commands\SyncLivePricesCommand::class,
         \App\Console\Commands\NewsCoverageReportCommand::class,
         \App\Console\Commands\RescoreNewsQualityCommand::class,

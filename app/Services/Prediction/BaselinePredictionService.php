@@ -86,6 +86,12 @@ class BaselinePredictionService
         $priceTrend = strtolower((string) ($f['price_trend'] ?? 'datar'));
         $correlationH1 = $f['lag_correlation_h1'] ?? null;
         $correlationH3 = $f['lag_correlation_h3'] ?? null;
+        $macroAttention = (float) ($f['macro_regulatory_attention_score'] ?? 0.0);
+        $macroCaution = (bool) ($f['macro_regulatory_caution_flag'] ?? false);
+        $macroConfidenceMultiplier = (float) ($f['macro_regulatory_confidence_multiplier'] ?? 1.0);
+        $macroScoreMultiplier = (float) ($f['macro_regulatory_score_multiplier'] ?? 1.0);
+        $macroThresholdTightening = (float) ($f['macro_regulatory_threshold_tightening_factor'] ?? 1.0);
+        $macroRegime = (string) ($f['macro_regulatory_attention_regime'] ?? 'normal');
 
         $sentimentSignal = $this->clamp($sentiment / 0.35);
         $maSignal = $this->clamp($maGap / 0.025);
@@ -120,6 +126,10 @@ class BaselinePredictionService
             ($trendSignal * 0.10) +
             ($corrSignal * 0.06);
 
+        if ($macroCaution) {
+            $directionalEdge *= max(0.0, min(1.0, $macroScoreMultiplier));
+        }
+
         $componentSigns = collect([
             $sentimentSignal,
             $newsBalance,
@@ -139,16 +149,18 @@ class BaselinePredictionService
 
         $volatilityPenalty = $volatility > 2.5 ? min(0.12, ($volatility - 2.5) / 15) : 0.0;
         $neutralityBoost = $neutralNews > ($positiveNews + $negativeNews) ? 0.04 : 0.0;
-        $conviction = max(0.0, abs($directionalEdge) - $volatilityPenalty - $neutralityBoost);
+        $macroPenalty = $macroCaution ? min(0.10, $macroAttention * 0.12) : 0.0;
+        $conviction = max(0.0, abs($directionalEdge) - $volatilityPenalty - $neutralityBoost - $macroPenalty);
 
         $upScore = $this->scorePercent(0.5 + max(0, $directionalEdge));
         $downScore = $this->scorePercent(0.5 + max(0, -$directionalEdge));
         $flatScore = $this->scorePercent(1 - min(0.9, $conviction + (abs($directionalEdge) * 0.5)));
 
         $direction = 'flat';
-        if ($directionalEdge >= 0.16 && $conviction >= 0.12) {
+        $directionThreshold = 0.16 * max(1.0, $macroThresholdTightening);
+        if ($directionalEdge >= $directionThreshold && $conviction >= 0.12) {
             $direction = 'up';
-        } elseif ($directionalEdge <= -0.16 && $conviction >= 0.12) {
+        } elseif ($directionalEdge <= (-1 * $directionThreshold) && $conviction >= 0.12) {
             $direction = 'down';
         }
 
@@ -157,6 +169,9 @@ class BaselinePredictionService
             + min(0.10, $consensus * 0.10)
             + min(0.08, $coverageFactor * 0.08)
             - min(0.06, $volatilityPenalty * 0.5);
+        if ($macroCaution) {
+            $confidence *= max(0.0, min(1.0, $macroConfidenceMultiplier));
+        }
 
         $basis = [];
         if ($coverageFactor > 0) {
@@ -192,6 +207,9 @@ class BaselinePredictionService
 
         if ($direction === 'flat') {
             $basis[] = 'Skor bullish dan bearish masih berdekatan';
+        }
+        if ($macroCaution) {
+            $basis[] = 'Regulatory '.$macroRegime.' OJK menurunkan conviction directional dan confidence';
         }
 
         $probability = round(min(0.95, max(0.35, $confidence)), 2);

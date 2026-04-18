@@ -1,0 +1,57 @@
+{
+  "default_volume_spike_threshold": 1.5,
+  "strict_mode_default": false,
+  "adaptive_threshold_enabled": false,
+  "group_threshold_overrides": [],
+  "min_trades_floor": 8,
+  "readiness_status": "partially_ready",
+  "baseline_status": "provisional",
+  "decision_source": [
+    "output/phase_a_threshold_decision.json",
+    "output/phase_a_tuning_decision.json",
+    "output/phase_a_threshold_best_by_group.csv",
+    "output/phase_a_threshold_best_by_ticker.csv"
+  ],
+  "generated_at": "2026-04-18T13:08:52.850231+00:00",
+  "strict_mode_decision_code": "strict_default_no",
+  "baseline_status_reason": "Threshold/tuning decision artifacts sudah usable, tetapi closeout/support final belum lengkap.",
+  "threshold_decision_confidence": "low",
+  "threshold_decision_margin": 0.03550000000000608,
+  "selected_threshold_mode": "global_fixed",
+  "best_threshold_counts": {
+    "1.5": 1,
+    "2.0": 9
+  },
+  "closeout_support_status": "blocked_environment",
+  "closeout_support_reason": "Closeout artifact terbaca tetapi belum cukup untuk finalisasi baseline.",
+  "provisional_requirements": [
+    "Threshold decision memilih default threshold yang eksplisit.",
+    "Threshold decision memiliki readiness.status.",
+    "Tuning decision memiliki strict_mode_decision.decision_code.",
+    "Tuning decision memiliki ready_for_phase_b.status."
+  ],
+  "provisional_requirements_met": true,
+  "provisional_missing_requirements": [],
+  "final_requirements": [
+    "Baseline minimal sudah provisional.",
+    "Threshold readiness sudah ready.",
+    "Tuning readiness sudah ready.",
+    "Strict mode decision sudah final (strict_default_yes / strict_default_no).",
+    "Threshold confidence minimal moderate.",
+    "Closeout artifact mendukung finalisasi baseline."
+  ],
+  "final_requirements_met": false,
+  "final_missing_requirements": [
+    "Threshold readiness belum ready.",
+    "Tuning readiness belum ready.",
+    "Threshold confidence belum cukup kuat untuk final.",
+    "Closeout runtime masih blocked_environment, jadi baseline belum bisa final."
+  ],
+  "remaining_gate_blockers": [
+    "Threshold readiness belum ready.",
+    "Tuning readiness belum ready.",
+    "Threshold confidence belum cukup kuat untuk final.",
+    "Closeout runtime masih blocked_environment, jadi baseline belum bisa final."
+  ],
+  "warnings": []
+}

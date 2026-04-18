@@ -1,0 +1,7 @@
+Phase A Minimum Next Steps
+==========================
+
+- Jalankan threshold sweep real untuk menghasilkan phase_a_threshold_decision.json dan best-by-group/best-by-ticker yang aktual.
+- Jalankan decision layer tuning real jika phase_a_tuning_decision.json belum tersedia, lalu refreeze baseline dengan python3 -m quant.freeze_phase_a_baseline --output-dir output.
+- Aktifkan koneksi MySQL yang benar, pastikan artikel OJK historis tersedia, lalu rerun php artisan phase-a:closeout sampai status tidak lagi blocked.
+- Verifikasi UI /backtest dan /analytics dengan include_macro_news=1 dan macro_regulatory_signal=1 sebagai catatan penutup, bukan blocker formal.
