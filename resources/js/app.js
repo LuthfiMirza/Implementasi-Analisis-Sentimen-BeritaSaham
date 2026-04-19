@@ -172,6 +172,21 @@ document.addEventListener('alpine:init', () => {
             return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
         },
     }));
+
+    Alpine.data('dashboardPage', () => ({
+        rightPanelOpen: true,
+        init() {
+            const saved = localStorage.getItem('sentimena_rightpanel_open');
+            this.rightPanelOpen = saved === null ? true : saved === 'true';
+        },
+        toggleRightPanel(forceState = null) {
+            this.rightPanelOpen = typeof forceState === 'boolean'
+                ? forceState
+                : !this.rightPanelOpen;
+            localStorage.setItem('sentimena_rightpanel_open', String(this.rightPanelOpen));
+        },
+    }));
+
 });
 
 Alpine.start();

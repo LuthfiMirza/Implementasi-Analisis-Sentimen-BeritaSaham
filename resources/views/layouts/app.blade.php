@@ -8,22 +8,23 @@
     <title>{{ config('app.name', 'Sentimena') }}</title>
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="trade-dark-ui" x-data="{ sidebarOpen: false }">
-    <div class="min-h-screen flex">
+<body class="trade-dark-ui" x-data="appShell()">
+    <div class="min-h-screen flex app-shell">
         {{-- Sidebar --}}
-        <aside class="app-sidebar hidden lg:flex lg:flex-col w-[200px] fixed inset-y-0">
-            <div class="px-4 py-4 flex items-center gap-3 border-b border-white/10">
+        <aside class="app-sidebar hidden lg:flex lg:flex-col fixed inset-y-0" :class="desktopSidebarOpen ? 'app-sidebar-expanded' : 'app-sidebar-collapsed'">
+            <div class="app-sidebar-brand">
                 <div class="app-logo-mark h-10 w-10 flex items-center justify-center">
                     SI
                 </div>
-                <div>
+                <div class="app-sidebar-brand-copy" x-show="desktopSidebarOpen" x-transition.opacity.duration.150ms>
                     <div class="app-brand-kicker">Sentimena</div>
                     <div class="app-brand-title">IDX Sentiment</div>
                 </div>
             </div>
-            <nav class="flex-1 px-0 py-4 space-y-1 text-sm">
+            <nav class="app-sidebar-nav flex-1 px-0 py-4 space-y-1 text-sm">
                 @php
                     $nav = [
                         ['label' => 'Dashboard', 'route' => 'dashboard', 'href' => route('dashboard'), 'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001 1h4a1 1 0 001-1m-6 0V9m0 12h6'],
@@ -40,34 +41,47 @@
                 @foreach($nav as $item)
                     @php $active = request()->routeIs($item['route']); @endphp
                     <a href="{{ $item['href'] }}"
-                       class="app-nav-item {{ $active ? 'app-nav-item-active' : '' }}">
+                       class="app-nav-item {{ $active ? 'app-nav-item-active' : '' }}"
+                       :title="desktopSidebarOpen ? '' : '{{ $item['label'] }}'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}" />
                         </svg>
-                        <span>{{ $item['label'] }}</span>
+                        <span class="app-nav-label" x-show="desktopSidebarOpen" x-transition.opacity.duration.150ms>{{ $item['label'] }}</span>
                     </a>
                 @endforeach
             </nav>
-            <div class="app-sidebar-footer p-4">
-                <div class="section-label">Masuk sebagai</div>
-                <div class="text-sm font-semibold mt-1">{{ auth()->user()->name ?? 'User' }}</div>
-                <div class="text-[11px] text-slate-500">{{ auth()->user()->email ?? '' }}</div>
-                <div class="mt-3 flex items-center gap-2 text-[11px]">
-                    @if(auth()->user()?->isAdmin())
-                        <a href="{{ route('admin.index') }}" class="app-link-info">Admin</a>
-                    @endif
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
-                        @csrf
-                        <button type="submit" class="app-link-danger">Logout</button>
-                    </form>
+            <div class="app-sidebar-footer">
+                <div class="app-sidebar-user" x-show="desktopSidebarOpen" x-transition.opacity.duration.150ms>
+                    <div class="section-label">Masuk sebagai</div>
+                    <div class="text-sm font-semibold mt-1">{{ auth()->user()->name ?? 'User' }}</div>
+                    <div class="text-[11px] text-slate-500">{{ auth()->user()->email ?? '' }}</div>
+                    <div class="mt-3 flex items-center gap-2 text-[11px]">
+                        @if(auth()->user()?->isAdmin())
+                            <a href="{{ route('admin.index') }}" class="app-link-info">Admin</a>
+                        @endif
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="app-link-danger">Logout</button>
+                        </form>
+                    </div>
                 </div>
+                <button type="button"
+                        class="app-sidebar-toggle"
+                        x-on:click="toggleDesktopSidebar()"
+                        :aria-label="desktopSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
+                        :title="desktopSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'">
+                    <svg class="h-4 w-4 transition-transform duration-200" :class="desktopSidebarOpen ? '' : 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span class="app-sidebar-toggle-label" x-show="desktopSidebarOpen" x-transition.opacity.duration.150ms>Collapse</span>
+                </button>
             </div>
         </aside>
 
         {{-- Mobile overlay --}}
-        <div x-show="sidebarOpen" x-cloak class="app-mobile-overlay fixed inset-0 lg:hidden" x-on:click="sidebarOpen = false"></div>
-        <aside x-show="sidebarOpen" x-cloak x-transition
-               class="app-sidebar fixed inset-y-0 left-0 w-[200px] lg:hidden z-50">
+        <div x-show="mobileSidebarOpen" x-cloak class="app-mobile-overlay fixed inset-0 lg:hidden" x-on:click="mobileSidebarOpen = false"></div>
+        <aside x-show="mobileSidebarOpen" x-cloak x-transition
+               class="app-sidebar fixed inset-y-0 left-0 w-[220px] lg:hidden z-50">
             <div class="px-4 py-4 flex items-center justify-between border-b border-white/10">
                 <div class="flex items-center gap-3">
                     <div class="app-logo-mark h-10 w-10 flex items-center justify-center">
@@ -78,7 +92,7 @@
                         <div class="app-brand-title">IDX Sentiment</div>
                     </div>
                 </div>
-                <button x-on:click="sidebarOpen = false" class="text-slate-400 hover:text-slate-100">
+                <button x-on:click="mobileSidebarOpen = false" class="text-slate-400 hover:text-slate-100">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -99,10 +113,10 @@
         </aside>
 
         {{-- Content --}}
-        <div class="flex-1 lg:ml-[200px] flex flex-col min-h-screen">
+        <div class="flex-1 app-content-shell flex flex-col min-h-screen" :style="desktopContentStyle">
             <header class="app-topbar sticky top-0 z-30 px-4 lg:px-6">
                 <div class="app-topbar-row flex items-center gap-4">
-                    <button class="lg:hidden text-slate-200" x-on:click="sidebarOpen = true">
+                    <button class="lg:hidden text-slate-200" x-on:click="mobileSidebarOpen = true">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
@@ -159,18 +173,30 @@
             </header>
 
             <div class="ticker-strip w-full sticky top-[52px] z-20">
-                <iframe
-                    scrolling="no"
-                    allowtransparency="true"
-                    frameborder="0"
-                    src="https://www.tradingview-widget.com/embed-widget/ticker-tape/?locale=en#%7B%22symbols%22%3A%5B%7B%22proName%22%3A%22IDX%3ABBCA%22%2C%22title%22%3A%22BBCA%22%7D%2C%7B%22proName%22%3A%22IDX%3ABBRI%22%2C%22title%22%3A%22BBRI%22%7D%2C%7B%22proName%22%3A%22IDX%3ABMRI%22%2C%22title%22%3A%22BMRI%22%7D%2C%7B%22proName%22%3A%22IDX%3ATLKM%22%2C%22title%22%3A%22TLKM%22%7D%2C%7B%22proName%22%3A%22IDX%3AASII%22%2C%22title%22%3A%22ASII%22%7D%2C%7B%22proName%22%3A%22IDX%3AGOTO%22%2C%22title%22%3A%22GOTO%22%7D%2C%7B%22proName%22%3A%22IDX%3AADRO%22%2C%22title%22%3A%22ADRO%22%7D%2C%7B%22proName%22%3A%22IDX%3AUNVR%22%2C%22title%22%3A%22UNVR%22%7D%2C%7B%22proName%22%3A%22IDX%3AINDF%22%2C%22title%22%3A%22INDF%22%7D%2C%7B%22proName%22%3A%22IDX%3AICBP%22%2C%22title%22%3A%22ICBP%22%7D%2C%7B%22proName%22%3A%22IDX%3ABUMI%22%2C%22title%22%3A%22BUMI%22%7D%2C%7B%22proName%22%3A%22IDX%3ADEWA%22%2C%22title%22%3A%22DEWA%22%7D%2C%7B%22proName%22%3A%22IDX%3ACOMPOSITE%22%2C%22title%22%3A%22IHSG%22%7D%2C%7B%22proName%22%3A%22FOREXCOM%3AUSDIDR%22%2C%22title%22%3A%22USD%2FIDR%22%7D%5D%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22displayMode%22%3A%22adaptive%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A44%7D"
-                    title="Ticker Tape"
-                    style="display:block; height:44px; width:100%;">
-                </iframe>
+                <div class="ticker-strip-track">
+                    <iframe
+                        scrolling="no"
+                        allowtransparency="true"
+                        frameborder="0"
+                        src="https://www.tradingview-widget.com/embed-widget/ticker-tape/?locale=en#%7B%22symbols%22%3A%5B%7B%22proName%22%3A%22IDX%3ABBCA%22%2C%22title%22%3A%22BBCA%22%7D%2C%7B%22proName%22%3A%22IDX%3ABBRI%22%2C%22title%22%3A%22BBRI%22%7D%2C%7B%22proName%22%3A%22IDX%3ABMRI%22%2C%22title%22%3A%22BMRI%22%7D%2C%7B%22proName%22%3A%22IDX%3ATLKM%22%2C%22title%22%3A%22TLKM%22%7D%2C%7B%22proName%22%3A%22IDX%3AASII%22%2C%22title%22%3A%22ASII%22%7D%2C%7B%22proName%22%3A%22IDX%3AGOTO%22%2C%22title%22%3A%22GOTO%22%7D%2C%7B%22proName%22%3A%22IDX%3AADRO%22%2C%22title%22%3A%22ADRO%22%7D%2C%7B%22proName%22%3A%22IDX%3AUNVR%22%2C%22title%22%3A%22UNVR%22%7D%2C%7B%22proName%22%3A%22IDX%3AINDF%22%2C%22title%22%3A%22INDF%22%7D%2C%7B%22proName%22%3A%22IDX%3AICBP%22%2C%22title%22%3A%22ICBP%22%7D%2C%7B%22proName%22%3A%22IDX%3ABUMI%22%2C%22title%22%3A%22BUMI%22%7D%2C%7B%22proName%22%3A%22IDX%3ADEWA%22%2C%22title%22%3A%22DEWA%22%7D%2C%7B%22proName%22%3A%22IDX%3ACOMPOSITE%22%2C%22title%22%3A%22IHSG%22%7D%2C%7B%22proName%22%3A%22FOREXCOM%3AUSDIDR%22%2C%22title%22%3A%22USD%2FIDR%22%7D%5D%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22displayMode%22%3A%22adaptive%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A44%7D"
+                        title="Ticker Tape"
+                        style="display:block; height:44px; width:100%;">
+                    </iframe>
+                </div>
             </div>
 
             <main class="flex-1">
                 <div class="app-main-shell mx-auto px-4 lg:px-8 py-6 pt-4">
+                    <div class="hidden lg:block" x-show="!desktopSidebarOpen" x-cloak>
+                        <button type="button"
+                                class="content-sidebar-expand"
+                                x-on:click="toggleDesktopSidebar(true)"
+                                aria-label="Expand sidebar">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
                     {{ $slot }}
                 </div>
             </main>
@@ -178,6 +204,28 @@
     </div>
     <script>
         document.addEventListener('alpine:init', () => {
+            window.appShell = function () {
+                return {
+                    mobileSidebarOpen: false,
+                    desktopSidebarOpen: true,
+                    init() {
+                        const saved = localStorage.getItem('sentimena_sidebar_open');
+                        this.desktopSidebarOpen = saved === null ? true : saved === 'true';
+                    },
+                    get desktopContentStyle() {
+                        return window.innerWidth >= 1024
+                            ? `margin-left: ${this.desktopSidebarOpen ? 'var(--sidebar-width-open)' : 'var(--sidebar-width-collapsed)'}; transition: var(--transition-sidebar);`
+                            : '';
+                    },
+                    toggleDesktopSidebar(forceState = null) {
+                        this.desktopSidebarOpen = typeof forceState === 'boolean'
+                            ? forceState
+                            : !this.desktopSidebarOpen;
+                        localStorage.setItem('sentimena_sidebar_open', String(this.desktopSidebarOpen));
+                    },
+                };
+            };
+
             window.marketClock = function () {
                 return {
                     statusLabel: 'CLOSED',

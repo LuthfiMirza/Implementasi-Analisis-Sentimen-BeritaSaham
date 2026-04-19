@@ -1,4 +1,4 @@
-<x-panel class="panel-frame sticky top-24" x-data>
+<x-panel class="panel-frame sticky top-24 dashboard-watchlist-panel" x-data>
     <div class="panel-header">
         <div>
             <p class="panel-title">Watchlist</p>
@@ -11,7 +11,7 @@
             $entries = $watchlist->map(fn($stock) => [
                 'stock' => $stock,
                 'latest' => $stock->latestPrice,
-                'decision' => ['status' => 'Wait and See', 'confidence' => 'Rendah'],
+                'decision' => ['status' => 'Hold', 'confidence' => 'Rendah'],
                 'sparkline' => collect(),
             ]);
         }
@@ -21,24 +21,24 @@
             @php
                 $stock = $row['stock'];
                 $latest = $row['latest'] ?? null;
-                $decision = $row['decision'] ?? ['status' => 'Wait and See', 'confidence' => 'Rendah'];
+                $decision = $row['decision'] ?? ['status' => 'Hold', 'confidence' => 'Rendah'];
                 $spark = $row['sparkline'] ?? collect();
-                $statusColor = match($decision['status']) {
-                    'Bullish Support' => 'watchlist-status watchlist-status-up',
-                    'Warning' => 'watchlist-status watchlist-status-down',
-                    default => 'watchlist-status watchlist-status-neutral',
+                $signal = match($decision['status']) {
+                    'Bullish Support', 'BUY', 'Buy' => ['label' => 'BUY', 'class' => 'watchlist-status watchlist-status-buy'],
+                    'Warning', 'SELL', 'Sell' => ['label' => 'SELL', 'class' => 'watchlist-status watchlist-status-sell'],
+                    default => ['label' => 'HOLD', 'class' => 'watchlist-status watchlist-status-hold'],
                 };
             @endphp
             @php
                 $initPrice = $latest?->close ?? 0;
                 $initChange = ($latest && $latest->open) ? (($latest->close - $latest->open) / $latest->open) * 100 : 0;
             @endphp
-            <div class="watchlist-item flex items-center justify-between px-3 py-2"
+            <div class="watchlist-item flex items-center justify-between"
                  x-data="stockTicker('{{ $stock->code }}', {{ $initPrice }}, {{ $initChange }})">
                 <div class="w-2/3">
                     <div class="flex items-center justify-between">
                         <div class="watchlist-symbol">{{ $stock->code }}</div>
-                        <span class="{{ $statusColor }}">{{ $decision['status'] }}</span>
+                        <span class="{{ $signal['class'] }}">{{ $signal['label'] }}</span>
                     </div>
                     <div class="watchlist-name">{{ \Illuminate\Support\Str::limit($stock->company_name, 28) }}</div>
                     <div class="flex items-end gap-1 h-8 mt-1">
@@ -77,7 +77,7 @@
         <p class="section-label mb-2">Saham Populer</p>
         <div class="space-y-2">
             @foreach($stocks->take(5) as $popular)
-                <a href="{{ route('stocks.show', $popular->code) }}" class="popular-stock-item flex items-center justify-between px-3 py-2">
+                <a href="{{ route('stocks.show', $popular->code) }}" class="popular-stock-item flex items-center justify-between">
                     <div>
                         <div class="watchlist-symbol">{{ $popular->code }}</div>
                         <div class="popular-stock-sector">{{ $popular->sector }}</div>
