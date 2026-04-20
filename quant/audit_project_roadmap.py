@@ -137,6 +137,44 @@ def _load_optional_json(path: Path) -> Tuple[Optional[Dict[str, object]], Option
     return payload, None
 
 
+def _load_execution_context(output_dir: Path) -> Dict[str, Optional[Dict[str, object]]]:
+    """Load optional execution artifacts used to keep the roadmap current."""
+
+    artifact_map = {
+        "phase_b_postmortem": "phase_b_postmortem.json",
+        "phase_b_next_phase": "phase_b_go_no_go_next_phase.json",
+        "phase_b_v2_redesign_decision": "phase_b_v2_redesign_decision.json",
+        "phase_b_v2_next_best_experiment": "phase_b_v2_next_best_experiment.json",
+        "baseline_redesign": "baseline_redesign_go_no_go.json",
+        "baseline_v3_signal_rule": "baseline_v3_signal_rule_go_no_go.json",
+        "baseline_v3_signal_rule_summary": "baseline_v3_signal_rule_summary.json",
+        "baseline_revision": "baseline_v2_go_no_go.json",
+        "baseline_v2_validation": "baseline_v2_validation_go_no_go.json",
+        "baseline_v2_validation_summary": "baseline_v2_validation_summary.json",
+        "baseline_v2_subset": "baseline_v2_subset_go_no_go.json",
+        "baseline_v2_subset_summary": "baseline_v2_subset_validation_summary.json",
+        "transition": "phase_a_to_phase_b_transition.json",
+        "item5_go_no_go": "phase_b_item5_go_no_go.json",
+        "item6_go_no_go": "phase_b_item6_go_no_go.json",
+        "item7_go_no_go": "phase_b_item7_go_no_go.json",
+        "item7_summary": "phase_b_item7_sentiment_momentum_summary.json",
+        "item8_go_no_go": "phase_b_item8_go_no_go.json",
+        "item8_summary": "phase_b_item8_global_summary.json",
+    }
+
+    context: Dict[str, Optional[Dict[str, object]]] = {}
+    for key, filename in artifact_map.items():
+        payload, _ = _load_optional_json(output_dir / filename)
+        context[key] = payload
+    return context
+
+
+def _safe_str(value: object) -> str:
+    """Return a trimmed string representation with empty fallback."""
+
+    return str(value).strip() if value is not None else ""
+
+
 def _dedupe(items: Iterable[str]) -> List[str]:
     """Deduplicate strings while preserving order."""
 
@@ -206,6 +244,7 @@ def build_roadmap_items(
     """Build roadmap item rows for items 1-12."""
 
     items: List[Dict[str, object]] = []
+    context = _load_execution_context(output_dir)
 
     volume_done = inspector.contains_all(
         "quant/phase_a.py",
@@ -381,30 +420,50 @@ def build_roadmap_items(
     candle_status = "partial" if candle_starter else "not_started"
     if candle_starter and candle_eval and candle_test:
         candle_status = "partial"
+    item5_payload = context.get("item5_go_no_go") or {}
+    item5_decision = _safe_str(item5_payload.get("decision"))
+    item5_next_action = _safe_str(item5_payload.get("next_action"))
+    item5_evidence = [
+        "quant/phase_a.py sudah memiliki helper candlestick-volume confirmation yang default-off.",
+        "quant/evaluate_phase_a_real_data.py sudah dapat menjalankan evaluator dengan flag experimental candle confirmation.",
+        "quant/test_phase_a.py menguji bahwa filter ini hanya aktif bila diminta.",
+    ] if candle_starter else ["Belum ada rule candlestick-volume confirmation yang nyata di engine quant."]
+    if item5_decision == "no_go":
+        item5_evidence.extend(
+            [
+                "Artifact output/phase_b_item5_go_no_go.json memutuskan item 5 final no_go dengan next_action=stop.",
+                "Eksperimen item 5 collapse ke effective threshold baseline sehingga tidak menambah informasi baru.",
+            ]
+        )
     items.append(
         _make_item(
             phase="phase_b",
             item_number=5,
             item_name="Volume confirmation per candlestick",
             status=candle_status,
-            evidence=[
-                "quant/phase_a.py sudah memiliki helper candlestick-volume confirmation yang default-off.",
-                "quant/evaluate_phase_a_real_data.py sudah dapat menjalankan evaluator dengan flag experimental candle confirmation.",
-                "quant/test_phase_a.py menguji bahwa filter ini hanya aktif bila diminta.",
-            ]
-            if candle_starter
-            else ["Belum ada rule candlestick-volume confirmation yang nyata di engine quant."],
+            evidence=item5_evidence,
             key_files=inspector.existing_files(
                 [
                     "quant/phase_a.py",
                     "quant/evaluate_phase_a_real_data.py",
                     "quant/test_phase_a.py",
+                    "output/phase_b_item5_go_no_go.json",
                 ]
             ),
-            remaining_gap="Starter baru ada di engine/evaluator. Belum ada evidence sweep/backtest khusus yang memutuskan apakah rule ini layak dinaikkan menjadi default Fase B."
-            if candle_starter
-            else "Tambahkan helper candle confirmation yang transparan dan evaluasi tanpa mengubah default Phase A.",
-            recommended_next_action="Gunakan starter ini hanya sebagai arm eksperimen: bandingkan vs baseline Phase A beku sebelum memasukkannya ke threshold sweep atau default harian.",
+            remaining_gap=(
+                "Eksperimen item 5 sudah final no_go. Filter tambahan overlap dengan baseline aktif, retensi trade tidak membaik, dan fitur ini belum additive."
+                if item5_decision == "no_go"
+                else (
+                    "Starter baru ada di engine/evaluator. Belum ada evidence sweep/backtest khusus yang memutuskan apakah rule ini layak dinaikkan menjadi default Fase B."
+                    if candle_starter
+                    else "Tambahkan helper candle confirmation yang transparan dan evaluasi tanpa mengubah default Phase A."
+                )
+            ),
+            recommended_next_action=(
+                "Biarkan item 5 tetap stop; evaluasi ulang hanya setelah baseline inti direvisi dan tervalidasi."
+                if item5_next_action == "stop"
+                else "Gunakan starter ini hanya sebagai arm eksperimen: bandingkan vs baseline Phase A beku sebelum memasukkannya ke threshold sweep atau default harian."
+            ),
         )
     )
 
@@ -419,28 +478,48 @@ def build_roadmap_items(
         "app/Services/Analytics/BacktestService.php",
         ["weekly", "1w", "multi-timeframe"]
     )
+    item6_payload = context.get("item6_go_no_go") or {}
+    item6_decision = _safe_str(item6_payload.get("decision"))
+    item6_next_action = _safe_str(item6_payload.get("next_action"))
+    item6_evidence = [
+        "PriceSeriesService.php sudah memiliki abstraksi interval_type yang bisa dipakai untuk 1d/1w.",
+    ] if weekly_foundation else ["Belum ada abstraksi interval yang siap dipakai untuk weekly trend."]
+    if item6_decision == "no_go":
+        item6_evidence.extend(
+            [
+                "Artifact output/phase_b_item6_go_no_go.json memutuskan item 6 final no_go dengan next_action=stop.",
+                "Eksperimen multi-timeframe gagal terutama karena trade retention terlalu rendah dan tidak ada ticker improve dengan retention memadai.",
+            ]
+        )
     items.append(
         _make_item(
             phase="phase_b",
             item_number=6,
             item_name="Multi-timeframe (weekly trend sebelum entry daily)",
             status="partial" if weekly_foundation else "not_started",
-            evidence=[
-                "PriceSeriesService.php sudah memiliki abstraksi interval_type yang bisa dipakai untuk 1d/1w.",
-            ]
-            if weekly_foundation
-            else ["Belum ada abstraksi interval yang siap dipakai untuk weekly trend."],
+            evidence=item6_evidence,
             key_files=inspector.existing_files(
                 [
                     "app/Services/Stocks/PriceSeriesService.php",
                     "app/Services/Analytics/BacktestService.php",
                     "quant/phase_a.py",
+                    "output/phase_b_item6_go_no_go.json",
                 ]
             ),
-            remaining_gap="Belum ada rule weekly trend, belum ada resampling/ingestion 1w, dan belum ada test bahwa trend mingguan memfilter entry daily."
-            if not weekly_rule
-            else "Rule weekly sudah mulai muncul tetapi belum utuh.",
-            recommended_next_action="Tambahkan ingestion/akses 1w lebih dulu, lalu buat weekly trend filter sebagai gate di atas sinyal daily yang sudah stabil.",
+            remaining_gap=(
+                "Eksperimen item 6 sudah final no_go. Weekly trend belum terbukti usable karena tambahan filter membuat trade retention runtuh sebelum ada edge yang bisa dipromosikan."
+                if item6_decision == "no_go"
+                else (
+                    "Belum ada rule weekly trend, belum ada resampling/ingestion 1w, dan belum ada test bahwa trend mingguan memfilter entry daily."
+                    if not weekly_rule
+                    else "Rule weekly sudah mulai muncul tetapi belum utuh."
+                )
+            ),
+            recommended_next_action=(
+                "Tetap nonaktifkan item 6; kembali ke perbaikan baseline inti sebelum memikirkan gate weekly lagi."
+                if item6_next_action == "stop"
+                else "Tambahkan ingestion/akses 1w lebih dulu, lalu buat weekly trend filter sebagai gate di atas sinyal daily yang sudah stabil."
+            ),
         )
     )
 
@@ -452,29 +531,56 @@ def build_roadmap_items(
         "app/Services/Analytics/DecisionSupportService.php",
         ["3 hari", "3-day", "sentiment momentum"]
     )
+    item7_payload = context.get("item7_go_no_go") or {}
+    item7_summary = context.get("item7_summary") or {}
+    item7_decision = _safe_str(item7_payload.get("decision"))
+    item7_next_action = _safe_str(item7_payload.get("next_action"))
+    item7_aggregate = dict(item7_summary.get("aggregate") or {})
+    item7_evidence = [
+        "SentimentPriceAnalyticsService.php sudah menghasilkan per_date_sentiment dan sentiment_trend.",
+        "Watchlist/analytics sudah punya seri sentimen harian yang bisa menjadi fondasi momentum 3 hari.",
+    ] if sentiment_momentum_foundation else ["Belum ada seri sentimen harian yang cukup untuk membangun momentum 3 hari."]
+    if item7_decision == "no_go":
+        item7_evidence.extend(
+            [
+                "Artifact output/phase_b_item7_go_no_go.json memutuskan item 7 final no_go dengan next_action=stop.",
+                (
+                    "Real-data rerun menunjukkan sentiment momentum collapse: "
+                    f"candidate_total_trades_sum={item7_aggregate.get('candidate_total_trades_sum', 'n/a')}, "
+                    f"trade_retention_mean_pct={item7_aggregate.get('trade_retention_mean_pct', 'n/a')}."
+                ),
+            ]
+        )
     items.append(
         _make_item(
             phase="phase_b",
             item_number=7,
             item_name="Sentiment momentum (tren 3 hari terakhir)",
             status="partial" if sentiment_momentum_foundation else "not_started",
-            evidence=[
-                "SentimentPriceAnalyticsService.php sudah menghasilkan per_date_sentiment dan sentiment_trend.",
-                "Watchlist/analytics sudah punya seri sentimen harian yang bisa menjadi fondasi momentum 3 hari.",
-            ]
-            if sentiment_momentum_foundation
-            else ["Belum ada seri sentimen harian yang cukup untuk membangun momentum 3 hari."],
+            evidence=item7_evidence,
             key_files=inspector.existing_files(
                 [
                     "app/Services/Analytics/SentimentPriceAnalyticsService.php",
                     "app/Services/Analytics/DecisionSupportService.php",
                     "app/Services/Analytics/BacktestService.php",
+                    "output/phase_b_item7_go_no_go.json",
+                    "output/phase_b_item7_sentiment_momentum_summary.json",
                 ]
             ),
-            remaining_gap="Belum ada rule eksplisit rolling 3 hari, belum ada scoring/backtest untuk sentiment momentum, dan belum ada test dedicated."
-            if not sentiment_momentum_rule
-            else "Rule sentiment momentum mulai muncul tetapi belum cukup operasional.",
-            recommended_next_action="Tambahkan metrik 3-day sentiment momentum di analytics dulu, lalu injeksikan ke decision/backtest sebagai signal tambahan yang bisa dimatikan.",
+            remaining_gap=(
+                "Eksperimen item 7 sudah final no_go. Sinyal sentimen belum cukup informatif untuk gating karena trade collapse ke nol pada data real yang runnable."
+                if item7_decision == "no_go"
+                else (
+                    "Belum ada rule eksplisit rolling 3 hari, belum ada scoring/backtest untuk sentiment momentum, dan belum ada test dedicated."
+                    if not sentiment_momentum_rule
+                    else "Rule sentiment momentum mulai muncul tetapi belum cukup operasional."
+                )
+            ),
+            recommended_next_action=(
+                "Jangan hidupkan lagi item 7; audit relevansi sentiment series dan baseline entry dulu sebelum mencoba gating sentimen baru."
+                if item7_next_action == "stop"
+                else "Tambahkan metrik 3-day sentiment momentum di analytics dulu, lalu injeksikan ke decision/backtest sebagai signal tambahan yang bisa dimatikan."
+            ),
         )
     )
 
@@ -486,31 +592,58 @@ def build_roadmap_items(
     adaptive_runtime = bool(
         baseline_payload and baseline_payload.get("adaptive_threshold_enabled")
     )
+    item8_payload = context.get("item8_go_no_go") or {}
+    item8_summary = context.get("item8_summary") or {}
+    item8_decision = _safe_str(item8_payload.get("decision"))
+    item8_next_action = _safe_str(item8_payload.get("next_action"))
+    item8_evidence = [
+        "Threshold sweep sudah tersedia per ticker/group/global.",
+        "Phase A baseline bisa dibekukan dan secara opsional diterapkan kembali ke evaluator lewat phase_a_baseline.py.",
+        "Adaptive runtime saat ini masih bergantung pada artifact freeze, belum menjadi model adaptif penuh lintas stack.",
+    ] if adaptive_foundation else ["Belum ada sweep/adaptive tooling per ticker atau per group."]
+    if item8_decision == "no_go":
+        item8_evidence.extend(
+            [
+                "Artifact output/phase_b_item8_go_no_go.json memutuskan item 8 final no_go dengan next_action=stop.",
+                (
+                    "Adaptive backtest tidak usable pada data real: "
+                    f"evaluated_config_count={item8_summary.get('evaluated_config_count', 'n/a')}, "
+                    f"eligible_best_ticker_count={item8_summary.get('eligible_best_ticker_count', 'n/a')}, "
+                    f"adaptive_model_supported={item8_summary.get('adaptive_model_supported', 'n/a')}."
+                ),
+            ]
+        )
     items.append(
         _make_item(
             phase="phase_b",
             item_number=8,
             item_name="Backtest per saham / model adaptif per ticker",
             status="partial" if adaptive_foundation else "not_started",
-            evidence=[
-                "Threshold sweep sudah tersedia per ticker/group/global.",
-                "Phase A baseline bisa dibekukan dan secara opsional diterapkan kembali ke evaluator lewat phase_a_baseline.py.",
-                "Adaptive runtime saat ini masih bergantung pada artifact freeze, belum menjadi model adaptif penuh lintas stack.",
-            ]
-            if adaptive_foundation
-            else ["Belum ada sweep/adaptive tooling per ticker atau per group."],
+            evidence=item8_evidence,
             key_files=inspector.existing_files(
                 [
                     "quant/run_phase_a_threshold_sweep.py",
                     "quant/freeze_phase_a_baseline.py",
                     "quant/phase_a_baseline.py",
                     "quant/evaluate_phase_a_real_data.py",
+                    "output/phase_b_item8_go_no_go.json",
+                    "output/phase_b_item8_global_summary.json",
                 ]
             ),
-            remaining_gap="Sudah ada fondasi riset adaptif, tetapi belum ada runtime adaptive model yang menyalurkan keputusan per ticker/group secara konsisten ke semua consumer."
-            if adaptive_foundation
-            else "Bangun dulu tooling riset per ticker/group sebelum memikirkan model adaptif runtime.",
-            recommended_next_action="Pertahankan adaptive logic sebagai refinement Phase B: finalkan baseline global Phase A dulu, baru perluas override per ticker/group yang benar-benar punya sample kuat.",
+            remaining_gap=(
+                "Eksperimen item 8 sudah final no_go. Search space adaptif belum usable dan belum ada ticker/group yang lolos guardrail sample untuk promosi."
+                if item8_decision == "no_go"
+                else (
+                    "Sudah ada fondasi riset adaptif, tetapi belum ada runtime adaptive model yang menyalurkan keputusan per ticker/group secara konsisten ke semua consumer."
+                    if adaptive_foundation
+                    else "Bangun dulu tooling riset per ticker/group sebelum memikirkan model adaptif runtime."
+                )
+            ),
+            recommended_next_action=(
+                "Tetap parkirkan item 8; revisi baseline inti dulu sebelum memperlebar adaptive search space lagi."
+                if item8_next_action == "stop"
+                else "Pertahankan adaptive logic sebagai refinement Phase B: finalkan baseline global Phase A dulu, baru perluas override per ticker/group yang benar-benar punya sample kuat."
+            ),
         )
     )
 
@@ -688,10 +821,19 @@ def build_phase_a_final_status(
         else "UI/controller coverage belum lengkap; ini perlu diverifikasi sebelum close-out bisa dipercaya."
     )
 
+    normalized_closeout_blocking: List[str] = []
+    for item in closeout_blocking:
+        normalized = str(item).lower()
+        if "baseline" in normalized and baseline_status in {"provisional", "final"}:
+            continue
+        if "strict mode" in normalized and strict_final:
+            continue
+        normalized_closeout_blocking.append(str(item))
+
     if closeout_status in FINAL_PHASE_A_STATUSES:
         status = closeout_status
         reason = closeout_reason or "Phase A final status mengikuti artifact closeout yang tersedia."
-        blocking_items = _dedupe(closeout_blocking)
+        blocking_items = _dedupe(normalized_closeout_blocking)
         notes = _dedupe(closeout_notes + [ui_manual_verification_note])
     else:
         blocking_items = []
@@ -841,130 +983,193 @@ def build_phase_a_blockers(
 def build_phase_b_execution_plan(
     roadmap_items: Sequence[Dict[str, object]],
     final_status: Dict[str, object],
+    output_dir: Optional[Path] = None,
 ) -> Dict[str, object]:
     """Build a realistic execution plan for Phase B."""
 
     item_lookup = {int(item["item_number"]): item for item in roadmap_items}
-    gate_status = "ready_to_execute" if final_status["ready_to_start_phase_b"] else "prepare_only"
+    context = _load_execution_context(Path(output_dir)) if output_dir is not None else {}
+    transition = context.get("transition") or {}
+    redesign_decision = context.get("phase_b_v2_redesign_decision") or {}
+    next_best_experiment = context.get("phase_b_v2_next_best_experiment") or {}
+
+    transition_mode = _safe_str(transition.get("phase_b_entry_mode"))
+    redesign_track = _safe_str(redesign_decision.get("recommended_redesign_track"))
+    selected_retry = _safe_str(next_best_experiment.get("selected_experiment_code"))
+    can_retry_after_redesign = bool(redesign_decision.get("can_retry_phase_b_after_redesign"))
+    can_start_immediately = bool(next_best_experiment.get("can_start_immediately_after_redesign"))
+    limited_retry_ready = bool(
+        transition_mode == "limited_experiment"
+        or (can_retry_after_redesign and can_start_immediately and bool(selected_retry))
+    )
+
+    if final_status["ready_to_start_phase_b"]:
+        gate_status = "ready_to_execute"
+        gate_reason = final_status["ready_to_start_phase_b_reason"]
+    elif limited_retry_ready:
+        gate_status = "limited_retry_ready"
+        gate_reason = (
+            "Phase B global masih tertutup, tetapi retry terbatas baseline-only sudah siap "
+            "karena transisi mengizinkan limited_experiment dan redesign memilih baseline terlebih dulu."
+        )
+    else:
+        gate_status = "prepare_only"
+        gate_reason = final_status["ready_to_start_phase_b_reason"]
 
     execution_order = [
         {
             "priority": 1,
-            "item_number": 5,
-            "item_name": item_lookup[5]["item_name"],
-            "current_status": item_lookup[5]["status"],
-            "goal": "Tambahkan filter candle bullish + volume confirmation sebagai eksperimen yang transparan dan default-off.",
-            "priority_reason": "Ini quick win Fase B yang paling dekat dengan engine quant Phase A dan paling murah untuk diuji terhadap baseline beku.",
+            "step_code": "baseline_trade_design_redesign",
+            "item_number": 0,
+            "item_name": "Baseline trade-design redesign",
+            "current_status": "planned",
+            "goal": "Ulang baseline tanpa fitur baru untuk mencari hold period dan trade floor yang lebih usable sebelum membuka ulang eksperimen Phase B.",
+            "priority_reason": "Postmortem Phase B menempatkan trade design baseline sebagai failure mode utama, jadi retry harus dimulai dari fondasi entry/exit dan sample coverage.",
             "likely_files": [
-                "quant/phase_a.py",
-                "quant/evaluate_phase_a_real_data.py",
-                "quant/test_phase_a.py",
+                "quant/run_baseline_trade_design_redesign.py",
+                "quant/run_phase_b_v2_redesign_diagnostics.py",
+                "quant/test_run_baseline_trade_design_redesign.py",
             ],
             "data_dependencies": [
                 "OHLCV harian yang sama dengan Phase A",
                 "Baseline Phase A beku sebagai control arm",
             ],
             "risks": [
-                "Trade count bisa turun terlalu tajam jika confirmation terlalu ketat.",
-                "Mudah terlihat bagus hanya karena sample trade mengecil.",
+                "Coverage bisa tetap terlalu kecil walau hold period dipersingkat.",
+                "Perbaikan score global bisa tampak membaik tetapi tetap belum cukup luas untuk retry global.",
             ],
             "tests_needed": [
-                "Unit test rule candle confirmation aktif vs nonaktif",
-                "Smoke evaluation dengan flag experimental aktif",
+                "Unit test redesign scorer dan selection logic",
+                "Smoke run redesign di data real yang sama dengan baseline aktif",
             ],
             "expected_artifacts": [
-                "Evaluator summary dengan phase_b_candle_confirmation_enabled=true",
-                "Perbandingan hasil vs baseline Phase A beku",
+                "output/baseline_redesign_go_no_go.json",
+                "output/baseline_redesign_global_summary.json",
             ],
             "starter_available": True,
-            "starter_command": "python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --require-candle-volume-confirmation --candle-volume-confirmation-threshold 1.0",
+            "starter_command": "python3 -m quant.run_baseline_trade_design_redesign --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --metadata-file data/ticker_metadata.csv --hold-period-options 3 5 7 --min-trades-options 5 8 10",
         },
         {
             "priority": 2,
-            "item_number": 6,
-            "item_name": item_lookup[6]["item_name"],
-            "current_status": item_lookup[6]["status"],
-            "goal": "Tambahkan weekly trend gate di atas entry daily tanpa mengganggu logika Phase A yang sudah stabil.",
-            "priority_reason": "Multi-timeframe paling berguna setelah candle confirmation tersedia, karena weekly trend berperan sebagai gate yang lebih struktural.",
+            "step_code": "baseline_v2_candidate_validation",
+            "item_number": 0,
+            "item_name": "Baseline v2 candidate validation",
+            "current_status": "planned",
+            "goal": "Validasi kandidat baseline v2 hasil redesign melawan baseline aktif dengan guardrail min trades dan min eligible tickers yang eksplisit.",
+            "priority_reason": "Retry Phase B tidak boleh dibuka hanya karena redesign terlihat membaik; kandidat baseline baru harus menunjukkan uplift yang cukup stabil.",
             "likely_files": [
-                "app/Services/Stocks/PriceSeriesService.php",
-                "app/Services/Analytics/BacktestService.php",
-                "quant/phase_a.py",
-                "tests/Unit/BacktestServiceTest.php",
+                "quant/run_baseline_v2_candidate_validation.py",
+                "quant/run_baseline_revision_diagnostics.py",
+                "quant/test_run_baseline_v2_candidate_validation.py",
             ],
             "data_dependencies": [
-                "Series harga interval 1w atau resampling dari 1d",
-                "Definisi weekly trend sederhana yang konsisten",
+                "Baseline redesign candidate JSON",
+                "Metadata ticker/group yang sama dengan evaluasi baseline",
             ],
             "risks": [
-                "Kompleksitas data meningkat jika belum ada 1w yang bersih.",
-                "Gate weekly bisa menurunkan coverage terlalu besar jika definisinya terlalu kaku.",
+                "Candidate bisa improve pada score tetapi tetap gagal guardrail eligible ticker.",
+                "Performa per ticker bisa netral dan belum cukup untuk promosi atau retry global.",
             ],
             "tests_needed": [
-                "Unit test weekly trend classifier",
-                "Backtest regression untuk memastikan default harian tetap utuh saat weekly gate dimatikan",
+                "Unit test validation delta vs active baseline",
+                "Regression test decision guardrail min_eligible_tickers",
             ],
             "expected_artifacts": [
-                "Report perbandingan daily-only vs weekly-gated entry",
+                "output/baseline_v2_go_no_go.json",
+                "output/baseline_v2_validation_summary.json",
             ],
+            "starter_available": True,
+            "starter_command": "python3 -m quant.run_baseline_v2_candidate_validation --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --candidate-file output/baseline_v2_best_candidate.json --metadata-file data/ticker_metadata.csv --min-trades 5 --min-eligible-tickers 3",
         },
         {
             "priority": 3,
-            "item_number": 7,
-            "item_name": item_lookup[7]["item_name"],
-            "current_status": item_lookup[7]["status"],
-            "goal": "Tambahkan signal momentum sentimen 3 hari yang bisa dipakai sebagai overlay, bukan pengganti core signal.",
-            "priority_reason": "Fondasi seri sentimen harian sudah ada; setelah price-side confirmation lebih rapi, momentum sentimen menjadi enhancer yang logis.",
+            "step_code": "baseline_v2_watchlist_validation",
+            "item_number": 0,
+            "item_name": "Baseline v2 watchlist validation and monitoring",
+            "current_status": "planned",
+            "goal": "Ukur apakah kandidat baseline v2 layak dipakai minimal untuk watchlist subset sambil menunggu stabilitas lintas horizon observasi.",
+            "priority_reason": "Artefak terbaru masih menempatkan kandidat sebagai watchlist-only experimental; subset perlu divalidasi dan dimonitor sebelum retry lanjutan.",
             "likely_files": [
-                "app/Services/Analytics/SentimentPriceAnalyticsService.php",
-                "app/Services/Analytics/DecisionSupportService.php",
-                "app/Services/Analytics/BacktestService.php",
-                "tests/Feature/EvaluationReportTest.php",
+                "quant/run_baseline_v2_watchlist_validation.py",
+                "quant/run_baseline_v2_watchlist_monitoring.py",
+                "quant/test_run_baseline_v2_watchlist_monitoring.py",
             ],
             "data_dependencies": [
-                "per_date_sentiment yang sudah dihitung analytics service",
-                "Definisi rolling 3-day sentiment momentum",
+                "Candidate validation summary",
+                "Subset/watchlist definitions dari validation artifacts",
             ],
             "risks": [
-                "Noise sentimen harian bisa lebih tinggi daripada sinyal harga.",
-                "Momentum mudah double-count dengan weighted sentiment jika tidak dipisah jelas.",
+                "Subset yang terlihat bagus bisa noise-only pada horizon pendek.",
+                "Coverage subset bisa belum cukup untuk promosi meski delta score positif.",
             ],
             "tests_needed": [
-                "Unit test 3-day momentum classification",
-                "Evaluation/backtest assertion bahwa feature bisa dimatikan tanpa regresi output lama",
+                "Unit test subset stability classifier",
+                "Regression test monitoring decision promote/reject/keep experimental",
             ],
             "expected_artifacts": [
-                "Field sentiment_momentum_3d di evaluation/backtest report",
+                "output/baseline_v2_watchlist_validation_summary.json",
+                "output/baseline_v2_watchlist_monitoring_summary.json",
             ],
+            "starter_available": True,
+            "starter_command": "python3 -m quant.run_baseline_v2_watchlist_monitoring --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --candidate-file output/baseline_v2_best_candidate.json --metadata-file data/ticker_metadata.csv --min-trades 5 --observation-windows 1 2 3 4 5",
         },
         {
             "priority": 4,
-            "item_number": 8,
-            "item_name": item_lookup[8]["item_name"],
-            "current_status": item_lookup[8]["status"],
-            "goal": "Naikkan tooling per ticker/group dari riset menjadi adaptive refinement yang disiplin dan sample-aware.",
-            "priority_reason": "Adaptive refinement paling aman dikerjakan setelah tiga enhancer sebelumnya punya bukti yang bersih terhadap baseline Phase A.",
+            "step_code": "phase_b_single_change_retry",
+            "item_number": 0,
+            "item_name": "Phase B single-change retry",
+            "current_status": "planned" if limited_retry_ready else "blocked_until_redesign_complete",
+            "goal": "Jalankan satu retry terkecil setelah redesign dengan hold period dan trade floor hasil audit, tanpa sentiment atau adaptive search space.",
+            "priority_reason": "Roadmap redesign menetapkan satu rerun kecil sebagai langkah informasi tertinggi setelah baseline membaik; item 7 dan 8 tetap parkir sampai hasil retry ini usable.",
             "likely_files": [
-                "quant/run_phase_a_threshold_sweep.py",
-                "quant/freeze_phase_a_baseline.py",
-                "quant/phase_a_baseline.py",
-                "config/phase_a_baseline.json",
+                "quant/evaluate_phase_a_real_data.py",
+                "quant/run_phase_b_v2_redesign_diagnostics.py",
+                "quant/finalize_phase_b_postmortem.py",
             ],
             "data_dependencies": [
-                "Threshold sweep real dengan sample memadai",
-                "Metadata ticker/group yang lengkap",
-                "Baseline Phase A beku sebagai control arm",
+                "Hold period terbaik dari redesign audit",
+                "Min trades realistis dari sample coverage audit",
             ],
             "risks": [
-                "Overfitting per ticker jika sample trade terlalu sedikit.",
-                "Adaptive override sulit dipelihara jika grup/ticker bergeser terlalu sering.",
+                "Retry bisa tetap gagal jika uplift hanya muncul pada subset noise.",
+                "Membuka ulang item 7 atau item 8 terlalu cepat akan mengulang pola no_go yang sama.",
             ],
             "tests_needed": [
-                "Unit test resolver override per group/ticker",
-                "Regression test bahwa fallback global baseline tetap aman",
+                "Smoke evaluation baseline hold=3 pada data real",
+                "Postmortem refresh untuk memastikan keputusan retry tercatat formal",
             ],
             "expected_artifacts": [
-                "Refined baseline freeze dengan override yang benar-benar evidence-based",
+                "output/phase_b_v2_next_best_experiment.json",
+                "output/phase_b_postmortem.json",
+            ],
+            "starter_available": bool(limited_retry_ready),
+            "starter_command": "python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --metadata-file data/ticker_metadata.csv --hold-period 3" if limited_retry_ready else None,
+        },
+        {
+            "priority": 5,
+            "step_code": "phase_b_items_5_to_8_parking_rule",
+            "item_number": 5,
+            "item_name": item_lookup[5]["item_name"],
+            "current_status": item_lookup[5]["status"],
+            "goal": "Tetap parkir item 5-8 global sampai retry baseline-only menghasilkan retention dan coverage yang usable.",
+            "priority_reason": "Postmortem resmi menyatakan item 5-8 final no_go pada konfigurasi lama; roadmap baru hanya mengizinkan pembukaan ulang setelah fondasi baseline lulus audit redesign.",
+            "likely_files": [
+                "output/phase_b_postmortem.txt",
+                "output/phase_b_go_no_go_next_phase.json",
+                "output/project_current_state_summary.txt",
+            ],
+            "data_dependencies": [
+                "Postmortem Phase B final",
+                "Current state summary yang masih freeze",
+            ],
+            "risks": [
+                "Membuka ulang item 5-8 secara global terlalu dini akan menghabiskan sample tanpa edge baru.",
+            ],
+            "tests_needed": [
+                "Tidak ada test code baru; ini guardrail keputusan eksekusi.",
+            ],
+            "expected_artifacts": [
+                "Phase B artifacts tetap konsisten dengan status freeze saat ini",
             ],
         },
     ]
@@ -972,12 +1177,25 @@ def build_phase_b_execution_plan(
     return {
         "generated_at": _now_iso(),
         "gate_status": gate_status,
-        "gate_reason": final_status["ready_to_start_phase_b_reason"],
+        "gate_reason": gate_reason,
+        "retry_scope": (
+            "full_phase_b"
+            if gate_status == "ready_to_execute"
+            else "limited_baseline_only"
+            if gate_status == "limited_retry_ready"
+            else "prepare_only"
+        ),
+        "strategy_context": {
+            "transition_mode": transition_mode or None,
+            "recommended_redesign_track": redesign_track or None,
+            "selected_retry_experiment": selected_retry or None,
+        },
         "phase_a_guardrails": [
             "Jangan ubah default volume spike threshold tanpa artifact sweep real yang baru.",
             "Jangan ubah strict_mode_default tanpa tuning decision real yang eksplisit.",
             "Pertahankan macro_regulatory_signal sebagai context-only moderation sampai ada bukti directional lift yang konsisten.",
             "Semua fitur baru Fase B harus default-off sampai dibandingkan melawan baseline Phase A beku.",
+            "Jangan hidupkan lagi item 7 sentiment momentum atau item 8 adaptive sebelum retry baseline-only menunjukkan retention dan coverage yang usable.",
         ],
         "execution_order": execution_order,
     }
@@ -1055,6 +1273,7 @@ def _roadmap_txt(
     roadmap_items: Sequence[Dict[str, object]],
     phase_summary: Dict[str, Dict[str, int]],
     final_status: Dict[str, object],
+    latest_execution_status: Optional[Dict[str, object]] = None,
 ) -> str:
     """Render the roadmap audit into a readable text report."""
 
@@ -1078,10 +1297,31 @@ def _roadmap_txt(
             f"- Status: {final_status['status']}",
             f"- Reason: {final_status['reason']}",
             f"- Ready to start Phase B: {final_status['ready_to_start_phase_b']}",
-            "",
-            "Audit item per item:",
         ]
     )
+
+    latest = dict(latest_execution_status or {})
+    if latest:
+        lines.extend(["", "Status terkini strategi:"])
+        ordered_keys = [
+            ("phase_b_status", "Phase B status"),
+            ("phase_c_decision", "Phase C decision"),
+            ("root_problem_class", "Root problem class"),
+            ("baseline_redesign_status", "Baseline redesign status"),
+            ("baseline_v3_signal_rule_status", "Baseline v3 signal rule status"),
+            ("baseline_v3_signal_rule_best_rule", "Baseline v3 signal rule best rule"),
+            ("baseline_revision_status", "Baseline revision status"),
+            ("baseline_v2_validation_status", "Baseline v2 validation status"),
+            ("baseline_v2_subset_status", "Baseline v2 subset status"),
+            ("current_track", "Current track"),
+            ("recommended_next_action", "Recommended next action"),
+        ]
+        for key, label in ordered_keys:
+            value = _safe_str(latest.get(key))
+            if value:
+                lines.append(f"- {label}: {value}")
+
+    lines.extend(["", "Audit item per item:"])
 
     for item in roadmap_items:
         lines.append(
@@ -1093,6 +1333,61 @@ def _roadmap_txt(
         lines.append(f"   Next action: {item['recommended_next_action']}")
 
     return "\n".join(lines) + "\n"
+
+
+def _build_latest_execution_status(output_dir: Path) -> Dict[str, object]:
+    """Summarize the latest strategic status from execution artifacts."""
+
+    context = _load_execution_context(output_dir)
+    transition = context.get("transition") or {}
+    phase_b_postmortem = context.get("phase_b_postmortem") or {}
+    phase_b_next_phase = context.get("phase_b_next_phase") or {}
+    baseline_redesign = context.get("baseline_redesign") or {}
+    baseline_v3_signal_rule = context.get("baseline_v3_signal_rule") or {}
+    baseline_revision = context.get("baseline_revision") or {}
+    baseline_v2_validation = context.get("baseline_v2_validation") or {}
+    baseline_v2_subset = context.get("baseline_v2_subset") or {}
+
+    baseline_v3_status = _safe_str(baseline_v3_signal_rule.get("decision"))
+    baseline_v3_next_action = _safe_str(baseline_v3_signal_rule.get("recommended_next_action"))
+    baseline_v3_track = (
+        "redesign_baseline_v2_again"
+        if baseline_v3_status == "no_go"
+        else baseline_v3_next_action
+    )
+
+    return {
+        "phase_b_status": _safe_str(phase_b_postmortem.get("phase_b_status") or transition.get("phase_b_status")),
+        "phase_c_decision": _safe_str(phase_b_next_phase.get("phase_c_decision")),
+        "root_problem_class": _safe_str(phase_b_next_phase.get("root_problem_class")),
+        "baseline_redesign_status": _safe_str(baseline_redesign.get("decision") or transition.get("baseline_redesign_status")),
+        "baseline_v3_signal_rule_status": baseline_v3_status,
+        "baseline_v3_signal_rule_best_rule": _safe_str(baseline_v3_signal_rule.get("best_rule")),
+        "baseline_revision_status": _safe_str(baseline_revision.get("decision") or transition.get("baseline_revision_status")),
+        "baseline_v2_validation_status": _safe_str(
+            baseline_v2_validation.get("decision") or transition.get("baseline_v2_validation_status")
+        ),
+        "baseline_v2_subset_status": _safe_str(
+            baseline_v2_subset.get("decision") or transition.get("baseline_v2_subset_status")
+        ),
+        "current_track": _safe_str(
+            baseline_v3_track
+            or transition.get("baseline_v2_subset_next_action")
+            or baseline_v2_subset.get("next_action")
+            or transition.get("baseline_v2_validation_next_action")
+            or baseline_v2_validation.get("recommended_next_action")
+            or transition.get("baseline_revision_next_action")
+            or baseline_revision.get("next_action")
+        ),
+        "recommended_next_action": _safe_str(
+            baseline_v3_track
+            or baseline_v2_subset.get("next_action")
+            or baseline_v2_validation.get("recommended_next_action")
+            or baseline_revision.get("next_action")
+            or baseline_redesign.get("next_action")
+            or phase_b_next_phase.get("recommended_next_action")
+        ),
+    }
 
 
 def _phase_a_summary_txt(final_status: Dict[str, object], blockers_df: pd.DataFrame, next_steps: Sequence[str]) -> str:
@@ -1326,11 +1621,14 @@ def audit_project_roadmap(
     phase_b_plan = build_phase_b_execution_plan(
         roadmap_items=roadmap_items,
         final_status=final_status,
+        output_dir=resolved_output_dir,
     )
     phase_c_backlog = build_phase_c_backlog(
         roadmap_items=roadmap_items,
         final_status=final_status,
     )
+
+    latest_execution_status = _build_latest_execution_status(resolved_output_dir)
 
     roadmap_payload = {
         "generated_at": _now_iso(),
@@ -1341,6 +1639,7 @@ def audit_project_roadmap(
             if final_status["ready_to_start_phase_b"]
             else "phase_a_closeout_and_phase_b_preparation"
         ),
+        "latest_execution_status": latest_execution_status,
         "phase_a_final_status": final_status,
         "warnings": warnings,
         "items": roadmap_items,
@@ -1351,6 +1650,7 @@ def audit_project_roadmap(
         roadmap_items=roadmap_items,
         phase_summary=phase_summary,
         final_status=final_status,
+        latest_execution_status=latest_execution_status,
     )
     phase_a_summary_txt = _phase_a_summary_txt(
         final_status=final_status,

@@ -123,6 +123,61 @@ class ExportPhaseARealDataCommandTest extends TestCase
         }
     }
 
+    public function test_export_command_prefers_non_seed_price_when_same_trade_date_has_duplicates(): void
+    {
+        $stock = Stock::factory()->create([
+            'code' => 'DEWA',
+            'company_name' => 'Darma Henwa',
+            'sector' => 'Pertambangan',
+            'is_active' => true,
+        ]);
+
+        $this->seedStockHistory($stock, 55);
+        StockPrice::create([
+            'stock_id' => $stock->id,
+            'price_date' => Carbon::create(2026, 2, 10, 15),
+            'interval_type' => '1d',
+            'open' => 99,
+            'high' => 111,
+            'low' => 98,
+            'close' => 101,
+            'volume' => 120000,
+            'source' => 'seed',
+        ]);
+        StockPrice::create([
+            'stock_id' => $stock->id,
+            'price_date' => Carbon::create(2026, 2, 10, 0),
+            'interval_type' => '1d',
+            'open' => 540,
+            'high' => 560,
+            'low' => 535,
+            'close' => 555,
+            'volume' => 5000000,
+            'source' => null,
+        ]);
+
+        $tempRoot = base_path('tests/tmp/'.Str::uuid()->toString());
+        $dataDir = $tempRoot.'/data';
+        $metadataPath = $dataDir.'/ticker_metadata.csv';
+
+        try {
+            $this->artisan('phase-a:export-real-data', [
+                '--data-dir' => Str::after($dataDir, base_path().DIRECTORY_SEPARATOR),
+                '--metadata-file' => Str::after($metadataPath, base_path().DIRECTORY_SEPARATOR),
+                '--min-rows' => 50,
+            ])->assertExitCode(0);
+
+            $csv = array_map('str_getcsv', file($dataDir.'/DEWA.csv', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+            $this->assertNotFalse($csv);
+
+            $matchingRows = collect($csv)->filter(fn (array $row) => ($row[0] ?? null) === '2026-02-10')->values();
+            $this->assertCount(1, $matchingRows);
+            $this->assertSame('555', $matchingRows[0][4]);
+        } finally {
+            File::deleteDirectory($tempRoot);
+        }
+    }
+
     protected function seedStockHistory(Stock $stock, int $days): void
     {
         $start = Carbon::create(2026, 1, 1);

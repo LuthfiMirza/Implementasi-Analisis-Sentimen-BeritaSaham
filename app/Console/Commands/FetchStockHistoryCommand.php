@@ -10,14 +10,14 @@ use Illuminate\Support\Facades\Http;
 
 class FetchStockHistoryCommand extends Command
 {
-    protected $signature = 'stocks:fetch-history {--days=90 : Jumlah hari historis, default 90 (3mo)}';
+    protected $signature = 'stocks:fetch-history {--days=90 : Jumlah hari historis yang diinginkan untuk backfill harga 1D}';
 
     protected $description = 'Fetch harga historis (OHLCV) via Yahoo Finance untuk semua saham aktif';
 
     public function handle(): int
     {
-        $days = (int) $this->option('days');
-        $range = $days >= 90 ? '3mo' : ($days >= 60 ? '2mo' : '1mo');
+        $days = max(1, (int) $this->option('days'));
+        $range = $this->resolveYahooRange($days);
         $stocks = Stock::where('is_active', true)->get();
 
         foreach ($stocks as $stock) {
@@ -80,5 +80,36 @@ class FetchStockHistoryCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    protected function resolveYahooRange(int $days): string
+    {
+        // Fix history-range cap so requests above 90 days can actually extend beyond the old 3mo window.
+        if ($days <= 5) {
+            return '5d';
+        }
+        if ($days <= 30) {
+            return '1mo';
+        }
+        if ($days <= 90) {
+            return '3mo';
+        }
+        if ($days <= 180) {
+            return '6mo';
+        }
+        if ($days <= 365) {
+            return '1y';
+        }
+        if ($days <= 730) {
+            return '2y';
+        }
+        if ($days <= 1825) {
+            return '5y';
+        }
+        if ($days <= 3650) {
+            return '10y';
+        }
+
+        return 'max';
     }
 }

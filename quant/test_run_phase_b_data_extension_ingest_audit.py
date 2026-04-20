@@ -1,0 +1,351 @@
+"""Tests for Phase B data-extension ingest audit runner."""
+
+from __future__ import annotations
+
+import csv
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+import pandas as pd
+
+from quant.run_phase_b_data_extension_execution_plan import run_phase_b_data_extension_execution_plan
+from quant.run_phase_b_data_extension_progress_update import run_phase_b_data_extension_progress_update
+from quant.run_phase_b_data_extension_ingest_audit import run_phase_b_data_extension_ingest_audit
+
+
+def _write_json(path: Path, payload: dict) -> None:
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def _write_csv(path: Path, fieldnames: list[str], rows: list[dict]) -> None:
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+
+
+class RunPhaseBDataExtensionIngestAuditTestCase(unittest.TestCase):
+    def _write_price_csv(self, path: Path, history_rows: int, article_days: set[int], duplicate_last_date: bool = False) -> None:
+        rows = []
+        dates = list(pd.date_range("2026-01-01", periods=history_rows, freq="B"))
+        if duplicate_last_date and len(dates) > 1:
+            dates[-1] = dates[-2]
+        for i in range(history_rows):
+            rows.append(
+                {
+                    "date": dates[i].strftime("%Y-%m-%d"),
+                    "open": 100 + i,
+                    "high": 101 + i,
+                    "low": 99 + i,
+                    "close": 100 + i,
+                    "volume": 1000000 + i,
+                    "sentiment_average_1d": 0,
+                    "sentiment_weighted_1d": 0,
+                    "sentiment_news_count_1d": 1 if i in article_days else 0,
+                }
+            )
+        _write_csv(
+            path,
+            [
+                "date",
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+                "sentiment_average_1d",
+                "sentiment_weighted_1d",
+                "sentiment_news_count_1d",
+            ],
+            rows,
+        )
+
+    def _write_baseline_artifacts(self, output_dir: Path, history_rows: int, article_days_map: dict[str, set[int]], primary_trades: dict[str, int], fold_trades: list[int]) -> None:
+        tickers = list(article_days_map.keys())
+        segmentation_rows = []
+        for ticker in tickers:
+            article_days = len(article_days_map[ticker])
+            segmentation_rows.append(
+                {
+                    "ticker": ticker,
+                    "rows": history_rows,
+                    "history_rows": history_rows,
+                    "date_start": "2026-01-01",
+                    "date_end": "2026-06-30",
+                    "article_count_total": article_days,
+                    "news_count_total": article_days,
+                    "article_days": article_days,
+                    "news_density_pct": round((100.0 * article_days / history_rows), 4),
+                    "news_segment": "mid_news" if ticker in {"AAA", "BBB", "CCC", "DDD"} else "high_news",
+                    "sentiment_segment": "sentiment_poor",
+                    "liquidity_segment": "thin_sparse" if ticker in {"AAA", "BBB", "CCC", "EEE"} else "liquid_active",
+                    "volatility_segment": "mixed_volatility" if ticker in {"AAA", "BBB", "DDD", "EEE"} else "higher_volatility",
+                }
+            )
+        _write_csv(
+            output_dir / "baseline_v6_universe_segmentation.csv",
+            [
+                "ticker",
+                "rows",
+                "history_rows",
+                "date_start",
+                "date_end",
+                "article_count_total",
+                "news_count_total",
+                "article_days",
+                "news_density_pct",
+                "news_segment",
+                "sentiment_segment",
+                "liquidity_segment",
+                "volatility_segment",
+            ],
+            segmentation_rows,
+        )
+
+        _write_json(
+            output_dir / "phase_b_retest_readiness_gate.json",
+            {
+                "history_gate": "FAIL",
+                "universe_coverage_gate": "FAIL",
+                "news_distribution_gate": "FAIL",
+                "oos_fairness_gate": "FAIL",
+                "framework_governance_gate": "PASS",
+                "roadmap_discipline_gate": "PASS",
+                "final_decision": "belum_boleh_retest",
+                "highest_blocking_gate": "history_gate",
+                "primary_segment": "sentiment_segment=sentiment_poor",
+                "safe_segments_evaluated": [
+                    "volatility_segment=mixed_volatility",
+                    "sentiment_segment=sentiment_poor",
+                    "liquidity_segment=thin_sparse",
+                    "news_segment=mid_news",
+                ],
+            },
+        )
+        _write_json(output_dir / "phase_b_retest_next_requirements.json", {"final_decision": "belum_boleh_retest"})
+        _write_json(output_dir / "phase_b_data_extension_audit.json", {"history_length_assessment": {"current_min_usable_oos_windows": 3}})
+        _write_json(output_dir / "framework_redesign_scope.json", {"what_must_stay_fixed": ["baseline aktif"]})
+        _write_json(output_dir / "universe_reconstruction_precheck.json", {"whether_current_universe_is_usable_for_any_fair_retest": False})
+        _write_json(output_dir / "phase_b_final_closeout.json", {"phase_b_final_status": "phase_b_closed_with_learnings_no_candidate"})
+        _write_json(output_dir / "project_after_phase_b_decision.json", {"recommended_primary_next_step": "stop_and_collect_more_data_then_redesign_framework"})
+        _write_json(output_dir / "baseline_v9_segment_oos_summary.json", {"methodology": {"warmup_bars": 21, "fold_size_bars": 12}})
+        _write_json(
+            output_dir / "baseline_v9_segment_oos_go_no_go.json",
+            {
+                "primary_segment": "sentiment_segment=sentiment_poor",
+                "primary_total_trades_sum": sum(primary_trades.values()),
+                "primary_active_ticker_count": sum(1 for value in primary_trades.values() if value > 0),
+            },
+        )
+
+        result_rows = []
+        for ticker in tickers:
+            result_rows.append(
+                {
+                    "row_type": "ticker_oos_summary",
+                    "tested_segment": "sentiment_segment=sentiment_poor",
+                    "ticker": ticker,
+                    "candidate_total_trades": primary_trades[ticker],
+                }
+            )
+        for index, trades in enumerate(fold_trades, start=1):
+            result_rows.append(
+                {
+                    "row_type": "segment_fold",
+                    "tested_segment": "sentiment_segment=sentiment_poor",
+                    "ticker": "__segment__",
+                    "fold_id": index,
+                    "candidate_total_trades": trades,
+                }
+            )
+        _write_csv(
+            output_dir / "baseline_v9_segment_oos_results.csv",
+            ["row_type", "tested_segment", "ticker", "fold_id", "candidate_total_trades"],
+            result_rows,
+        )
+
+    def _write_metadata(self, metadata_file: Path, history_rows_map: dict[str, int], article_days_map: dict[str, set[int]]) -> None:
+        rows = []
+        for ticker, history_rows in history_rows_map.items():
+            article_days = len(article_days_map[ticker])
+            rows.append(
+                {
+                    "ticker": ticker,
+                    "sector": "generic",
+                    "category": "general",
+                    "company_name": f"{ticker} Tbk",
+                    "interval_type": "1d",
+                    "rows_1d": history_rows,
+                    "date_start": "2026-01-01",
+                    "date_end": "2026-06-30",
+                    "sentiment_days_with_articles": article_days,
+                    "sentiment_article_count_total": article_days,
+                }
+            )
+        _write_csv(
+            metadata_file,
+            [
+                "ticker",
+                "sector",
+                "category",
+                "company_name",
+                "interval_type",
+                "rows_1d",
+                "date_start",
+                "date_end",
+                "sentiment_days_with_articles",
+                "sentiment_article_count_total",
+            ],
+            rows,
+        )
+
+    def _prepare_fixture(self, root: Path, scenario: str = "baseline", include_metadata: bool = True) -> tuple[Path, Path, Path]:
+        data_dir = root / "data"
+        output_dir = root / "output"
+        data_dir.mkdir()
+        output_dir.mkdir()
+
+        tickers = ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF"]
+        baseline_history_rows = 57
+        baseline_article_days_map = {
+            "AAA": {2, 6},
+            "BBB": {3},
+            "CCC": {4},
+            "DDD": {5},
+            "EEE": set(),
+            "FFF": {7},
+        }
+        primary_trades = {"AAA": 4, "BBB": 3, "CCC": 2, "DDD": 1, "EEE": 1, "FFF": 0}
+        fold_trades = [2, 3, 6]
+
+        for ticker in tickers:
+            self._write_price_csv(data_dir / f"{ticker}.csv", history_rows=baseline_history_rows, article_days=baseline_article_days_map[ticker])
+
+        metadata_file = data_dir / "ticker_metadata.csv"
+        if include_metadata:
+            self._write_metadata(
+                metadata_file=metadata_file,
+                history_rows_map={ticker: baseline_history_rows for ticker in tickers},
+                article_days_map=baseline_article_days_map,
+            )
+
+        self._write_baseline_artifacts(
+            output_dir=output_dir,
+            history_rows=baseline_history_rows,
+            article_days_map=baseline_article_days_map,
+            primary_trades=primary_trades,
+            fold_trades=fold_trades,
+        )
+
+        run_phase_b_data_extension_execution_plan(
+            data_dir=data_dir,
+            output_dir=output_dir,
+            metadata_file=metadata_file if include_metadata else metadata_file,
+        )
+        run_phase_b_data_extension_progress_update(
+            data_dir=data_dir,
+            output_dir=output_dir,
+            metadata_file=metadata_file if include_metadata else metadata_file,
+        )
+
+        if scenario in {"valid_ingest", "duplicate_ingest"}:
+            updated_article_days_map = {
+                "AAA": {2, 6, 12},
+                "BBB": {3, 10, 14},
+                "CCC": {4, 11, 15},
+                "DDD": {5, 12, 16},
+                "EEE": {13, 17, 21},
+                "FFF": {8, 18, 22},
+            }
+            updated_history_rows_map = {ticker: 78 for ticker in tickers}
+            for ticker in tickers:
+                self._write_price_csv(
+                    data_dir / f"{ticker}.csv",
+                    history_rows=78,
+                    article_days=updated_article_days_map[ticker],
+                    duplicate_last_date=(scenario == "duplicate_ingest" and ticker == "AAA"),
+                )
+            if include_metadata:
+                self._write_metadata(
+                    metadata_file=metadata_file,
+                    history_rows_map=updated_history_rows_map,
+                    article_days_map=updated_article_days_map,
+                )
+            segmentation_path = output_dir / "baseline_v6_universe_segmentation.csv"
+            segmentation = pd.read_csv(segmentation_path)
+            segmentation["rows"] = 78
+            segmentation["history_rows"] = 78
+            segmentation["article_count_total"] = [len(updated_article_days_map[ticker]) for ticker in segmentation["ticker"]]
+            segmentation["news_count_total"] = segmentation["article_count_total"]
+            segmentation["article_days"] = segmentation["article_count_total"]
+            segmentation["news_density_pct"] = [round(100.0 * value / 78, 4) for value in segmentation["article_days"]]
+            segmentation.to_csv(segmentation_path, index=False)
+
+        return data_dir, output_dir, metadata_file
+
+    def test_main_artifacts_are_generated(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_dir, output_dir, metadata_file = self._prepare_fixture(Path(tmp_dir))
+            result = run_phase_b_data_extension_ingest_audit(data_dir=data_dir, output_dir=output_dir, metadata_file=metadata_file)
+
+            for name in [
+                "phase_b_data_extension_ingest_audit.json",
+                "phase_b_data_extension_ingest_audit.txt",
+                "phase_b_data_extension_ingest_matrix.csv",
+                "phase_b_priority_ticker_ingest_status.csv",
+                "phase_b_ingest_acceptance_decision.json",
+            ]:
+                self.assertTrue((output_dir / name).exists(), f"Missing artifact: {name}")
+
+            self.assertTrue(result["phase_b_ingest_acceptance_decision"]["ingest_audit_ready"])
+
+    def test_baseline_without_progress_is_rejected_cleanly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_dir, output_dir, metadata_file = self._prepare_fixture(Path(tmp_dir))
+            result = run_phase_b_data_extension_ingest_audit(data_dir=data_dir, output_dir=output_dir, metadata_file=metadata_file)
+
+            payload = result["phase_b_ingest_acceptance_decision"]
+            self.assertEqual("rejected", payload["batch_acceptance_status"])
+            self.assertEqual([], payload["accepted_tickers"])
+            self.assertGreater(len(payload["rejected_tickers"]), 0)
+            self.assertFalse(payload["history_extension_progress_ok"])
+
+    def test_valid_ingest_accepts_priority_tickers(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_dir, output_dir, metadata_file = self._prepare_fixture(Path(tmp_dir), scenario="valid_ingest")
+            result = run_phase_b_data_extension_ingest_audit(data_dir=data_dir, output_dir=output_dir, metadata_file=metadata_file)
+
+            payload = result["phase_b_ingest_acceptance_decision"]
+            self.assertIn(payload["batch_acceptance_status"], {"accepted", "accepted_with_warnings"})
+            self.assertGreater(len(payload["accepted_tickers"]), 0)
+            self.assertTrue(payload["history_extension_progress_ok"])
+            self.assertTrue(payload["article_day_recovery_progress_ok"])
+
+    def test_duplicate_or_broken_ingest_is_rejected_or_warned_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_dir, output_dir, metadata_file = self._prepare_fixture(Path(tmp_dir), scenario="duplicate_ingest")
+            result = run_phase_b_data_extension_ingest_audit(data_dir=data_dir, output_dir=output_dir, metadata_file=metadata_file)
+
+            rows = result["phase_b_data_extension_ingest_matrix"]
+            aaa = next(row for row in rows if row["ticker"] == "AAA")
+            self.assertEqual("rejected", aaa["ingest_status"])
+            self.assertTrue(aaa["duplicate_rows_detected"])
+
+            payload = result["phase_b_ingest_acceptance_decision"]
+            self.assertIn("AAA", payload["rejected_tickers"])
+            self.assertIn(payload["batch_acceptance_status"], {"rejected", "accepted_with_warnings"})
+
+    def test_script_runs_with_limited_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_dir, output_dir, metadata_file = self._prepare_fixture(Path(tmp_dir), include_metadata=False)
+            result = run_phase_b_data_extension_ingest_audit(data_dir=data_dir, output_dir=output_dir, metadata_file=metadata_file)
+
+            self.assertTrue((output_dir / "phase_b_data_extension_ingest_matrix.csv").exists())
+            self.assertTrue(any("ticker_metadata.csv unavailable" in item for item in result["phase_b_ingest_acceptance_decision"]["limitations"]))
+
+
+if __name__ == "__main__":
+    unittest.main()
