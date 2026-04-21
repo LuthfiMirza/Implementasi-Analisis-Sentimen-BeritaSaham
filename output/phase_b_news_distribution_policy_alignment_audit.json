@@ -1,0 +1,248 @@
+{
+  "generated_at": "2026-04-21T13:47:47.420394+00:00",
+  "source_of_truth_artifacts": {
+    "readiness_gate": "output/phase_b_retest_readiness_gate.json",
+    "readiness_blocker_audit": "output/phase_b_readiness_blocker_audit.json",
+    "news_distribution_threshold_audit": "output/phase_b_news_distribution_threshold_audit.json"
+  },
+  "current_news_distribution_gate_definition": {
+    "gate_name": "news_distribution_gate",
+    "status": "FAIL",
+    "subchecks": [
+      {
+        "threshold_name": "median_news_density_pct",
+        "operator": ">=",
+        "target_value": 5.0,
+        "actual_value": 0.3252,
+        "scope": "current ticker universe from data/ticker_metadata.csv",
+        "scope_tickers": [
+          "ADRO",
+          "ASII",
+          "BBCA",
+          "BBRI",
+          "BMRI",
+          "BUMI",
+          "DEWA",
+          "GOTO",
+          "ICBP",
+          "INDF",
+          "TLKM",
+          "UNVR"
+        ],
+        "scope_ticker_count": 12,
+        "source_of_truth_artifact": "data/ticker_metadata.csv",
+        "source_field": "news_density_pct median across ticker universe"
+      },
+      {
+        "threshold_name": "primary_segment_total_articles",
+        "operator": ">=",
+        "target_value": 18.0,
+        "actual_value": 56.0,
+        "scope": "sentiment_segment=sentiment_poor",
+        "scope_tickers": [
+          "ASII",
+          "BBCA",
+          "BUMI",
+          "UNVR"
+        ],
+        "scope_ticker_count": 4,
+        "source_of_truth_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "source_field": "article_count_total sum for sentiment_segment=sentiment_poor"
+      },
+      {
+        "threshold_name": "primary_segment_article_days_median",
+        "operator": ">=",
+        "target_value": 4.0,
+        "actual_value": 6.0,
+        "scope": "sentiment_segment=sentiment_poor",
+        "scope_tickers": [
+          "ASII",
+          "BBCA",
+          "BUMI",
+          "UNVR"
+        ],
+        "scope_ticker_count": 4,
+        "source_of_truth_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "source_field": "article_days median for sentiment_segment=sentiment_poor"
+      },
+      {
+        "threshold_name": "no_single_ticker_article_share",
+        "operator": "<=",
+        "target_value": 0.35,
+        "actual_value": 0.3571,
+        "scope": "sentiment_segment=sentiment_poor",
+        "scope_tickers": [
+          "ASII",
+          "BBCA",
+          "BUMI",
+          "UNVR"
+        ],
+        "scope_ticker_count": 4,
+        "source_of_truth_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "source_field": "max(article_count_total) / sum(article_count_total) for sentiment_segment=sentiment_poor"
+      }
+    ]
+  },
+  "official_distribution_universe": {
+    "density_gate_scope": "current ticker universe from data/ticker_metadata.csv used by news_distribution_gate::median_news_density_pct",
+    "density_gate_tickers": [
+      "ADRO",
+      "ASII",
+      "BBCA",
+      "BBRI",
+      "BMRI",
+      "BUMI",
+      "DEWA",
+      "GOTO",
+      "ICBP",
+      "INDF",
+      "TLKM",
+      "UNVR"
+    ],
+    "density_gate_ticker_count": 12,
+    "primary_distribution_pool_scope": "sentiment_segment=sentiment_poor",
+    "primary_distribution_pool_tickers": [
+      "ASII",
+      "BBCA",
+      "BUMI",
+      "UNVR"
+    ],
+    "primary_distribution_pool_ticker_count": 4
+  },
+  "actual_distribution_summary": {
+    "actual_median_density": 0.3252,
+    "actual_mean_density": 0.3473,
+    "dominant_ticker": "BUMI",
+    "current_primary_pool_share": 0.3571,
+    "current_primary_pool_total_articles": 56.0,
+    "current_primary_pool_article_days_median": 6.0
+  },
+  "threshold_density": 5.0,
+  "threshold_share": 0.35,
+  "compatibility_assessment": {
+    "status": "incompatible",
+    "reason": "Subcheck median_news_density_pct memakai threshold 5.0 pada universe resmi 12 ticker, tetapi aktual median hanya 0.3252. Tidak ada ticker yang mencapai target.",
+    "main_problem_location": "threshold_with_secondary_metric_scope_tension"
+  },
+  "structural_gap_assessment": {
+    "actual_median_density": 0.3252,
+    "threshold_density": 5.0,
+    "gap_to_threshold": 4.6748,
+    "actual_mean_density": 0.3473,
+    "actual_min_density": 0.2033,
+    "actual_max_density": 0.8333,
+    "actual_density_range": 0.63,
+    "current_tickers_at_or_above_threshold": 0,
+    "minimum_tickers_needed_at_or_above_threshold_for_median_pass": 7,
+    "minimum_additional_article_days_total_for_cheapest_path": 728,
+    "threshold_article_days_required_for_typical_ticker": 123,
+    "actual_median_article_days": 8.0,
+    "primary_pool_counterfactual_median_density_if_option_B_uses_primary_only": 0.2439,
+    "primary_pool_counterfactual_tickers_at_or_above_threshold": []
+  },
+  "policy_options": [
+    {
+      "option_id": "A",
+      "policy_path": "keep_official_distribution_universe_realign_density_threshold",
+      "summary": "Pertahankan definisi universe resmi saat ini, tetapi realign threshold median density ke level yang data-aligned.",
+      "pro": [
+        "Perubahan paling kecil di layer policy.",
+        "Tetap memakai source-of-truth universe yang sekarang dipakai gate.",
+        "Mudah diaudit karena hanya threshold density yang dibahas ulang."
+      ],
+      "contra": [
+        "Risiko dibaca sebagai pelonggaran threshold semata.",
+        "Tidak menyelesaikan fakta bahwa gate mencampur scope universe-wide density dengan primary-pool concentration."
+      ],
+      "methodological_risk": "low_to_medium",
+      "comparability_risk": "medium_on_gate_history_but_low_on_strategy_and_oos_artifacts",
+      "implementation_effort": "low",
+      "alignment_with_real_data": "better_than_current_but_still_imperfect_due_to_scope_mix"
+    },
+    {
+      "option_id": "B",
+      "policy_path": "keep_density_threshold_5_redefine_distribution_universe",
+      "summary": "Pertahankan threshold 5.0, tetapi ubah universe/pool yang dihitung gate.",
+      "pro": [
+        "Threshold 5.0 tetap dipertahankan tanpa penurunan eksplisit.",
+        "Bisa membuat seluruh subcheck news distribution memakai scope yang seragam."
+      ],
+      "contra": [
+        "Counterfactual primary-pool median density tetap hanya 0.2439, jadi mengganti universe saja tidak menyelesaikan mismatch.",
+        "Mengubah universe berisiko terlihat arbitrer jika tidak ditopang alasan governance yang kuat."
+      ],
+      "methodological_risk": "medium",
+      "comparability_risk": "medium_to_high_because_gate_scope_changes",
+      "implementation_effort": "medium",
+      "alignment_with_real_data": "poor_if_threshold_5_is_retained"
+    },
+    {
+      "option_id": "C",
+      "policy_path": "keep_distribution_intent_replace_density_metric_with_sparse_coverage_robust_metric",
+      "summary": "Pertahankan intent distribution gate, tetapi ganti metric density median ke metric yang lebih robust terhadap long-tail sparse coverage.",
+      "pro": [
+        "Lebih selaras dengan data harian yang sangat panjang tetapi news-event driven.",
+        "Bisa memakai metric yang lebih interpretable seperti median article_days atau share tickers above minimum article-days.",
+        "Memisahkan fairness distribusi dari penalti historis yang berlebihan pada universe panjang."
+      ],
+      "contra": [
+        "Perubahan metric lebih besar daripada sekadar realign threshold.",
+        "Perlu justifikasi policy yang lebih lengkap agar tidak dianggap moving the goalposts."
+      ],
+      "methodological_risk": "medium",
+      "comparability_risk": "high_on_gate_metric_history",
+      "implementation_effort": "medium",
+      "alignment_with_real_data": "high"
+    },
+    {
+      "option_id": "D",
+      "policy_path": "hybrid_keep_share_controls_realign_density_component_with_sparse_coverage_metric_or_threshold",
+      "summary": "Pertahankan kontrol concentration/primary-pool yang ada, tetapi realign khusus density component dengan threshold atau metric yang sparse-coverage aware.",
+      "pro": [
+        "Menjaga blocker concentration yang masih relevan seperti no_single_ticker_article_share.",
+        "Mengoreksi mismatch utama di density component tanpa menghapus intent distribution gate.",
+        "Paling mudah dipertahankan secara governance karena masalah utama memang ada di subcheck density, bukan seluruh gate."
+      ],
+      "contra": [
+        "Gate akan tetap terdiri dari subcheck dengan scope berbeda, sehingga dokumentasi harus sangat jelas.",
+        "Comparability historis di subcheck density tetap berubah."
+      ],
+      "methodological_risk": "low_to_medium",
+      "comparability_risk": "medium_on_density_subcheck_only",
+      "implementation_effort": "medium",
+      "alignment_with_real_data": "highest"
+    }
+  ],
+  "recommended_policy_path": {
+    "option_id": "D",
+    "policy_path": "hybrid_keep_share_controls_realign_density_component_with_sparse_coverage_metric_or_threshold",
+    "decision": "escalate_gate_policy_discussion_for_density_component_only",
+    "rationale": [
+      "Masalah eksplisit ada pada density subcheck: threshold 5.0 tidak reachable secara wajar di universe resmi saat ini.",
+      "Mengganti universe saja tidak menyelesaikan mismatch; primary-pool counterfactual median pun tetap jauh di bawah 5.0.",
+      "Share/concentration control masih relevan dan hampir tertutup, jadi tidak perlu dibuang bersama subcheck density.",
+      "Hybrid path menjaga intent distribution governance sambil membatasi perubahan hanya pada bagian policy yang terbukti structurally misaligned."
+    ],
+    "requires_gate_policy_change": true,
+    "requires_strategy_or_oos_change": false
+  },
+  "remaining_active_blockers_even_if_news_density_policy_is_realigned": [
+    {
+      "blocker_name": "universe_coverage_gate::primary_segment_ticker_count",
+      "actual_value": 4.0,
+      "target_value": 5.0,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "news_distribution_gate::no_single_ticker_article_share",
+      "actual_value": 0.3571,
+      "target_value": 0.35,
+      "operator": "<="
+    }
+  ],
+  "readiness_status_final": "belum_boleh_retest",
+  "roadmap_update_assessment": {
+    "allowed": false,
+    "reason": "News distribution policy audit ini tidak menutup blocker lain yang masih aktif."
+  }
+}

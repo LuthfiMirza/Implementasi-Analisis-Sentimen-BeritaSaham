@@ -41,10 +41,13 @@ class RunPhaseBBatch1CompletionCheckTestCase(unittest.TestCase):
                 "phase_b_segmentation_refresh_status.json",
                 "phase_b_segmentation_refresh_status.txt",
                 "phase_b_batch1_completion_decision.json",
+                "phase_b_batch1_closeout_summary.json",
+                "phase_b_batch1_closeout_summary.txt",
             ]:
                 self.assertTrue((output_dir / name).exists(), f"Missing artifact: {name}")
 
             self.assertIn("phase_b_batch1_completion_decision", result)
+            self.assertIn("phase_b_batch1_closeout_summary", result)
 
     def test_batch_1_stays_not_complete_when_article_day_is_still_below_target(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -79,6 +82,10 @@ class RunPhaseBBatch1CompletionCheckTestCase(unittest.TestCase):
             self.assertEqual("batch_1_started_but_not_complete", decision["batch_1_status"])
             self.assertFalse(decision["batch_1_completed"])
             self.assertFalse(decision["checkpoint_material_reached"])
+            self.assertEqual(
+                "batch_1_started_but_not_complete",
+                result["phase_b_batch1_closeout_summary"]["batch_1_status_final"],
+            )
 
     def test_batch_1_complete_when_article_day_target_and_segmentation_sync_are_met(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -114,6 +121,11 @@ class RunPhaseBBatch1CompletionCheckTestCase(unittest.TestCase):
             self.assertTrue(decision["batch_1_completed"])
             self.assertFalse(decision["checkpoint_material_reached"])
             self.assertFalse(decision["recheck_readiness_gate_allowed"])
+            closeout = result["phase_b_batch1_closeout_summary"]
+            self.assertEqual("phase_b_batch1_completion_decision.json", closeout["source_of_truth_artifact"])
+            self.assertEqual("batch_1_complete_but_checkpoint_not_material", closeout["batch_1_status_final"])
+            self.assertTrue(closeout["batch_1_completed"])
+            self.assertFalse(closeout["checkpoint_material_reached"])
 
 if __name__ == "__main__":
     unittest.main()

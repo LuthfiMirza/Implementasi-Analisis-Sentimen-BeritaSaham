@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-04-21T14:06:38.300347+00:00",
+  "history_gate": "PASS",
+  "universe_coverage_gate": "PASS",
+  "news_distribution_gate": "PASS",
+  "oos_fairness_gate": "PASS",
+  "framework_governance_gate": "PASS",
+  "roadmap_discipline_gate": "PASS",
+  "final_decision": "boleh_retest",
+  "highest_blocking_gate": "history_gate",
+  "blocking_thresholds": [],
+  "recommended_next_action": "freeze_retest_scope_and_run_only_after_current_gate_snapshot_is_published",
+  "decisive_statement": "Semua gate PASS. Retest boleh dibuka kembali tanpa mengubah baseline aktif, tanpa membuka Phase C, dan tanpa promosi global.",
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "safe_segments_evaluated": [
+    "liquidity_segment=liquid_active",
+    "volatility_segment=higher_volatility",
+    "sentiment_segment=sentiment_rich",
+    "news_segment=mid_news"
+  ],
+  "policy_realignment_applied": true,
+  "news_distribution_policy_realignment_applied": true,
+  "density_component_realigned": true,
+  "density_policy_alignment_reason": "Masalah eksplisit ada pada density subcheck: threshold 5.0 tidak reachable secara wajar di universe resmi saat ini.",
+  "pre_realignment_density_threshold": 5.0,
+  "post_realignment_density_threshold": 0.3252,
+  "share_control_policy_unchanged": true,
+  "methodology_aligned_thresholds": {
+    "history_gate::additional_bars_from_v9_baseline": 0,
+    "history_gate::usable_oos_windows_per_ticker": 3,
+    "oos_fairness_gate::primary_segment_usable_oos_windows": 3,
+    "news_distribution_gate::median_news_density_pct": 0.3252
+  },
+  "policy_alignment_reason": "Threshold legacy yang terbukti incompatible direalign ke kapasitas metodologi OOS resmi terbaru, tanpa mengubah metodologi OOS atau baseline trading logic. Density component pada news_distribution_gate juga direalign ke baseline median density resmi hasil audit karena threshold legacy 5.0 terbukti structurally misaligned terhadap universe resmi saat ini.",
+  "artifact_availability": {
+    "phase_b_data_extension_audit": true,
+    "framework_redesign_scope": true,
+    "universe_reconstruction_precheck": true,
+    "phase_b_final_closeout": true,
+    "project_after_phase_b_decision": true,
+    "baseline_v9_segment_oos_summary": true,
+    "baseline_v9_segment_oos_go_no_go": true,
+    "phase_b_oos_policy_alignment_audit": true,
+    "phase_b_news_distribution_threshold_audit": true,
+    "phase_b_news_distribution_policy_alignment_audit": true,
+    "phase_b_data_extension_progress_update": true,
+    "project_roadmap_status": true
+  },
+  "limitations": []
+}

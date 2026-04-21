@@ -301,6 +301,7 @@ def _methodology(artifacts: Dict[str, Dict[str, object]]) -> Dict[str, int]:
     return {
         "warmup_bars": _safe_int(meta.get("warmup_bars"), 21),
         "fold_size_bars": _safe_int(meta.get("fold_size_bars"), 12),
+        "min_rows_across_tested_tickers": _safe_int(meta.get("min_rows_across_tested_tickers"), 57),
     }
 
 
@@ -623,11 +624,13 @@ def _build_progress_tracker(
     v9_results: pd.DataFrame,
     primary_segment: str,
 ) -> List[Dict[str, object]]:
-    gate = safe_dict(artifacts.get("phase_b_retest_readiness_gate"))
     audit = safe_dict(artifacts.get("phase_b_data_extension_audit"))
     history_assessment = safe_dict(audit.get("history_length_assessment"))
-    news_assessment = safe_dict(audit.get("news_distribution_assessment"))
     v9_go = safe_dict(artifacts.get("baseline_v9_segment_oos_go_no_go"))
+    methodology = _methodology(artifacts)
+    v9_min_history = max(0, _safe_int(methodology.get("min_rows_across_tested_tickers"), 57))
+    warmup_bars = _safe_int(methodology.get("warmup_bars"), 21)
+    fold_size_bars = _safe_int(methodology.get("fold_size_bars"), 12)
 
     if working.empty:
         current_history = 0.0
@@ -636,20 +639,25 @@ def _build_progress_tracker(
         primary_article_days_median = 0.0
     else:
         current_history = float(pd.to_numeric(working["history_rows"], errors="coerce").fillna(0).min())
-        current_additional = max(0.0, current_history - 57.0)
         coverage_mask = (
             pd.to_numeric(working["history_rows"], errors="coerce").fillna(0).ge(TARGET_HISTORY_BARS)
-            & pd.Series([_usable_oos_windows(_safe_int(value), 21, 12) for value in list(working["history_rows"])]).ge(TARGET_USABLE_OOS_WINDOWS)
+            & pd.Series(
+                [
+                    _usable_oos_windows(_safe_int(value), warmup_bars, fold_size_bars)
+                    for value in list(working["history_rows"])
+                ]
+            ).ge(TARGET_USABLE_OOS_WINDOWS)
         )
         coverage_ready_ratio = round(float(coverage_mask.mean()), 4) if len(working) else 0.0
         primary_subset = working.loc[working["is_primary_segment"].astype(bool)].copy()
         primary_total_articles = float(pd.to_numeric(primary_subset.get("news_count_total"), errors="coerce").fillna(0).sum()) if not primary_subset.empty else 0.0
         primary_article_days_median = round(float(pd.to_numeric(primary_subset.get("article_days"), errors="coerce").fillna(0).median()), 4) if not primary_subset.empty else 0.0
 
-    current_additional = max(0.0, current_history - 57.0)
-    derived_windows = _usable_oos_windows(int(current_history), 21, 12)
-    # Audit artifacts can lag after backfill; do not let an older cached window count
-    # override a higher window count that is already visible in the current snapshot.
+    current_additional = max(0.0, current_history - float(v9_min_history))
+    derived_windows = _usable_oos_windows(int(current_history), warmup_bars, fold_size_bars)
+    # Progress update must follow the same OOS basis used by readiness/audit.
+    # The audit artifact can lag by one rerun, so keep the larger value between the
+    # refreshed methodology-derived window count and any already-published audit count.
     current_windows = float(
         max(
             _safe_int(history_assessment.get("current_min_usable_oos_windows"), derived_windows),
@@ -684,7 +692,7 @@ def _build_progress_tracker(
             42.0,
             63.0,
             ">=",
-            "Tambahan bar dihitung relatif terhadap baseline v9 sebesar 57 bar.",
+            "Tambahan bar dihitung relatif terhadap minimum rows yang dipakai summary baseline v9 terbaru.",
         ),
         _tracker_row(
             "history_oos_windows",
@@ -697,7 +705,7 @@ def _build_progress_tracker(
             6.0,
             8.0,
             ">=",
-            "Usable OOS windows naik seiring extension history.",
+            "Usable OOS windows mengikuti warmup dan fold_size pada summary baseline v9 terbaru.",
         ),
         _tracker_row(
             "coverage_ready_ratio",

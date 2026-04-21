@@ -1,0 +1,10 @@
+{
+  "final_decision": "boleh_retest",
+  "highest_blocking_gate": "history_gate",
+  "recommended_next_action": "freeze_retest_scope_and_run_only_after_current_gate_snapshot_is_published",
+  "priority_requirements": [],
+  "blocking_thresholds": [],
+  "can_continue_to_phase_c": false,
+  "can_continue_strategy_experiments_now": true,
+  "decisive_statement": "Semua gate PASS. Retest boleh dibuka kembali tanpa mengubah baseline aktif, tanpa membuka Phase C, dan tanpa promosi global."
+}

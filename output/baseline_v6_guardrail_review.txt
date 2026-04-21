@@ -1,0 +1,37 @@
+Baseline v6 Guardrail Review
+============================
+
+- Recommended guardrail mode: move_to_segment_aware_guardrail
+- Recommended universe mode: split_universe_before_next_experiment
+- Global guardrail still valid: True
+- Segment-aware evaluation recommended: True
+
+- Decisive statement: Universe terlalu heterogen; eksperimen berikutnya wajib dijalankan pada subset tertentu. Guardrail global tetap dipakai sebagai gate promosi akhir, tetapi evaluasi fairness kandidat harus dihitung per-segmen.
+
+Guardrail audit:
+- eligible_ticker_count: Global minimum eligible ticker count tetap berguna sebagai gate promosi, tetapi terlalu kasar bila dipakai sendirian untuk universe yang heterogen.
+- total_trades_sum: Total trade sample perlu tetap dijaga, namun lebih informatif bila dihitung di level segment yang konsisten daripada langsung mencampur seluruh universe.
+- min_trades_threshold: Menurunkan trade floor per ticker cenderung hanya menaikkan coverage mekanis tanpa memperbaiki quality pada sample yang benar-benar eligible.
+- eligible_for_analysis: Definisi aktif `candidate_total_trades >= 5` jangan dilonggarkan global karena outlier non-eligible terbukti bisa mengangkat mean return agregat secara semu.
+- global_vs_segment: Guardrail global masih valid sebagai gate terakhir, tetapi review fairness kandidat perlu pindah ke evaluasi per-segmen.
+
+Candidate impact:
+- baseline_v2_hold3_with_trend_guard: current=no_go, relaxed=no_go, best_segment=none, supporting_rule=no_go
+- baseline_v3_ema20_trend_guard: current=no_go, relaxed=no_go, best_segment=volatility_segment=higher_volatility, supporting_rule=keep_experimental_for_segment_review
+- baseline_v4_quality_gate_guard: current=no_go, relaxed=no_go, best_segment=none, supporting_rule=no_go
+- baseline_v5_hold4_extension: current=no_go, relaxed=no_go, best_segment=none, supporting_rule=no_go
+
+Segments safe to test next:
+- liquidity_segment=liquid_active
+- volatility_segment=higher_volatility
+- sentiment_segment=sentiment_rich
+- news_segment=mid_news
+
+Segments to avoid:
+- sentiment_segment=sentiment_poor
+- volatility_segment=mixed_volatility
+- liquidity_segment=thin_sparse
+- news_segment=low_news
+- news_segment=high_news
+- category=finance
+- sector=perbankan

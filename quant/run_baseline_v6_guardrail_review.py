@@ -23,6 +23,7 @@ REVIEW_JSON_OUTPUT = "baseline_v6_guardrail_review.json"
 REVIEW_TEXT_OUTPUT = "baseline_v6_guardrail_review.txt"
 SCENARIO_CSV_OUTPUT = "baseline_v6_guardrail_scenarios.csv"
 SEGMENTATION_CSV_OUTPUT = "baseline_v6_universe_segmentation.csv"
+SEGMENTATION_AUDIT_OUTPUT = "baseline_v6_sentiment_segment_audit.json"
 SEGMENT_RECOMMENDATIONS_OUTPUT = "baseline_v6_segment_recommendations.json"
 GOVERNANCE_OUTPUT = "baseline_v6_next_experiment_governance.json"
 
@@ -227,6 +228,14 @@ def _binary_split(series: pd.Series, high_label: str, low_label: str) -> pd.Seri
     return output
 
 
+def _median_threshold(series: pd.Series) -> Optional[float]:
+    values = pd.to_numeric(series, errors="coerce")
+    non_null = values.dropna()
+    if non_null.empty:
+        return None
+    return float(non_null.median())
+
+
 def _extract_article_series(frame: pd.DataFrame, metadata_row: Dict[str, object]) -> Tuple[float, int, List[str]]:
     warnings: List[str] = []
     if "sentiment_news_count_1d" in frame.columns:
@@ -332,6 +341,79 @@ def _scan_universe(data_dir: Path, metadata_df: pd.DataFrame) -> Tuple[pd.DataFr
         limitations.append("Seluruh ticker punya panjang seri yang mirip; segment panjang data tidak informatif.")
 
     return universe_df, dedupe(warnings), dedupe(limitations)
+
+
+def _build_sentiment_segment_audit(universe_df: pd.DataFrame) -> Dict[str, object]:
+    threshold = _median_threshold(universe_df["article_days"])
+    focus_tickers = {"BBCA", "BMRI", "GOTO", "INDF", "UNVR"}
+    rows: List[Dict[str, object]] = []
+
+    for item in universe_df.sort_values("ticker").to_dict(orient="records"):
+        ticker = _safe_str(item.get("ticker"))
+        segment = _safe_str(item.get("sentiment_segment"), "unknown")
+        article_days = _safe_int(item.get("article_days"))
+        article_count_total = _safe_float(item.get("article_count_total"))
+        news_density_pct = item.get("news_density_pct")
+
+        if threshold is None:
+            reason_summary = "article_days tidak tersedia, sehingga sentiment_segment tidak bisa dibelah dengan median."
+        elif segment == "unknown":
+            reason_summary = (
+                f"article_days={article_days} tidak usable untuk rule median split threshold={_round_or_none(threshold)}."
+            )
+        elif article_days >= threshold:
+            reason_summary = (
+                f"article_days={article_days} >= median_threshold={_round_or_none(threshold)} "
+                f"=> {segment}."
+            )
+        else:
+            reason_summary = (
+                f"article_days={article_days} < median_threshold={_round_or_none(threshold)} "
+                f"=> {segment}."
+            )
+
+        rows.append(
+            {
+                "ticker": ticker,
+                "sentiment_segment_current": segment,
+                "article_count_total": _round_or_none(article_count_total),
+                "article_days": article_days,
+                "news_density_pct": _round_or_none(_safe_float(news_density_pct), 5),
+                "split_metric": "article_days",
+                "split_threshold": _round_or_none(threshold),
+                "split_rule": (
+                    "article_days >= median(article_days) => sentiment_rich; "
+                    "article_days < median(article_days) => sentiment_poor"
+                ),
+                "reason_summary": reason_summary,
+                "source_artifact": SEGMENTATION_CSV_OUTPUT,
+                "source_fields": ["article_days", "article_count_total", "news_density_pct", "sentiment_segment"],
+                "is_focus_ticker": ticker in focus_tickers,
+            }
+        )
+
+    focus_rows = [row for row in rows if row["is_focus_ticker"]]
+    return {
+        "generated_at": _now_iso(),
+        "source_script": "quant/run_baseline_v6_guardrail_review.py",
+        "source_artifact": SEGMENTATION_CSV_OUTPUT,
+        "classification_logic": (
+            "sentiment_segment dibentuk di _scan_universe dengan "
+            "_binary_split(universe_df['article_days'], 'sentiment_rich', 'sentiment_poor')."
+        ),
+        "classification_basis": {
+            "metric": "article_days",
+            "threshold_type": "median",
+            "threshold_value": _round_or_none(threshold),
+            "rule": (
+                "article_days >= median(article_days) => sentiment_rich; "
+                "article_days < median(article_days) => sentiment_poor"
+            ),
+        },
+        "focus_tickers": sorted(focus_tickers),
+        "focus_rows": focus_rows,
+        "rows": rows,
+    }
 
 
 def _candidate_global_snapshot(stage: str, context_payloads: Dict[str, object]) -> Dict[str, object]:
@@ -1356,6 +1438,7 @@ def run_baseline_v6_guardrail_review(
         segment_recommendations=segment_recommendations,
         recommended_guardrail_mode=recommended_guardrail_mode,
     )
+    segmentation_audit = _build_sentiment_segment_audit(universe_df=universe_df)
     if governance_payload["recommended_guardrail_mode"] not in RECOMMENDED_GUARDRAIL_MODES:
         raise BaselineV6GuardrailReviewCliError("recommended_guardrail_mode must be explicit and valid.")
     if governance_payload["recommended_universe_mode"] not in RECOMMENDED_UNIVERSE_MODES:
@@ -1376,6 +1459,7 @@ def run_baseline_v6_guardrail_review(
 
     scenario_output = output_dir / SCENARIO_CSV_OUTPUT
     segmentation_output = output_dir / SEGMENTATION_CSV_OUTPUT
+    segmentation_audit_output = output_dir / SEGMENTATION_AUDIT_OUTPUT
     review_json_output = output_dir / REVIEW_JSON_OUTPUT
     review_text_output = output_dir / REVIEW_TEXT_OUTPUT
     segment_recommendations_output = output_dir / SEGMENT_RECOMMENDATIONS_OUTPUT
@@ -1383,6 +1467,7 @@ def run_baseline_v6_guardrail_review(
 
     scenario_df.to_csv(scenario_output, index=False)
     universe_df.to_csv(segmentation_output, index=False)
+    _write_json(segmentation_audit_output, segmentation_audit)
     _write_json(review_json_output, review_payload)
     _write_text(review_text_output, review_lines)
     _write_json(segment_recommendations_output, segment_recommendations)
@@ -1393,12 +1478,14 @@ def run_baseline_v6_guardrail_review(
         "scenario_df": scenario_df,
         "universe_df": universe_df,
         "segment_recommendations": segment_recommendations,
+        "segmentation_audit": segmentation_audit,
         "governance": governance_payload,
         "artifacts": {
             "review_json": str(review_json_output),
             "review_text": str(review_text_output),
             "scenario_csv": str(scenario_output),
             "segmentation_csv": str(segmentation_output),
+            "segmentation_audit_json": str(segmentation_audit_output),
             "segment_recommendations_json": str(segment_recommendations_output),
             "governance_json": str(governance_output),
         },

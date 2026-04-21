@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-04-21T14:18:10.519000+00:00",
+  "source_of_truth_artifacts": {
+    "readiness_gate": "output/phase_b_retest_readiness_gate.json",
+    "readiness_blockers": "output/phase_b_readiness_blocker_audit.json",
+    "oos_summary": "output/baseline_v9_segment_oos_summary.json",
+    "oos_go_no_go": "output/baseline_v9_segment_oos_go_no_go.json",
+    "phase_b_closeout": "output/phase_b_final_closeout.json",
+    "project_after_phase_b_decision": "output/project_after_phase_b_decision.json"
+  },
+  "retest_readiness_status": "boleh_retest",
+  "readiness_gate_all_pass": true,
+  "active_blockers": [],
+  "strategy_retest_status": "executed",
+  "candidate_id": "baseline_v3_ema20_trend_guard",
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "official_primary_segment_tickers": [
+    "ADRO",
+    "ASII",
+    "BBCA",
+    "BUMI",
+    "UNVR"
+  ],
+  "retest_result": "no_go_even_for_segment",
+  "recommended_retest_next_action": "drop_candidate_from_primary_segment_even_for_experimental_use",
+  "phase_b_final_status": "phase_b_closed_with_learnings_no_candidate",
+  "project_phase_c_status": "phase_c_no_go_yet",
+  "can_continue_strategy_experiments_now": false,
+  "can_continue_to_phase_c": false,
+  "primary_segment_metrics": {
+    "ticker_count": 5,
+    "active_ticker_count": 5,
+    "candidate_total_trades": 1434,
+    "trade_weighted_average_return": -0.0423,
+    "mean_average_return_active": -0.0047,
+    "positive_fold_share": 0.3333,
+    "oos_stability_ok": false,
+    "ticker_consistency_ok": false,
+    "outlier_bias_ok": true
+  },
+  "decisive_statement": "Tidak ada kandidat yang stabil bahkan pada subset-aware OOS validation. Phase B ditutup sebagai gagal secara strategi, bukan karena coding belum selesai. Langkah berikutnya bukan eksperimen strategi baru, melainkan pengumpulan data tambahan dan redesign framework evaluasi. Phase C tetap tidak boleh dibuka."
+}

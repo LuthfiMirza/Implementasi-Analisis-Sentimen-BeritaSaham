@@ -1,0 +1,28 @@
+Phase B Retest Execution Summary
+================================
+
+- generated_at=2026-04-21T14:18:10.519000+00:00
+- retest_readiness_status=boleh_retest
+- strategy_retest_status=executed
+- candidate_id=baseline_v3_ema20_trend_guard
+- primary_segment=sentiment_segment=sentiment_poor
+- official_primary_segment_tickers=ADRO, ASII, BBCA, BUMI, UNVR
+- retest_result=no_go_even_for_segment
+- recommended_retest_next_action=drop_candidate_from_primary_segment_even_for_experimental_use
+- phase_b_final_status=phase_b_closed_with_learnings_no_candidate
+- project_phase_c_status=phase_c_no_go_yet
+- can_continue_strategy_experiments_now=False
+- can_continue_to_phase_c=False
+
+Primary segment metrics:
+- ticker_count=5
+- active_ticker_count=5
+- candidate_total_trades=1434
+- trade_weighted_average_return=-0.0423
+- mean_average_return_active=-0.0047
+- positive_fold_share=0.3333
+- oos_stability_ok=False
+- ticker_consistency_ok=False
+- outlier_bias_ok=True
+
+- decisive_statement=Tidak ada kandidat yang stabil bahkan pada subset-aware OOS validation. Phase B ditutup sebagai gagal secara strategi, bukan karena coding belum selesai. Langkah berikutnya bukan eksperimen strategi baru, melainkan pengumpulan data tambahan dan redesign framework evaluasi. Phase C tetap tidak boleh dibuka.

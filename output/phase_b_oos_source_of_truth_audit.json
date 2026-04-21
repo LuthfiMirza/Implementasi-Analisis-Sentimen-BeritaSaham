@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-04-21T14:06:38.362875+00:00",
+  "source_of_truth_oos_final": {
+    "methodology_artifact": "output/baseline_v9_segment_oos_summary.json",
+    "methodology_fields": [
+      "methodology.warmup_bars",
+      "methodology.fold_size_bars",
+      "methodology.min_rows_across_tested_tickers"
+    ],
+    "readiness_consumption_artifacts": [
+      "output/phase_b_data_extension_audit.json",
+      "output/phase_b_retest_readiness_gate.json"
+    ]
+  },
+  "rows_per_ticker_latest": {
+    "current_min_history_rows_across_universe": 960,
+    "current_min_rows_across_tested_tickers_from_v9_summary": 960
+  },
+  "legacy_execution_plan_basis": {
+    "baseline_min_rows": 57,
+    "warmup_bars": 21,
+    "fold_size_bars": 12,
+    "usable_oos_windows_per_ticker": 78,
+    "additional_bars_from_v9_baseline": 903
+  },
+  "current_v9_official_basis": {
+    "warmup_bars": 21,
+    "fold_size_bars": 313,
+    "min_rows_across_tested_tickers": 960,
+    "usable_oos_windows_per_ticker": 3,
+    "additional_bars_from_v9_baseline": 0
+  },
+  "readiness_projection": {
+    "usable_oos_windows_per_ticker": 3,
+    "additional_bars_from_v9_baseline": 0,
+    "coverage_ready_ticker_ratio": 0.9167
+  },
+  "progress_update_projection": {
+    "usable_oos_windows_per_ticker": 3.0,
+    "additional_bars_from_v9_baseline": 0.0,
+    "coverage_ready_ticker_ratio": 0.9167
+  },
+  "data_extension_audit_projection": {
+    "usable_oos_windows_per_ticker": 3
+  },
+  "reason_summary": "usable_oos_windows_per_ticker turun ke 3 karena readiness sekarang memakai warmup_bars=21, fold_size_bars=313, dan min_rows_across_tested_tickers=960 dari baseline_v9 summary terbaru. Dengan rows=960, rumus floor((rows - warmup) / fold_size) menjadi floor((960 - 21) / 313) = 3. Di basis legacy 57/21/12, nilai yang sama akan terbaca 78.",
+  "basis_change_valid": true,
+  "basis_change_reason": "Perubahan basis valid dan intended karena baseline_v9 OOS rerun resmi memang memperbarui metodologi walk-forward berdasarkan min_rows_across_tested_tickers dan fold_size_bars terbaru.",
+  "cross_artifact_consistency": {
+    "progress_update_matches_readiness": true,
+    "consistency_note": "Progress update, data extension audit, dan readiness gate sekarang membaca basis OOS yang sama."
+  }
+}

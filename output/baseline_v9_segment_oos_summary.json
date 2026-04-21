@@ -1,0 +1,697 @@
+{
+  "generated_at": "2026-04-21T14:14:52.432677+00:00",
+  "roadmap_constraints": {
+    "phase_a_status": "closed_with_notes",
+    "phase_b_status": "phase_b_needs_redesign_before_continue",
+    "phase_c_decision": "phase_c_no_go_yet"
+  },
+  "input_context": {
+    "baseline_v8_decision": "promote_to_segment_only_validation",
+    "candidate_id": "baseline_v3_ema20_trend_guard",
+    "primary_segment": "sentiment_segment=sentiment_poor",
+    "supporting_segments": [
+      "volatility_segment=mixed_volatility",
+      "liquidity_segment=thin_sparse",
+      "news_segment=mid_news"
+    ],
+    "global_promotion_allowed": false
+  },
+  "methodology": {
+    "validation_mode": "anchored_walk_forward_oos",
+    "candidate_frozen": true,
+    "entry_exit_logic_changed": false,
+    "global_guardrail_changed": false,
+    "global_promotion_allowed": false,
+    "warmup_bars": 21,
+    "fold_count": 3,
+    "fold_size_bars": 313,
+    "min_rows_across_tested_tickers": 960,
+    "hold_period": 3,
+    "entry_rule": "close_gt_ema20_and_bullish_candle",
+    "min_trades_threshold": 5
+  },
+  "governance_snapshot": {
+    "segments_safe_to_test_next": [
+      "liquidity_segment=liquid_active",
+      "volatility_segment=higher_volatility",
+      "sentiment_segment=sentiment_rich",
+      "news_segment=mid_news"
+    ],
+    "what_to_keep_fixed": [
+      "baseline aktif",
+      "logika entry/exit aktif",
+      "eligible_for_analysis tetap berbasis minimum trade floor 5",
+      "Jangan ubah baseline aktif.",
+      "Jangan lanjut ke Phase C.",
+      "Jangan hidupkan lagi item 5-8.",
+      "Jangan mulai eksperimen strategi baru sebelum root cause guardrail ditutup."
+    ],
+    "what_not_to_do": [
+      "jangan hidupkan item 5-8",
+      "jangan lanjut ke Phase C",
+      "jangan turunkan global min_trades_threshold hanya untuk mengejar coverage",
+      "jangan promosikan kandidat yang quality-nya hanya ditopang ticker non-eligible",
+      "item5",
+      "item6",
+      "item7",
+      "item8",
+      "entry_relaxation_only",
+      "volume_relaxed_entry",
+      "exit_hold_only_redesign"
+    ]
+  },
+  "tested_segments": [
+    {
+      "tested_segment": "sentiment_segment=sentiment_poor",
+      "segment_field": "sentiment_segment",
+      "segment_value": "sentiment_poor",
+      "segment_role": "primary",
+      "tickers": [
+        "ADRO",
+        "ASII",
+        "BBCA",
+        "BUMI",
+        "UNVR"
+      ],
+      "summary": {
+        "tested_segment": "sentiment_segment=sentiment_poor",
+        "segment_field": "sentiment_segment",
+        "segment_value": "sentiment_poor",
+        "segment_role": "primary",
+        "tickers": [
+          "ADRO",
+          "ASII",
+          "BBCA",
+          "BUMI",
+          "UNVR"
+        ],
+        "ticker_count": 5,
+        "active_ticker_count": 5,
+        "positive_ticker_count": 1,
+        "candidate_signal_count": 2954,
+        "candidate_total_trades": 1434,
+        "mean_average_return_all": -0.0047,
+        "mean_average_return_active": -0.0047,
+        "trade_weighted_average_return": -0.0423,
+        "median_average_return_active": -0.1484,
+        "mean_score_all": -1.4486,
+        "mean_score_active": -1.4486,
+        "active_fold_count": 3,
+        "positive_fold_count": 1,
+        "positive_fold_share": 0.3333,
+        "top_abs_pnl_share": 0.4122,
+        "top_positive_pnl_share": 1.0,
+        "outlier_bias_ok": true,
+        "ticker_consistency_ok": false,
+        "oos_stability_ok": false,
+        "primary_viable": false,
+        "robustness_check_passed": false,
+        "fold_summaries": [
+          {
+            "fold_id": 1,
+            "fold_start": "2016-05-24",
+            "fold_end": "2017-08-24",
+            "ticker_count": 5,
+            "active_ticker_count": 5,
+            "candidate_signal_count": 474,
+            "candidate_total_trades": 218,
+            "mean_average_return_all": 0.4618,
+            "mean_average_return_active": 0.4618,
+            "trade_weighted_average_return": 0.3298
+          },
+          {
+            "fold_id": 2,
+            "fold_start": "2017-08-25",
+            "fold_end": "2018-11-06",
+            "ticker_count": 5,
+            "active_ticker_count": 5,
+            "candidate_signal_count": 384,
+            "candidate_total_trades": 182,
+            "mean_average_return_all": 0.0063,
+            "mean_average_return_active": 0.0063,
+            "trade_weighted_average_return": -0.0298
+          },
+          {
+            "fold_id": 3,
+            "fold_start": "2018-11-07",
+            "fold_end": "2020-01-24",
+            "ticker_count": 5,
+            "active_ticker_count": 5,
+            "candidate_signal_count": 382,
+            "candidate_total_trades": 186,
+            "mean_average_return_all": -0.524,
+            "mean_average_return_active": -0.524,
+            "trade_weighted_average_return": -0.3375
+          }
+        ]
+      }
+    },
+    {
+      "tested_segment": "volatility_segment=mixed_volatility",
+      "segment_field": "volatility_segment",
+      "segment_value": "mixed_volatility",
+      "segment_role": "supporting",
+      "tickers": [
+        "ASII",
+        "BBRI",
+        "BMRI",
+        "UNVR"
+      ],
+      "summary": {
+        "tested_segment": "volatility_segment=mixed_volatility",
+        "segment_field": "volatility_segment",
+        "segment_value": "mixed_volatility",
+        "segment_role": "supporting",
+        "tickers": [
+          "ASII",
+          "BBRI",
+          "BMRI",
+          "UNVR"
+        ],
+        "ticker_count": 4,
+        "active_ticker_count": 4,
+        "positive_ticker_count": 0,
+        "candidate_signal_count": 2531,
+        "candidate_total_trades": 1221,
+        "mean_average_return_all": -0.222,
+        "mean_average_return_active": -0.222,
+        "trade_weighted_average_return": -0.218,
+        "median_average_return_active": -0.2398,
+        "mean_score_all": -2.3102,
+        "mean_score_active": -2.3102,
+        "active_fold_count": 3,
+        "positive_fold_count": 1,
+        "positive_fold_share": 0.3333,
+        "top_abs_pnl_share": 0.4006,
+        "top_positive_pnl_share": 0.0,
+        "outlier_bias_ok": true,
+        "ticker_consistency_ok": false,
+        "oos_stability_ok": false,
+        "primary_viable": false,
+        "robustness_check_passed": false,
+        "fold_summaries": [
+          {
+            "fold_id": 1,
+            "fold_start": "2016-05-24",
+            "fold_end": "2017-08-24",
+            "ticker_count": 4,
+            "active_ticker_count": 4,
+            "candidate_signal_count": 413,
+            "candidate_total_trades": 184,
+            "mean_average_return_all": 0.1998,
+            "mean_average_return_active": 0.1998,
+            "trade_weighted_average_return": 0.1769
+          },
+          {
+            "fold_id": 2,
+            "fold_start": "2017-08-25",
+            "fold_end": "2018-11-06",
+            "ticker_count": 4,
+            "active_ticker_count": 4,
+            "candidate_signal_count": 324,
+            "candidate_total_trades": 152,
+            "mean_average_return_all": 0.0022,
+            "mean_average_return_active": 0.0022,
+            "trade_weighted_average_return": -0.0239
+          },
+          {
+            "fold_id": 3,
+            "fold_start": "2018-11-07",
+            "fold_end": "2020-01-24",
+            "ticker_count": 4,
+            "active_ticker_count": 4,
+            "candidate_signal_count": 347,
+            "candidate_total_trades": 170,
+            "mean_average_return_all": -0.2521,
+            "mean_average_return_active": -0.2521,
+            "trade_weighted_average_return": -0.2413
+          }
+        ]
+      }
+    },
+    {
+      "tested_segment": "liquidity_segment=thin_sparse",
+      "segment_field": "liquidity_segment",
+      "segment_value": "thin_sparse",
+      "segment_role": "supporting",
+      "tickers": [
+        "ADRO",
+        "ASII",
+        "DEWA",
+        "ICBP",
+        "INDF",
+        "UNVR"
+      ],
+      "summary": {
+        "tested_segment": "liquidity_segment=thin_sparse",
+        "segment_field": "liquidity_segment",
+        "segment_value": "thin_sparse",
+        "segment_role": "supporting",
+        "tickers": [
+          "ADRO",
+          "ASII",
+          "DEWA",
+          "ICBP",
+          "INDF",
+          "UNVR"
+        ],
+        "ticker_count": 6,
+        "active_ticker_count": 6,
+        "positive_ticker_count": 1,
+        "candidate_signal_count": 3336,
+        "candidate_total_trades": 1630,
+        "mean_average_return_all": -0.1781,
+        "mean_average_return_active": -0.1781,
+        "trade_weighted_average_return": -0.1959,
+        "median_average_return_active": -0.1755,
+        "mean_score_all": -3.6259,
+        "mean_score_active": -3.6259,
+        "active_fold_count": 3,
+        "positive_fold_count": 1,
+        "positive_fold_share": 0.3333,
+        "top_abs_pnl_share": 0.3376,
+        "top_positive_pnl_share": 1.0,
+        "outlier_bias_ok": true,
+        "ticker_consistency_ok": false,
+        "oos_stability_ok": false,
+        "primary_viable": false,
+        "robustness_check_passed": false,
+        "fold_summaries": [
+          {
+            "fold_id": 1,
+            "fold_start": "2016-05-24",
+            "fold_end": "2017-08-24",
+            "ticker_count": 6,
+            "active_ticker_count": 6,
+            "candidate_signal_count": 515,
+            "candidate_total_trades": 242,
+            "mean_average_return_all": -0.069,
+            "mean_average_return_active": -0.069,
+            "trade_weighted_average_return": 0.0017
+          },
+          {
+            "fold_id": 2,
+            "fold_start": "2017-08-25",
+            "fold_end": "2018-11-06",
+            "ticker_count": 6,
+            "active_ticker_count": 6,
+            "candidate_signal_count": 383,
+            "candidate_total_trades": 180,
+            "mean_average_return_all": -1.1364,
+            "mean_average_return_active": -1.1364,
+            "trade_weighted_average_return": -0.3774
+          },
+          {
+            "fold_id": 3,
+            "fold_start": "2018-11-07",
+            "fold_end": "2020-01-24",
+            "ticker_count": 6,
+            "active_ticker_count": 5,
+            "candidate_signal_count": 425,
+            "candidate_total_trades": 207,
+            "mean_average_return_all": -0.0688,
+            "mean_average_return_active": -0.0825,
+            "trade_weighted_average_return": -0.0552
+          }
+        ]
+      }
+    },
+    {
+      "tested_segment": "news_segment=mid_news",
+      "segment_field": "news_segment",
+      "segment_value": "mid_news",
+      "segment_role": "supporting",
+      "tickers": [
+        "ADRO",
+        "BBRI",
+        "GOTO",
+        "ICBP"
+      ],
+      "summary": {
+        "tested_segment": "news_segment=mid_news",
+        "segment_field": "news_segment",
+        "segment_value": "mid_news",
+        "segment_role": "supporting",
+        "tickers": [
+          "ADRO",
+          "BBRI",
+          "GOTO",
+          "ICBP"
+        ],
+        "ticker_count": 4,
+        "active_ticker_count": 4,
+        "positive_ticker_count": 0,
+        "candidate_signal_count": 2119,
+        "candidate_total_trades": 1033,
+        "mean_average_return_all": -0.2789,
+        "mean_average_return_active": -0.2789,
+        "trade_weighted_average_return": -0.1884,
+        "median_average_return_active": -0.2019,
+        "mean_score_all": 0.3881,
+        "mean_score_active": 0.3881,
+        "active_fold_count": 3,
+        "positive_fold_count": 1,
+        "positive_fold_share": 0.3333,
+        "top_abs_pnl_share": 0.5658,
+        "top_positive_pnl_share": 0.0,
+        "outlier_bias_ok": true,
+        "ticker_consistency_ok": false,
+        "oos_stability_ok": false,
+        "primary_viable": false,
+        "robustness_check_passed": false,
+        "fold_summaries": [
+          {
+            "fold_id": 1,
+            "fold_start": "2016-05-24",
+            "fold_end": "2017-08-24",
+            "ticker_count": 4,
+            "active_ticker_count": 4,
+            "candidate_signal_count": 375,
+            "candidate_total_trades": 175,
+            "mean_average_return_all": -0.0713,
+            "mean_average_return_active": -0.0713,
+            "trade_weighted_average_return": 0.0306
+          },
+          {
+            "fold_id": 2,
+            "fold_start": "2017-08-25",
+            "fold_end": "2018-11-06",
+            "ticker_count": 4,
+            "active_ticker_count": 4,
+            "candidate_signal_count": 312,
+            "candidate_total_trades": 149,
+            "mean_average_return_all": -0.1642,
+            "mean_average_return_active": -0.1642,
+            "trade_weighted_average_return": -0.1897
+          },
+          {
+            "fold_id": 3,
+            "fold_start": "2018-11-07",
+            "fold_end": "2020-01-24",
+            "ticker_count": 4,
+            "active_ticker_count": 4,
+            "candidate_signal_count": 313,
+            "candidate_total_trades": 158,
+            "mean_average_return_all": -0.3525,
+            "mean_average_return_active": -0.3525,
+            "trade_weighted_average_return": -0.2384
+          }
+        ]
+      }
+    },
+    {
+      "tested_segment": "liquidity_segment=liquid_active",
+      "segment_field": "liquidity_segment",
+      "segment_value": "liquid_active",
+      "segment_role": "supporting",
+      "tickers": [
+        "BBCA",
+        "BBRI",
+        "BMRI",
+        "BUMI",
+        "GOTO",
+        "TLKM"
+      ],
+      "summary": {
+        "tested_segment": "liquidity_segment=liquid_active",
+        "segment_field": "liquidity_segment",
+        "segment_value": "liquid_active",
+        "segment_role": "supporting",
+        "tickers": [
+          "BBCA",
+          "BBRI",
+          "BMRI",
+          "BUMI",
+          "GOTO",
+          "TLKM"
+        ],
+        "ticker_count": 6,
+        "active_ticker_count": 6,
+        "positive_ticker_count": 1,
+        "candidate_signal_count": 3290,
+        "candidate_total_trades": 1592,
+        "mean_average_return_all": -0.135,
+        "mean_average_return_active": -0.135,
+        "trade_weighted_average_return": -0.1056,
+        "median_average_return_active": -0.2036,
+        "mean_score_all": -0.0466,
+        "mean_score_active": -0.0466,
+        "active_fold_count": 3,
+        "positive_fold_count": 1,
+        "positive_fold_share": 0.3333,
+        "top_abs_pnl_share": 0.3143,
+        "top_positive_pnl_share": 1.0,
+        "outlier_bias_ok": true,
+        "ticker_consistency_ok": false,
+        "oos_stability_ok": false,
+        "primary_viable": false,
+        "robustness_check_passed": false,
+        "fold_summaries": [
+          {
+            "fold_id": 1,
+            "fold_start": "2016-05-24",
+            "fold_end": "2017-08-24",
+            "ticker_count": 6,
+            "active_ticker_count": 6,
+            "candidate_signal_count": 537,
+            "candidate_total_trades": 248,
+            "mean_average_return_all": 0.3017,
+            "mean_average_return_active": 0.3017,
+            "trade_weighted_average_return": 0.2698
+          },
+          {
+            "fold_id": 2,
+            "fold_start": "2017-08-25",
+            "fold_end": "2018-11-06",
+            "ticker_count": 6,
+            "active_ticker_count": 6,
+            "candidate_signal_count": 455,
+            "candidate_total_trades": 220,
+            "mean_average_return_all": -0.0184,
+            "mean_average_return_active": -0.0184,
+            "trade_weighted_average_return": -0.0616
+          },
+          {
+            "fold_id": 3,
+            "fold_start": "2018-11-07",
+            "fold_end": "2020-01-23",
+            "ticker_count": 6,
+            "active_ticker_count": 6,
+            "candidate_signal_count": 477,
+            "candidate_total_trades": 231,
+            "mean_average_return_all": -0.6022,
+            "mean_average_return_active": -0.6022,
+            "trade_weighted_average_return": -0.3785
+          }
+        ]
+      }
+    },
+    {
+      "tested_segment": "volatility_segment=higher_volatility",
+      "segment_field": "volatility_segment",
+      "segment_value": "higher_volatility",
+      "segment_role": "supporting",
+      "tickers": [
+        "ADRO",
+        "BUMI",
+        "DEWA",
+        "GOTO"
+      ],
+      "summary": {
+        "tested_segment": "volatility_segment=higher_volatility",
+        "segment_field": "volatility_segment",
+        "segment_value": "higher_volatility",
+        "segment_role": "supporting",
+        "tickers": [
+          "ADRO",
+          "BUMI",
+          "DEWA",
+          "GOTO"
+        ],
+        "ticker_count": 4,
+        "active_ticker_count": 4,
+        "positive_ticker_count": 2,
+        "candidate_signal_count": 1491,
+        "candidate_total_trades": 751,
+        "mean_average_return_all": -0.0066,
+        "mean_average_return_active": -0.0066,
+        "trade_weighted_average_return": 0.1031,
+        "median_average_return_active": -0.0023,
+        "mean_score_all": -2.3815,
+        "mean_score_active": -2.3815,
+        "active_fold_count": 3,
+        "positive_fold_count": 1,
+        "positive_fold_share": 0.3333,
+        "top_abs_pnl_share": 0.665,
+        "top_positive_pnl_share": 0.9766,
+        "outlier_bias_ok": false,
+        "ticker_consistency_ok": false,
+        "oos_stability_ok": false,
+        "primary_viable": false,
+        "robustness_check_passed": false,
+        "fold_summaries": [
+          {
+            "fold_id": 1,
+            "fold_start": "2016-05-24",
+            "fold_end": "2017-08-24",
+            "ticker_count": 4,
+            "active_ticker_count": 4,
+            "candidate_signal_count": 253,
+            "candidate_total_trades": 123,
+            "mean_average_return_all": 0.2151,
+            "mean_average_return_active": 0.2151,
+            "trade_weighted_average_return": 0.3789
+          },
+          {
+            "fold_id": 2,
+            "fold_start": "2017-08-25",
+            "fold_end": "2018-11-06",
+            "ticker_count": 4,
+            "active_ticker_count": 4,
+            "candidate_signal_count": 191,
+            "candidate_total_trades": 98,
+            "mean_average_return_all": -1.5414,
+            "mean_average_return_active": -1.5414,
+            "trade_weighted_average_return": -0.4846
+          },
+          {
+            "fold_id": 3,
+            "fold_start": "2018-11-07",
+            "fold_end": "2020-01-24",
+            "ticker_count": 4,
+            "active_ticker_count": 3,
+            "candidate_signal_count": 149,
+            "candidate_total_trades": 83,
+            "mean_average_return_all": -0.9076,
+            "mean_average_return_active": -1.2102,
+            "trade_weighted_average_return": -1.0867
+          }
+        ]
+      }
+    },
+    {
+      "tested_segment": "sentiment_segment=sentiment_rich",
+      "segment_field": "sentiment_segment",
+      "segment_value": "sentiment_rich",
+      "segment_role": "supporting",
+      "tickers": [
+        "BBRI",
+        "BMRI",
+        "DEWA",
+        "GOTO",
+        "ICBP",
+        "INDF",
+        "TLKM"
+      ],
+      "summary": {
+        "tested_segment": "sentiment_segment=sentiment_rich",
+        "segment_field": "sentiment_segment",
+        "segment_value": "sentiment_rich",
+        "segment_role": "supporting",
+        "tickers": [
+          "BBRI",
+          "BMRI",
+          "DEWA",
+          "GOTO",
+          "ICBP",
+          "INDF",
+          "TLKM"
+        ],
+        "ticker_count": 7,
+        "active_ticker_count": 7,
+        "positive_ticker_count": 1,
+        "candidate_signal_count": 3672,
+        "candidate_total_trades": 1788,
+        "mean_average_return_all": -0.265,
+        "mean_average_return_active": -0.265,
+        "trade_weighted_average_return": -0.2387,
+        "median_average_return_active": -0.2582,
+        "mean_score_all": -2.1131,
+        "mean_score_active": -2.1131,
+        "active_fold_count": 3,
+        "positive_fold_count": 0,
+        "positive_fold_share": 0.0,
+        "top_abs_pnl_share": 0.2539,
+        "top_positive_pnl_share": 1.0,
+        "outlier_bias_ok": true,
+        "ticker_consistency_ok": false,
+        "oos_stability_ok": false,
+        "primary_viable": false,
+        "robustness_check_passed": false,
+        "fold_summaries": [
+          {
+            "fold_id": 1,
+            "fold_start": "2016-05-24",
+            "fold_end": "2017-08-24",
+            "ticker_count": 7,
+            "active_ticker_count": 7,
+            "candidate_signal_count": 578,
+            "candidate_total_trades": 272,
+            "mean_average_return_all": -0.1304,
+            "mean_average_return_active": -0.1304,
+            "trade_weighted_average_return": -0.0168
+          },
+          {
+            "fold_id": 2,
+            "fold_start": "2017-08-25",
+            "fold_end": "2018-11-06",
+            "ticker_count": 7,
+            "active_ticker_count": 7,
+            "candidate_signal_count": 454,
+            "candidate_total_trades": 218,
+            "mean_average_return_all": -0.9944,
+            "mean_average_return_active": -0.9944,
+            "trade_weighted_average_return": -0.349
+          },
+          {
+            "fold_id": 3,
+            "fold_start": "2018-11-07",
+            "fold_end": "2020-01-23",
+            "ticker_count": 7,
+            "active_ticker_count": 6,
+            "candidate_signal_count": 520,
+            "candidate_total_trades": 252,
+            "mean_average_return_all": -0.2009,
+            "mean_average_return_active": -0.2343,
+            "trade_weighted_average_return": -0.1432
+          }
+        ]
+      }
+    }
+  ],
+  "decision": {
+    "candidate_id": "baseline_v3_ema20_trend_guard",
+    "primary_segment": "sentiment_segment=sentiment_poor",
+    "decision": "no_go_even_for_segment",
+    "oos_stability_ok": false,
+    "ticker_consistency_ok": false,
+    "outlier_bias_ok": true,
+    "global_promotion_allowed": false,
+    "recommended_next_action": "drop_candidate_from_primary_segment_even_for_experimental_use",
+    "supporting_segments_checked": [
+      "volatility_segment=mixed_volatility",
+      "liquidity_segment=thin_sparse",
+      "news_segment=mid_news",
+      "liquidity_segment=liquid_active",
+      "volatility_segment=higher_volatility",
+      "sentiment_segment=sentiment_rich"
+    ],
+    "supporting_segments_passed": [],
+    "supporting_segments_failed": [
+      "volatility_segment=mixed_volatility",
+      "liquidity_segment=thin_sparse",
+      "news_segment=mid_news",
+      "liquidity_segment=liquid_active",
+      "volatility_segment=higher_volatility",
+      "sentiment_segment=sentiment_rich"
+    ],
+    "primary_total_trades_sum": 1434,
+    "primary_active_ticker_count": 5,
+    "primary_trade_weighted_average_return": -0.0423,
+    "primary_mean_average_return_active": -0.0047,
+    "decision_notes": [
+      "Primary segment gagal mempertahankan kualitas OOS minimum.",
+      "Kandidat tidak stabil bahkan sebagai strategi subset eksperimental."
+    ]
+  }
+}

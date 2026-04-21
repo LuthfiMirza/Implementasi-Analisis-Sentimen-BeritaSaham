@@ -12,18 +12,71 @@ class StockKeywordMapper
      * Tambahkan sesuai kebutuhan.
      */
     protected array $overrides = [
-        'BBCA' => ['BBCA', 'BCA', 'Bank Central Asia', 'BCA Digital', 'BCA Finance'],
+        'BBCA' => [
+            'PT Bank Central Asia Tbk',
+            'PT Bank Central Asia',
+            'Bank Central Asia',
+            'Bank BCA',
+            'saham BBCA',
+            'emiten BBCA',
+            'BBCA.JK',
+            'BBCA',
+            'BCA',
+        ],
         'BBNI' => ['BBNI', 'BNI', 'Bank Negara Indonesia'],
         'BBRI' => ['BBRI', 'BRI', 'Bank Rakyat Indonesia'],
         'BBTN' => ['BBTN', 'BTN', 'Bank Tabungan Negara'],
-        'BMRI' => ['BMRI', 'Bank Mandiri', 'Mandiri'],
+        'BMRI' => [
+            'PT Bank Mandiri Persero Tbk',
+            'PT Bank Mandiri',
+            'Bank Mandiri',
+            'saham BMRI',
+            'emiten BMRI',
+            'BMRI.JK',
+            'BMRI',
+        ],
         'MEGA' => ['MEGA', 'Bank Mega'],
         'TLKM' => ['TLKM', 'Telkom', 'Telkom Indonesia', 'PT Telkom Indonesia', 'Telkomsel', 'IndiHome'],
         'ASII' => ['ASII', 'Astra', 'Astra International', 'Astra Otoparts'],
-        'GOTO' => ['GOTO', 'GoTo Group', 'GoTo Gojek Tokopedia', 'Gojek', 'Tokopedia', 'PT GoTo Gojek Tokopedia'],
-        'UNVR' => ['UNVR', 'Unilever Indonesia'],
-        'INDF' => ['INDF', 'Indofood', 'Indofood Sukses Makmur'],
-        'ICBP' => ['ICBP', 'Indofood CBP'],
+        'GOTO' => [
+            'PT GoTo Gojek Tokopedia Tbk',
+            'PT GoTo Gojek Tokopedia',
+            'GoTo Gojek Tokopedia',
+            'GoTo Group',
+            'saham GOTO',
+            'emiten GOTO',
+            'GOTO.JK',
+            'GOTO',
+        ],
+        'UNVR' => [
+            'PT Unilever Indonesia Tbk',
+            'PT Unilever Indonesia',
+            'Unilever Indonesia',
+            'saham UNVR',
+            'emiten UNVR',
+            'UNVR.JK',
+            'UNVR',
+        ],
+        'INDF' => [
+            'PT Indofood Sukses Makmur Tbk',
+            'PT Indofood Sukses Makmur',
+            'Indofood Sukses Makmur',
+            'saham INDF',
+            'emiten INDF',
+            'INDF.JK',
+            'INDF',
+            'Indofood',
+        ],
+        'ICBP' => [
+            'PT Indofood CBP Sukses Makmur Tbk',
+            'PT Indofood CBP Sukses Makmur',
+            'Indofood CBP Sukses Makmur',
+            'Indofood CBP',
+            'saham ICBP',
+            'emiten ICBP',
+            'ICBP.JK',
+            'ICBP',
+        ],
         'ADRO' => ['ADRO', 'Adaro', 'Adaro Energy', 'Adaro Energy Indonesia'],
         'BUMI' => ['BUMI saham', 'PT Bumi Resources', 'Bumi Resources', 'BUMI.JK', 'emiten bumi'],
         'DEWA' => ['DEWA saham', 'Darma Henwa', 'PT Darma Henwa', 'DEWA.JK'],
@@ -74,10 +127,12 @@ class StockKeywordMapper
         'TLKM' => ['telco', 'telekomunikasi', 'fiber', 'broadband', 'data center', 'telkomsel', 'indihome', 'laba', 'dividen'],
         'ASII' => ['otomotif', 'automotive', 'mobil', 'motor', 'penjualan mobil', 'kendaraan', 'dividen', 'laba'],
         'GOTO' => ['teknologi', 'ecommerce', 'e-commerce', 'ride hailing', 'gojek', 'tokopedia', 'rugi', 'ipo', 'gross transaction value', 'ebitda'],
-        'UNVR' => ['consumer', 'fmcg', 'produk rumah tangga', 'dividen', 'laba'],
+        'UNVR' => ['consumer', 'consumer goods', 'fmcg', 'produk rumah tangga', 'home care', 'dividen', 'laba'],
         'INDF' => ['consumer', 'makanan', 'minuman', 'laba', 'dividen'],
-        'ICBP' => ['consumer', 'makanan', 'minuman', 'laba', 'dividen'],
+        'ICBP' => ['consumer', 'makanan', 'minuman', 'mie instan', 'branded consumer', 'laba', 'dividen'],
         'ADRO' => ['batubara', 'coal', 'pertambangan', 'royalty', 'dividen', 'produksi', 'harga batu bara', 'energi'],
+        'BUMI' => ['batubara', 'coal', 'pertambangan', 'harga batu bara', 'produksi', 'restrukturisasi', 'dividen'],
+        'DEWA' => ['jasa pertambangan', 'kontraktor tambang', 'alat berat', 'overburden', 'batubara', 'pertambangan'],
     ];
 
     public function keywords(Stock $stock): array
@@ -114,7 +169,7 @@ class StockKeywordMapper
 
     public function queryString(Stock $stock): string
     {
-        $keywords = $this->keywords($stock);
+        $keywords = $this->searchAliases($stock, 0);
         return collect($keywords)->map(fn ($k) => "\"{$k}\"")->implode(' OR ');
     }
 
@@ -155,9 +210,100 @@ class StockKeywordMapper
         return $this->sectorKeywords[$stock->code] ?? [];
     }
 
+    /**
+     * Prioritaskan nama legal emiten dan frasa ticker-specific untuk query provider.
+     */
+    public function searchAliases(Stock $stock, int $limit = 6): array
+    {
+        $cleanName = trim((string) Str::of($stock->company_name ?? $stock->code)
+            ->replace(['Tbk', 'tbk.', 'TBK', '.', ','], ' ')
+            ->squish());
+
+        $aliases = collect($this->keywords($stock))
+            ->filter(fn ($alias) => trim((string) $alias) !== '')
+            ->unique()
+            ->sortByDesc(function ($alias) use ($stock, $cleanName) {
+                $alias = trim((string) $alias);
+                $aliasLower = mb_strtolower($alias);
+                $score = 0;
+
+                if ($aliasLower === mb_strtolower($cleanName)) {
+                    $score += 300;
+                }
+                if (str_contains($aliasLower, 'pt ')) {
+                    $score += 220;
+                }
+                if (str_contains($aliasLower, mb_strtolower($stock->code))) {
+                    $score += 160;
+                }
+                if (str_contains($aliasLower, 'saham ') || str_contains($aliasLower, 'emiten ')) {
+                    $score += 120;
+                }
+                if (str_contains($alias, ' ')) {
+                    $score += 60;
+                }
+
+                return $score + min(40, mb_strlen($alias));
+            })
+            ->values();
+
+        if ($limit <= 0) {
+            return $aliases->all();
+        }
+
+        return $aliases->take($limit)->all();
+    }
+
     public function globalExclusions(): array
     {
         return $this->globalExclusions;
+    }
+
+    public function primarySearchAlias(Stock $stock): string
+    {
+        return (string) ($this->searchAliases($stock, 1)[0] ?? $stock->company_name ?? $stock->code);
+    }
+
+    /**
+     * Query pendek dan exact untuk provider search/scraper.
+     *
+     * @return array<int, string>
+     */
+    public function exactSearchQueries(Stock $stock, int $limit = 5): array
+    {
+        $tickerQueries = collect([
+            'saham '.$stock->code,
+            'emiten '.$stock->code,
+        ]);
+
+        $issuerAliases = collect($this->searchAliases($stock, 10))
+            ->reject(function ($alias) use ($stock, $tickerQueries) {
+                $alias = trim((string) $alias);
+                $normalized = mb_strtolower($alias);
+
+                if ($tickerQueries->contains($alias)) {
+                    return true;
+                }
+
+                if ($normalized === mb_strtolower($stock->code) || $normalized === mb_strtolower($stock->code.'.JK')) {
+                    return true;
+                }
+
+                return ! str_contains($alias, ' ');
+            })
+            ->values();
+
+        $queries = $issuerAliases
+            ->merge($tickerQueries)
+            ->filter(fn ($query) => trim((string) $query) !== '')
+            ->unique()
+            ->values();
+
+        if ($limit > 0) {
+            return $queries->take($limit)->all();
+        }
+
+        return $queries->all();
     }
 
     public function directHits(Stock $stock, ?string $text): array

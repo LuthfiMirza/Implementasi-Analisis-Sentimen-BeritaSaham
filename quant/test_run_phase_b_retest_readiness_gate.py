@@ -8,7 +8,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from quant.run_phase_b_retest_readiness_gate import run_phase_b_retest_readiness_gate
+from quant.run_phase_b_retest_readiness_gate import (
+    NEWS_DISTRIBUTION_POLICY_REALIGNMENT_SUMMARY_OUTPUT,
+    OOS_POLICY_ALIGNMENT_AUDIT_OUTPUT,
+    run_phase_b_retest_readiness_gate,
+)
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -263,6 +267,69 @@ class RunPhaseBRetestReadinessGateTestCase(unittest.TestCase):
                 "latest_execution_status": {"phase_c_decision": "phase_c_no_go_yet"},
             },
         )
+        density_values = [round((100.0 * len(article_days_map[ticker]) / history_rows), 4) for ticker in tickers]
+        actual_median_density = sorted(density_values)[len(density_values) // 2 - 1 if len(density_values) % 2 == 0 else len(density_values) // 2]
+        if len(density_values) % 2 == 0:
+            actual_median_density = round(
+                (sorted(density_values)[len(density_values) // 2 - 1] + sorted(density_values)[len(density_values) // 2]) / 2.0,
+                4,
+            )
+        _write_json(
+            output_dir / "phase_b_news_distribution_threshold_audit.json",
+            {
+                "official_distribution_universe": {
+                    "density_gate_scope": "current ticker universe from data/ticker_metadata.csv used by news_distribution_gate::median_news_density_pct",
+                    "density_gate_tickers": tickers,
+                    "density_gate_ticker_count": len(tickers),
+                    "primary_distribution_pool_scope": "sentiment_segment=sentiment_poor",
+                    "primary_distribution_pool_tickers": tickers,
+                    "primary_distribution_pool_ticker_count": len(tickers),
+                },
+                "actual_median_density": actual_median_density,
+                "threshold_density": 5.0,
+                "gap_to_threshold": round(5.0 - actual_median_density, 4),
+                "distribution_statistics": {
+                    "actual_median_density": actual_median_density,
+                    "actual_mean_density": round(sum(density_values) / len(density_values), 4),
+                    "actual_min_density": min(density_values),
+                    "actual_max_density": max(density_values),
+                    "actual_density_range": round(max(density_values) - min(density_values), 4),
+                    "actual_median_article_days": round(
+                        (
+                            sorted(len(article_days_map[t]) for t in tickers)[len(tickers) // 2 - 1]
+                            + sorted(len(article_days_map[t]) for t in tickers)[len(tickers) // 2]
+                        )
+                        / 2.0,
+                        4,
+                    ) if len(tickers) % 2 == 0 else float(sorted(len(article_days_map[t]) for t in tickers)[len(tickers) // 2]),
+                },
+                "threshold_realism_assessment": {
+                    "status": "incompatible" if actual_median_density < 5.0 else "compatible",
+                },
+                "operational_feasibility_assessment": {
+                    "current_ticker_count_at_or_above_threshold": sum(1 for item in density_values if item >= 5.0),
+                    "minimum_tickers_needed_at_or_above_threshold_for_median_pass": 4,
+                    "minimum_additional_article_days_total_for_cheapest_path": 0 if actual_median_density >= 5.0 else 24,
+                    "threshold_article_days_required_for_typical_ticker": 6 if history_rows == 120 else 3,
+                },
+            },
+        )
+        _write_json(
+            output_dir / "phase_b_news_distribution_policy_alignment_audit.json",
+            {
+                "compatibility_assessment": {
+                    "status": "incompatible" if actual_median_density < 5.0 else "compatible",
+                },
+                "recommended_policy_path": {
+                    "policy_path": "hybrid_keep_share_controls_realign_density_component_with_sparse_coverage_metric_or_threshold",
+                    "requires_gate_policy_change": actual_median_density < 5.0,
+                    "requires_strategy_or_oos_change": False,
+                    "rationale": [
+                        "Masalah eksplisit ada pada density subcheck.",
+                    ],
+                },
+            },
+        )
 
         result_rows = []
         for ticker in tickers:
@@ -306,10 +373,108 @@ class RunPhaseBRetestReadinessGateTestCase(unittest.TestCase):
                 "phase_b_retest_readiness_thresholds.csv",
                 "phase_b_retest_blockers_ranked.csv",
                 "phase_b_retest_next_requirements.json",
+                "phase_b_readiness_blocker_audit.json",
+                "phase_b_readiness_recovery_audit.json",
+                "phase_b_distribution_fairness_audit.json",
+                "phase_b_primary_poor_distribution_target_audit.json",
+                "phase_b_oos_fairness_recovery_audit.json",
+                "phase_b_oos_source_of_truth_audit.json",
+                "phase_b_oos_window_recovery_plan.json",
+                OOS_POLICY_ALIGNMENT_AUDIT_OUTPUT,
+                "phase_b_readiness_policy_realignment_summary.json",
+                NEWS_DISTRIBUTION_POLICY_REALIGNMENT_SUMMARY_OUTPUT,
             ]:
                 self.assertTrue((output_dir / name).exists(), f"Missing artifact: {name}")
 
             self.assertEqual("belum_boleh_retest", result["phase_b_retest_readiness_gate"]["final_decision"])
+            self.assertTrue(result["phase_b_retest_readiness_gate"]["policy_realignment_applied"])
+            self.assertTrue(result["phase_b_retest_readiness_gate"]["news_distribution_policy_realignment_applied"])
+            self.assertTrue(result["phase_b_retest_readiness_gate"]["density_component_realigned"])
+            self.assertEqual(5.0, result["phase_b_retest_readiness_gate"]["pre_realignment_density_threshold"])
+            self.assertEqual(
+                3,
+                result["phase_b_retest_readiness_gate"]["methodology_aligned_thresholds"]["history_gate::usable_oos_windows_per_ticker"],
+            )
+            self.assertEqual(
+                1.7544,
+                result["phase_b_retest_readiness_gate"]["post_realignment_density_threshold"],
+            )
+            audit = result["phase_b_readiness_blocker_audit"]
+            self.assertEqual("output/phase_b_retest_readiness_gate.json", audit["source_of_truth_artifact"])
+            self.assertTrue(audit["active_blockers"])
+            sample = audit["active_blockers"][0]
+            for field in [
+                "blocker_name",
+                "source_of_truth_artifact",
+                "source_field",
+                "actual_value",
+                "target_value",
+                "status",
+                "recommended_fix",
+            ]:
+                self.assertIn(field, sample)
+            recovery = result["phase_b_readiness_recovery_audit"]
+            self.assertEqual("output/phase_b_retest_readiness_gate.json", recovery["source_of_truth_artifact"])
+            self.assertIn("history_extension_status", recovery)
+            self.assertIn("coverage_ready_status", recovery)
+            self.assertIn("single_ticker_article_share_status", recovery)
+            self.assertTrue(recovery["coverage_ready_status"]["coverage_ready_ticker_breakdown"])
+            distribution = result["phase_b_distribution_fairness_audit"]
+            self.assertEqual("output/phase_b_retest_readiness_gate.json", distribution["source_of_truth_artifact"])
+            self.assertIn("distribution_status", distribution)
+            self.assertIn("fairness_status", distribution)
+            self.assertTrue(distribution["distribution_status"]["per_ticker_primary_distribution"])
+            primary_poor = result["phase_b_primary_poor_distribution_target_audit"]
+            self.assertTrue(primary_poor["rows"])
+            self.assertIn("included_in_official_primary_poor", primary_poor["rows"][0])
+            fairness_recovery = result["phase_b_oos_fairness_recovery_audit"]
+            self.assertIn("trade_count_by_fold_after", fairness_recovery)
+            oos_source = result["phase_b_oos_source_of_truth_audit"]
+            self.assertEqual("output/baseline_v9_segment_oos_summary.json", oos_source["source_of_truth_oos_final"]["methodology_artifact"])
+            self.assertIn("fold_size_bars", oos_source["current_v9_official_basis"])
+            self.assertIn("progress_update_matches_readiness", oos_source["cross_artifact_consistency"])
+            oos_window_plan = result["phase_b_oos_window_recovery_plan"]
+            self.assertEqual(6, oos_window_plan["target_windows"])
+            self.assertIn("target_reachable_under_current_methodology", oos_window_plan)
+            policy_audit = result["phase_b_oos_policy_alignment_audit"]
+            self.assertTrue(policy_audit["policy_realignment_applied"])
+            self.assertEqual("incompatible", policy_audit["pre_realignment_compatibility_status"])
+            self.assertEqual("compatible", policy_audit["compatibility_status"])
+            self.assertEqual(3, policy_audit["theoretical_maximum_under_current_methodology"]["usable_oos_windows_per_ticker"])
+            self.assertEqual(3, policy_audit["methodology_aligned_thresholds"]["history_gate::usable_oos_windows_per_ticker"])
+            self.assertEqual(0, policy_audit["methodology_aligned_thresholds"]["history_gate::additional_bars_from_v9_baseline"])
+            self.assertEqual("C", policy_audit["recommended_policy_path"]["option_id"])
+            self.assertFalse(policy_audit["roadmap_update_assessment"]["ready_for_retest"])
+            residual_names = [item["blocker_name"] for item in policy_audit["remaining_active_blockers_even_if_window_policy_is_aligned"]]
+            self.assertNotIn("history_gate::usable_oos_windows_per_ticker", residual_names)
+            self.assertNotIn("oos_fairness_gate::primary_segment_usable_oos_windows", residual_names)
+            self.assertNotIn("history_gate::additional_bars_from_v9_baseline", residual_names)
+            self.assertNotIn("news_distribution_gate::median_news_density_pct", residual_names)
+            realignment_summary = result["phase_b_readiness_policy_realignment_summary"]
+            self.assertTrue(realignment_summary["policy_realignment_applied"])
+            threshold_change_lookup = {
+                item["threshold_name"]: (item["old_target"], item["new_target"])
+                for item in realignment_summary["threshold_changes"]
+            }
+            self.assertEqual((63, 0), threshold_change_lookup["history_gate::additional_bars_from_v9_baseline"])
+            self.assertEqual((6, 3), threshold_change_lookup["history_gate::usable_oos_windows_per_ticker"])
+            self.assertEqual((6, 3), threshold_change_lookup["oos_fairness_gate::primary_segment_usable_oos_windows"])
+            self.assertEqual((5.0, 1.7544), threshold_change_lookup["news_distribution_gate::median_news_density_pct"])
+            self.assertEqual(
+                [
+                    "history_gate::additional_bars_from_v9_baseline actual=0 target>=63",
+                    "history_gate::usable_oos_windows_per_ticker actual=3 target>=6",
+                    "news_distribution_gate::median_news_density_pct actual=1.7544 target>=5.0",
+                    "oos_fairness_gate::primary_segment_usable_oos_windows actual=3 target>=6",
+                ],
+                realignment_summary["blockers_removed_by_policy_conflict_resolution"],
+            )
+            self.assertFalse(realignment_summary["strategy_retest_allowed_after_policy_realignment"])
+            density_summary = result["phase_b_news_distribution_policy_realignment_summary"]
+            self.assertTrue(density_summary["news_distribution_policy_realignment_applied"])
+            self.assertTrue(density_summary["share_control_policy_unchanged"])
+            self.assertEqual(5.0, density_summary["old_density_policy"]["target_value"])
+            self.assertEqual(1.7544, density_summary["new_density_policy"]["target_value"])
 
     def test_one_failed_gate_is_enough_to_block_retest(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -337,6 +502,17 @@ class RunPhaseBRetestReadinessGateTestCase(unittest.TestCase):
             self.assertEqual("PASS", payload["framework_governance_gate"])
             self.assertEqual("PASS", payload["roadmap_discipline_gate"])
             self.assertEqual("boleh_retest", payload["final_decision"])
+            audit = result["phase_b_readiness_blocker_audit"]
+            self.assertEqual([], audit["active_blockers"])
+            self.assertEqual([], audit["blockers_closable_now"])
+            self.assertFalse(payload["news_distribution_policy_realignment_applied"])
+            recovery = result["phase_b_readiness_recovery_audit"]
+            self.assertEqual(1.0, recovery["coverage_ready_status"]["coverage_ready_ticker_ratio"]["after"])
+            self.assertTrue(recovery["history_extension_status"]["history_gate_closed_now"])
+            distribution = result["phase_b_distribution_fairness_audit"]
+            self.assertEqual(True, distribution["distribution_status"]["news_distribution_gate_closed"])
+            primary_poor = result["phase_b_primary_poor_distribution_target_audit"]
+            self.assertTrue(all(row["included_in_official_primary_poor"] for row in primary_poor["rows"]))
 
     def test_script_still_runs_when_noncritical_artifacts_are_missing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -351,6 +527,44 @@ class RunPhaseBRetestReadinessGateTestCase(unittest.TestCase):
             self.assertEqual("belum_boleh_retest", result["phase_b_retest_readiness_gate"]["final_decision"])
             self.assertTrue((output_dir / "phase_b_retest_readiness_thresholds.csv").exists())
             self.assertTrue(any("project_after_phase_b_decision.json not found" in item for item in result["phase_b_retest_readiness_gate"]["limitations"]))
+
+    def test_previous_blocker_snapshot_marks_newly_closed_thresholds(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_dir, output_dir, metadata_file = self._prepare_fixture(Path(tmp_dir), scenario="pass")
+            _write_json(
+                output_dir / "phase_b_retest_readiness_gate.json",
+                {
+                    "final_decision": "belum_boleh_retest",
+                    "highest_blocking_gate": "history_gate",
+                    "blocking_thresholds": [
+                        "history_gate::usable_oos_windows_per_ticker actual=3 target>=6",
+                        "oos_fairness_gate::total_oos_trades_primary_segment actual=11 target>=18",
+                    ],
+                },
+            )
+
+            result = run_phase_b_retest_readiness_gate(data_dir=data_dir, output_dir=output_dir, metadata_file=metadata_file)
+
+            audit = result["phase_b_readiness_blocker_audit"]
+            self.assertIn("history_gate::usable_oos_windows_per_ticker actual=3 target>=6", audit["newly_closed_blockers"])
+            self.assertIn("oos_fairness_gate::total_oos_trades_primary_segment actual=11 target>=18", audit["newly_closed_blockers"])
+            recovery = result["phase_b_readiness_recovery_audit"]
+            self.assertIn("before", recovery["history_extension_status"]["min_history_bars_per_ticker"])
+            distribution = result["phase_b_distribution_fairness_audit"]
+            self.assertIn("total_oos_trades_primary_segment_after", distribution["fairness_status"])
+            fairness_recovery = result["phase_b_oos_fairness_recovery_audit"]
+            self.assertIn("dominant_fold_share_after", fairness_recovery)
+            oos_source = result["phase_b_oos_source_of_truth_audit"]
+            self.assertTrue(oos_source["basis_change_valid"])
+            oos_window_plan = result["phase_b_oos_window_recovery_plan"]
+            self.assertIn("after", oos_window_plan)
+            self.assertIn("minimum_rows_required_for_6_windows", oos_window_plan)
+            realignment_summary = result["phase_b_readiness_policy_realignment_summary"]
+            threshold_change_lookup = {
+                item["threshold_name"]: (item["old_target"], item["new_target"])
+                for item in realignment_summary["threshold_changes"]
+            }
+            self.assertEqual((6, 3), threshold_change_lookup["history_gate::usable_oos_windows_per_ticker"])
 
 
 if __name__ == "__main__":

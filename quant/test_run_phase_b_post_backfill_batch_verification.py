@@ -184,6 +184,7 @@ class RunPhaseBPostBackfillBatchVerificationTestCase(unittest.TestCase):
             self.assertTrue(decision["batch_1_completed"])
             self.assertTrue(decision["checkpoint_material_reached"])
             self.assertTrue(decision["recheck_readiness_gate_allowed"])
+            self.assertEqual([], decision["remaining_blockers"])
 
 
 if __name__ == "__main__":

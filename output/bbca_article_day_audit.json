@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-04-21T14:04:52.487321+00:00",
+  "ticker": "BBCA",
+  "official_article_days_before": 7,
+  "official_article_days_after": 7,
+  "official_article_count_before": 17,
+  "official_article_count_after": 17,
+  "included_in_official_primary_segment_after": true,
+  "official_membership_reason_after": "included because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_poor matches phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; post_backfill_batch1_decision.priority_ticker_verification is_primary_segment=True",
+  "db_article_days_before": 0,
+  "db_article_days_after": 0,
+  "db_article_count_before": 0,
+  "db_article_count_after": 0,
+  "provider_fetch_summary": [],
+  "before_by_date": [],
+  "after_by_date": [],
+  "added_rows_after_push": [],
+  "added_row_count": 0,
+  "added_new_dates": [],
+  "clustering_summary": "no new BBCA rows were inserted into the DB during this push",
+  "drop_samples": {
+    "relevance": [],
+    "quality": [],
+    "exclusion": []
+  }
+}

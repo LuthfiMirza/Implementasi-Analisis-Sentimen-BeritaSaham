@@ -337,6 +337,7 @@ def _progress_since_baseline_v9(tracker_lookup: Dict[str, Dict[str, object]]) ->
         "min_history_bars_per_ticker",
         "additional_bars_from_v9_baseline",
         "usable_oos_windows_per_ticker",
+        "coverage_ready_ticker_ratio",
         "primary_segment_total_articles",
         "primary_segment_article_days_median",
         "total_oos_trades_primary_segment",

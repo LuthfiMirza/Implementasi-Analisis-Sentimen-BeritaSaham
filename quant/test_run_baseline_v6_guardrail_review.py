@@ -14,6 +14,7 @@ from quant.run_baseline_v6_guardrail_review import (
     REVIEW_JSON_OUTPUT,
     REVIEW_TEXT_OUTPUT,
     SCENARIO_CSV_OUTPUT,
+    SEGMENTATION_AUDIT_OUTPUT,
     SEGMENTATION_CSV_OUTPUT,
     SEGMENT_RECOMMENDATIONS_OUTPUT,
     RECOMMENDED_GUARDRAIL_MODES,
@@ -279,6 +280,7 @@ class RunBaselineV6GuardrailReviewTestCase(unittest.TestCase):
                 output_dir / REVIEW_TEXT_OUTPUT,
                 output_dir / SCENARIO_CSV_OUTPUT,
                 output_dir / SEGMENTATION_CSV_OUTPUT,
+                output_dir / SEGMENTATION_AUDIT_OUTPUT,
                 output_dir / SEGMENT_RECOMMENDATIONS_OUTPUT,
                 output_dir / GOVERNANCE_OUTPUT,
             ]
@@ -303,6 +305,19 @@ class RunBaselineV6GuardrailReviewTestCase(unittest.TestCase):
             self.assertIn("news_segment", segmentation.columns)
             self.assertIn("liquidity_segment", segmentation.columns)
             self.assertIn("sector", segmentation.columns)
+
+            segmentation_audit = json.loads((output_dir / SEGMENTATION_AUDIT_OUTPUT).read_text(encoding="utf-8"))
+            self.assertEqual("quant/run_baseline_v6_guardrail_review.py", segmentation_audit["source_script"])
+            self.assertEqual("article_days", segmentation_audit["classification_basis"]["metric"])
+            self.assertIn("median", segmentation_audit["classification_basis"]["threshold_type"])
+            self.assertIn("rows", segmentation_audit)
+            audit_by_ticker = {row["ticker"]: row for row in segmentation_audit["rows"]}
+            for ticker in ["BBCA", "BMRI", "GOTO", "INDF", "UNVR"]:
+                self.assertIn(ticker, audit_by_ticker)
+                self.assertIn("reason_summary", audit_by_ticker[ticker])
+                self.assertIn("split_threshold", audit_by_ticker[ticker])
+            self.assertEqual("sentiment_poor", audit_by_ticker["BBCA"]["sentiment_segment_current"])
+            self.assertEqual("sentiment_rich", audit_by_ticker["BMRI"]["sentiment_segment_current"])
 
             review_payload = json.loads((output_dir / REVIEW_JSON_OUTPUT).read_text(encoding="utf-8"))
             self.assertIn("decisive_statement", review_payload)
@@ -329,6 +344,7 @@ class RunBaselineV6GuardrailReviewTestCase(unittest.TestCase):
             self.assertTrue((output_dir / SEGMENT_RECOMMENDATIONS_OUTPUT).exists())
             self.assertTrue((output_dir / SCENARIO_CSV_OUTPUT).exists())
             self.assertTrue((output_dir / SEGMENTATION_CSV_OUTPUT).exists())
+            self.assertTrue((output_dir / SEGMENTATION_AUDIT_OUTPUT).exists())
             self.assertTrue(review_payload["artifact_gaps"])
             self.assertTrue(review_payload["limitations"])
             limitation_text = " ".join(str(item) for item in review_payload["limitations"])

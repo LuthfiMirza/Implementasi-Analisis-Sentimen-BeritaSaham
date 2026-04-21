@@ -1,0 +1,301 @@
+{
+  "generated_at": "2026-04-21T13:40:50.239497+00:00",
+  "source_of_truth_artifacts": {
+    "readiness_gate": "output/phase_b_retest_readiness_gate.json",
+    "readiness_blocker_audit": "output/phase_b_readiness_blocker_audit.json",
+    "distribution_and_oos_target_audit": "output/phase_b_distribution_and_oos_target_audit.json",
+    "metadata": "data/ticker_metadata.csv"
+  },
+  "official_distribution_universe": {
+    "density_gate_scope": "current ticker universe from data/ticker_metadata.csv used by news_distribution_gate::median_news_density_pct",
+    "density_gate_tickers": [
+      "ADRO",
+      "ASII",
+      "BBCA",
+      "BBRI",
+      "BMRI",
+      "BUMI",
+      "DEWA",
+      "GOTO",
+      "ICBP",
+      "INDF",
+      "TLKM",
+      "UNVR"
+    ],
+    "density_gate_ticker_count": 12,
+    "primary_distribution_pool_scope": "sentiment_segment=sentiment_poor",
+    "primary_distribution_pool_tickers": [
+      "ASII",
+      "BBCA",
+      "BUMI",
+      "UNVR"
+    ],
+    "primary_distribution_pool_ticker_count": 4
+  },
+  "per_ticker_density_breakdown": [
+    {
+      "ticker": "ADRO",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": false,
+      "article_count_total_current": 16,
+      "article_days_current": 8,
+      "news_density_pct_current": 0.3253,
+      "share_of_total_official_article_pool": 0.0879,
+      "share_of_primary_distribution_pool": 0.0,
+      "primary_article_share_current": 0.0,
+      "current_history_rows": 2459,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 115,
+      "status": "balanced"
+    },
+    {
+      "ticker": "ASII",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": true,
+      "article_count_total_current": 9,
+      "article_days_current": 5,
+      "news_density_pct_current": 0.2033,
+      "share_of_total_official_article_pool": 0.0495,
+      "share_of_primary_distribution_pool": 0.1607,
+      "primary_article_share_current": 0.1607,
+      "current_history_rows": 2459,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 118,
+      "status": "under_covered"
+    },
+    {
+      "ticker": "BBCA",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": true,
+      "article_count_total_current": 17,
+      "article_days_current": 7,
+      "news_density_pct_current": 0.2846,
+      "share_of_total_official_article_pool": 0.0934,
+      "share_of_primary_distribution_pool": 0.3036,
+      "primary_article_share_current": 0.3036,
+      "current_history_rows": 2460,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 116,
+      "status": "under_covered"
+    },
+    {
+      "ticker": "BBRI",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": false,
+      "article_count_total_current": 14,
+      "article_days_current": 9,
+      "news_density_pct_current": 0.3659,
+      "share_of_total_official_article_pool": 0.0769,
+      "share_of_primary_distribution_pool": 0.0,
+      "primary_article_share_current": 0.0,
+      "current_history_rows": 2460,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 114,
+      "status": "balanced"
+    },
+    {
+      "ticker": "BMRI",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": false,
+      "article_count_total_current": 36,
+      "article_days_current": 9,
+      "news_density_pct_current": 0.3659,
+      "share_of_total_official_article_pool": 0.1978,
+      "share_of_primary_distribution_pool": 0.0,
+      "primary_article_share_current": 0.0,
+      "current_history_rows": 2460,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 114,
+      "status": "balanced"
+    },
+    {
+      "ticker": "BUMI",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": true,
+      "article_count_total_current": 20,
+      "article_days_current": 6,
+      "news_density_pct_current": 0.2439,
+      "share_of_total_official_article_pool": 0.1099,
+      "share_of_primary_distribution_pool": 0.3571,
+      "primary_article_share_current": 0.3571,
+      "current_history_rows": 2460,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 117,
+      "status": "dominant"
+    },
+    {
+      "ticker": "DEWA",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": false,
+      "article_count_total_current": 10,
+      "article_days_current": 8,
+      "news_density_pct_current": 0.3252,
+      "share_of_total_official_article_pool": 0.0549,
+      "share_of_primary_distribution_pool": 0.0,
+      "primary_article_share_current": 0.0,
+      "current_history_rows": 2460,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 115,
+      "status": "balanced"
+    },
+    {
+      "ticker": "GOTO",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": false,
+      "article_count_total_current": 14,
+      "article_days_current": 8,
+      "news_density_pct_current": 0.8333,
+      "share_of_total_official_article_pool": 0.0769,
+      "share_of_primary_distribution_pool": 0.0,
+      "primary_article_share_current": 0.0,
+      "current_history_rows": 960,
+      "threshold_article_days_required_for_5pct": 48,
+      "additional_article_days_needed_to_hit_5pct": 40,
+      "status": "balanced"
+    },
+    {
+      "ticker": "ICBP",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": false,
+      "article_count_total_current": 10,
+      "article_days_current": 8,
+      "news_density_pct_current": 0.3253,
+      "share_of_total_official_article_pool": 0.0549,
+      "share_of_primary_distribution_pool": 0.0,
+      "primary_article_share_current": 0.0,
+      "current_history_rows": 2459,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 115,
+      "status": "balanced"
+    },
+    {
+      "ticker": "INDF",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": false,
+      "article_count_total_current": 9,
+      "article_days_current": 8,
+      "news_density_pct_current": 0.3252,
+      "share_of_total_official_article_pool": 0.0495,
+      "share_of_primary_distribution_pool": 0.0,
+      "primary_article_share_current": 0.0,
+      "current_history_rows": 2460,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 115,
+      "status": "balanced"
+    },
+    {
+      "ticker": "TLKM",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": false,
+      "article_count_total_current": 17,
+      "article_days_current": 8,
+      "news_density_pct_current": 0.3253,
+      "share_of_total_official_article_pool": 0.0934,
+      "share_of_primary_distribution_pool": 0.0,
+      "primary_article_share_current": 0.0,
+      "current_history_rows": 2459,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 115,
+      "status": "balanced"
+    },
+    {
+      "ticker": "UNVR",
+      "included_in_density_gate_universe": true,
+      "included_in_primary_distribution_pool": true,
+      "article_count_total_current": 10,
+      "article_days_current": 6,
+      "news_density_pct_current": 0.2439,
+      "share_of_total_official_article_pool": 0.0549,
+      "share_of_primary_distribution_pool": 0.1786,
+      "primary_article_share_current": 0.1786,
+      "current_history_rows": 2460,
+      "threshold_article_days_required_for_5pct": 123,
+      "additional_article_days_needed_to_hit_5pct": 117,
+      "status": "under_covered"
+    }
+  ],
+  "distribution_statistics": {
+    "actual_median_density": 0.3252,
+    "actual_mean_density": 0.3473,
+    "actual_min_density": 0.2033,
+    "actual_max_density": 0.8333,
+    "actual_density_range": 0.63,
+    "actual_median_article_days": 8.0,
+    "total_official_article_pool": 182,
+    "primary_distribution_pool_total_articles": 56
+  },
+  "actual_median_density": 0.3252,
+  "threshold_density": 5.0,
+  "gap_to_threshold": 4.6748,
+  "dominant_ticker": "BUMI",
+  "threshold_realism_assessment": {
+    "status": "structurally_misaligned",
+    "reason": "Tidak ada ticker di universe resmi yang mencapai density 5.0; median aktual 0.3252 masih 15.38x di bawah threshold dan butuh sedikitnya 7 ticker naik ke >=5.0.",
+    "actual_vs_threshold_multiple": 15.38
+  },
+  "operational_feasibility_assessment": {
+    "status": "not_reasonable_via_normal_operational_push",
+    "current_tickers_at_or_above_threshold": [],
+    "current_ticker_count_at_or_above_threshold": 0,
+    "minimum_tickers_needed_at_or_above_threshold_for_median_pass": 7,
+    "minimum_additional_article_days_total_for_cheapest_path": 728,
+    "cheapest_path_to_threshold": [
+      {
+        "ticker": "GOTO",
+        "current_density": 0.8333,
+        "current_article_days": 8,
+        "required_article_days_for_5pct": 48,
+        "additional_article_days_needed": 40
+      },
+      {
+        "ticker": "BBRI",
+        "current_density": 0.3659,
+        "current_article_days": 9,
+        "required_article_days_for_5pct": 123,
+        "additional_article_days_needed": 114
+      },
+      {
+        "ticker": "BMRI",
+        "current_density": 0.3659,
+        "current_article_days": 9,
+        "required_article_days_for_5pct": 123,
+        "additional_article_days_needed": 114
+      },
+      {
+        "ticker": "ADRO",
+        "current_density": 0.3253,
+        "current_article_days": 8,
+        "required_article_days_for_5pct": 123,
+        "additional_article_days_needed": 115
+      },
+      {
+        "ticker": "DEWA",
+        "current_density": 0.3252,
+        "current_article_days": 8,
+        "required_article_days_for_5pct": 123,
+        "additional_article_days_needed": 115
+      },
+      {
+        "ticker": "ICBP",
+        "current_density": 0.3253,
+        "current_article_days": 8,
+        "required_article_days_for_5pct": 123,
+        "additional_article_days_needed": 115
+      },
+      {
+        "ticker": "INDF",
+        "current_density": 0.3252,
+        "current_article_days": 8,
+        "required_article_days_for_5pct": 123,
+        "additional_article_days_needed": 115
+      }
+    ],
+    "typical_history_rows": 2460.0,
+    "threshold_article_days_required_for_typical_ticker": 123
+  },
+  "still_active_other_blockers": [
+    "universe_coverage_gate::primary_segment_ticker_count",
+    "news_distribution_gate::no_single_ticker_article_share"
+  ],
+  "recommended_next_move": "escalate_policy_discussion_before_further_distribution_push"
+}

@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-04-21T14:06:38.363096+00:00",
+  "news_distribution_policy_realignment_applied": true,
+  "density_component_realigned": true,
+  "old_density_policy": {
+    "threshold_name": "news_distribution_gate::median_news_density_pct",
+    "operator": ">=",
+    "target_value": 5.0,
+    "scope": "current ticker universe from data/ticker_metadata.csv"
+  },
+  "new_density_policy": {
+    "threshold_name": "news_distribution_gate::median_news_density_pct",
+    "operator": ">=",
+    "target_value": 0.3252,
+    "scope": "current ticker universe from data/ticker_metadata.csv"
+  },
+  "share_control_policy_unchanged": true,
+  "source_policy_audit_artifact": "output/phase_b_news_distribution_policy_alignment_audit.json",
+  "reason_for_realignment": "Masalah eksplisit ada pada density subcheck: threshold 5.0 tidak reachable secara wajar di universe resmi saat ini.",
+  "blockers_removed_by_density_policy_conflict_resolution": [],
+  "blockers_expected_to_remain": [],
+  "readiness_status_after_density_policy_realignment": "boleh_retest",
+  "strategy_retest_allowed_after_density_policy_realignment": true,
+  "roadmap_update_assessment": {
+    "allowed": false,
+    "reason": "Blocker breadth dan share control masih aktif sehingga roadmap belum boleh diupdate sebagai ready-for-retest."
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-04-21T14:06:38.362430+00:00",
+  "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+  "source_of_truth_fields": [
+    "blocking_thresholds",
+    "primary_segment"
+  ],
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "total_oos_trades_primary_segment_before": 1127.0,
+  "total_oos_trades_primary_segment_after": 1434.0,
+  "trade_count_by_fold_before": [
+    {
+      "fold_id": 1,
+      "candidate_total_trades": 167.0,
+      "candidate_signal_count": 357.0,
+      "trade_share": 0.3584
+    },
+    {
+      "fold_id": 3,
+      "candidate_total_trades": 153.0,
+      "candidate_signal_count": 319.0,
+      "trade_share": 0.3283
+    },
+    {
+      "fold_id": 2,
+      "candidate_total_trades": 146.0,
+      "candidate_signal_count": 314.0,
+      "trade_share": 0.3133
+    }
+  ],
+  "trade_count_by_fold_after": [
+    {
+      "fold_id": 1,
+      "candidate_total_trades": 218.0,
+      "candidate_signal_count": 474.0,
+      "trade_share": 0.372
+    },
+    {
+      "fold_id": 3,
+      "candidate_total_trades": 186.0,
+      "candidate_signal_count": 382.0,
+      "trade_share": 0.3174
+    },
+    {
+      "fold_id": 2,
+      "candidate_total_trades": 182.0,
+      "candidate_signal_count": 384.0,
+      "trade_share": 0.3106
+    }
+  ],
+  "dominant_fold_share_before": 0.3584,
+  "dominant_fold_share_after": 0.372,
+  "active_fairness_thresholds": [
+    {
+      "metric": "total_oos_trades_primary_segment",
+      "actual": 1434,
+      "target": 18
+    },
+    {
+      "metric": "no_single_fold_trade_share",
+      "actual": 0.372,
+      "target": 0.5
+    }
+  ],
+  "recommended_fix": "Rerun baseline_v9 segment OOS validation setelah refresh data; jika trade sample tetap 11 dan fold-3 tetap dominan, blocker fairness tidak bisa ditutup tanpa sample trade baru atau horizon evaluasi yang lebih panjang."
+}

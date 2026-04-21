@@ -1,0 +1,421 @@
+{
+  "generated_at": "2026-04-21T14:04:52.029737+00:00",
+  "primary_segment_total_articles": 83.0,
+  "primary_segment_article_days_median": 7.5,
+  "segmentation_refresh_completed": true,
+  "batch_1_status": "batch_1_complete_but_checkpoint_not_material",
+  "batch_1_completed": true,
+  "checkpoint_material_reached": false,
+  "recheck_readiness_gate_allowed": false,
+  "remaining_blockers": [
+    "additional_bars_from_v9_baseline actual=0.0 target>=42",
+    "usable_oos_windows_per_ticker actual=3.0 target>=6"
+  ],
+  "recommended_next_action": "advance_to_batch_2_and_close_remaining_checkpoint_blockers_before_rerunning_gate",
+  "decisive_statement": "Batch-1 resmi complete setelah article target dan segmentation sync terpenuhi.",
+  "article_day_status": {
+    "generated_at": "2026-04-21T14:04:51.230636+00:00",
+    "priority_tickers": [
+      "BUMI",
+      "INDF",
+      "UNVR",
+      "ICBP",
+      "BBCA",
+      "GOTO"
+    ],
+    "primary_segment_total_articles": 83.0,
+    "primary_segment_article_days_median": 7.5,
+    "article_target_met": true,
+    "article_days_target_met": true,
+    "limiting_tickers_for_total_articles": [
+      "INDF",
+      "UNVR",
+      "ICBP"
+    ],
+    "limiting_tickers_for_article_days_median": [
+      "UNVR",
+      "BUMI",
+      "BBCA"
+    ],
+    "per_ticker": [
+      {
+        "ticker": "BUMI",
+        "news_count_total_current": 20,
+        "article_days_current": 6,
+        "metadata_news_count_total": 20,
+        "metadata_article_days": 6,
+        "metadata_history_rows": 2460
+      },
+      {
+        "ticker": "INDF",
+        "news_count_total_current": 9,
+        "article_days_current": 8,
+        "metadata_news_count_total": 9,
+        "metadata_article_days": 8,
+        "metadata_history_rows": 2460
+      },
+      {
+        "ticker": "UNVR",
+        "news_count_total_current": 10,
+        "article_days_current": 6,
+        "metadata_news_count_total": 10,
+        "metadata_article_days": 6,
+        "metadata_history_rows": 2460
+      },
+      {
+        "ticker": "ICBP",
+        "news_count_total_current": 12,
+        "article_days_current": 9,
+        "metadata_news_count_total": 12,
+        "metadata_article_days": 9,
+        "metadata_history_rows": 2459
+      },
+      {
+        "ticker": "BBCA",
+        "news_count_total_current": 17,
+        "article_days_current": 7,
+        "metadata_news_count_total": 17,
+        "metadata_article_days": 7,
+        "metadata_history_rows": 2460
+      },
+      {
+        "ticker": "GOTO",
+        "news_count_total_current": 15,
+        "article_days_current": 9,
+        "metadata_news_count_total": 15,
+        "metadata_article_days": 9,
+        "metadata_history_rows": 960
+      }
+    ],
+    "recommended_next_action": "article_day_targets_closed_waiting_for_segmentation_sync_or_batch_decision_refresh",
+    "decisive_statement": "Primary segment article-day recovery sudah memenuhi target minimum batch-1."
+  },
+  "segmentation_refresh_status": {
+    "generated_at": "2026-04-21T14:04:51.887780+00:00",
+    "segmentation_refresh_attempted": true,
+    "segmentation_refresh_completed": true,
+    "segmentation_sync_before_refresh": false,
+    "segmentation_sync_after_refresh": true,
+    "changed_priority_tickers": [
+      "ICBP",
+      "GOTO"
+    ],
+    "before_refresh_alignment": [
+      {
+        "ticker": "BUMI",
+        "metadata_history_rows": 2460,
+        "segmentation_history_rows": 2460,
+        "metadata_article_days": 6,
+        "segmentation_article_days": 6,
+        "metadata_news_count_total": 20,
+        "segmentation_news_count_total": 20,
+        "aligned": true
+      },
+      {
+        "ticker": "INDF",
+        "metadata_history_rows": 2460,
+        "segmentation_history_rows": 2460,
+        "metadata_article_days": 8,
+        "segmentation_article_days": 8,
+        "metadata_news_count_total": 9,
+        "segmentation_news_count_total": 9,
+        "aligned": true
+      },
+      {
+        "ticker": "UNVR",
+        "metadata_history_rows": 2460,
+        "segmentation_history_rows": 2460,
+        "metadata_article_days": 6,
+        "segmentation_article_days": 6,
+        "metadata_news_count_total": 10,
+        "segmentation_news_count_total": 10,
+        "aligned": true
+      },
+      {
+        "ticker": "ICBP",
+        "metadata_history_rows": 2459,
+        "segmentation_history_rows": 2459,
+        "metadata_article_days": 9,
+        "segmentation_article_days": 8,
+        "metadata_news_count_total": 12,
+        "segmentation_news_count_total": 10,
+        "aligned": false
+      },
+      {
+        "ticker": "BBCA",
+        "metadata_history_rows": 2460,
+        "segmentation_history_rows": 2460,
+        "metadata_article_days": 7,
+        "segmentation_article_days": 7,
+        "metadata_news_count_total": 17,
+        "segmentation_news_count_total": 17,
+        "aligned": true
+      },
+      {
+        "ticker": "GOTO",
+        "metadata_history_rows": 960,
+        "segmentation_history_rows": 960,
+        "metadata_article_days": 9,
+        "segmentation_article_days": 8,
+        "metadata_news_count_total": 15,
+        "segmentation_news_count_total": 14,
+        "aligned": false
+      }
+    ],
+    "after_refresh_alignment": [
+      {
+        "ticker": "BUMI",
+        "metadata_history_rows": 2460,
+        "segmentation_history_rows": 2460,
+        "metadata_article_days": 6,
+        "segmentation_article_days": 6,
+        "metadata_news_count_total": 20,
+        "segmentation_news_count_total": 20,
+        "aligned": true
+      },
+      {
+        "ticker": "INDF",
+        "metadata_history_rows": 2460,
+        "segmentation_history_rows": 2460,
+        "metadata_article_days": 8,
+        "segmentation_article_days": 8,
+        "metadata_news_count_total": 9,
+        "segmentation_news_count_total": 9,
+        "aligned": true
+      },
+      {
+        "ticker": "UNVR",
+        "metadata_history_rows": 2460,
+        "segmentation_history_rows": 2460,
+        "metadata_article_days": 6,
+        "segmentation_article_days": 6,
+        "metadata_news_count_total": 10,
+        "segmentation_news_count_total": 10,
+        "aligned": true
+      },
+      {
+        "ticker": "ICBP",
+        "metadata_history_rows": 2459,
+        "segmentation_history_rows": 2459,
+        "metadata_article_days": 9,
+        "segmentation_article_days": 9,
+        "metadata_news_count_total": 12,
+        "segmentation_news_count_total": 12,
+        "aligned": true
+      },
+      {
+        "ticker": "BBCA",
+        "metadata_history_rows": 2460,
+        "segmentation_history_rows": 2460,
+        "metadata_article_days": 7,
+        "segmentation_article_days": 7,
+        "metadata_news_count_total": 17,
+        "segmentation_news_count_total": 17,
+        "aligned": true
+      },
+      {
+        "ticker": "GOTO",
+        "metadata_history_rows": 960,
+        "segmentation_history_rows": 960,
+        "metadata_article_days": 9,
+        "segmentation_article_days": 9,
+        "metadata_news_count_total": 15,
+        "segmentation_news_count_total": 15,
+        "aligned": true
+      }
+    ],
+    "recommended_next_action": "rerun_post_backfill_verification_after_segment_refresh",
+    "decisive_statement": "Segmentation refresh berhasil dan sekarang sinkron dengan snapshot terbaru."
+  },
+  "post_backfill_batch1_decision": {
+    "generated_at": "2026-04-21T14:04:52.027883+00:00",
+    "batch_1_status": "batch_1_complete_but_checkpoint_not_material",
+    "batch_1_officially_started": true,
+    "batch_1_completed": true,
+    "checkpoint_material_reached": false,
+    "recheck_readiness_gate_allowed": false,
+    "remaining_blockers": [
+      "additional_bars_from_v9_baseline actual=0.0 target>=42",
+      "usable_oos_windows_per_ticker actual=3.0 target>=6"
+    ],
+    "recommended_next_action": "advance_to_batch_2_and_close_remaining_checkpoint_blockers_before_rerunning_gate",
+    "decisive_statement": "Batch-1 complete, tetapi checkpoint material belum cukup untuk mengizinkan recheck readiness gate.",
+    "batch_id": "batch_1",
+    "batch_acceptance_status": "accepted",
+    "history_extension_progress_ok": true,
+    "primary_article_day_recovery_progress_ok": true,
+    "metadata_segmentation_update_ok": true,
+    "priority_ticker_verification": [
+      {
+        "ticker": "BUMI",
+        "history_rows_delta": 2403,
+        "usable_oos_windows_delta": 200,
+        "article_days_delta": 4,
+        "news_count_total_delta": 18,
+        "history_rows_current": 2460,
+        "usable_oos_windows_current": 203,
+        "article_days_current": 6,
+        "news_count_total_current": 20,
+        "is_primary_segment": true,
+        "ingest_status": "accepted"
+      },
+      {
+        "ticker": "INDF",
+        "history_rows_delta": 2403,
+        "usable_oos_windows_delta": 200,
+        "article_days_delta": 6,
+        "news_count_total_delta": 7,
+        "history_rows_current": 2460,
+        "usable_oos_windows_current": 203,
+        "article_days_current": 8,
+        "news_count_total_current": 9,
+        "is_primary_segment": false,
+        "ingest_status": "accepted"
+      },
+      {
+        "ticker": "UNVR",
+        "history_rows_delta": 2403,
+        "usable_oos_windows_delta": 200,
+        "article_days_delta": 6,
+        "news_count_total_delta": 10,
+        "history_rows_current": 2460,
+        "usable_oos_windows_current": 203,
+        "article_days_current": 6,
+        "news_count_total_current": 10,
+        "is_primary_segment": true,
+        "ingest_status": "accepted"
+      },
+      {
+        "ticker": "ICBP",
+        "history_rows_delta": 2402,
+        "usable_oos_windows_delta": 200,
+        "article_days_delta": 8,
+        "news_count_total_delta": 11,
+        "history_rows_current": 2459,
+        "usable_oos_windows_current": 203,
+        "article_days_current": 9,
+        "news_count_total_current": 12,
+        "is_primary_segment": false,
+        "ingest_status": "accepted"
+      },
+      {
+        "ticker": "BBCA",
+        "history_rows_delta": 2403,
+        "usable_oos_windows_delta": 200,
+        "article_days_delta": 6,
+        "news_count_total_delta": 16,
+        "history_rows_current": 2460,
+        "usable_oos_windows_current": 203,
+        "article_days_current": 7,
+        "news_count_total_current": 17,
+        "is_primary_segment": true,
+        "ingest_status": "accepted"
+      },
+      {
+        "ticker": "GOTO",
+        "history_rows_delta": 903,
+        "usable_oos_windows_delta": 75,
+        "article_days_delta": 7,
+        "news_count_total_delta": 13,
+        "history_rows_current": 960,
+        "usable_oos_windows_current": 78,
+        "article_days_current": 9,
+        "news_count_total_current": 15,
+        "is_primary_segment": false,
+        "ingest_status": "accepted"
+      }
+    ],
+    "primary_segment_summary": {
+      "primary_tickers_audited": [
+        "BUMI",
+        "UNVR",
+        "BBCA"
+      ],
+      "article_days_current": {
+        "BUMI": 6,
+        "UNVR": 6,
+        "BBCA": 7
+      },
+      "news_count_total_current": {
+        "BUMI": 20,
+        "UNVR": 10,
+        "BBCA": 17
+      }
+    }
+  },
+  "post_backfill_progress_update": {
+    "generated_at": "2026-04-21T14:04:52.011776+00:00",
+    "current_batch": "batch_1",
+    "current_batch_completed": false,
+    "next_batch_ready_to_start": true,
+    "next_batch_id": "batch_1",
+    "highest_completed_batch": "",
+    "completed_batches": [],
+    "progress_since_baseline_v9": {
+      "min_history_bars_per_ticker": {
+        "baseline": 57.0,
+        "current": 960.0,
+        "delta": 903.0
+      },
+      "additional_bars_from_v9_baseline": {
+        "baseline": 0.0,
+        "current": 0.0,
+        "delta": 0.0
+      },
+      "usable_oos_windows_per_ticker": {
+        "baseline": 3.0,
+        "current": 3.0,
+        "delta": 0.0
+      },
+      "coverage_ready_ticker_ratio": {
+        "baseline": 0.0,
+        "current": 0.9167,
+        "delta": 0.9167
+      },
+      "primary_segment_total_articles": {
+        "baseline": 8.0,
+        "current": 71.0,
+        "delta": 63.0
+      },
+      "primary_segment_article_days_median": {
+        "baseline": 1.5,
+        "current": 6.0,
+        "delta": 4.5
+      },
+      "total_oos_trades_primary_segment": {
+        "baseline": 11.0,
+        "current": 1127.0,
+        "delta": 1116.0
+      },
+      "no_single_fold_trade_share": {
+        "baseline": 0.6364,
+        "current": 0.3584,
+        "delta": -0.278
+      }
+    },
+    "remaining_blockers": [
+      "additional_bars_from_v9_baseline actual=0.0 target>=42",
+      "usable_oos_windows_per_ticker actual=3.0 target>=6"
+    ],
+    "checkpoint_material_reached": false,
+    "recheck_readiness_gate_allowed": false,
+    "recommended_next_action": "keep_executing_batch_1_history_extension_and_primary_article_day_recovery",
+    "decisive_statement": "Progress history naik, tetapi article-day recovery primary segment masih menahan batch.",
+    "metadata_segmentation_updated": true,
+    "artifact_availability": {
+      "phase_b_retest_readiness_gate": true,
+      "phase_b_retest_next_requirements": true,
+      "phase_b_data_extension_audit": true,
+      "framework_redesign_scope": true,
+      "universe_reconstruction_precheck": true,
+      "phase_b_final_closeout": true,
+      "project_after_phase_b_decision": true,
+      "baseline_v9_segment_oos_summary": true,
+      "baseline_v9_segment_oos_go_no_go": true,
+      "phase_b_data_extension_execution_plan": true,
+      "phase_b_recheck_trigger": true,
+      "phase_b_data_extension_progress_tracker": true
+    },
+    "limitations": []
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "generated_at": "2026-04-21T14:15:10.517661+00:00",
+  "phase_b_final_status": "phase_b_closed_with_learnings_no_candidate",
+  "phase_b_failed_as_strategy": true,
+  "has_candidate_survivors": false,
+  "candidate_survivors": [],
+  "recommended_primary_next_step": "stop_and_collect_more_data_then_redesign_framework",
+  "recommended_secondary_step_1": "freeze_strategy_experiment_track_and_keep_phase_c_closed",
+  "recommended_secondary_step_2": "prepare_framework_redesign_scope_after_data_extension",
+  "parked_items": [
+    "item5",
+    "item6",
+    "item7",
+    "item8",
+    "entry_relaxation_only",
+    "volume_relaxed_entry",
+    "exit_hold_only_redesign",
+    "segment-only promotion for current candidate"
+  ],
+  "still_theoretically_possible_later_but_not_now": [
+    "framework_redesign",
+    "wider_data_collection",
+    "re_labeled_evaluation_horizon",
+    "universe_reconstruction"
+  ],
+  "can_continue_to_phase_c": false,
+  "can_continue_strategy_experiments_now": false,
+  "phase_c_status": "phase_c_no_go_yet",
+  "latest_candidate_terminal_status": "no_go_even_for_segment",
+  "current_candidate_terminal_action": "drop_candidate_from_primary_segment_even_for_experimental_use",
+  "phase_b_strategy_summary": {
+    "v2_decision": "baseline_v2_no_go_redesign_again",
+    "v3_decision": "no_go",
+    "v4_decision": "no_go",
+    "v4_v2_decision": "no_go",
+    "v5_decision": "no_go",
+    "v7_decision": "keep_experimental_for_segment_review",
+    "v8_decision": "promote_to_segment_only_validation",
+    "v9_decision": "no_go_even_for_segment"
+  },
+  "root_cause_snapshot": {
+    "recommended_primary_direction": "revisit_eligibility_and_sample_guardrails",
+    "recommended_secondary_direction_1": "revisit_ticker_universe_segmentation",
+    "recommended_secondary_direction_2": "revisit_fast_anchor_with_better_quality_gate",
+    "what_to_stop": [
+      "item5",
+      "item6",
+      "item7",
+      "item8",
+      "entry_relaxation_only",
+      "volume_relaxed_entry",
+      "exit_hold_only_redesign"
+    ],
+    "what_is_still_explorable": [
+      "fast_anchor_plus_quality_gate",
+      "eligibility_gate_review",
+      "universe_segmentation",
+      "sample_sufficiency_redesign"
+    ]
+  },
+  "next_plan_snapshot": {
+    "recommended_primary_direction": "revisit_eligibility_and_sample_guardrails",
+    "suggested_experiment_id": "baseline_v6_guardrail_review",
+    "what_to_stop": [
+      "item5",
+      "item6",
+      "item7",
+      "item8",
+      "entry_relaxation_only",
+      "volume_relaxed_entry",
+      "exit_hold_only_redesign"
+    ],
+    "what_not_to_change": [
+      "Jangan ubah baseline aktif.",
+      "Jangan lanjut ke Phase C.",
+      "Jangan hidupkan lagi item 5-8.",
+      "Jangan mulai eksperimen strategi baru sebelum root cause guardrail ditutup."
+    ]
+  },
+  "final_candidate_assessment": {
+    "candidate_id": "baseline_v3_ema20_trend_guard",
+    "primary_segment": "sentiment_segment=sentiment_poor",
+    "decision": "no_go_even_for_segment",
+    "oos_stability_ok": false,
+    "ticker_consistency_ok": false,
+    "outlier_bias_ok": true,
+    "global_promotion_allowed": false,
+    "primary_total_trades_sum": 1434,
+    "primary_active_ticker_count": 5,
+    "primary_trade_weighted_average_return": -0.0423,
+    "primary_mean_average_return_active": -0.0047,
+    "supporting_segments_failed": [
+      "volatility_segment=mixed_volatility",
+      "liquidity_segment=thin_sparse",
+      "news_segment=mid_news",
+      "liquidity_segment=liquid_active",
+      "volatility_segment=higher_volatility",
+      "sentiment_segment=sentiment_rich"
+    ]
+  },
+  "decisive_statement": "Tidak ada kandidat yang stabil bahkan pada subset-aware OOS validation. Phase B ditutup sebagai gagal secara strategi, bukan karena coding belum selesai. Langkah berikutnya bukan eksperimen strategi baru, melainkan pengumpulan data tambahan dan redesign framework evaluasi. Phase C tetap tidak boleh dibuka.",
+  "warnings": []
+}

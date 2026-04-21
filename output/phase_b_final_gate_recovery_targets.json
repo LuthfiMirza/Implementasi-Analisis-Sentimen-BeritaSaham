@@ -1,0 +1,225 @@
+{
+  "generated_at": "2026-04-21T14:07:50.109641+00:00",
+  "source_of_truth_artifacts": {
+    "readiness_gate": "output/phase_b_retest_readiness_gate.json",
+    "distribution_and_oos_target_audit": "output/phase_b_distribution_and_oos_target_audit.json",
+    "news_distribution_threshold_audit": "output/phase_b_news_distribution_threshold_audit.json",
+    "segmentation": "output/baseline_v6_universe_segmentation.csv",
+    "metadata": "data/ticker_metadata.csv",
+    "primary_article_push": "output/phase_b_primary_article_coverage_push.json"
+  },
+  "summary": {
+    "primary_segment_scope": "sentiment_segment=sentiment_poor",
+    "primary_segment_official_tickers": [
+      "ADRO",
+      "ASII",
+      "BBCA",
+      "BUMI",
+      "UNVR"
+    ],
+    "primary_segment_ticker_count": 5,
+    "single_ticker_article_share": 0.2817,
+    "dominant_ticker": "BUMI",
+    "median_article_days_threshold_for_sentiment_split": 8.0,
+    "recommended_candidate_to_become_fifth_primary_ticker": "TLKM",
+    "targeted_push_tickers": [
+      "DEWA",
+      "INDF"
+    ]
+  },
+  "rows": [
+    {
+      "ticker": "ADRO",
+      "currently_in_primary_segment": true,
+      "distance_to_primary_segment_eligibility": 0,
+      "article_count_total_current": 15,
+      "article_days_current": 7,
+      "article_share_current": 0.2113,
+      "best_any_oos_trade_count": 307,
+      "current_sentiment_segment": "sentiment_poor",
+      "candidate_priority_rank": null
+    },
+    {
+      "ticker": "ASII",
+      "currently_in_primary_segment": true,
+      "distance_to_primary_segment_eligibility": 0,
+      "article_count_total_current": 9,
+      "article_days_current": 5,
+      "article_share_current": 0.1268,
+      "best_any_oos_trade_count": 293,
+      "current_sentiment_segment": "sentiment_poor",
+      "candidate_priority_rank": null
+    },
+    {
+      "ticker": "BBCA",
+      "currently_in_primary_segment": true,
+      "distance_to_primary_segment_eligibility": 0,
+      "article_count_total_current": 17,
+      "article_days_current": 7,
+      "article_share_current": 0.2394,
+      "best_any_oos_trade_count": 341,
+      "current_sentiment_segment": "sentiment_poor",
+      "candidate_priority_rank": null
+    },
+    {
+      "ticker": "BBRI",
+      "currently_in_primary_segment": false,
+      "distance_to_primary_segment_eligibility": 2,
+      "article_count_total_current": 14,
+      "article_days_current": 9,
+      "article_share_current": 0.0,
+      "best_any_oos_trade_count": 328,
+      "current_sentiment_segment": "sentiment_rich",
+      "candidate_priority_rank": 6
+    },
+    {
+      "ticker": "BMRI",
+      "currently_in_primary_segment": false,
+      "distance_to_primary_segment_eligibility": 2,
+      "article_count_total_current": 36,
+      "article_days_current": 9,
+      "article_share_current": 0.0,
+      "best_any_oos_trade_count": 322,
+      "current_sentiment_segment": "sentiment_rich",
+      "candidate_priority_rank": 4
+    },
+    {
+      "ticker": "BUMI",
+      "currently_in_primary_segment": true,
+      "distance_to_primary_segment_eligibility": 0,
+      "article_count_total_current": 20,
+      "article_days_current": 6,
+      "article_share_current": 0.2817,
+      "best_any_oos_trade_count": 215,
+      "current_sentiment_segment": "sentiment_poor",
+      "candidate_priority_rank": null
+    },
+    {
+      "ticker": "DEWA",
+      "currently_in_primary_segment": false,
+      "distance_to_primary_segment_eligibility": 1,
+      "article_count_total_current": 11,
+      "article_days_current": 8,
+      "article_share_current": 0.0,
+      "best_any_oos_trade_count": 142,
+      "current_sentiment_segment": "sentiment_rich",
+      "candidate_priority_rank": 2
+    },
+    {
+      "ticker": "GOTO",
+      "currently_in_primary_segment": false,
+      "distance_to_primary_segment_eligibility": 2,
+      "article_count_total_current": 15,
+      "article_days_current": 9,
+      "article_share_current": 0.0,
+      "best_any_oos_trade_count": 87,
+      "current_sentiment_segment": "sentiment_rich",
+      "candidate_priority_rank": 5
+    },
+    {
+      "ticker": "ICBP",
+      "currently_in_primary_segment": false,
+      "distance_to_primary_segment_eligibility": 2,
+      "article_count_total_current": 12,
+      "article_days_current": 9,
+      "article_share_current": 0.0,
+      "best_any_oos_trade_count": 311,
+      "current_sentiment_segment": "sentiment_rich",
+      "candidate_priority_rank": 7
+    },
+    {
+      "ticker": "INDF",
+      "currently_in_primary_segment": false,
+      "distance_to_primary_segment_eligibility": 1,
+      "article_count_total_current": 9,
+      "article_days_current": 8,
+      "article_share_current": 0.0,
+      "best_any_oos_trade_count": 299,
+      "current_sentiment_segment": "sentiment_rich",
+      "candidate_priority_rank": 3
+    },
+    {
+      "ticker": "TLKM",
+      "currently_in_primary_segment": false,
+      "distance_to_primary_segment_eligibility": 1,
+      "article_count_total_current": 17,
+      "article_days_current": 8,
+      "article_share_current": 0.0,
+      "best_any_oos_trade_count": 299,
+      "current_sentiment_segment": "sentiment_rich",
+      "candidate_priority_rank": 1
+    },
+    {
+      "ticker": "UNVR",
+      "currently_in_primary_segment": true,
+      "distance_to_primary_segment_eligibility": 0,
+      "article_count_total_current": 10,
+      "article_days_current": 6,
+      "article_share_current": 0.1408,
+      "best_any_oos_trade_count": 278,
+      "current_sentiment_segment": "sentiment_poor",
+      "candidate_priority_rank": null
+    }
+  ],
+  "provider_contribution_summary": {
+    "DEWA": [
+      {
+        "provider": "google_news_rss",
+        "raw_count": 10,
+        "saved_count": 0,
+        "updated_count": 4,
+        "failed": 0
+      },
+      {
+        "provider": "business_site_search",
+        "raw_count": 5,
+        "saved_count": 1,
+        "updated_count": 0,
+        "failed": 0
+      },
+      {
+        "provider": "idx_disclosure",
+        "raw_count": 0,
+        "saved_count": 0,
+        "updated_count": 0,
+        "failed": 0
+      }
+    ],
+    "INDF": [
+      {
+        "provider": "google_news_rss",
+        "raw_count": 10,
+        "saved_count": 0,
+        "updated_count": 3,
+        "failed": 0
+      },
+      {
+        "provider": "business_site_search",
+        "raw_count": 1,
+        "saved_count": 0,
+        "updated_count": 0,
+        "failed": 0
+      },
+      {
+        "provider": "idx_disclosure",
+        "raw_count": 0,
+        "saved_count": 0,
+        "updated_count": 0,
+        "failed": 0
+      }
+    ],
+    "TLKM": []
+  },
+  "before_after": {
+    "primary_segment_ticker_count_before": 4,
+    "primary_segment_ticker_count_after": 5,
+    "single_ticker_article_share_before": 0.3571,
+    "single_ticker_article_share_after": 0.2817,
+    "dominant_ticker_before": "BUMI",
+    "dominant_ticker_after": "BUMI",
+    "recommended_candidate_before": "TLKM",
+    "recommended_candidate_after": "TLKM",
+    "candidate_entered_primary_after": false
+  },
+  "recommended_next_move": "Push article-day coverage pada boundary tickers selain kandidat utama agar median threshold split bisa naik, sambil membiarkan kandidat utama tetap di boundary untuk masuk primary segment dan menurunkan dominant share."
+}

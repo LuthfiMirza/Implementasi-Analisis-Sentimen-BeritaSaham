@@ -1,0 +1,33 @@
+Baseline v9 Segment OOS Validation
+==================================
+
+- Candidate: baseline_v3_ema20_trend_guard
+- Primary segment: sentiment_segment=sentiment_poor
+- Entry rule: close_gt_ema20_and_bullish_candle
+- Hold period: 3
+- Walk-forward folds: 3 x 313 bars
+- Warmup bars: 21
+- Decision: no_go_even_for_segment
+- OOS stability ok: False
+- Ticker consistency ok: False
+- Outlier bias ok: True
+- Global promotion allowed: False
+- Recommended next action: drop_candidate_from_primary_segment_even_for_experimental_use
+
+Primary segment OOS snapshot:
+- ticker_count=5 | active_ticker_count=5 | total_trades=1434
+- mean_average_return_all=-0.0047 | mean_average_return_active=-0.0047
+- trade_weighted_average_return=-0.0423 | positive_fold_share=0.3333
+- top_abs_pnl_share=0.4122 | top_positive_pnl_share=1.0
+
+Supporting robustness checks:
+- volatility_segment=mixed_volatility: robustness_check_passed=False, total_trades=1221, trade_weighted_average_return=-0.218
+- liquidity_segment=thin_sparse: robustness_check_passed=False, total_trades=1630, trade_weighted_average_return=-0.1959
+- news_segment=mid_news: robustness_check_passed=False, total_trades=1033, trade_weighted_average_return=-0.1884
+- liquidity_segment=liquid_active: robustness_check_passed=False, total_trades=1592, trade_weighted_average_return=-0.1056
+- volatility_segment=higher_volatility: robustness_check_passed=False, total_trades=751, trade_weighted_average_return=0.1031
+- sentiment_segment=sentiment_rich: robustness_check_passed=False, total_trades=1788, trade_weighted_average_return=-0.2387
+
+Decision notes:
+- Primary segment gagal mempertahankan kualitas OOS minimum.
+- Kandidat tidak stabil bahkan sebagai strategi subset eksperimental.

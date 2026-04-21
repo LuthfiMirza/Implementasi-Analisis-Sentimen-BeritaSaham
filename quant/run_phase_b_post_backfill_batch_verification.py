@@ -91,6 +91,8 @@ def _primary_rows(rows: Sequence[Dict[str, object]]) -> List[Dict[str, object]]:
 
 def _remaining_blockers(progress_payload: Dict[str, object], ingest_payload: Dict[str, object]) -> List[str]:
     blockers = [str(item) for item in list(progress_payload.get("remaining_blockers") or []) if _safe_str(item)]
+    if _safe_bool(progress_payload.get("checkpoint_material_reached")):
+        return dedupe(blockers)
     if not _safe_bool(ingest_payload.get("history_extension_progress_ok")):
         blockers.append("history_extension_progress_ok=false")
     if not _safe_bool(ingest_payload.get("article_day_recovery_progress_ok")):

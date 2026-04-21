@@ -1,0 +1,35 @@
+{
+  "candidate_id": "baseline_v3_ema20_trend_guard",
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "decision": "no_go_even_for_segment",
+  "oos_stability_ok": false,
+  "ticker_consistency_ok": false,
+  "outlier_bias_ok": true,
+  "global_promotion_allowed": false,
+  "recommended_next_action": "drop_candidate_from_primary_segment_even_for_experimental_use",
+  "supporting_segments_checked": [
+    "volatility_segment=mixed_volatility",
+    "liquidity_segment=thin_sparse",
+    "news_segment=mid_news",
+    "liquidity_segment=liquid_active",
+    "volatility_segment=higher_volatility",
+    "sentiment_segment=sentiment_rich"
+  ],
+  "supporting_segments_passed": [],
+  "supporting_segments_failed": [
+    "volatility_segment=mixed_volatility",
+    "liquidity_segment=thin_sparse",
+    "news_segment=mid_news",
+    "liquidity_segment=liquid_active",
+    "volatility_segment=higher_volatility",
+    "sentiment_segment=sentiment_rich"
+  ],
+  "primary_total_trades_sum": 1434,
+  "primary_active_ticker_count": 5,
+  "primary_trade_weighted_average_return": -0.0423,
+  "primary_mean_average_return_active": -0.0047,
+  "decision_notes": [
+    "Primary segment gagal mempertahankan kualitas OOS minimum.",
+    "Kandidat tidak stabil bahkan sebagai strategi subset eksperimental."
+  ]
+}

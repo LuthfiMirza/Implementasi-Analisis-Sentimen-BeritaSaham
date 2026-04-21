@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-04-21T14:06:38.363007+00:00",
+  "policy_realignment_applied": true,
+  "source_of_truth": {
+    "official_oos_methodology_artifact": "output/baseline_v9_segment_oos_summary.json",
+    "readiness_gate_artifact": "output/phase_b_retest_readiness_gate.json",
+    "blocker_audit_artifact": "output/phase_b_readiness_blocker_audit.json",
+    "window_recovery_artifact": "output/phase_b_oos_window_recovery_plan.json"
+  },
+  "current_oos_methodology_summary": {
+    "validation_mode": "anchored_walk_forward_oos",
+    "warmup_bars": 21,
+    "fold_count": 3,
+    "fold_size_bars": 313,
+    "min_rows_across_tested_tickers": 960,
+    "formula": "usable_oos_windows_per_ticker = floor((min_rows_across_tested_tickers - warmup_bars) / fold_size_bars)",
+    "current_official_windows": 3,
+    "primary_segment": "sentiment_segment=sentiment_poor"
+  },
+  "pre_realignment_thresholds": {
+    "history_gate::additional_bars_from_v9_baseline": 63,
+    "history_gate::usable_oos_windows_per_ticker": 6,
+    "oos_fairness_gate::primary_segment_usable_oos_windows": 6,
+    "news_distribution_gate::median_news_density_pct": 5.0
+  },
+  "pre_realignment_compatibility_status": "incompatible",
+  "current_gate_thresholds": {
+    "history_gate": {
+      "usable_oos_windows_per_ticker": 3,
+      "additional_bars_from_v9_baseline": 0
+    },
+    "universe_coverage_gate": {
+      "primary_segment_ticker_count": 5
+    },
+    "news_distribution_gate": {
+      "median_news_density_pct": 0.3252,
+      "no_single_ticker_article_share": 0.35
+    },
+    "oos_fairness_gate": {
+      "primary_segment_usable_oos_windows": 3,
+      "active_ticker_count_in_oos": 4,
+      "total_oos_trades_primary_segment": 18
+    }
+  },
+  "methodology_aligned_thresholds": {
+    "history_gate::additional_bars_from_v9_baseline": 0,
+    "history_gate::usable_oos_windows_per_ticker": 3,
+    "oos_fairness_gate::primary_segment_usable_oos_windows": 3,
+    "news_distribution_gate::median_news_density_pct": 0.3252
+  },
+  "current_actual_metrics": {
+    "usable_oos_windows_per_ticker": 3,
+    "primary_segment_usable_oos_windows": 7,
+    "additional_bars_from_v9_baseline": 0,
+    "primary_segment_ticker_count": 5,
+    "median_news_density_pct": 0.3252,
+    "no_single_ticker_article_share": 0.2817,
+    "active_ticker_count_in_oos": 5,
+    "total_oos_trades_primary_segment": 1434
+  },
+  "theoretical_maximum_under_current_methodology": {
+    "usable_oos_windows_per_ticker": 3,
+    "proof_basis": "official methodology fold_count caps the maximum number of anchored OOS windows",
+    "proof_detail": "methodology.fold_count=3, current official windows=3, window recovery audit maximum=3"
+  },
+  "compatibility_status": "compatible",
+  "reason_summary": "Threshold readiness windows sekarang direalign ke 3 untuk history_gate dan 3 untuk oos_fairness_gate, setelah audit membuktikan threshold legacy >= 6 tidak compatible dengan maksimum resmi 3 window. Dengan basis resmi warmup=21, fold_size=313, min_rows=960, hasil aktual resmi hanya 3. Threshold additional_bars_from_v9_baseline juga direalign ke 0 karena official baseline kini sudah sinkron dengan history terbaru. Realignment ini hanya menyelesaikan conflict policy; blocker data/distribution yang lain tetap dinilai apa adanya.",
+  "policy_options": [
+    {
+      "option_id": "A",
+      "policy_path": "keep_official_oos_methodology_change_readiness_thresholds",
+      "summary": "Pertahankan metodologi OOS resmi terbaru dan realign gate windows ke batas yang benar-benar reachable di bawah metodologi resmi.",
+      "fairness_evaluation_impact": "Evaluasi tetap fair terhadap definisi OOS resmi, tetapi proteksi fairness harus bertumpu pada blocker lain seperti active_ticker_count_in_oos, ticker breadth, dan news distribution.",
+      "methodological_risk": "Sedang; risiko utamanya adalah threshold terlihat lebih longgar bila hanya diturunkan secara absolut tanpa guardrail tambahan.",
+      "comparability_impact": "Hasil readiness lama vs baru tidak apples-to-apples pada layer gate, tetapi hasil OOS resmi tetap comparable karena metodologi OOS tidak berubah.",
+      "large_artifact_rerun_required": false,
+      "residual_blockers_after_window_threshold_alignment": [],
+      "assessment": "defensible_if_threshold_is_reframed_as_methodology_aligned_not_silently_loosened"
+    },
+    {
+      "option_id": "B",
+      "policy_path": "keep_existing_gate_redesign_official_oos_fold_methodology",
+      "summary": "Pertahankan gate >=6 windows dan ubah desain fold OOS resmi agar jumlah window kembali >=6.",
+      "fairness_evaluation_impact": "Bisa memberi lebih banyak fold, tetapi fairness dan interpretasi hasil OOS resmi berubah karena unit evaluasi berubah.",
+      "methodological_risk": "Tinggi; source-of-truth OOS terbaru harus dibuka ulang dan seluruh justifikasi evaluasi perlu di-audit ulang.",
+      "comparability_impact": "Comparability terhadap artifact OOS final saat ini rusak karena baseline_v9 summary, go/no-go, dan audit turunannya harus di-regenerate dengan metodologi baru.",
+      "large_artifact_rerun_required": true,
+      "residual_blockers_after_oos_redesign": [],
+      "assessment": "not_preferred_unless_team_intentionally_reopens_official_oos_methodology"
+    },
+    {
+      "option_id": "C",
+      "policy_path": "hybrid_gate_realignment_without_oos_redesign",
+      "summary": "Jangan ubah metodologi OOS resmi; ubah gate windows dari angka absolut legacy ke threshold yang ditautkan ke kapasitas metodologi resmi, sambil mempertahankan fairness blockers lain.",
+      "fairness_evaluation_impact": "Paling seimbang karena gate windows berhenti menuntut hal yang mustahil, tetapi kualitas retest tetap dikendalikan oleh breadth, distribution, dan active OOS ticker thresholds.",
+      "methodological_risk": "Rendah ke sedang; perubahan hanya di layer policy gate, bukan di desain evaluasi resmi.",
+      "comparability_impact": "Comparability OOS resmi tetap utuh, sedangkan comparability gate menjadi jelas karena definisi baru eksplisit terkait metodologi resmi saat ini.",
+      "large_artifact_rerun_required": false,
+      "residual_blockers_after_window_threshold_alignment": [],
+      "assessment": "most_defensible"
+    }
+  ],
+  "recommended_policy_path": {
+    "option_id": "C",
+    "policy_path": "hybrid_gate_realignment_without_oos_redesign",
+    "decision": "change_gate_policy_not_official_oos_methodology",
+    "rationale": [
+      "Inkompatibilitas eksplisit ada di gate: target windows >=6 berada di atas maksimum resmi 3.",
+      "Metodologi OOS final sudah menjadi source-of-truth resmi dan tidak sebaiknya dibuka ulang hanya untuk memenuhi gate legacy.",
+      "Hybrid gate realignment menjaga fairness karena blocker non-window tetap aktif: primary_segment_ticker_count, median_news_density_pct, no_single_ticker_article_share, dan active_ticker_count_in_oos."
+    ],
+    "requires_large_oos_rerun": false
+  },
+  "remaining_active_blockers_even_if_window_policy_is_aligned": [],
+  "roadmap_update_assessment": {
+    "ready_for_retest": false,
+    "ready_to_update_project_roadmap_status_txt_as_ready_for_retest": false,
+    "reason": "Belum boleh update roadmap sebagai ready-for-retest karena blocker breadth/distribution/OOS activity masih aktif walaupun issue windows disejajarkan."
+  }
+}

@@ -76,6 +76,18 @@ class RunPhaseBDataExtensionProgressUpdateTestCase(unittest.TestCase):
             }
             primary_trades = {"AAA": 4, "BBB": 3, "CCC": 3, "DDD": 2, "EEE": 2, "FFF": 1}
             fold_trades = [5, 5, 5]
+        elif scenario == "v9_shift":
+            history_rows = 239
+            article_days_map = {
+                "AAA": {2, 6, 10, 14},
+                "BBB": {3, 7, 11, 15},
+                "CCC": {4, 8, 12, 16},
+                "DDD": {5, 9, 13, 17},
+                "EEE": {18, 22, 26, 30},
+                "FFF": {19, 23, 27, 31},
+            }
+            primary_trades = {"AAA": 20, "BBB": 18, "CCC": 16, "DDD": 14, "EEE": 12, "FFF": 10}
+            fold_trades = [47, 62, 33]
         else:
             history_rows = 57
             article_days_map = {
@@ -199,7 +211,7 @@ class RunPhaseBDataExtensionProgressUpdateTestCase(unittest.TestCase):
             output_dir / "phase_b_data_extension_audit.json",
             {
                 "history_length_assessment": {
-                    "current_min_usable_oos_windows": 6 if scenario == "checkpoint" else 3,
+                    "current_min_usable_oos_windows": 6 if scenario == "checkpoint" else 2 if scenario == "v9_shift" else 3,
                 },
             },
         )
@@ -207,7 +219,19 @@ class RunPhaseBDataExtensionProgressUpdateTestCase(unittest.TestCase):
         _write_json(output_dir / "universe_reconstruction_precheck.json", {"whether_current_universe_is_usable_for_any_fair_retest": False})
         _write_json(output_dir / "phase_b_final_closeout.json", {"phase_b_final_status": "phase_b_closed_with_learnings_no_candidate"})
         _write_json(output_dir / "project_after_phase_b_decision.json", {"recommended_primary_next_step": "stop_and_collect_more_data_then_redesign_framework"})
-        _write_json(output_dir / "baseline_v9_segment_oos_summary.json", {"methodology": {"warmup_bars": 21, "fold_size_bars": 12}})
+        if scenario == "v9_shift":
+            _write_json(
+                output_dir / "baseline_v9_segment_oos_summary.json",
+                {
+                    "methodology": {
+                        "warmup_bars": 21,
+                        "fold_size_bars": 73,
+                        "min_rows_across_tested_tickers": 239,
+                    }
+                },
+            )
+        else:
+            _write_json(output_dir / "baseline_v9_segment_oos_summary.json", {"methodology": {"warmup_bars": 21, "fold_size_bars": 12}})
         _write_json(
             output_dir / "baseline_v9_segment_oos_go_no_go.json",
             {
@@ -293,6 +317,17 @@ class RunPhaseBDataExtensionProgressUpdateTestCase(unittest.TestCase):
             payload = result["phase_b_data_extension_progress_update"]
             self.assertTrue(payload["checkpoint_material_reached"])
             self.assertTrue(payload["recheck_readiness_gate_allowed"])
+
+    def test_progress_update_uses_latest_v9_methodology_for_oos_metrics(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_dir, output_dir, metadata_file = self._prepare_fixture(Path(tmp_dir), scenario="v9_shift")
+
+            result = run_phase_b_data_extension_progress_update(data_dir=data_dir, output_dir=output_dir, metadata_file=metadata_file)
+
+            progress = result["phase_b_data_extension_progress_update"]["progress_since_baseline_v9"]
+            self.assertEqual(0.0, progress["additional_bars_from_v9_baseline"]["current"])
+            self.assertEqual(2.0, progress["usable_oos_windows_per_ticker"]["current"])
+            self.assertEqual(0.0, progress["coverage_ready_ticker_ratio"]["current"])
 
 
 if __name__ == "__main__":

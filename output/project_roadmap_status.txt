@@ -1,76 +1,32 @@
-Project Roadmap Audit
-=====================
+Project Roadmap Status
+======================
 
-Ringkasan fase:
+- generated_at=2026-04-21T14:18:10.519806+00:00
+- current_focus=phase_b_retest_closeout
+
+Phase summary:
 - phase_a: done=4, partial=0, not_started=0, total=4
 - phase_b: done=0, partial=4, not_started=0, total=4
 - phase_c: done=0, partial=1, not_started=3, total=4
 
-Status final Phase A:
-- Status: blocked
-- Reason: Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.
-- Ready to start Phase B: False
+Latest execution status:
+- phase_b_status=phase_b_closed_with_learnings_no_candidate
+- phase_c_decision=phase_c_no_go_yet
+- current_track=phase_b_retest_executed_formal_closeout_published
+- recommended_next_action=stop_and_collect_more_data_then_redesign_framework
+- retest_readiness_status=boleh_retest
+- retest_readiness_snapshot_published=True
+- strategy_retest_status=executed
+- strategy_retest_result=no_go_even_for_segment
+- strategy_retest_candidate=baseline_v3_ema20_trend_guard
+- strategy_retest_primary_segment=sentiment_segment=sentiment_poor
+- official_primary_segment_tickers=ADRO, ASII, BBCA, BUMI, UNVR
+- can_continue_strategy_experiments_now=False
 
-Audit item per item:
-1. [done] Volume spike detection (phase_a)
-   Evidence: quant/phase_a.py menambahkan add_volume_features, volume_ratio, dan is_volume_spike.
-   Evidence: quant/test_phase_a.py menguji volume spike dan threshold injection.
-   Remaining gap: Tidak ada gap fitur inti. Pertahankan sebagai baseline Phase A dan jangan ubah default tanpa evidence real-data.
-   Next action: Pertahankan default threshold dari baseline freeze dan gunakan threshold sweep real sebagai satu-satunya dasar perubahan.
-2. [done] EMA50 trend filter (phase_a)
-   Evidence: quant/phase_a.py menambahkan EMA50, trend_ok, dan ema50_slope_up.
-   Evidence: quant/test_phase_a.py menguji trend filter Phase A.
-   Remaining gap: Tidak ada gap inti. EMA50 sudah menjadi bagian default pipeline Phase A.
-   Next action: Bekukan EMA50 sebagai guardrail Phase A; eksperimen Fase B harus dibangun di atas filter ini, bukan menggantikannya.
-3. [done] Berita backfill Jan-Mar/Feb-Apr 2026 (phase_a)
-   Evidence: app/Services/News/OjkRssFetcher.php mendukung RSS + HTML fallback + paginated Default.aspx untuk backfill historis.
-   Evidence: app/Console/Commands/FetchOjkNewsCommand.php menyediakan mode --backfill dengan --from/--to.
-   Evidence: tests/Feature/FetchOjkNewsCommandTest.php menguji backfill dan idempotency untuk artikel OJK global.
-   Evidence: phase_a_closeout_status.json mencatat inspeksi runtime OJK backfill saat closeout.
-   Remaining gap: Tidak ada gap implementasi inti. Gap yang tersisa hanya verifikasi runtime pada environment yang punya MySQL + data historis aktif.
-   Next action: Perlakukan rerun closeout dengan MySQL aktif sebagai verifikasi operasional, bukan sebagai fitur baru.
-4. [done] OJK scheduler / macro news integration (phase_a)
-   Evidence: OJK disimpan sebagai global news (stock_id = null) dan dibaca oleh jalur backtest/evaluation/comparison.
-   Evidence: MacroRegulatorySignalService.php memberi moderation layer untuk OJK neutral-only tanpa memaksa arah bullish/bearish.
-   Evidence: EvaluationReportTest dan MacroRegulatorySignalServiceTest menguji jalur macro news serta moderation output.
-   Remaining gap: Integrasi sudah selesai. Catatan yang tersisa ada pada kualitas pengaruh sinyal, bukan pada plumbing macro news.
-   Next action: Pertahankan macro_regulatory_signal sebagai context-only moderation sampai ada bukti kuat untuk directional lift.
-5. [partial] Volume confirmation per candlestick (phase_b)
-   Evidence: quant/phase_a.py sudah memiliki helper candlestick-volume confirmation yang default-off.
-   Evidence: quant/evaluate_phase_a_real_data.py sudah dapat menjalankan evaluator dengan flag experimental candle confirmation.
-   Evidence: quant/test_phase_a.py menguji bahwa filter ini hanya aktif bila diminta.
-   Remaining gap: Starter baru ada di engine/evaluator. Belum ada evidence sweep/backtest khusus yang memutuskan apakah rule ini layak dinaikkan menjadi default Fase B.
-   Next action: Gunakan starter ini hanya sebagai arm eksperimen: bandingkan vs baseline Phase A beku sebelum memasukkannya ke threshold sweep atau default harian.
-6. [partial] Multi-timeframe (weekly trend sebelum entry daily) (phase_b)
-   Evidence: PriceSeriesService.php sudah memiliki abstraksi interval_type yang bisa dipakai untuk 1d/1w.
-   Remaining gap: Belum ada rule weekly trend, belum ada resampling/ingestion 1w, dan belum ada test bahwa trend mingguan memfilter entry daily.
-   Next action: Tambahkan ingestion/akses 1w lebih dulu, lalu buat weekly trend filter sebagai gate di atas sinyal daily yang sudah stabil.
-7. [partial] Sentiment momentum (tren 3 hari terakhir) (phase_b)
-   Evidence: SentimentPriceAnalyticsService.php sudah menghasilkan per_date_sentiment dan sentiment_trend.
-   Evidence: Watchlist/analytics sudah punya seri sentimen harian yang bisa menjadi fondasi momentum 3 hari.
-   Remaining gap: Belum ada rule eksplisit rolling 3 hari, belum ada scoring/backtest untuk sentiment momentum, dan belum ada test dedicated.
-   Next action: Tambahkan metrik 3-day sentiment momentum di analytics dulu, lalu injeksikan ke decision/backtest sebagai signal tambahan yang bisa dimatikan.
-8. [partial] Backtest per saham / model adaptif per ticker (phase_b)
-   Evidence: Threshold sweep sudah tersedia per ticker/group/global.
-   Evidence: Phase A baseline bisa dibekukan dan secara opsional diterapkan kembali ke evaluator lewat phase_a_baseline.py.
-   Evidence: Adaptive runtime saat ini masih bergantung pada artifact freeze, belum menjadi model adaptif penuh lintas stack.
-   Remaining gap: Sudah ada fondasi riset adaptif, tetapi belum ada runtime adaptive model yang menyalurkan keputusan per ticker/group secara konsisten ke semua consumer.
-   Next action: Pertahankan adaptive logic sebagai refinement Phase B: finalkan baseline global Phase A dulu, baru perluas override per ticker/group yang benar-benar punya sample kuat.
-9. [not_started] Net broker flow (phase_c)
-   Evidence: Belum ada service, model, fetcher, atau test khusus net broker flow di codebase.
-   Remaining gap: Perlu sumber data broker flow, skema penyimpanan, feature engineering, dan backtest integration penuh.
-   Next action: Tunda sampai Phase B stabil dan sumber data broker flow sudah dipilih.
-10. [not_started] Correlation IHSG (phase_c)
-   Evidence: IHSG baru muncul sebagai keyword berita/relevansi, bukan sebagai seri data korelasi di analytics.
-   Remaining gap: Belum ada ingestion indeks IHSG, belum ada join return saham vs IHSG, dan belum ada report/backtest untuk market correlation regime.
-   Next action: Sentuh setelah multi-timeframe dan sentiment momentum Phase B stabil, supaya korelasi IHSG punya konteks pemakaian yang jelas.
-11. [partial] Python ML sentiment / IndoBERT (phase_c)
-   Evidence: PythonApiSentimentAnalyzer.php sudah mendukung endpoint Python/HuggingFace dengan fallback rule-based.
-   Evidence: Test unit sudah ada untuk payload valid, payload invalid, dan fallback error.
-   Evidence: Belum ada model IndoBERT lokal/evaluasi eksperimen ML yang dibekukan di repo.
-   Remaining gap: Integrasi endpoint sudah ada, tetapi model/evaluasi ML belum menjadi baseline resmi. Itu masih backlog lanjutan, bukan close-out Phase A/B.
-   Next action: Tunda sampai fitur sinyal Phase B stabil, lalu ukur apakah ML sentiment benar-benar menambah edge dibanding hybrid rule/current API fallback.
-12. [not_started] Trade journal analytics (phase_c)
-   Evidence: Belum ada persistence/jurnal trade khusus di repo. Backtest trades ada, tetapi belum diturunkan menjadi journal analytics.
-   Remaining gap: Perlu penyimpanan journal, agregasi performa per setup, dan UI/report khusus trader workflow.
-   Next action: Tunda sampai sinyal Phase B stabil, lalu putuskan schema journal yang mengikuti output backtest/trade windows yang sudah matang.
+Retest execution summary:
+- status=executed
+- readiness_gate_decision=boleh_retest
+- official_result=no_go_even_for_segment
+- phase_b_final_status=phase_b_closed_with_learnings_no_candidate
+- phase_c_decision=phase_c_no_go_yet
+- recommended_next_action=stop_and_collect_more_data_then_redesign_framework

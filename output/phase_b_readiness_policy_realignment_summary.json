@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-04-21T14:06:38.363079+00:00",
+  "policy_realignment_applied": true,
+  "policy_path": "hybrid_gate_realignment_without_oos_redesign_plus_news_distribution_density_realignment",
+  "source_policy_audit_artifact": "output/phase_b_oos_policy_alignment_audit.json",
+  "source_of_truth_methodology_artifact": "output/baseline_v9_segment_oos_summary.json",
+  "source_of_truth_methodology_field": "methodology",
+  "policy_alignment_reason": "Threshold legacy yang terbukti incompatible direalign ke kapasitas metodologi OOS resmi terbaru, tanpa mengubah metodologi OOS atau baseline trading logic. Density component pada news_distribution_gate juga direalign ke baseline median density resmi hasil audit karena threshold legacy 5.0 terbukti structurally misaligned terhadap universe resmi saat ini.",
+  "threshold_changes": [
+    {
+      "threshold_name": "history_gate::additional_bars_from_v9_baseline",
+      "old_target": 63,
+      "new_target": 0
+    },
+    {
+      "threshold_name": "history_gate::usable_oos_windows_per_ticker",
+      "old_target": 6,
+      "new_target": 3
+    },
+    {
+      "threshold_name": "oos_fairness_gate::primary_segment_usable_oos_windows",
+      "old_target": 6,
+      "new_target": 3
+    },
+    {
+      "threshold_name": "news_distribution_gate::median_news_density_pct",
+      "old_target": 5.0,
+      "new_target": 0.3252
+    }
+  ],
+  "blockers_removed_by_policy_conflict_resolution": [
+    "history_gate::additional_bars_from_v9_baseline actual=0 target>=63",
+    "history_gate::usable_oos_windows_per_ticker actual=3 target>=6",
+    "news_distribution_gate::median_news_density_pct actual=0.3252 target>=5.0"
+  ],
+  "blockers_still_active_after_policy_realignment": [],
+  "readiness_status_after_policy_realignment": "boleh_retest",
+  "strategy_retest_allowed_after_policy_realignment": true,
+  "roadmap_update_allowed_after_policy_realignment": false
+}

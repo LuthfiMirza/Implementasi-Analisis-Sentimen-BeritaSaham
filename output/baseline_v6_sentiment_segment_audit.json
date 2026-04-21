@@ -1,0 +1,346 @@
+{
+  "generated_at": "2026-04-21T14:06:26.023374+00:00",
+  "source_script": "quant/run_baseline_v6_guardrail_review.py",
+  "source_artifact": "baseline_v6_universe_segmentation.csv",
+  "classification_logic": "sentiment_segment dibentuk di _scan_universe dengan _binary_split(universe_df['article_days'], 'sentiment_rich', 'sentiment_poor').",
+  "classification_basis": {
+    "metric": "article_days",
+    "threshold_type": "median",
+    "threshold_value": 8.0,
+    "rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor"
+  },
+  "focus_tickers": [
+    "BBCA",
+    "BMRI",
+    "GOTO",
+    "INDF",
+    "UNVR"
+  ],
+  "focus_rows": [
+    {
+      "ticker": "BBCA",
+      "sentiment_segment_current": "sentiment_poor",
+      "article_count_total": 17.0,
+      "article_days": 7,
+      "news_density_pct": 0.28455,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=7 < median_threshold=8.0 => sentiment_poor.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    },
+    {
+      "ticker": "BMRI",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 36.0,
+      "article_days": 9,
+      "news_density_pct": 0.36585,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=9 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    },
+    {
+      "ticker": "GOTO",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 15.0,
+      "article_days": 9,
+      "news_density_pct": 0.9375,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=9 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    },
+    {
+      "ticker": "INDF",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 9.0,
+      "article_days": 8,
+      "news_density_pct": 0.3252,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=8 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    },
+    {
+      "ticker": "UNVR",
+      "sentiment_segment_current": "sentiment_poor",
+      "article_count_total": 10.0,
+      "article_days": 6,
+      "news_density_pct": 0.2439,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=6 < median_threshold=8.0 => sentiment_poor.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    }
+  ],
+  "rows": [
+    {
+      "ticker": "ADRO",
+      "sentiment_segment_current": "sentiment_poor",
+      "article_count_total": 15.0,
+      "article_days": 7,
+      "news_density_pct": 0.28467,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=7 < median_threshold=8.0 => sentiment_poor.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": false
+    },
+    {
+      "ticker": "ASII",
+      "sentiment_segment_current": "sentiment_poor",
+      "article_count_total": 9.0,
+      "article_days": 5,
+      "news_density_pct": 0.20333,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=5 < median_threshold=8.0 => sentiment_poor.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": false
+    },
+    {
+      "ticker": "BBCA",
+      "sentiment_segment_current": "sentiment_poor",
+      "article_count_total": 17.0,
+      "article_days": 7,
+      "news_density_pct": 0.28455,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=7 < median_threshold=8.0 => sentiment_poor.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    },
+    {
+      "ticker": "BBRI",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 14.0,
+      "article_days": 9,
+      "news_density_pct": 0.36585,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=9 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": false
+    },
+    {
+      "ticker": "BMRI",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 36.0,
+      "article_days": 9,
+      "news_density_pct": 0.36585,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=9 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    },
+    {
+      "ticker": "BUMI",
+      "sentiment_segment_current": "sentiment_poor",
+      "article_count_total": 20.0,
+      "article_days": 6,
+      "news_density_pct": 0.2439,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=6 < median_threshold=8.0 => sentiment_poor.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": false
+    },
+    {
+      "ticker": "DEWA",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 11.0,
+      "article_days": 8,
+      "news_density_pct": 0.3252,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=8 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": false
+    },
+    {
+      "ticker": "GOTO",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 15.0,
+      "article_days": 9,
+      "news_density_pct": 0.9375,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=9 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    },
+    {
+      "ticker": "ICBP",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 12.0,
+      "article_days": 9,
+      "news_density_pct": 0.366,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=9 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": false
+    },
+    {
+      "ticker": "INDF",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 9.0,
+      "article_days": 8,
+      "news_density_pct": 0.3252,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=8 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    },
+    {
+      "ticker": "TLKM",
+      "sentiment_segment_current": "sentiment_rich",
+      "article_count_total": 17.0,
+      "article_days": 8,
+      "news_density_pct": 0.32534,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=8 >= median_threshold=8.0 => sentiment_rich.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": false
+    },
+    {
+      "ticker": "UNVR",
+      "sentiment_segment_current": "sentiment_poor",
+      "article_count_total": 10.0,
+      "article_days": 6,
+      "news_density_pct": 0.2439,
+      "split_metric": "article_days",
+      "split_threshold": 8.0,
+      "split_rule": "article_days >= median(article_days) => sentiment_rich; article_days < median(article_days) => sentiment_poor",
+      "reason_summary": "article_days=6 < median_threshold=8.0 => sentiment_poor.",
+      "source_artifact": "baseline_v6_universe_segmentation.csv",
+      "source_fields": [
+        "article_days",
+        "article_count_total",
+        "news_density_pct",
+        "sentiment_segment"
+      ],
+      "is_focus_ticker": true
+    }
+  ]
+}

@@ -25,6 +25,8 @@ ARTICLE_DAY_STATUS_TEXT_OUTPUT = "phase_b_article_day_recovery_status.txt"
 SEGMENTATION_REFRESH_JSON_OUTPUT = "phase_b_segmentation_refresh_status.json"
 SEGMENTATION_REFRESH_TEXT_OUTPUT = "phase_b_segmentation_refresh_status.txt"
 BATCH1_COMPLETION_JSON_OUTPUT = "phase_b_batch1_completion_decision.json"
+BATCH1_CLOSEOUT_JSON_OUTPUT = "phase_b_batch1_closeout_summary.json"
+BATCH1_CLOSEOUT_TEXT_OUTPUT = "phase_b_batch1_closeout_summary.txt"
 
 SEGMENTATION_FILE = "baseline_v6_universe_segmentation.csv"
 
@@ -322,6 +324,43 @@ def _build_text_lines(title: str, payload: Dict[str, object], keys: Sequence[str
     return lines
 
 
+def _official_primary_segment_tickers(decision: Dict[str, object]) -> List[str]:
+    rows = [safe_dict(row) for row in list(decision.get("priority_ticker_verification") or [])]
+    return dedupe([
+        _safe_str(row.get("ticker")).upper()
+        for row in rows
+        if _safe_str(row.get("ticker")) and _safe_bool(row.get("is_primary_segment"))
+    ])
+
+
+def _build_batch1_closeout_summary(
+    *,
+    completion_payload: Dict[str, object],
+    decision: Dict[str, object],
+) -> Dict[str, object]:
+    official_primary_tickers = _official_primary_segment_tickers(decision)
+    return {
+        "generated_at": _now_iso(),
+        "source_of_truth_artifact": BATCH1_COMPLETION_JSON_OUTPUT,
+        "supporting_artifact_references": {
+            "post_backfill_batch1_decision": "phase_b_post_backfill_batch1_decision.json",
+            "post_backfill_progress_update": "phase_b_post_backfill_progress_update.json",
+            "article_push_after_push": "phase_b_batch1_after_article_push.json",
+            "retest_readiness_gate": "phase_b_retest_readiness_gate.json",
+        },
+        "batch_1_status_final": _safe_str(completion_payload.get("batch_1_status")),
+        "batch_1_completed": _safe_bool(completion_payload.get("batch_1_completed")),
+        "checkpoint_material_reached": _safe_bool(completion_payload.get("checkpoint_material_reached")),
+        "recheck_readiness_gate_allowed": _safe_bool(completion_payload.get("recheck_readiness_gate_allowed")),
+        "primary_segment_total_articles_final": round(_safe_float(completion_payload.get("primary_segment_total_articles")), 4),
+        "primary_segment_article_days_median_final": round(_safe_float(completion_payload.get("primary_segment_article_days_median")), 4),
+        "official_primary_segment_tickers_final": official_primary_tickers,
+        "remaining_blockers_final": list(completion_payload.get("remaining_blockers") or []),
+        "recommended_next_action_final": _safe_str(completion_payload.get("recommended_next_action")),
+        "decisive_statement_final": _safe_str(completion_payload.get("decisive_statement")),
+    }
+
+
 def run_phase_b_batch1_completion_check(
     *,
     data_dir: Path,
@@ -400,6 +439,10 @@ def run_phase_b_batch1_completion_check(
         "post_backfill_batch1_decision": decision,
         "post_backfill_progress_update": progress,
     }
+    closeout_summary = _build_batch1_closeout_summary(
+        completion_payload=completion_payload,
+        decision=decision,
+    )
 
     _write_json(output_dir / ARTICLE_DAY_STATUS_JSON_OUTPUT, article_status)
     _write_text(
@@ -429,11 +472,28 @@ def run_phase_b_batch1_completion_check(
         ),
     )
     _write_json(output_dir / BATCH1_COMPLETION_JSON_OUTPUT, completion_payload)
+    _write_json(output_dir / BATCH1_CLOSEOUT_JSON_OUTPUT, closeout_summary)
+    _write_text(
+        output_dir / BATCH1_CLOSEOUT_TEXT_OUTPUT,
+        _build_text_lines(
+            "Phase B Batch-1 Closeout Summary",
+            closeout_summary,
+            [
+                "batch_1_status_final",
+                "batch_1_completed",
+                "checkpoint_material_reached",
+                "recheck_readiness_gate_allowed",
+                "primary_segment_total_articles_final",
+                "primary_segment_article_days_median_final",
+            ],
+        ),
+    )
 
     return {
         "phase_b_article_day_recovery_status": article_status,
         "phase_b_segmentation_refresh_status": segmentation_status,
         "phase_b_batch1_completion_decision": completion_payload,
+        "phase_b_batch1_closeout_summary": closeout_summary,
     }
 
 

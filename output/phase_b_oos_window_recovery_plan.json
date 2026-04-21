@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-04-21T14:06:38.362917+00:00",
+  "source_of_truth_artifact": "output/baseline_v9_segment_oos_summary.json",
+  "source_of_truth_field": "methodology",
+  "formula": "usable_oos_windows_per_ticker = floor((min_rows_across_tested_tickers - warmup_bars) / fold_size_bars)",
+  "target_windows": 6,
+  "maximum_reachable_windows_under_current_methodology": 3,
+  "before": {
+    "min_rows_across_tested_tickers": 239,
+    "fold_size_bars": 73,
+    "usable_oos_windows_per_ticker": 2
+  },
+  "after": {
+    "min_rows_across_tested_tickers": 960,
+    "fold_size_bars": 313,
+    "usable_oos_windows_per_ticker": 3
+  },
+  "minimum_rows_required_for_6_windows": null,
+  "additional_rows_still_needed": null,
+  "target_closed": false,
+  "target_reachable_under_current_methodology": false,
+  "reason_summary": "Target 6 windows tidak reachable di metodologi resmi saat ini karena fold_count maksimum 3, sehingga usable_oos_windows_per_ticker secara matematis tidak bisa melebihi 3. Dengan basis terbaru rows=960, warmup=21, fold_size=313, hasil resmi tetap 3.",
+  "recommended_next_move": "Jangan lanjut rebalance distribution seolah blocker history bisa ditutup dengan backfill tambahan saja. Di bawah metodologi OOS resmi saat ini, target >=6 windows perlu perubahan definisi gate/metodologi, bukan sekadar extend_history."
+}

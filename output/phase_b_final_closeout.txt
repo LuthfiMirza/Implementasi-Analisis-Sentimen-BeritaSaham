@@ -1,0 +1,39 @@
+Phase B Final Closeout
+=======================
+
+- phase_b_final_status=phase_b_closed_with_learnings_no_candidate
+- phase_b_failed_as_strategy=True
+- candidate_survivors=none
+- recommended_primary_next_step=stop_and_collect_more_data_then_redesign_framework
+- recommended_secondary_step_1=freeze_strategy_experiment_track_and_keep_phase_c_closed
+- recommended_secondary_step_2=prepare_framework_redesign_scope_after_data_extension
+- can_continue_to_phase_c=False
+- can_continue_strategy_experiments_now=False
+
+Final candidate assessment:
+- candidate_id=baseline_v3_ema20_trend_guard
+- primary_segment=sentiment_segment=sentiment_poor
+- decision=no_go_even_for_segment
+- primary_total_trades_sum=1434
+- primary_active_ticker_count=5
+- primary_trade_weighted_average_return=-0.0423
+- primary_mean_average_return_active=-0.0047
+
+Park permanently for now:
+- item5
+- item6
+- item7
+- item8
+- entry_relaxation_only
+- volume_relaxed_entry
+- exit_hold_only_redesign
+- segment-only promotion for current candidate
+
+Still theoretically possible later, but not now:
+- framework_redesign
+- wider_data_collection
+- re_labeled_evaluation_horizon
+- universe_reconstruction
+
+Decisive statement:
+- Tidak ada kandidat yang stabil bahkan pada subset-aware OOS validation. Phase B ditutup sebagai gagal secara strategi, bukan karena coding belum selesai. Langkah berikutnya bukan eksperimen strategi baru, melainkan pengumpulan data tambahan dan redesign framework evaluasi. Phase C tetap tidak boleh dibuka.

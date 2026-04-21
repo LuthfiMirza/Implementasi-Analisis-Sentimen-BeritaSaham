@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-04-21T14:15:10.517724+00:00",
+  "phase_b_final_status": "phase_b_closed_with_learnings_no_candidate",
+  "recommended_primary_next_step": "stop_and_collect_more_data_then_redesign_framework",
+  "recommended_secondary_step_1": "freeze_strategy_experiment_track_and_keep_phase_c_closed",
+  "recommended_secondary_step_2": "prepare_framework_redesign_scope_after_data_extension",
+  "candidate_survivors": [],
+  "parked_items": [
+    "item5",
+    "item6",
+    "item7",
+    "item8",
+    "entry_relaxation_only",
+    "volume_relaxed_entry",
+    "exit_hold_only_redesign",
+    "segment-only promotion for current candidate"
+  ],
+  "can_continue_to_phase_c": false,
+  "can_continue_strategy_experiments_now": false,
+  "decisive_statement": "Tidak ada kandidat yang stabil bahkan pada subset-aware OOS validation. Phase B ditutup sebagai gagal secara strategi, bukan karena coding belum selesai. Langkah berikutnya bukan eksperimen strategi baru, melainkan pengumpulan data tambahan dan redesign framework evaluasi. Phase C tetap tidak boleh dibuka."
+}

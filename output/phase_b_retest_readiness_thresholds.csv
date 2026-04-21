@@ -1,0 +1,28 @@
+gate_name,threshold_id,operator,target_value,actual_value,pass,gap_value,gap_ratio,priority,source,note
+history_gate,min_history_bars_per_ticker,>=,120,960,True,0.0,0.0,high,ticker_metadata/data,Minimum history per ticker for fair retest.
+history_gate,additional_bars_from_v9_baseline,>=,0,0,True,0.0,0.0,high,ticker_metadata/data + v9 methodology,Additional bars beyond official baseline after policy realignment.
+history_gate,usable_oos_windows_per_ticker,>=,3,3,True,0.0,0.0,high,phase_b_data_extension_audit.json,Minimum usable OOS windows across tickers after methodology-aligned policy realignment.
+universe_coverage_gate,coverage_ready_ticker_ratio,>=,0.8,0.9167,True,0.0,0.0,high,ticker_metadata/data,Share of tickers already satisfying history + OOS window gate.
+universe_coverage_gate,primary_segment_ticker_count,>=,5,5,True,0.0,0.0,normal,baseline_v6_universe_segmentation.csv,Primary segment breadth.
+universe_coverage_gate,safe_segment_ticker_count[liquidity_segment=liquid_active],>=,3,6,True,0.0,0.0,normal,baseline_v6_next_experiment_governance.json + segmentation,Each safe segment must have minimum ticker breadth.
+universe_coverage_gate,safe_segment_ticker_count[volatility_segment=higher_volatility],>=,3,4,True,0.0,0.0,normal,baseline_v6_next_experiment_governance.json + segmentation,Each safe segment must have minimum ticker breadth.
+universe_coverage_gate,safe_segment_ticker_count[sentiment_segment=sentiment_rich],>=,3,7,True,0.0,0.0,normal,baseline_v6_next_experiment_governance.json + segmentation,Each safe segment must have minimum ticker breadth.
+universe_coverage_gate,safe_segment_ticker_count[news_segment=mid_news],>=,3,4,True,0.0,0.0,normal,baseline_v6_next_experiment_governance.json + segmentation,Each safe segment must have minimum ticker breadth.
+news_distribution_gate,median_news_density_pct,>=,0.3252,0.3252,True,0.0,0.0,high,ticker_metadata/data,Median aligned news density across current universe after explicit density-policy alignment review.
+news_distribution_gate,primary_segment_total_articles,>=,18,71,True,0.0,0.0,high,baseline_v6_universe_segmentation.csv,Total aligned articles in primary segment.
+news_distribution_gate,primary_segment_article_days_median,>=,4,6.0,True,0.0,0.0,high,baseline_v6_universe_segmentation.csv,Median article days across primary-segment tickers.
+news_distribution_gate,no_single_ticker_article_share,<=,0.35,0.2817,True,0.0,0.0,normal,baseline_v6_universe_segmentation.csv,Single ticker should not dominate primary-segment article supply.
+oos_fairness_gate,primary_segment_usable_oos_windows,>=,3,7,True,0.0,0.0,high,phase_b_data_extension_audit.json + segmentation,Primary segment minimum usable windows after methodology-aligned policy realignment.
+oos_fairness_gate,active_ticker_count_in_oos,>=,4,5,True,0.0,0.0,normal,baseline_v9_segment_oos_go_no_go.json,Primary active ticker count in OOS.
+oos_fairness_gate,total_oos_trades_primary_segment,>=,18,1434,True,0.0,0.0,high,baseline_v9_segment_oos_go_no_go.json,Primary segment total OOS trade sample.
+oos_fairness_gate,no_single_ticker_trade_share,<=,0.5,0.2378,True,0.0,0.0,normal,baseline_v9_segment_oos_results.csv,Ticker concentration in primary OOS trades.
+oos_fairness_gate,no_single_fold_trade_share,<=,0.5,0.372,True,0.0,0.0,high,baseline_v9_segment_oos_results.csv,Fold concentration in primary OOS trades.
+framework_governance_gate,evaluation_framework_redesign_finalized,>=,1,1,True,0.0,0.0,normal,framework_redesign_scope.json,Framework redesign scope must already be formalized.
+framework_governance_gate,segment_policy_finalized,>=,1,1,True,0.0,0.0,normal,framework_redesign_scope.json,Segment policy must be formalized before retest.
+framework_governance_gate,retest_readiness_gate_published,>=,1,1,True,0.0,0.0,normal,phase_b_retest_readiness_gate.json,This runner publishes the formal retest gate.
+framework_governance_gate,global_promotion_block_still_active,>=,1,1,True,0.0,0.0,normal,v9 go/no-go + framework scope,Global promotion must remain blocked.
+roadmap_discipline_gate,phase_b_closed,>=,1,1,True,0.0,0.0,normal,phase_b_final_closeout.json,Phase B must remain closed.
+roadmap_discipline_gate,phase_c_no_go_yet,>=,1,1,True,0.0,0.0,normal,project_roadmap_status.json,Phase C must remain blocked.
+roadmap_discipline_gate,item5_8_parked,>=,1,1,True,0.0,0.0,normal,phase_b_final_closeout.json,Items 5-8 must remain parked.
+roadmap_discipline_gate,baseline_aktif_tidak_berubah,>=,1,1,True,0.0,0.0,normal,framework_redesign_scope.json / closeout,Active baseline must stay unchanged.
+roadmap_discipline_gate,entry_exit_aktif_tidak_berubah,>=,1,1,True,0.0,0.0,normal,framework_redesign_scope.json / governance,Active entry/exit logic must stay unchanged.
