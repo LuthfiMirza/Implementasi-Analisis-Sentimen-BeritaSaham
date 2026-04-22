@@ -1,0 +1,26 @@
+{
+  "best_candidate_id": "baseline_v4_quality_gate_v2_anchor_micro_confirm",
+  "best_variant_id": "baseline_v4_quality_gate_v2_anchor_micro_confirm",
+  "decision": "no_go",
+  "coverage_ok": false,
+  "trade_support_ok": false,
+  "quality_preserved": false,
+  "eligible_ticker_count": 0,
+  "total_trades_sum": 15,
+  "mean_average_return": -0.7506833333333333,
+  "mean_average_return_delta_vs_v3": -0.2918916666666666,
+  "trade_retention_vs_reference": 0.5,
+  "coverage_gain_vs_reference": 0,
+  "reference_variant_id": "baseline_reference",
+  "v3_control_variant_id": "baseline_v3_ema20_trend_guard",
+  "recommended_next_action": "redesign_quality_gate_or_shift_to_exit_hold_hypothesis",
+  "expected_success_signal": "eligible_ticker_count >= 3, total_trades_sum tetap jauh di atas baseline reference, dan mean_average_return membaik material versus baseline_v3_ema20_trend_guard tanpa quality collapse.",
+  "expected_failure_signal": "coverage turun lagi ke <3 ticker atau mean_average_return tetap <= 0 sehingga quality tetap tidak preserved.",
+  "decision_notes": [
+    "Coverage masih di bawah target minimum 3 ticker eligible.",
+    "Trade support belum cukup jauh di atas baseline reference.",
+    "Quality belum preserved versus baseline_v3_ema20_trend_guard.",
+    "Jangan lanjutkan entry relaxation only."
+  ],
+  "experiment_id": "baseline_v4_quality_gate_guard_v2"
+}

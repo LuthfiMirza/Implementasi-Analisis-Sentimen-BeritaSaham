@@ -1,0 +1,150 @@
+{
+  "phase": "phase_2_3_relative_strength_confirmation",
+  "status": "completed",
+  "generated_at": "2026-04-22T07:43:21.151648+00:00",
+  "candidate_under_confirmation": "top_25pct_return_20d",
+  "source_files": {
+    "stock_indicator_master_file": "data/indicator_master/stock_indicator_master.csv",
+    "ihsg_indicator_master_file": "data/indicator_master/IHSG_indicator_master.csv",
+    "phase_2_summary_file": "output/phase_2_relative_strength_selection_summary.json",
+    "phase_2_1_summary_file": "output/phase_2_1_relative_strength_redesign_summary.json",
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "metadata_file": "data/ticker_metadata.csv"
+  },
+  "layer_1_frozen_definition": {
+    "market_regime": "ihsg_ema50 > ihsg_ema200",
+    "alignment_policy": "explicit_previous_trading_day_alignment"
+  },
+  "prior_status_context": {
+    "phase_2_best_variant": "top_25pct_return_20d",
+    "phase_2_layer_2_usable_as_prototype": true,
+    "phase_2_1_formal_decision": "universe_too_small_for_relative_strength_validation",
+    "phase_2_1_layer_2_usable_now": false
+  },
+  "variants_tested": [
+    {
+      "variant_id": "top_25pct_return_20d",
+      "variant_label": "Top 25% by return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.25
+    },
+    {
+      "variant_id": "top_30pct_return_20d",
+      "variant_label": "Top 30% by return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.3
+    },
+    {
+      "variant_id": "top_25pct_vol_adjusted_return_20d",
+      "variant_label": "Top 25% by return_20d / vol20",
+      "score_column": "rs_score_vol_adjusted_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.25
+    }
+  ],
+  "variant_results": [
+    {
+      "variant_id": "top_25pct_return_20d",
+      "variant_label": "Top 25% by return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.25,
+      "active_ticker_count_median": 10.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 13,
+      "active_ticker_count_mean": 7.8692,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 9537,
+      "total_trades": 4889,
+      "median_trade_retention": 50.4202,
+      "avg_delta_win_rate": -0.6731,
+      "avg_delta_average_return": 0.2682,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "top_30pct_return_20d",
+      "variant_label": "Top 30% by return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.3,
+      "active_ticker_count_median": 12.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 16,
+      "active_ticker_count_mean": 9.366,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 10970,
+      "total_trades": 5557,
+      "median_trade_retention": 57.5342,
+      "avg_delta_win_rate": -0.838,
+      "avg_delta_average_return": -0.0237,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "top_25pct_vol_adjusted_return_20d",
+      "variant_label": "Top 25% by return_20d / vol20",
+      "score_column": "rs_score_vol_adjusted_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.25,
+      "active_ticker_count_median": 10.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 13,
+      "active_ticker_count_mean": 7.7749,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 9428,
+      "total_trades": 4908,
+      "median_trade_retention": 49.345,
+      "avg_delta_win_rate": -0.288,
+      "avg_delta_average_return": -0.0908,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    }
+  ],
+  "best_variant_decision": {
+    "status": "selected",
+    "selected_variant_id": "top_25pct_return_20d",
+    "selected_variant_label": "Top 25% by return_20d",
+    "reason": "Selected the narrow confirmation variant with the strongest quality delta while keeping retained sample acceptable."
+  },
+  "stability_diagnostics": {
+    "candidate_variant_id": "top_25pct_return_20d",
+    "avg_delta_win_rate_range": 0.55,
+    "avg_delta_average_return_range": 0.359,
+    "median_trade_retention_range": 8.1892,
+    "total_trades_range": 668,
+    "candidate_comparator_deltas": [
+      {
+        "against_variant_id": "top_30pct_return_20d",
+        "delta_total_trades_vs_candidate": 668,
+        "delta_trade_retention_vs_candidate": 7.114,
+        "delta_avg_delta_win_rate_vs_candidate": -0.1649,
+        "delta_avg_delta_average_return_vs_candidate": -0.2919
+      },
+      {
+        "against_variant_id": "top_25pct_vol_adjusted_return_20d",
+        "delta_total_trades_vs_candidate": 19,
+        "delta_trade_retention_vs_candidate": -1.0752,
+        "delta_avg_delta_win_rate_vs_candidate": 0.3851,
+        "delta_avg_delta_average_return_vs_candidate": -0.359
+      }
+    ]
+  },
+  "freeze_decision": {
+    "freeze_layer_2_candidate": false,
+    "candidate_variant_id": "top_25pct_return_20d",
+    "candidate_still_best": true,
+    "sensitivity_ok": false,
+    "reason": "Candidate is still too sensitive to nearby variants or the quality trade-off is not yet strong enough to freeze Layer 2 as a final candidate.",
+    "remaining_blocker": "narrow_sensitivity_between_nearby_rs_cuts_and_quality_tradeoff_not_decisive_enough"
+  },
+  "warnings": []
+}

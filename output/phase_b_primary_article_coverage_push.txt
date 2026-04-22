@@ -1,0 +1,9 @@
+Phase B Primary Article Coverage Push
+- priority_tickers_checked=ASII, BUMI, UNVR, ADRO, BBCA, INDF, TLKM, DEWA
+- primary_segment_total_articles_before=54.0
+- primary_segment_total_articles=54.0
+- primary_segment_article_days_median_before=6.0
+- primary_segment_article_days_median=6.0
+- article_coverage_push_effective=False
+- decisive_statement=Batch-1 resmi complete setelah total article primary mencapai >=14 dan median article days mencapai >=3.
+- recommended_next_action=continue_batch_1_backfill_until_priority_snapshot_advance_is_visible

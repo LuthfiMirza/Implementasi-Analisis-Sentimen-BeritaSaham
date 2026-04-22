@@ -1,0 +1,15 @@
+{
+  "do_not_rerun_readiness_gate": true,
+  "do_not_change_baseline_or_entry_exit_logic": true,
+  "minimum_operational_requirements_before_next_article_push": [
+    "do_not_rerun_readiness_gate_now",
+    "do_not_change_baseline_or_entry_exit_logic",
+    "rerun_article_push_only_if_new_qualifying_articles_exist_for_UNVR_or_ICBP",
+    "keep_export_with_include_sentiment_series_after_any_new_article_ingest",
+    "treat_batch_1_as_blocked_until_UNVR_and_ICBP_article_days_move_materially"
+  ],
+  "current_article_blockers": [
+    "UNVR: article_exists_but_below_quality_threshold"
+  ],
+  "recommended_next_action": "do_not_rerun_readiness_gate_or_change_baseline_rerun_article_push_only_if_new_qualifying_articles_exist_for_unvr_or_icbp"
+}

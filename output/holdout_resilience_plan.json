@@ -1,0 +1,98 @@
+{
+  "artifact": "holdout_resilience_plan",
+  "generated_at": "2026-04-22",
+  "source_of_truth": {
+    "core_stack_update_closeout": "output/core_stack_update_closeout.json",
+    "entry_simplification_cycle_2_closeout": "output/entry_simplification_cycle_2_closeout.json",
+    "walk_forward_validation_closeout": "output/walk_forward_validation_closeout.json",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "planning_status": "completed_no_implementation_yet",
+  "current_official_context": {
+    "core_stack_status": "provisional_updated_core_stack_active",
+    "core_stack_definition": [
+      "Phase 1 base signal generation",
+      "Layer 1 market regime",
+      "without return_20d > 0",
+      "Layer 3 optional off-by-default",
+      "Layer 4 unchanged",
+      "Layer 5 unchanged"
+    ],
+    "paper_trading_allowed": false,
+    "retest_allowed": false
+  },
+  "why_holdout_still_failed_even_after_oos_improved": {
+    "summary": "The updated core stack improved OOS materially, but that improvement did not carry into the final holdout window.",
+    "evidence": [
+      "Out-of-sample average_return_per_trade improved from -0.0909 to 0.1342, but final holdout remained negative at -0.4595.",
+      "Out-of-sample profit_factor improved from 0.9629 to 1.0270, but final holdout profit_factor remained weak at 0.8420.",
+      "Win rate stayed almost flat between OOS and holdout for the updated core stack (38.3984 vs 38.3721), while max_drawdown worsened from 31.2179 to 34.4658.",
+      "This pattern suggests the main weakness is not simple signal scarcity; the stack behaves materially worse in the holdout regime despite similar hit-rate."
+    ]
+  },
+  "dominant_holdout_failure_mode": {
+    "selected_mode": "regime_sensitivity",
+    "why_dominant": [
+      "The updated core stack already improved OOS without touching Layer 5 or Layer 4, which weakens the case that generic exit or sizing redesign is the first target now.",
+      "Holdout degradation appears window-specific: the same simplified entry stack that became OOS-positive still fails in the later 2024-2025 holdout.",
+      "Win rate stays broadly flat while drawdown and payoff quality worsen, which is more consistent with the stack being exposed to an unfavorable regime/context than with a pure hit-rate problem."
+    ],
+    "why_not_primary_entry_fragility": [
+      "Entry simplification already improved OOS materially, so entry fragility is no longer the strongest first-order explanation for the remaining holdout gap."
+    ],
+    "why_not_primary_exit_hold_behaviour": [
+      "Exit behaviour may still contribute, but touching Layer 5 now would broaden scope before isolating whether the holdout weakness is driven by regime/context mismatch."
+    ],
+    "why_not_primary_drawdown_control": [
+      "Drawdown is still too high, but immediately opening Layer 4 or a portfolio-risk redesign would violate the current single-scope discipline and skip the likely regime-specific root cause."
+    ]
+  },
+  "redesign_options_compared": [
+    {
+      "option_id": "layer1_regime_sensitivity_refinement",
+      "label": "Refine Layer 1 for holdout regime sensitivity",
+      "status": "selected",
+      "scope_boundary": "Keep the updated core stack intact and test whether a narrower market-regime interpretation improves final holdout resilience.",
+      "why_considered": "Most aligned with the evidence that the same stack behaves differently in OOS versus holdout."
+    },
+    {
+      "option_id": "layer5_exit_hold_revisit",
+      "label": "Re-open Layer 5 exit/hold behaviour",
+      "status": "not_selected_now",
+      "scope_boundary": "Would revisit ATR trailing or time-stop behaviour.",
+      "why_not_selected": "Too early before isolating whether the later-window weakness is actually regime/context driven."
+    },
+    {
+      "option_id": "layer4_drawdown_control_revisit",
+      "label": "Re-open Layer 4 drawdown control / sizing overlay",
+      "status": "not_selected_now",
+      "scope_boundary": "Would add portfolio-level drawdown/risk controls.",
+      "why_not_selected": "Broader than needed and explicitly outside the current frozen-layer discipline."
+    },
+    {
+      "option_id": "deeper_entry_reshape_again",
+      "label": "Continue entry reshaping immediately",
+      "status": "not_selected_now",
+      "scope_boundary": "Would reopen entry redesign beyond the newly updated core stack.",
+      "why_not_selected": "The updated core stack already improved OOS, so the strongest remaining evidence points elsewhere first."
+    }
+  ],
+  "selected_redesign_target": {
+    "target_id": "holdout_resilience_via_layer1_regime_sensitivity",
+    "selection_status": "official_next_planning_priority",
+    "what_it_means": [
+      "Do not change Layer 3, Layer 4, or Layer 5 yet.",
+      "Do not reopen broad entry redesign yet.",
+      "Open a narrow planning cycle that tests whether the updated core stack needs a stricter or more context-aware Layer 1 interpretation for the holdout window."
+    ],
+    "why_selected": [
+      "It is the narrowest redesign target that still addresses the specific OOS-vs-holdout divergence now visible in the updated core stack.",
+      "It directly targets the residual problem: the stack survives OOS better now, but still fails in the later unseen market environment.",
+      "It preserves current discipline by not touching sizing or exit before the likely regime mismatch is examined."
+    ]
+  },
+  "official_next_action": {
+    "action": "open_layer1_holdout_regime_sensitivity_planning",
+    "note": "The next cycle should plan a narrow Layer 1 holdout regime-sensitivity refinement on top of the updated provisional core stack."
+  }
+}

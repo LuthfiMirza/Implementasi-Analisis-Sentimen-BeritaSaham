@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-04-22T01:50:16.799450+00:00",
+  "xampp_mysql_running": true,
+  "mysql_port_3306_listening": true,
+  "database_sentimena_dashboard_exists": true,
+  "laravel_can_query_db": true,
+  "dashboard_db_ready": true,
+  "db_connectivity_restored": true,
+  "highest_blocking_issue": "none",
+  "recommended_next_action": "db_ready_for_backfill_but_keep_retest_gate_closed_until_backfill_progress_is_verified",
+  "service_status": {
+    "xampp_status_reported_running": false,
+    "xampp_status_stale": true,
+    "mysql_endpoint_alive": true,
+    "xampp_status_before": "Version: XAMPP for Linux 8.2.4-0\nApache is not running.\nMySQL is not running.\nProFTPD is running.\ncat: /Applications/XAMPP/xamppfiles/var/mysql/macs-MacBook-Pro.local.pid: Permission denied\nrm: /Applications/XAMPP/xamppfiles/var/mysql/macs-MacBook-Pro.local.pid: Permission denied",
+    "xampp_status_after": "Version: XAMPP for Linux 8.2.4-0\nApache is not running.\nMySQL is not running.\nProFTPD is running.\ncat: /Applications/XAMPP/xamppfiles/var/mysql/macs-MacBook-Pro.local.pid: Permission denied\nrm: /Applications/XAMPP/xamppfiles/var/mysql/macs-MacBook-Pro.local.pid: Permission denied",
+    "mysql_server_status_before": "ERROR! MariaDB is not running, but PID file exists\n/Applications/XAMPP/xamppfiles/bin/mysql.server: line 381: /Applications/XAMPP/xamppfiles/var/mysql/macs-MacBook-Pro.local.pid: Permission denied",
+    "mysql_server_status_after": "ERROR! MariaDB is not running, but PID file exists\n/Applications/XAMPP/xamppfiles/bin/mysql.server: line 381: /Applications/XAMPP/xamppfiles/var/mysql/macs-MacBook-Pro.local.pid: Permission denied",
+    "start_attempt": {
+      "command": "/Applications/XAMPP/xamppfiles/xampp startmysql",
+      "returncode": 2,
+      "stdout": "You need to be root to perform this action.\n",
+      "stderr": "",
+      "combined_output": "You need to be root to perform this action.",
+      "succeeded": false
+    }
+  },
+  "resolved_db_target": {
+    "host": "127.0.0.1",
+    "port": "3306",
+    "database": "sentimena_dashboard",
+    "username": "root",
+    "socket": ""
+  },
+  "decisive_statement": "Laravel sudah bisa query DB dan dashboard readiness sekarang pulih."
+}

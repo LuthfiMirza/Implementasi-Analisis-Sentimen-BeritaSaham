@@ -1,0 +1,273 @@
+{
+  "generated_at": "2026-04-21T03:12:22.423825+00:00",
+  "root_cause_class": "external_source_limited",
+  "unvr_source_articles_sparse": false,
+  "icbp_source_articles_sparse": false,
+  "ticker_mapping_gap_detected": false,
+  "alignment_export_gap_detected": true,
+  "pipeline_bug_confirmed": false,
+  "local_fix_applied": false,
+  "article_coverage_improved": true,
+  "batch_1_helpful_progress_detected": false,
+  "recommended_next_action": "do_not_rerun_readiness_gate_or_change_baseline_rerun_article_push_only_if_new_qualifying_articles_exist_for_unvr_or_icbp",
+  "current_article_blockers": [
+    "UNVR: article_exists_but_below_quality_threshold"
+  ],
+  "highest_blocking_issue": "source_article_coverage_still_sparse",
+  "batch_1_status": "batch_1_started_but_not_complete",
+  "per_ticker": [
+    {
+      "ticker": "UNVR",
+      "fetch_raw_total": 10,
+      "fetch_saved_total": 3,
+      "fetch_updated_total": 0,
+      "fetch_providers_with_raw_hits": [
+        "google_news_rss"
+      ],
+      "db_articles_all": 4,
+      "db_article_days_all": 4,
+      "db_articles_qualifying": 3,
+      "db_article_days_qualifying": 3,
+      "db_title_matches_other_or_null": 0,
+      "snapshot_articles": 3,
+      "snapshot_article_days": 3,
+      "mapping_gap_detected": false,
+      "alignment_export_gap_detected": true,
+      "qualifying_export_gap_detected": false,
+      "below_quality_threshold_detected": true,
+      "source_sparse_detected": false,
+      "fetch_missing_articles_detected": false,
+      "pipeline_bug_confirmed": false,
+      "ticker_root_cause": "article_exists_but_below_quality_threshold",
+      "ticker_decisive_statement": "Artikel UNVR ada di DB dan mapping benar, tetapi belum lolos quality gate export; ini bukan bukti local pipeline failure.",
+      "all_titles": [
+        {
+          "date": "2026-04-03",
+          "provider": "google_news_rss",
+          "quality": 0.42,
+          "relevance": 0.399,
+          "title": "Unilever Indonesia bersama Masjid Istiqlal Ajak Masyarakat Bijak Pilah dan Kelola Sampah - Lombok Post"
+        },
+        {
+          "date": "2026-04-07",
+          "provider": "unknown",
+          "quality": 0.257,
+          "relevance": 0.08,
+          "title": "Unilever tekan biaya pemasaran, volume mulai pulih"
+        },
+        {
+          "date": "2026-04-17",
+          "provider": "google_news_rss",
+          "quality": 0.52,
+          "relevance": 0.475,
+          "title": "Cek prospek dan rekomendasi saham Unilever (UNVR) usai lepas bisnis teh Sariwangi - MSN"
+        },
+        {
+          "date": "2026-04-20",
+          "provider": "google_news_rss",
+          "quality": 0.735,
+          "relevance": 0.798,
+          "title": "IHSG ditutup turun ke 7.954, saham UNVR, TPIA hingga PANI terjungkal - MSN"
+        }
+      ],
+      "qualifying_titles": [
+        {
+          "date": "2026-04-03",
+          "provider": "google_news_rss",
+          "quality": 0.42,
+          "relevance": 0.399,
+          "title": "Unilever Indonesia bersama Masjid Istiqlal Ajak Masyarakat Bijak Pilah dan Kelola Sampah - Lombok Post"
+        },
+        {
+          "date": "2026-04-17",
+          "provider": "google_news_rss",
+          "quality": 0.52,
+          "relevance": 0.475,
+          "title": "Cek prospek dan rekomendasi saham Unilever (UNVR) usai lepas bisnis teh Sariwangi - MSN"
+        },
+        {
+          "date": "2026-04-20",
+          "provider": "google_news_rss",
+          "quality": 0.735,
+          "relevance": 0.798,
+          "title": "IHSG ditutup turun ke 7.954, saham UNVR, TPIA hingga PANI terjungkal - MSN"
+        }
+      ],
+      "other_match_titles": [],
+      "date_end": "2026-04-20",
+      "history_rows": 118,
+      "segmentation_row": {
+        "ticker": "UNVR",
+        "rows": 118,
+        "date_start": "2025-10-20",
+        "date_end": "2026-04-20",
+        "mean_volume": 35630624.57627,
+        "median_volume": 26224500.0,
+        "return_volatility_pct": 3.31172,
+        "article_count_total": 3.0,
+        "article_days": 3,
+        "news_density_pct": 2.54237,
+        "sector": "konsumsi",
+        "category": "consumer",
+        "company_name": "Unilever Indonesia Tbk",
+        "news_segment": "low_news",
+        "sentiment_segment": "sentiment_poor",
+        "liquidity_segment": "thin_sparse",
+        "volatility_segment": "higher_volatility"
+      },
+      "metadata_row": {
+        "ticker": "UNVR",
+        "sector": "konsumsi",
+        "category": "consumer",
+        "company_name": "Unilever Indonesia Tbk",
+        "interval_type": "1d",
+        "rows_1d": 118,
+        "date_start": "2025-10-20",
+        "date_end": "2026-04-20",
+        "export_source": "laravel_stock_prices",
+        "sentiment_series_included": "yes",
+        "sentiment_columns": "sentiment_average_1d|sentiment_weighted_1d|sentiment_news_count_1d|sentiment_unavailable_count_1d",
+        "sentiment_alignment": "trade_date_window_prev_trade_exclusive_current_trade_inclusive",
+        "sentiment_fill_policy": "zero_score_and_zero_count_when_no_sentiment_available_and_track_unavailable_count",
+        "sentiment_trade_date_start": "2025-10-20",
+        "sentiment_trade_date_end": "2026-04-20",
+        "sentiment_days_with_articles": 3,
+        "sentiment_article_count_total": 3
+      }
+    },
+    {
+      "ticker": "ICBP",
+      "fetch_raw_total": 10,
+      "fetch_saved_total": 2,
+      "fetch_updated_total": 0,
+      "fetch_providers_with_raw_hits": [
+        "google_news_rss"
+      ],
+      "db_articles_all": 4,
+      "db_article_days_all": 3,
+      "db_articles_qualifying": 4,
+      "db_article_days_qualifying": 3,
+      "db_title_matches_other_or_null": 0,
+      "snapshot_articles": 4,
+      "snapshot_article_days": 3,
+      "mapping_gap_detected": false,
+      "alignment_export_gap_detected": false,
+      "qualifying_export_gap_detected": false,
+      "below_quality_threshold_detected": false,
+      "source_sparse_detected": false,
+      "fetch_missing_articles_detected": false,
+      "pipeline_bug_confirmed": false,
+      "ticker_root_cause": "coverage_aligned_no_local_issue",
+      "ticker_decisive_statement": "Artikel ICBP yang lolos kualitas sudah selaras dengan snapshot; kendala tersisa ada pada coverage source.",
+      "all_titles": [
+        {
+          "date": "2026-04-11",
+          "provider": "unknown",
+          "quality": 0.439,
+          "relevance": 0.32,
+          "title": "ICBP perluas ekspor mie instan, margin terjaga"
+        },
+        {
+          "date": "2026-04-14",
+          "provider": "google_news_rss",
+          "quality": 0.76,
+          "relevance": 0.836,
+          "title": "Rekomendasi Saham ICBP Turun Jadi Hold, Ini Penyebab dan Target Harganya - Bareksa.com"
+        },
+        {
+          "date": "2026-04-17",
+          "provider": "google_news_rss",
+          "quality": 0.76,
+          "relevance": 0.836,
+          "title": "Krisis Energi Tekan IHSG, Koleksi Saham ICBP, MYOR, EMTK, dan INTP - Emitennews.com"
+        },
+        {
+          "date": "2026-04-17",
+          "provider": "google_news_rss",
+          "quality": 0.76,
+          "relevance": 0.836,
+          "title": "Krisis Energi Tekan IHSG, Koleksi Saham ICBP, MYOR, EMTK, dan INTP - Emitennews.com"
+        }
+      ],
+      "qualifying_titles": [
+        {
+          "date": "2026-04-11",
+          "provider": "unknown",
+          "quality": 0.439,
+          "relevance": 0.32,
+          "title": "ICBP perluas ekspor mie instan, margin terjaga"
+        },
+        {
+          "date": "2026-04-14",
+          "provider": "google_news_rss",
+          "quality": 0.76,
+          "relevance": 0.836,
+          "title": "Rekomendasi Saham ICBP Turun Jadi Hold, Ini Penyebab dan Target Harganya - Bareksa.com"
+        },
+        {
+          "date": "2026-04-17",
+          "provider": "google_news_rss",
+          "quality": 0.76,
+          "relevance": 0.836,
+          "title": "Krisis Energi Tekan IHSG, Koleksi Saham ICBP, MYOR, EMTK, dan INTP - Emitennews.com"
+        },
+        {
+          "date": "2026-04-17",
+          "provider": "google_news_rss",
+          "quality": 0.76,
+          "relevance": 0.836,
+          "title": "Krisis Energi Tekan IHSG, Koleksi Saham ICBP, MYOR, EMTK, dan INTP - Emitennews.com"
+        }
+      ],
+      "other_match_titles": [],
+      "date_end": "2026-04-20",
+      "history_rows": 118,
+      "segmentation_row": {
+        "ticker": "ICBP",
+        "rows": 118,
+        "date_start": "2025-10-20",
+        "date_end": "2026-04-20",
+        "mean_volume": 10926553.38983,
+        "median_volume": 8068450.0,
+        "return_volatility_pct": 1.69904,
+        "article_count_total": 4.0,
+        "article_days": 3,
+        "news_density_pct": 2.54237,
+        "sector": "konsumsi",
+        "category": "consumer",
+        "company_name": "Indofood CBP Sukses Makmur Tbk",
+        "news_segment": "mid_news",
+        "sentiment_segment": "sentiment_poor",
+        "liquidity_segment": "thin_sparse",
+        "volatility_segment": "lower_volatility"
+      },
+      "metadata_row": {
+        "ticker": "ICBP",
+        "sector": "konsumsi",
+        "category": "consumer",
+        "company_name": "Indofood CBP Sukses Makmur Tbk",
+        "interval_type": "1d",
+        "rows_1d": 118,
+        "date_start": "2025-10-20",
+        "date_end": "2026-04-20",
+        "export_source": "laravel_stock_prices",
+        "sentiment_series_included": "yes",
+        "sentiment_columns": "sentiment_average_1d|sentiment_weighted_1d|sentiment_news_count_1d|sentiment_unavailable_count_1d",
+        "sentiment_alignment": "trade_date_window_prev_trade_exclusive_current_trade_inclusive",
+        "sentiment_fill_policy": "zero_score_and_zero_count_when_no_sentiment_available_and_track_unavailable_count",
+        "sentiment_trade_date_start": "2025-10-20",
+        "sentiment_trade_date_end": "2026-04-20",
+        "sentiment_days_with_articles": 3,
+        "sentiment_article_count_total": 4
+      }
+    }
+  ],
+  "source_of_truth": {
+    "phase_b_primary_article_coverage_push": "output/phase_b_primary_article_coverage_push.json",
+    "phase_b_batch1_after_article_push": "output/phase_b_batch1_after_article_push.json",
+    "phase_b_batch1_completion_decision": "output/phase_b_batch1_completion_decision.json",
+    "baseline_v6_universe_segmentation": "output/baseline_v6_universe_segmentation.csv",
+    "metadata_file": "data/ticker_metadata.csv"
+  },
+  "decisive_statement": "Kasus UNVR/ICBP saat ini bersifat external/source-limited: UNVR memiliki artikel di DB dengan mapping benar tetapi final_quality_score terlalu rendah untuk lolos export, sedangkan ICBP hanya menyumbang satu article day yang memang sudah muncul di snapshot; local pipeline failure tidak terbukti."
+}

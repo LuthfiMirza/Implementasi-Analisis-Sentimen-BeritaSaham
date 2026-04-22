@@ -40,6 +40,7 @@ class FeatureBuilderServiceTest extends TestCase
                 'published_at' => Carbon::parse('2024-01-12'),
                 'sentiment_label' => 'positive',
                 'sentiment_score' => 0.6,
+                'sentiment_method' => 'python',
                 'title' => 'BCA catat laba',
             ]),
             new NewsArticle([
@@ -47,6 +48,13 @@ class FeatureBuilderServiceTest extends TestCase
                 'sentiment_label' => 'negative',
                 'sentiment_score' => -0.7,
                 'title' => 'Berita masa depan',
+            ]),
+            new NewsArticle([
+                'published_at' => Carbon::parse('2024-01-13'),
+                'sentiment_label' => 'neutral',
+                'sentiment_score' => 0.0,
+                'sentiment_method' => 'python_unavailable',
+                'title' => 'BCA sentiment unavailable',
             ]),
         ]);
 
@@ -60,6 +68,9 @@ class FeatureBuilderServiceTest extends TestCase
         );
 
         $this->assertSame(1, $features['news_volume']);
+        $this->assertSame(1, $features['sentiment_available_count']);
+        $this->assertSame(1, $features['sentiment_unavailable_count']);
+        $this->assertSame(0, $features['neutral_news_count']);
         $this->assertEquals(0.6, $features['weighted_sentiment']);
         $this->assertEquals('2024-01-15', $features['reference_date']);
     }

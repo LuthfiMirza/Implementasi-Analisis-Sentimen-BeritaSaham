@@ -1,0 +1,36 @@
+{
+  "artifact": "phase_2_layer_2_alternative_closeout",
+  "generated_at": "2026-04-22",
+  "source_of_truth": {
+    "phase_2_alt_confirmation_summary": "output/phase_2_alt_non_cross_sectional_confirmation_summary.json",
+    "phase_2_alt_confirmation_report": "output/phase_2_alt_non_cross_sectional_confirmation_report.txt",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "final_decision": {
+    "layer_2_alternative_status": "integration_frozen_candidate_not_final_validation",
+    "integration_frozen_candidate": true,
+    "final_validation_frozen": false,
+    "active_policy": "alt_filter_no_liquidity_gate",
+    "rule": "Layer1 bullish AND return_20d > 0 AND close > ema50",
+    "liquidity_gate_policy": "backlog_only"
+  },
+  "why_this_policy_is_active": [
+    "Pada confirmation pass sempit, alt_filter_no_liquidity_gate tetap menjadi kandidat terbaik pada full period.",
+    "Liquidity gate ringan 2.5B dan 5B tidak mengalahkan policy tanpa gate eksplisit.",
+    "Policy ini cukup baik untuk dibekukan sebagai kandidat integrasi Layer 2, tetapi belum cukup robust untuk final validation freeze."
+  ],
+  "best_candidate_summary": {
+    "variant_id": "alt_filter_no_liquidity_gate",
+    "full_period_total_trades": 8507,
+    "full_period_median_trade_retention": 85.5895,
+    "full_period_avg_delta_win_rate": 0.3924,
+    "full_period_avg_delta_average_return": 0.0455,
+    "slice_win_count": 3,
+    "slice_count_excluding_full": 6
+  },
+  "why_not_final_validation_frozen": {
+    "blocker_id": "alt_candidate_advantage_not_consistent_enough_across_time_and_regime_slices",
+    "reason": "Kandidat Layer 2 alternatif tetap quality-positive, tetapi kemenangan slice baru 3/6 sehingga belum cukup robust untuk freeze final."
+  },
+  "official_next_action": "Integrate Layer 3 on top of the frozen Layer 2 alternative candidate and evaluate whether RSI14 50-70 adds value."
+}

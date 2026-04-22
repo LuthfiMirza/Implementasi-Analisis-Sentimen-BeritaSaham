@@ -1,0 +1,233 @@
+{
+  "generated_at": "2026-04-22T02:49:35.563447+00:00",
+  "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+  "source_of_truth_field": "blocking_thresholds",
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "history_extension_status": {
+    "min_history_bars_per_ticker": {
+      "before": null,
+      "after": 1171,
+      "delta": null
+    },
+    "additional_bars_from_v9_baseline": {
+      "before": null,
+      "after": 211,
+      "delta": null
+    },
+    "history_gate_closed_now": true
+  },
+  "coverage_ready_status": {
+    "coverage_ready_ticker_ratio": {
+      "before": null,
+      "after": 0.9167,
+      "delta": null
+    },
+    "coverage_ready_tickers": [
+      "ADRO",
+      "DEWA",
+      "TLKM",
+      "BBCA",
+      "BBRI",
+      "UNVR",
+      "BMRI",
+      "BUMI",
+      "ASII",
+      "ICBP",
+      "INDF"
+    ],
+    "coverage_ready_ticker_breakdown": [
+      {
+        "ticker": "ADRO",
+        "history_rows": 2597,
+        "usable_oos_windows": 8,
+        "news_article_days": 9,
+        "news_count_total": 16,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "DEWA",
+        "history_rows": 2608,
+        "usable_oos_windows": 8,
+        "news_article_days": 9,
+        "news_count_total": 15,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "TLKM",
+        "history_rows": 2643,
+        "usable_oos_windows": 8,
+        "news_article_days": 11,
+        "news_count_total": 19,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "BBCA",
+        "history_rows": 2647,
+        "usable_oos_windows": 8,
+        "news_article_days": 8,
+        "news_count_total": 22,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "BBRI",
+        "history_rows": 2654,
+        "usable_oos_windows": 8,
+        "news_article_days": 9,
+        "news_count_total": 14,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "UNVR",
+        "history_rows": 2656,
+        "usable_oos_windows": 8,
+        "news_article_days": 7,
+        "news_count_total": 11,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "BMRI",
+        "history_rows": 2658,
+        "usable_oos_windows": 8,
+        "news_article_days": 9,
+        "news_count_total": 36,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "BUMI",
+        "history_rows": 2683,
+        "usable_oos_windows": 8,
+        "news_article_days": 7,
+        "news_count_total": 24,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "ASII",
+        "history_rows": 2690,
+        "usable_oos_windows": 8,
+        "news_article_days": 6,
+        "news_count_total": 12,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "ICBP",
+        "history_rows": 2690,
+        "usable_oos_windows": 8,
+        "news_article_days": 8,
+        "news_count_total": 11,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "INDF",
+        "history_rows": 2691,
+        "usable_oos_windows": 8,
+        "news_article_days": 8,
+        "news_count_total": 9,
+        "coverage_ready": true
+      },
+      {
+        "ticker": "GOTO",
+        "history_rows": 1171,
+        "usable_oos_windows": 3,
+        "news_article_days": 9,
+        "news_count_total": 15,
+        "coverage_ready": false
+      }
+    ]
+  },
+  "single_ticker_article_share_status": {
+    "single_ticker_article_share": {
+      "before": null,
+      "after": 0.2697,
+      "delta": null
+    },
+    "top_dominant_ticker": "BUMI",
+    "primary_segment_distribution_breakdown": [
+      {
+        "ticker": "BUMI",
+        "article_count_total": 24.0,
+        "article_days": 7,
+        "news_density_pct": 0.2609,
+        "article_share": 0.2697
+      },
+      {
+        "ticker": "BBCA",
+        "article_count_total": 22.0,
+        "article_days": 8,
+        "news_density_pct": 0.30223,
+        "article_share": 0.2472
+      },
+      {
+        "ticker": "ASII",
+        "article_count_total": 12.0,
+        "article_days": 6,
+        "news_density_pct": 0.22305,
+        "article_share": 0.1348
+      },
+      {
+        "ticker": "ICBP",
+        "article_count_total": 11.0,
+        "article_days": 8,
+        "news_density_pct": 0.2974,
+        "article_share": 0.1236
+      },
+      {
+        "ticker": "UNVR",
+        "article_count_total": 11.0,
+        "article_days": 7,
+        "news_density_pct": 0.26355,
+        "article_share": 0.1236
+      },
+      {
+        "ticker": "INDF",
+        "article_count_total": 9.0,
+        "article_days": 8,
+        "news_density_pct": 0.29729,
+        "article_share": 0.1011
+      }
+    ],
+    "under_covered_tickers_most_likely_to_shift_distribution": [
+      {
+        "ticker": "BUMI",
+        "article_days_current": 7,
+        "news_count_total_current": 24,
+        "priority_score": 6,
+        "reason": "dominant_primary_ticker,currently_in_primary_segment"
+      },
+      {
+        "ticker": "BBCA",
+        "article_days_current": 8,
+        "news_count_total_current": 22,
+        "priority_score": 5,
+        "reason": "at_median_bridge_candidate,currently_in_primary_segment"
+      },
+      {
+        "ticker": "ICBP",
+        "article_days_current": 8,
+        "news_count_total_current": 11,
+        "priority_score": 5,
+        "reason": "at_median_bridge_candidate,currently_in_primary_segment"
+      },
+      {
+        "ticker": "INDF",
+        "article_days_current": 8,
+        "news_count_total_current": 9,
+        "priority_score": 5,
+        "reason": "at_median_bridge_candidate,currently_in_primary_segment"
+      },
+      {
+        "ticker": "ASII",
+        "article_days_current": 6,
+        "news_count_total_current": 12,
+        "priority_score": 2,
+        "reason": "currently_in_primary_segment"
+      },
+      {
+        "ticker": "UNVR",
+        "article_days_current": 7,
+        "news_count_total_current": 11,
+        "priority_score": 2,
+        "reason": "currently_in_primary_segment"
+      }
+    ]
+  }
+}

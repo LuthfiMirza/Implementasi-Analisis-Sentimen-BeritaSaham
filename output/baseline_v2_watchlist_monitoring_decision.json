@@ -1,0 +1,29 @@
+{
+  "decision": "keep_candidate_experimental",
+  "candidate_id": "baseline_v2_hold3_with_trend_guard",
+  "still_experimental": true,
+  "watchlist_supported": true,
+  "stable_subset_found": false,
+  "recommended_tickers": [
+    "GOTO",
+    "BMRI",
+    "BBCA",
+    "BBRI"
+  ],
+  "recommended_groups": [
+    "sector:perbankan"
+  ],
+  "can_promote_for_subset": false,
+  "can_reject_candidate": false,
+  "next_action": "keep_candidate_experimental_for_watchlist_subset",
+  "best_subset_id": "ticker_goto",
+  "best_subset_label": "GOTO",
+  "best_subset_tickers": [
+    "GOTO"
+  ],
+  "decision_notes": [
+    "Watchlist monitoring masih melihat subset yang lebih baik daripada baseline aktif.",
+    "Subset belum stabil lintas horizon observasi lanjutan.",
+    "Candidate masih layak dipantau sebagai experimental."
+  ]
+}

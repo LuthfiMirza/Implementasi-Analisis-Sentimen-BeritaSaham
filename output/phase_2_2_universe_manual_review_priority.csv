@@ -1,0 +1,21 @@
+ticker,company_name,sector_group,manual_review_reason,priority_rank,priority_bucket,shortlist_15_safe,target_45_path,target_50_path
+AMRT,Sumber Alfaria Trijaya Tbk,retail,"Retail anchor yang relatif defensible untuk memperluas breadth tanpa menambah konsentrasi finance/consumer staples yang sama.",1,approve_first,yes,yes,yes
+HMSP,H.M. Sampoerna Tbk,tobacco,"Menambah sektor tobacco yang belum ada di frozen-30 dan biasanya punya history panjang serta profil likuiditas jelas.",2,approve_first,yes,yes,yes
+BSDE,Bumi Serpong Damai Tbk,property,"Property anchor pertama untuk Phase 2.2; membantu breadth sektor yang belum terwakili di frozen-30.",3,approve_first,yes,yes,yes
+TBIG,Tower Bersama Infrastructure Tbk,towers,"Menambah tower-infrastructure profile yang berbeda dari telco murni dan membantu breadth defensible.",4,approve_first,yes,yes,yes
+AALI,Astra Agro Lestari Tbk,plantation,"Menambah plantation/agri exposure yang long-history dan memperluas breadth cyclical di luar energy/materials lama.",5,approve_first,yes,yes,yes
+GGRM,Gudang Garam Tbk,tobacco,"Memberi redundansi sektor tobacco sehingga tidak hanya bergantung pada satu nama baru.",6,approve_first,yes,yes,yes
+PWON,Pakuwon Jati Tbk,property,"Menambah property kedua agar breadth baru tidak single-name only.",7,approve_first,yes,yes,yes
+CTRA,Ciputra Development Tbk,property,"Property ketiga yang membantu target 45 tanpa harus menambah sektor lama yang sudah padat.",8,approve_first,yes,yes,yes
+MNCN,Media Nusantara Citra Tbk,media,"Media anchor pertama untuk memperluas breadth sektor yang benar-benar baru di validasi RS.",9,approve_first,yes,yes,yes
+SCMA,Surya Citra Media Tbk,media,"Media kedua untuk redundansi dan mengurangi single-name dependency pada sektor baru.",10,approve_first,yes,yes,yes
+BRPT,Barito Pacific Tbk,chemicals,"Menambah chemicals/process-industry profile yang berbeda dari materials dasar yang sudah ada.",11,approve_first,yes,yes,yes
+AUTO,Astra Otoparts Tbk,automotive_parts,"Menambah auto-parts exposure yang dekat dengan industrial lama tetapi tidak menduplikasi profile yang sama.",12,approve_first,yes,yes,yes
+ERAA,Erajaya Swasembada Tbk,distribution,"Menambah distribution/consumer-tech retail breadth dengan peluang data Yahoo yang wajar.",13,approve_first,yes,yes,yes
+INDY,Indika Energy Tbk,energy,"Energy tambahan yang lebih beragam untuk mengurangi ketergantungan pada cluster batubara lama.",14,approve_first,yes,yes,yes
+MIKA,Mitra Keluarga Karyasehat Tbk,healthcare,"Healthcare kedua untuk mengurangi single-name dependence pada KLBF dan memperbaiki breadth defensible target 45.",15,approve_first,yes,yes,yes
+LSIP,PP London Sumatra Indonesia Tbk,plantation,"Backup plantation setelah AALI jika target ideal 50 diteruskan.",16,approve_if_target_50,backup,no,yes
+MAPI,Mitra Adiperkasa Tbk,retail,"Backup discretionary-retail setelah AMRT untuk target ideal 50.",17,approve_if_target_50,backup,no,yes
+RALS,Ramayana Lestari Sentosa Tbk,retail,"Backup value-retail jika breadth retail tambahan masih dibutuhkan di target ideal 50.",18,approve_if_target_50,backup,no,yes
+ESSA,ESSA Industries Indonesia Tbk,energy,"Backup energy/gas profile setelah INDY untuk target ideal 50.",19,approve_if_target_50,backup,no,yes
+SILO,Siloam International Hospitals Tbk,healthcare,"Backup healthcare ketiga jika target ideal 50 tetap ingin menjaga breadth non-cyclical.",20,approve_if_target_50,backup,no,yes

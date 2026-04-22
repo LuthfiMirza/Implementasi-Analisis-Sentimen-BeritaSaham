@@ -6,15 +6,15 @@ class SentimentEngineManager
 {
     public function getAnalyzer(): SentimentAnalyzerInterface
     {
-        $engine = function_exists('config') ? config('sentiment.engine', env('SENTIMENT_ENGINE', 'hybrid')) : env('SENTIMENT_ENGINE', 'hybrid');
+        $engine = function_exists('config') ? config('sentiment.engine', env('SENTIMENT_ENGINE', 'python')) : env('SENTIMENT_ENGINE', 'python');
 
         return match ($engine) {
             'rule_based' => new RuleBasedSentimentAnalyzer(),
-            'python' => new PythonApiSentimentAnalyzer(new RuleBasedSentimentAnalyzer()),
-            default => new HybridSentimentAnalyzer(
-                new PythonApiSentimentAnalyzer(new RuleBasedSentimentAnalyzer()),
+            'hybrid' => new HybridSentimentAnalyzer(
+                new PythonApiSentimentAnalyzer(),
                 new RuleBasedSentimentAnalyzer()
             ),
+            default => new PythonApiSentimentAnalyzer(),
         };
     }
 }

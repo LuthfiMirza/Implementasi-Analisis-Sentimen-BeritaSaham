@@ -1,0 +1,11 @@
+ticker,applied_threshold,applied_strict_mode,total_trades_hold_3,total_trades_hold_5,total_trades_hold_7,eligible_min_trades_5,eligible_min_trades_8,eligible_min_trades_10
+ADRO,1.5,False,5,3,3,False,False,False
+ASII,1.5,False,1,1,1,False,False,False
+BBCA,1.5,False,0,0,0,False,False,False
+BBRI,1.5,False,0,0,0,False,False,False
+BMRI,1.5,False,1,1,1,False,False,False
+BUMI,1.5,False,0,0,0,False,False,False
+DEWA,1.5,False,0,0,0,False,False,False
+GOTO,1.5,False,0,0,0,False,False,False
+TLKM,1.5,False,1,1,1,False,False,False
+UNVR,1.5,False,0,0,0,False,False,False

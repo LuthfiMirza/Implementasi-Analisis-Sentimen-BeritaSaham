@@ -1,0 +1,2 @@
+ticker,symbol,status,rows,date_start,date_end,issues,output_path
+IHSG,^JKSE,rebuilt,8774,1990-04-06,2026-04-22,,data/IHSG.csv

@@ -1,0 +1,114 @@
+{
+  "generated_at": "2026-04-19T23:05:00+07:00",
+  "context": {
+    "goal": "fetch issuer news for DEWA and BUMI, rerun sentiment normalization, and re-audit fair coverage"
+  },
+  "commands_run": [
+    "php artisan news:fetch --stock=DEWA --limit=10 --debug",
+    "php artisan news:fetch --stock=BUMI --limit=10 --debug",
+    "php artisan news:rescore-quality --days=180 --force",
+    "php artisan news:rescore-sentiment",
+    "php artisan phase-a:export-real-data --data-dir=data --metadata-file=data/ticker_metadata.csv --include-sentiment-series"
+  ],
+  "fetch_runtime_summary": {
+    "DEWA": {
+      "raw_articles": 28,
+      "saved": 4,
+      "updated": 10,
+      "dropped_relevance": 5,
+      "provider_breakdown": {
+        "rss_local": 8,
+        "ojk_rss": 10,
+        "gnews": 10,
+        "newsapi": 0,
+        "finnhub": 0,
+        "gdelt": 0
+      }
+    },
+    "BUMI": {
+      "raw_articles": 17,
+      "saved": 1,
+      "updated": 10,
+      "dropped_relevance": 1,
+      "provider_breakdown": {
+        "rss_local": 7,
+        "ojk_rss": 10,
+        "gnews": 0,
+        "newsapi": 0,
+        "finnhub": 0,
+        "gdelt": 0
+      }
+    }
+  },
+  "post_fetch_global_counts": {
+    "news_articles": 86,
+    "stock_linked_articles": 43,
+    "macro_articles": 43
+  },
+  "database_level_coverage": {
+    "DEWA": {
+      "price_days": 87,
+      "news_articles": 5,
+      "sentiment_articles": 5,
+      "sentiment_days": 5,
+      "articles_with_quality_score": 5
+    },
+    "BUMI": {
+      "price_days": 87,
+      "news_articles": 2,
+      "sentiment_articles": 2,
+      "sentiment_days": 2,
+      "articles_with_quality_score": 2
+    }
+  },
+  "exported_trade_date_coverage": {
+    "DEWA": {
+      "metadata_sentiment_days_with_articles": 1,
+      "metadata_sentiment_article_count_total": 1,
+      "csv_trade_dates_with_sentiment": [
+        {
+          "date": "2026-04-18",
+          "sentiment_news_count_1d": 1,
+          "sentiment_average_1d": 0.0,
+          "sentiment_weighted_1d": 0.0
+        }
+      ]
+    },
+    "BUMI": {
+      "metadata_sentiment_days_with_articles": 0,
+      "metadata_sentiment_article_count_total": 0,
+      "csv_trade_dates_with_sentiment": []
+    }
+  },
+  "article_quality_notes": {
+    "DEWA": [
+      "Some fetched articles are weak issuer matches, for example macro/regulatory or entertainment wording that slipped through keyword relevance.",
+      "Examples seen in DB: non-issuer titles such as revisions to export rules, celebrity wording around 'kelas dewa', and geopolitical headlines."
+    ],
+    "BUMI": [
+      "One extra fetched article was a false-positive planet-Earth match rather than issuer-specific Bumi Resources coverage.",
+      "Example seen in DB: 'Asteroid Raksasa 'God of Chaos' Terdeteksi Menuju Bumi'."
+    ]
+  },
+  "fairness_assessment": {
+    "DEWA": {
+      "raw_fetch_status": "improved",
+      "effective_trade_date_coverage": "still_thin",
+      "fair_to_include_in_raw_news_coverage_audit": true,
+      "fair_to_treat_as_strategy_ready_sentiment_ticker": false,
+      "reason": "DEWA now has enough raw DB articles to show the fetch path was exercised, but exported sentiment alignment still leaves only one effective trade-date signal."
+    },
+    "BUMI": {
+      "raw_fetch_status": "barely_improved",
+      "effective_trade_date_coverage": "insufficient",
+      "fair_to_include_in_raw_news_coverage_audit": true,
+      "fair_to_treat_as_strategy_ready_sentiment_ticker": false,
+      "reason": "BUMI fetch was attempted and yielded one extra raw article, but effective issuer-specific trade-date sentiment support remains absent."
+    }
+  },
+  "bottom_line": {
+    "DEWA": "Fetcher path is proven live, but effective usable sentiment coverage is still too thin for strong strategy evaluation.",
+    "BUMI": "Fetcher path is proven attempted, but usable issuer-specific coverage remains weak and noisy.",
+    "overall": "DEWA and BUMI can now be judged more fairly than before because the fetch path was actually exercised, but neither should yet be treated as strong sentiment-ready tickers for roadmap gating."
+  }
+}

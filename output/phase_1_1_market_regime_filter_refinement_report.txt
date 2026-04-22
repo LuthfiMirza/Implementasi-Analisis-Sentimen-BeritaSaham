@@ -1,0 +1,35 @@
+Phase 1.1 - Market Regime Filter Refinement
+===========================================
+
+Variants tested:
+- price_above_ema200: ihsg_adj_close > ihsg_ema200
+  bullish_day_pct=69.7414, pre_filter_signals=3151, post_filter_signals=2707, skipped_signals=444
+  total_trades=1432, median_trade_retention=86.4583, avg_delta_win_rate=-1.4029, avg_delta_average_return=-0.1989
+  coverage_collapse_tickers=[]
+- price_above_ema200_and_slope_up: ihsg_adj_close > ihsg_ema200 AND ihsg_ema200 > prev_ihsg_ema200
+  bullish_day_pct=69.7414, pre_filter_signals=3151, post_filter_signals=2707, skipped_signals=444
+  total_trades=1432, median_trade_retention=86.4583, avg_delta_win_rate=-1.4029, avg_delta_average_return=-0.1989
+  coverage_collapse_tickers=[]
+- price_above_ema200_buffer_1pct: ihsg_adj_close > ihsg_ema200 * 1.01
+  bullish_day_pct=66.036, pre_filter_signals=3151, post_filter_signals=2616, skipped_signals=535
+  total_trades=1376, median_trade_retention=82.6389, avg_delta_win_rate=-0.7614, avg_delta_average_return=-0.1364
+  coverage_collapse_tickers=[]
+- ema50_above_ema200: ihsg_ema50 > ihsg_ema200
+  bullish_day_pct=71.3813, pre_filter_signals=3151, post_filter_signals=2602, skipped_signals=549
+  total_trades=1356, median_trade_retention=81.7857, avg_delta_win_rate=-0.0957, avg_delta_average_return=0.0898
+  coverage_collapse_tickers=[]
+- soft_risk_off_near_ema200: ihsg_adj_close > ihsg_ema200 OR (ihsg_adj_close > ihsg_ema200 * 0.99 AND ihsg_ema200 > prev_ihsg_ema200)
+  bullish_day_pct=69.7414, pre_filter_signals=3151, post_filter_signals=2707, skipped_signals=444
+  total_trades=1432, median_trade_retention=86.4583, avg_delta_win_rate=-1.4029, avg_delta_average_return=-0.1989
+  coverage_collapse_tickers=[]
+
+Current baseline audit:
+- skipped_trade_average_return = 0.737
+- allowed_trade_average_return = 0.2566
+- skipped_trade_win_rate = 55.806
+- allowed_trade_win_rate = 47.9745
+
+Final candidate decision:
+- status = candidate_selected
+- selected_variant_id = ema50_above_ema200
+- reason = Selected the strongest variant among healthy-coverage candidates that are not worse than the current baseline on the two official quality delta metrics.

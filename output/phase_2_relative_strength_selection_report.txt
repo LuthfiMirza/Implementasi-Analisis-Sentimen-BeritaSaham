@@ -1,0 +1,28 @@
+Phase 2 - Relative Strength Stock Selection
+===========================================
+
+Layer 1 frozen input:
+- regime = ihsg_ema50 > ihsg_ema200
+- alignment = explicit_previous_trading_day_alignment
+
+Selection variants:
+- layer1_full_universe: Full universe after Layer 1
+  active_ticker_count_median=40.0, active_ticker_count_min=0, active_ticker_count_max=51
+  total_signals=20854, total_trades=9941, median_trade_retention=100.0
+  avg_delta_win_rate=0.0, avg_delta_average_return=0.0, coverage_collapse=0
+  sample_adequacy_risk=low: Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan.
+- top_25pct_return_20d: Top 25% by return_20d
+  active_ticker_count_median=10.0, active_ticker_count_min=0, active_ticker_count_max=13
+  total_signals=9537, total_trades=4889, median_trade_retention=50.4202
+  avg_delta_win_rate=-0.6731, avg_delta_average_return=0.2682, coverage_collapse=0
+  sample_adequacy_risk=low: Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan.
+- top_30pct_return_20d: Top 30% by return_20d
+  active_ticker_count_median=12.0, active_ticker_count_min=0, active_ticker_count_max=16
+  total_signals=10970, total_trades=5557, median_trade_retention=57.5342
+  avg_delta_win_rate=-0.838, avg_delta_average_return=-0.0237, coverage_collapse=0
+  sample_adequacy_risk=low: Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan.
+
+Decision:
+- best_variant = top_25pct_return_20d
+- layer_2_usable_as_prototype = True
+- universe_now_too_small_for_final_validation = True

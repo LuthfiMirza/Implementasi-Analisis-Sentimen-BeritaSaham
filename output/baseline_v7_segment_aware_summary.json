@@ -1,0 +1,238 @@
+{
+  "generated_at": "2026-04-20T05:39:00.745020+00:00",
+  "input_context": {
+    "recommended_guardrail_mode": "move_to_segment_aware_guardrail",
+    "recommended_universe_mode": "split_universe_before_next_experiment",
+    "global_guardrail_still_valid": true,
+    "segment_aware_evaluation_recommended": true
+  },
+  "guardrails_kept_fixed": {
+    "global_min_trades_threshold": 5,
+    "global_min_eligible_tickers": 3,
+    "global_minimum_trade_sample_required": 15,
+    "global_promotion_allowed": false
+  },
+  "tested_safe_segments": [
+    "volatility_segment=mixed_volatility",
+    "sentiment_segment=sentiment_poor",
+    "liquidity_segment=thin_sparse",
+    "news_segment=mid_news"
+  ],
+  "tested_segment_details": [
+    {
+      "tested_segment": "volatility_segment=mixed_volatility",
+      "segment_field": "volatility_segment",
+      "segment_value": "mixed_volatility",
+      "tickers": [
+        "ADRO",
+        "BMRI",
+        "GOTO",
+        "TLKM"
+      ],
+      "ticker_count": 4
+    },
+    {
+      "tested_segment": "sentiment_segment=sentiment_poor",
+      "segment_field": "sentiment_segment",
+      "segment_value": "sentiment_poor",
+      "tickers": [
+        "BBCA",
+        "BUMI",
+        "GOTO",
+        "ICBP",
+        "INDF",
+        "UNVR"
+      ],
+      "ticker_count": 6
+    },
+    {
+      "tested_segment": "liquidity_segment=thin_sparse",
+      "segment_field": "liquidity_segment",
+      "segment_value": "thin_sparse",
+      "tickers": [
+        "ADRO",
+        "ASII",
+        "ICBP",
+        "INDF",
+        "TLKM",
+        "UNVR"
+      ],
+      "ticker_count": 6
+    },
+    {
+      "tested_segment": "news_segment=mid_news",
+      "segment_field": "news_segment",
+      "segment_value": "mid_news",
+      "tickers": [
+        "ASII",
+        "BMRI",
+        "BUMI",
+        "GOTO",
+        "INDF"
+      ],
+      "ticker_count": 5
+    }
+  ],
+  "tested_candidate_count": 4,
+  "supported_result_count": 4,
+  "candidate_summaries": [
+    {
+      "candidate_id": "baseline_v2_hold3_with_trend_guard",
+      "experiment_stages": [
+        "baseline_v2"
+      ],
+      "tested_segment_count": 4,
+      "supported_segment_count": 0,
+      "best_segment_result": {
+        "experiment_stage": "baseline_v2",
+        "candidate_id": "baseline_v2_hold3_with_trend_guard",
+        "tested_segment": "volatility_segment=mixed_volatility",
+        "segment_field": "volatility_segment",
+        "segment_value": "mixed_volatility",
+        "segment_tickers": "ADRO|BMRI|GOTO|TLKM",
+        "segment_ticker_count": 4,
+        "source_results_file": "baseline_v2_validation_per_ticker.csv",
+        "eligible_trade_floor": 5,
+        "min_eligible_tickers_required": 2,
+        "minimum_trade_sample_required": 10,
+        "ticker_count": 4,
+        "eligible_ticker_count": 1,
+        "total_trades_sum": 9,
+        "positive_score_ticker_count": 2,
+        "mean_average_return_all": 11.80595,
+        "mean_average_return_eligible": -3.5549,
+        "mean_score_all": 20.88932,
+        "supportive_but_ineligible_ticker_count": 1,
+        "positive_return_but_ineligible_ticker_count": 1,
+        "sample_skew_gap": 15.36085,
+        "outlier_bias_risk": true,
+        "segment_support_ok": false,
+        "decision": "no_go",
+        "global_promotion_allowed": false,
+        "recommended_next_action": "no_go_keep_candidate_out_of_volatility_segment_mixed_volatility_segment_shortlist"
+      }
+    },
+    {
+      "candidate_id": "baseline_v3_ema20_trend_guard",
+      "experiment_stages": [
+        "baseline_v3"
+      ],
+      "tested_segment_count": 4,
+      "supported_segment_count": 4,
+      "best_segment_result": {
+        "experiment_stage": "baseline_v3",
+        "candidate_id": "baseline_v3_ema20_trend_guard",
+        "tested_segment": "sentiment_segment=sentiment_poor",
+        "segment_field": "sentiment_segment",
+        "segment_value": "sentiment_poor",
+        "segment_tickers": "BBCA|BUMI|GOTO|ICBP|INDF|UNVR",
+        "segment_ticker_count": 6,
+        "source_results_file": "baseline_v3_signal_rule_results.csv",
+        "eligible_trade_floor": 5,
+        "min_eligible_tickers_required": 2,
+        "minimum_trade_sample_required": 10,
+        "ticker_count": 4,
+        "eligible_ticker_count": 3,
+        "total_trades_sum": 18,
+        "positive_score_ticker_count": 3,
+        "mean_average_return_all": 4.5183,
+        "mean_average_return_eligible": 7.2823,
+        "mean_score_all": 25.97587,
+        "supportive_but_ineligible_ticker_count": 0,
+        "positive_return_but_ineligible_ticker_count": 0,
+        "sample_skew_gap": -2.764,
+        "outlier_bias_risk": false,
+        "segment_support_ok": true,
+        "decision": "keep_experimental_for_segment_review",
+        "global_promotion_allowed": false,
+        "recommended_next_action": "keep_candidate_for_segment_review_only_on_sentiment_segment_sentiment_poor"
+      }
+    },
+    {
+      "candidate_id": "baseline_v4_quality_gate_guard",
+      "experiment_stages": [
+        "baseline_v4"
+      ],
+      "tested_segment_count": 4,
+      "supported_segment_count": 0,
+      "best_segment_result": {
+        "experiment_stage": "baseline_v4",
+        "candidate_id": "baseline_v4_quality_gate_guard",
+        "tested_segment": "liquidity_segment=thin_sparse",
+        "segment_field": "liquidity_segment",
+        "segment_value": "thin_sparse",
+        "segment_tickers": "ADRO|ASII|ICBP|INDF|TLKM|UNVR",
+        "segment_ticker_count": 6,
+        "source_results_file": "baseline_v4_quality_gate_results.csv",
+        "eligible_trade_floor": 5,
+        "min_eligible_tickers_required": 2,
+        "minimum_trade_sample_required": 10,
+        "ticker_count": 4,
+        "eligible_ticker_count": 1,
+        "total_trades_sum": 17,
+        "positive_score_ticker_count": 2,
+        "mean_average_return_all": -0.93705,
+        "mean_average_return_eligible": -1.3033,
+        "mean_score_all": -2.90733,
+        "supportive_but_ineligible_ticker_count": 1,
+        "positive_return_but_ineligible_ticker_count": 1,
+        "sample_skew_gap": 0.36625,
+        "outlier_bias_risk": false,
+        "segment_support_ok": false,
+        "decision": "no_go",
+        "global_promotion_allowed": false,
+        "recommended_next_action": "no_go_keep_candidate_out_of_liquidity_segment_thin_sparse_segment_shortlist"
+      }
+    },
+    {
+      "candidate_id": "baseline_v5_hold4_extension",
+      "experiment_stages": [
+        "baseline_v5"
+      ],
+      "tested_segment_count": 4,
+      "supported_segment_count": 0,
+      "best_segment_result": {
+        "experiment_stage": "baseline_v5",
+        "candidate_id": "baseline_v5_hold4_extension",
+        "tested_segment": "liquidity_segment=thin_sparse",
+        "segment_field": "liquidity_segment",
+        "segment_value": "thin_sparse",
+        "segment_tickers": "ADRO|ASII|ICBP|INDF|TLKM|UNVR",
+        "segment_ticker_count": 6,
+        "source_results_file": "baseline_v5_exit_hold_results.csv",
+        "eligible_trade_floor": 5,
+        "min_eligible_tickers_required": 3,
+        "minimum_trade_sample_required": 15,
+        "ticker_count": 6,
+        "eligible_ticker_count": 0,
+        "total_trades_sum": 11,
+        "positive_score_ticker_count": 2,
+        "mean_average_return_all": -0.05448,
+        "mean_average_return_eligible": null,
+        "mean_score_all": -10.20648,
+        "supportive_but_ineligible_ticker_count": 2,
+        "positive_return_but_ineligible_ticker_count": 3,
+        "sample_skew_gap": null,
+        "outlier_bias_risk": false,
+        "segment_support_ok": false,
+        "decision": "no_go",
+        "global_promotion_allowed": false,
+        "recommended_next_action": "no_go_keep_candidate_out_of_liquidity_segment_thin_sparse_segment_shortlist"
+      }
+    }
+  ],
+  "go_no_go": {
+    "best_candidate_id": "baseline_v3_ema20_trend_guard",
+    "tested_segment": "sentiment_segment=sentiment_poor",
+    "decision": "keep_experimental_for_segment_review",
+    "segment_support_ok": true,
+    "global_promotion_allowed": false,
+    "recommended_next_action": "keep_candidate_for_segment_review_only_on_sentiment_segment_sentiment_poor",
+    "experiment_stage": "baseline_v3",
+    "decision_notes": [
+      "Kandidat hanya didukung pada subset aman tertentu dan tetap tidak boleh dipromosikan global.",
+      "Guardrail global tetap berlaku sebagai gate promosi akhir."
+    ]
+  },
+  "warnings": []
+}

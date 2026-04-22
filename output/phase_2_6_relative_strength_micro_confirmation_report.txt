@@ -1,0 +1,23 @@
+Phase 2.6 - Micro Confirmation / Final Freeze Decision
+======================================================
+
+Micro refinements tested:
+- top_25pct_return_20d_explicit_tie_ceil_policy: full_trades=4889, full_retention=50.4202, full_delta_win_rate=-0.6731, full_delta_avg_return=0.2682, sample=low, slice_wins=4, dispersion=1.1379
+- top_25pct_return_20d_integer_floor_policy: full_trades=4612, full_retention=48.9011, full_delta_win_rate=-0.5841, full_delta_avg_return=0.0937, sample=low, slice_wins=2, dispersion=0.6434
+- top_25pct_return_20d_min_breadth_floor_3_policy: full_trades=4889, full_retention=50.4202, full_delta_win_rate=-0.6731, full_delta_avg_return=0.2682, sample=low, slice_wins=0, dispersion=1.1379
+
+Per-slice winners:
+- full_period: winner=top_25pct_return_20d_explicit_tie_ceil_policy
+- regime_high_strength: winner=top_25pct_return_20d_explicit_tie_ceil_policy
+- regime_low_strength: winner=top_25pct_return_20d_explicit_tie_ceil_policy
+- regime_mid_strength: winner=top_25pct_return_20d_integer_floor_policy
+- time_early: winner=top_25pct_return_20d_explicit_tie_ceil_policy
+- time_late: winner=top_25pct_return_20d_explicit_tie_ceil_policy
+- time_mid: winner=top_25pct_return_20d_integer_floor_policy
+
+Decision:
+- selected_micro_policy = top_25pct_return_20d_explicit_tie_ceil_policy
+- freeze_layer_2_candidate = False
+- lock_not_frozen_yet = True
+- reason = Final micro confirmation still does not make the Layer 2 candidate robust enough to freeze, so the project should lock the status as not_frozen_yet.
+- remaining_blocker = micro_policy_still_has_too_wide_slice_quality_dispersion

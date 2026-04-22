@@ -1,0 +1,59 @@
+Walk-Forward Validation Closeout
+================================
+
+Generated at: 2026-04-22
+
+Current official decision:
+- Walk-forward first pass ditutup formal sebagai gagal untuk paper-trading candidate track.
+- Paper trading tetap tertutup.
+- Retest tetap tertutup.
+- Baseline operasional lama tetap beku dan tidak berubah.
+- Stack evaluasi rebuild yang dipertahankan setelah closeout adalah stack tanpa Layer 3.
+- Layer 3 tetap `optional toggle only`, bukan default-active policy.
+
+Evidence snapshot:
+- Stack tanpa Layer 3:
+  - in-sample = 671 trades, win rate 40.6855, avg return 0.6134, max drawdown 28.6825, profit factor 1.1723
+  - out-of-sample = 439 trades, win rate 38.2688, avg return -0.0909, max drawdown 31.6175, profit factor 0.9629
+  - final holdout = 461 trades, win rate 38.6117, avg return -0.4867, max drawdown 29.0187, profit factor 0.8416
+  - OOS degradation vs in-sample = 114.819
+- Stack dengan Layer 3 toggle:
+  - in-sample = 596 trades, win rate 40.7718, avg return 0.4745, max drawdown 26.4210, profit factor 1.1316
+  - out-of-sample = 390 trades, win rate 37.9487, avg return -0.2735, max drawdown 29.2625, profit factor 0.9160
+  - final holdout = 418 trades, win rate 39.7129, avg return -0.3166, max drawdown 28.9891, profit factor 0.8898
+  - OOS degradation vs in-sample = 157.6396
+
+Why the stack failed candidate-track admission:
+- Average return per trade berubah negatif di OOS dan final holdout.
+- Profit factor turun di bawah 1.0 pada OOS/holdout.
+- Win rate tetap di bawah gate minimum 45%.
+- Max drawdown tetap jauh di atas gate minimum < 20%.
+- OOS degradation jauh melampaui gate < 30%.
+- Layer 3 tidak memperbaiki stabilitas; stack tanpa Layer 3 tetap lebih defensible.
+
+Failure classification:
+- dominant = oos_instability
+  Reason: performa positif in-sample tidak bertahan di OOS dan holdout, dengan pembalikan average return dan profit factor.
+- high = entry_design
+  Reason: penyederhanaan current entry belum cukup robust; Layer 3 juga gagal menjadi penolong OOS dan tidak layak menjadi default.
+- secondary = exit_or_hold_design
+  Reason: drawdown masih tinggi, tetapi ATR trailing stop sebelumnya justru sudah mengalahkan fixed hold pada integration pass, jadi ini bukan scope pertama yang paling defensible.
+- secondary = sample_coverage_insufficient
+  Reason: sample OOS/holdout hanya moderate, tetapi tidak ada coverage collapse dan trade count masih cukup untuk menunjukkan sinyal kegagalan kualitas, bukan sekadar kekurangan sampel.
+
+Targeted redesign scope for the next cycle:
+- selected scope = entry_simplification
+- why:
+  - failure dominan adalah OOS instability, dan bukti paling dekat menunjuk ke kualitas entry yang tidak cukup robust.
+  - Layer 3 sudah resmi tetap optional dan tidak boleh dijadikan arah redesign aktif berikutnya.
+  - Exit sudah pernah menunjukkan improvement vs fixed hold; karena itu exit redesign belum menjadi prioritas tunggal yang paling defensible saat ini.
+
+Forbidden or premature now:
+- Jangan buka paper trading.
+- Jangan buka retest.
+- Jangan kembali ke tweak kecil Layer 3/4/5.
+- Jangan menjalankan banyak redesign scope sekaligus.
+- Jangan ubah baseline operasional lama.
+
+Official next action:
+- Open targeted entry simplification planning as the single redesign scope for the next cycle.

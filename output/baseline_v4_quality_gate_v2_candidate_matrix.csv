@@ -1,0 +1,4 @@
+candidate_id,entry_anchor_rule,quality_gate_id,gate_summary,min_body_to_range_ratio,min_close_vs_open_pct,min_range_pct,min_close_vs_anchor_pct,hold_period,min_trades_threshold,status
+baseline_v4_quality_gate_v2_body_relaxed,close_gt_ema20_and_bullish_candle,body_strength_floor_relaxed,Relax body and close strength slightly while keeping a meaningful range floor.,0.5,0.25,0.75,0.0,3,5,scaffold_only
+baseline_v4_quality_gate_v2_anchor_micro_confirm,close_gt_ema20_and_bullish_candle,body_strength_relaxed_plus_micro_anchor_confirm,Allow a softer candle body but keep a small distance above EMA20 to avoid weak closes.,0.48,0.22,0.7,0.02,3,5,scaffold_only
+baseline_v4_quality_gate_v2_coverage_push,close_gt_ema20_and_bullish_candle,coverage_push_with_guardrails,Push for one more eligible ticker by relaxing body/range modestly without dropping the bullish-candle anchor.,0.47,0.18,0.65,0.0,3,5,scaffold_only

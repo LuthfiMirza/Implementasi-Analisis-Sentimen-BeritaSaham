@@ -1,0 +1,48 @@
+{
+  "generated_at": "2026-04-22T02:51:16.921258+00:00",
+  "recommended_guardrail_mode": "stop_and_collect_more_data",
+  "recommended_universe_mode": "collect_more_data_before_any_new_test",
+  "global_guardrail_still_valid": true,
+  "segment_aware_evaluation_recommended": false,
+  "segments_safe_to_test_next": [],
+  "segments_to_avoid": [
+    "sentiment_segment=sentiment_poor",
+    "liquidity_segment=liquid_active",
+    "liquidity_segment=thin_sparse",
+    "sentiment_segment=sentiment_rich",
+    "volatility_segment=lower_volatility",
+    "volatility_segment=mixed_volatility",
+    "news_segment=high_news",
+    "news_segment=low_news",
+    "category=finance",
+    "sector=perbankan",
+    "news_segment=mid_news",
+    "category=consumer",
+    "sector=konsumsi",
+    "volatility_segment=higher_volatility"
+  ],
+  "what_to_keep_fixed": [
+    "baseline aktif",
+    "logika entry/exit aktif",
+    "eligible_for_analysis tetap berbasis minimum trade floor 10",
+    "Jangan ubah baseline aktif.",
+    "Jangan lanjut ke Phase C.",
+    "Jangan hidupkan lagi item 5-8.",
+    "Jangan mulai eksperimen strategi baru sebelum root cause guardrail ditutup."
+  ],
+  "what_not_to_do": [
+    "jangan hidupkan item 5-8",
+    "jangan lanjut ke Phase C",
+    "jangan turunkan global min_trades_threshold hanya untuk mengejar coverage",
+    "jangan promosikan kandidat yang quality-nya hanya ditopang ticker non-eligible",
+    "item5",
+    "item6",
+    "item7",
+    "item8",
+    "entry_relaxation_only",
+    "volume_relaxed_entry",
+    "exit_hold_only_redesign"
+  ],
+  "recommended_next_experiment_after_guardrail_review": "Tunda eksperimen baru sampai guardrail dan coverage universe punya bukti data yang cukup.",
+  "decisive_statement": "Data tetap belum cukup, jadi eksperimen berikutnya harus ditunda sampai coverage universe membaik."
+}

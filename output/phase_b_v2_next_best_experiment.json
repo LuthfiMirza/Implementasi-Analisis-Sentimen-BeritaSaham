@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-04-19T02:09:03.110065+00:00",
+  "selected_experiment_code": "retry_baseline_with_hold_period_labeling_redesign",
+  "can_start_immediately_after_redesign": true,
+  "summary": "Ulang baseline saja dengan hold period hasil audit dan trade floor yang lebih realistis; jangan tambah sentiment/adaptive dulu.",
+  "proposed_runtime": {
+    "hold_period": 3,
+    "min_trades": 5
+  },
+  "why_this_is_best_next": "Baseline tetap menjadi blocker paling hulu; memperbaiki trade design lebih dulu memberi nilai informasi paling tinggi.",
+  "why_not_item7_yet": "Sentiment belum cukup informatif pada banyak ticker.",
+  "why_not_item8_yet": "Adaptive search space masih redundant terhadap baseline atau belum usable."
+}

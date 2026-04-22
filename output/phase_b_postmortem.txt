@@ -1,0 +1,29 @@
+Phase B Official Postmortem
+===========================
+
+- Generated at: 2026-04-21T23:31:11.363075+00:00
+- Phase B status: phase_b_closed_with_learnings_no_candidate
+- Phase B status reason: Semua item final no_go dan akar masalah dominan menyentuh usability sinyal, retensi trade, dan sample coverage.
+- Phase C decision: phase_c_no_go_yet
+- Root problem class: foundation_and_signal_usability
+- Recommended next action: stop_and_collect_more_data_then_redesign_framework
+
+Strategic summary:
+- Fase B ditutup tanpa promosi baseline (item5=no_go, item6=no_go, item7=no_go, item8=no_go); pola gagal didominasi foundation_and_signal_usability, dan langkah resmi berikutnya adalah collect more data plus redesign framework evaluasi.
+
+Per-item conclusions:
+- item5: decision=no_go | primary_root_cause=over_filtering | supporting=baseline_mismatch,insufficient_trade_sample,feature_not_additive
+  reasoning=Item 5 menambah filter konfirmasi tetapi kualitas agregat tetap negatif, sementara threshold efektif bertabrakan dengan baseline dan dukungan trade tetap tipis.
+- item6: decision=no_go | primary_root_cause=trade_retention_too_low | supporting=insufficient_trade_sample,feature_not_additive,over_filtering
+  reasoning=Item 6 hanya mempertahankan sekitar 25.00% trade rata-rata, terlalu rendah untuk promosi.
+- item7: decision=no_go | primary_root_cause=signal_collapse | supporting=sentiment_data_weak_or_non_informative,trade_retention_too_low,feature_not_additive
+  reasoning=Item 7 membuat trade candidate kolaps ke 0 pada ticker comparable walau readiness runnable.
+- item8: decision=no_go | primary_root_cause=adaptive_config_not_usable | supporting=insufficient_trade_sample,feature_not_additive,signal_collapse
+  reasoning=Item 8 menguji adaptive search space, tetapi tidak menghasilkan satu pun konfigurasi ticker yang usable.
+
+Must fix before Phase C:
+- Audit overlap baseline versus filter tambahan agar eksperimen baru tidak collapse ke aturan yang sudah aktif.
+- Review entry/exit baseline, hold period, dan trade labeling karena filter tambahan menurunkan retensi trade terlalu agresif.
+- Audit sample size per ticker dan definisikan ulang coverage minimum yang realistis sebelum eksperimen berikutnya.
+- Audit distribusi sentiment series, article count, dan relevansi timing sentiment terhadap entry trade.
+- Sederhanakan search space adaptive dan pastikan success criteria usable sebelum adaptive diuji lagi.

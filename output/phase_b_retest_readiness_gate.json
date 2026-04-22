@@ -1,23 +1,25 @@
 {
-  "generated_at": "2026-04-21T14:06:38.300347+00:00",
+  "generated_at": "2026-04-22T02:49:35.552765+00:00",
   "history_gate": "PASS",
   "universe_coverage_gate": "PASS",
-  "news_distribution_gate": "PASS",
+  "news_distribution_gate": "FAIL",
   "oos_fairness_gate": "PASS",
-  "framework_governance_gate": "PASS",
+  "framework_governance_gate": "FAIL",
   "roadmap_discipline_gate": "PASS",
-  "final_decision": "boleh_retest",
-  "highest_blocking_gate": "history_gate",
-  "blocking_thresholds": [],
-  "recommended_next_action": "freeze_retest_scope_and_run_only_after_current_gate_snapshot_is_published",
-  "decisive_statement": "Semua gate PASS. Retest boleh dibuka kembali tanpa mengubah baseline aktif, tanpa membuka Phase C, dan tanpa promosi global.",
-  "primary_segment": "sentiment_segment=sentiment_poor",
-  "safe_segments_evaluated": [
-    "liquidity_segment=liquid_active",
-    "volatility_segment=higher_volatility",
-    "sentiment_segment=sentiment_rich",
-    "news_segment=mid_news"
+  "final_decision": "belum_boleh_retest",
+  "highest_blocking_gate": "framework_governance_gate",
+  "blocking_thresholds": [
+    "news_distribution_gate::median_news_density_pct actual=0.3204 target>=0.3252",
+    "framework_governance_gate::baseline_filter_overlap_risk_acceptable actual=0 target>=1",
+    "framework_governance_gate::signal_sparsity_flatness_audit_passed actual=0 target>=1",
+    "framework_governance_gate::baseline_validation_candidate_usable actual=0 target>=1",
+    "framework_governance_gate::official_strategy_retry_reopened actual=0 target>=1"
   ],
+  "recommended_next_action": "collect_more_data_and_refresh_framework_audits_before_any_strategy_retry",
+  "decisive_statement": "Retest masih dilarang karena blocker coverage/OOS bukan satu-satunya masalah; audit overlap baseline, signal sparsity-flatness, usability redesign baseline, dan closeout resmi juga harus lolos.",
+  "strategy_retry_still_blocked_by_official_closeout": true,
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "safe_segments_evaluated": [],
   "policy_realignment_applied": true,
   "news_distribution_policy_realignment_applied": true,
   "density_component_realigned": true,
@@ -31,6 +33,17 @@
     "oos_fairness_gate::primary_segment_usable_oos_windows": 3,
     "news_distribution_gate::median_news_density_pct": 0.3252
   },
+  "framework_threshold_semantics": {
+    "methodology_minimum_windows": 3,
+    "stretch_target_windows": 6,
+    "strategy_retry_allowed_depends_on": [
+      "all methodology-aligned readiness gates",
+      "framework_governance_gate",
+      "official closeout reopening"
+    ],
+    "operational_progress_should_use": "methodology_minimum_windows_not_legacy_stretch_target",
+    "reason": "Legacy stretch target 6 windows tetap dicatat sebagai konteks redesign, tetapi gate operasional resmi harus memakai threshold metodologi-aligned yang benar-benar reachable di bawah metodologi OOS aktif."
+  },
   "policy_alignment_reason": "Threshold legacy yang terbukti incompatible direalign ke kapasitas metodologi OOS resmi terbaru, tanpa mengubah metodologi OOS atau baseline trading logic. Density component pada news_distribution_gate juga direalign ke baseline median density resmi hasil audit karena threshold legacy 5.0 terbukti structurally misaligned terhadap universe resmi saat ini.",
   "artifact_availability": {
     "phase_b_data_extension_audit": true,
@@ -38,6 +51,10 @@
     "universe_reconstruction_precheck": true,
     "phase_b_final_closeout": true,
     "project_after_phase_b_decision": true,
+    "baseline_redesign_go_no_go": true,
+    "baseline_v2_validation_go_no_go": true,
+    "phase_b_v2_overlap_audit": true,
+    "phase_b_v2_trade_design_audit": true,
     "baseline_v9_segment_oos_summary": true,
     "baseline_v9_segment_oos_go_no_go": true,
     "phase_b_oos_policy_alignment_audit": true,

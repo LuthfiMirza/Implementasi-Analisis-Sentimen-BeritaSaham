@@ -1,0 +1,129 @@
+{
+  "artifact": "layer5_drawdown_control_plan",
+  "generated_at": "2026-04-22",
+  "source_of_truth": {
+    "layer1_holdout_regime_sensitivity_closeout": "output/layer1_holdout_regime_sensitivity_closeout.json",
+    "layer1_holdout_regime_sensitivity_report": "output/layer1_holdout_regime_sensitivity_report.txt",
+    "core_stack_update_closeout": "output/core_stack_update_closeout.json",
+    "walk_forward_validation_closeout": "output/walk_forward_validation_closeout.json",
+    "phase_5_atr_trailing_stop_summary": "output/phase_5_atr_trailing_stop_summary.json",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "planning_status": "completed_no_implementation_yet",
+  "current_official_context": {
+    "core_stack_definition": [
+      "Phase 1 base signal generation",
+      "Layer 1 current regime",
+      "without return_20d > 0",
+      "Layer 3 optional off-by-default",
+      "Layer 4 unchanged",
+      "Layer 5 unchanged"
+    ],
+    "paper_trading_allowed": false,
+    "retest_allowed": false,
+    "layer1_status": "kept_current",
+    "entry_redesign_active": false,
+    "layer4_scope_open": false
+  },
+  "why_residual_weakness_now_points_to_layer5": {
+    "summary": "Entry simplification materially improved OOS and Layer 1 recheck did not justify a regime revision, but final holdout remains negative with high drawdown. The most defensible remaining narrow scope is Layer 5 exit/drawdown control.",
+    "evidence": [
+      "Updated core stack improved OOS average_return_per_trade from -0.0909 to 0.1342 and profit_factor from 0.9629 to 1.0270 without touching Layer 5.",
+      "Layer 1 refinement pass did not justify revising the current regime; best candidate improved holdout but weakened OOS enough that the official decision stayed keep_current_layer1_regime.",
+      "Current official core stack still fails final holdout at average_return_per_trade = -0.4595, profit_factor = 0.8420, and max_drawdown_pct = 34.4658.",
+      "Phase 5 integration evidence shows ATR trailing stop lifted average return per trade versus fixed hold (1.0854 vs 0.5776) but also increased average holding period (11.2976 vs 5.0) and average max_drawdown_per_trade (4.8938 vs 3.9238).",
+      "This pattern is more consistent with exits not cutting downside fast enough than with a remaining Layer 1 or entry-definition problem."
+    ],
+    "dominant_failure_mode_within_layer5": "trailing_stop_plus_time_stop_not_fast_enough_to_cut_downside"
+  },
+  "layer5_failure_mode_audit": {
+    "candidate_failure_modes": [
+      {
+        "failure_mode": "trailing_stop_too_loose",
+        "supporting_evidence": [
+          "Holdout max drawdown remains high.",
+          "ATR trailing currently allows wider adverse movement than fixed hold on average per trade."
+        ],
+        "selection_status": "not_selected_now"
+      },
+      {
+        "failure_mode": "time_stop_too_long",
+        "supporting_evidence": [
+          "Current time stop is 15 days while actual average holding period is already 11.2976 days, leaving room for losing trades to persist for a long stretch.",
+          "The current stack improved OOS after entry simplification, so the remaining issue is more plausibly late-stage loss containment than eligibility design."
+        ],
+        "selection_status": "selected_as_primary_design_hypothesis"
+      },
+      {
+        "failure_mode": "trailing_rule_locks_price_too_slowly",
+        "supporting_evidence": [
+          "Average max drawdown per trade under ATR trailing remains higher than fixed hold, suggesting downside is not being locked quickly enough once a trade is open."
+        ],
+        "selection_status": "secondary_hypothesis_only"
+      }
+    ],
+    "dominant_read": "The combined ATR trailing stop plus 15-day time stop appears too slow to contain drawdown in the later holdout window."
+  },
+  "redesign_options_compared": [
+    {
+      "option_id": "shorter_time_stop_keep_atr_2p5",
+      "label": "Shorten time stop while keeping ATR14 x 2.5",
+      "status": "selected",
+      "scope_boundary": "Single-parameter Layer 5 refinement. Keep ATR multiplier unchanged and only shorten the maximum holding window.",
+      "candidate_test_shape": "Evaluate shorter time-stop candidate first, with 10 trading days as the lead implementation target."
+    },
+    {
+      "option_id": "tighter_atr_multiplier",
+      "label": "Tighten ATR multiplier",
+      "status": "not_selected_now",
+      "scope_boundary": "Would reopen the main stop-distance parameter.",
+      "why_not_selected": "Less narrow than a time-stop change and more likely to cut winners prematurely before isolating whether the main issue is simply holding losers too long."
+    },
+    {
+      "option_id": "faster_trailing_price_lock",
+      "label": "Add faster trailing lock logic",
+      "status": "not_selected_now",
+      "scope_boundary": "Would introduce new trailing-state logic beyond the current ATR rule.",
+      "why_not_selected": "More complex than needed for the next cycle and harder to attribute cleanly in a first drawdown-control pass."
+    },
+    {
+      "option_id": "hybrid_tighter_atr_and_shorter_time_stop",
+      "label": "Combine tighter ATR and shorter time stop",
+      "status": "not_selected_now",
+      "scope_boundary": "Would change more than one Layer 5 dimension at once.",
+      "why_not_selected": "Violates the single-scope discipline for the next cycle."
+    }
+  ],
+  "selected_redesign_target": {
+    "target_id": "layer5_drawdown_control_via_shorter_time_stop",
+    "selection_status": "official_next_cycle_priority",
+    "what_it_means": [
+      "Keep the updated core stack and current Layer 1 unchanged.",
+      "Keep Layer 3 off by default.",
+      "Keep Layer 4 sizing unchanged.",
+      "Keep ATR multiplier at 2.5 for the next cycle.",
+      "Test a shorter Layer 5 time stop as the single active redesign scope."
+    ],
+    "why_selected": [
+      "It is the narrowest Layer 5 change that directly targets the observed pattern of long holding duration plus weak holdout drawdown control.",
+      "It preserves attribution clarity because ATR multiplier, Layer 4, and entry stack all remain unchanged.",
+      "It is the most defensible first test after the evidence shifted away from Layer 1 and entry redesign."
+    ],
+    "why_other_targets_are_not_primary_now": [
+      "Tightening ATR first would blur whether the main issue is stop distance or simply trade duration.",
+      "Adding a new trailing-lock mechanism would expand logic complexity before testing the simplest duration-based fix.",
+      "Opening Layer 4 now would violate the explicit instruction to keep sizing unchanged."
+    ]
+  },
+  "forbidden_or_premature_actions": [
+    "Reopening Layer 1 redesign.",
+    "Reopening entry redesign before finishing the Layer 5 drawdown-control pass.",
+    "Touching Layer 4 sizing in this cycle.",
+    "Changing ATR multiplier and time stop at the same time.",
+    "Opening retest or paper trading."
+  ],
+  "official_next_action": {
+    "action": "implement_layer5_shorter_time_stop_validation",
+    "note": "The next cycle should implement a narrow Layer 5 validation pass that keeps ATR14 x 2.5 unchanged and tests a shorter time stop as the sole redesign variable."
+  }
+}

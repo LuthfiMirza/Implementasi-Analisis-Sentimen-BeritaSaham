@@ -1,0 +1,135 @@
+{
+  "artifact": "targeted_entry_simplification_plan",
+  "generated_at": "2026-04-22",
+  "source_of_truth": {
+    "walk_forward_validation_closeout": "output/walk_forward_validation_closeout.json",
+    "walk_forward_validation_closeout_report": "output/walk_forward_validation_closeout.txt",
+    "walk_forward_validation_summary": "output/walk_forward_validation_summary.json",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "planning_status": "completed_no_implementation_yet",
+  "current_official_context": {
+    "dominant_failure_class": "oos_instability",
+    "paper_trading_allowed": false,
+    "retest_allowed": false,
+    "layer_3_status": "optional_toggle_only",
+    "layer_4_status": "do_not_touch_in_this_cycle",
+    "layer_5_status": "do_not_touch_in_this_cycle",
+    "legacy_operational_baseline": "frozen"
+  },
+  "current_entry_stack_audit": {
+    "current_active_entry_stack": [
+      "Layer 1: IHSG EMA50 > EMA200 with explicit previous-trading-day alignment",
+      "Layer 2 alternative: return_20d > 0",
+      "Layer 2 alternative: close > ema50",
+      "Layer 3: optional only and not default-active"
+    ],
+    "most_likely_entry_problem": {
+      "label": "redundant_dual_trend_confirmation_inside_layer2_alternative",
+      "description": "Current entry relies on two correlated stock-level trend confirmations (`return_20d > 0` and `close > ema50`) on top of an already active market regime filter. That overlap likely improves in-sample cleanliness but increases late-trend selection and OOS fragility.",
+      "why_this_is_most_likely": [
+        "WFT failed even with Layer 3 off, so Layer 3 is not the primary culprit.",
+        "The failure is dominated by OOS instability rather than coverage collapse.",
+        "The current Layer 2 alternative is the narrowest active stock-level gate set still driving entry quality, so simplification should start there."
+      ]
+    }
+  },
+  "simplification_options_compared": [
+    {
+      "option_id": "control_current_dual_gate",
+      "label": "Layer 1 + return_20d > 0 AND close > ema50",
+      "status": "current_control",
+      "retain_rules": [
+        "Layer 1 market regime",
+        "return_20d > 0",
+        "close > ema50"
+      ],
+      "drop_rules_temporarily": [],
+      "expected_tradeoff": "Most familiar control; highest overlap and highest risk of continuing current OOS fragility."
+    },
+    {
+      "option_id": "simplify_to_momentum_positive_only",
+      "label": "Layer 1 + momentum positive only",
+      "status": "candidate",
+      "retain_rules": [
+        "Layer 1 market regime",
+        "return_20d > 0"
+      ],
+      "drop_rules_temporarily": [
+        "close > ema50"
+      ],
+      "expected_tradeoff": "Keeps the core absolute momentum idea while removing the extra stock-level trend confirmation most likely to be redundant with Layer 1."
+    },
+    {
+      "option_id": "simplify_to_close_above_ema50_only",
+      "label": "Layer 1 + close > ema50 only",
+      "status": "candidate",
+      "retain_rules": [
+        "Layer 1 market regime",
+        "close > ema50"
+      ],
+      "drop_rules_temporarily": [
+        "return_20d > 0"
+      ],
+      "expected_tradeoff": "Smoother than short-horizon momentum sign, but still a lagging trend confirmation that may duplicate regime logic and remain late-cycle."
+    },
+    {
+      "option_id": "floor_layer1_only",
+      "label": "Layer 1 only",
+      "status": "diagnostic_floor_only",
+      "retain_rules": [
+        "Layer 1 market regime"
+      ],
+      "drop_rules_temporarily": [
+        "return_20d > 0",
+        "close > ema50"
+      ],
+      "expected_tradeoff": "Useful as a stress-test floor, but too broad to become the main redesign target for the next cycle."
+    }
+  ],
+  "selected_redesign_scope": {
+    "scope_id": "entry_simplification_drop_close_above_ema50_keep_momentum_positive",
+    "selection_status": "official_next_cycle_priority",
+    "selected_option_id": "simplify_to_momentum_positive_only",
+    "candidate_rule_set": [
+      "Layer 1 active",
+      "return_20d > 0 active",
+      "close > ema50 removed temporarily",
+      "Layer 3 stays optional and off by default",
+      "Layer 4 unchanged",
+      "Layer 5 unchanged"
+    ],
+    "rules_retained": [
+      "IHSG EMA50 > EMA200 with explicit previous-trading-day alignment",
+      "absolute momentum positive threshold via return_20d > 0",
+      "no liquidity gate as active rule"
+    ],
+    "rules_dropped_temporarily": [
+      "stock-level close > ema50 confirmation"
+    ],
+    "why_this_scope_wins": [
+      "It is the narrowest and most defensible simplification of the current active entry stack.",
+      "It preserves the core Layer 2 alternative identity as an absolute momentum filter rather than replacing it entirely.",
+      "It removes the additional stock-level confirmation most likely to duplicate Layer 1 regime logic and reinforce late-trend entry timing.",
+      "It is directly testable against the current control without touching Layer 3, Layer 4, or Layer 5."
+    ]
+  },
+  "why_not_exit_redesign_first": {
+    "reasoning": [
+      "The closeout formally classified `oos_instability` as dominant and `entry_design` as the high-contributing secondary class.",
+      "Layer 5 ATR trailing stop had already shown improvement over fixed hold in the earlier integration pass.",
+      "WFT failure persisted across the same exit framework while Layer 3 was already off in the preferred stack, so the next clean diagnostic move is to simplify entry before reopening exit design."
+    ]
+  },
+  "forbidden_or_premature_actions": [
+    "Do not open paper trading.",
+    "Do not open retest.",
+    "Do not redesign Layer 4 or Layer 5 in this cycle.",
+    "Do not reactivate Layer 3 as default-active.",
+    "Do not run multiple redesign scopes in parallel."
+  ],
+  "official_next_action": {
+    "action": "implement_and_test_entry_candidate_layer1_plus_return20d_positive_only",
+    "note": "Next cycle should implement a narrow experiment that compares the current control against `Layer 1 + return_20d > 0 only`, with Layer 3 still optional-off-by-default and Layer 4/5 unchanged."
+  }
+}

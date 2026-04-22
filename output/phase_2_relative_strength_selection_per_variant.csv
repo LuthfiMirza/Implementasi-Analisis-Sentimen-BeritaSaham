@@ -1,0 +1,4 @@
+variant_id,variant_label,selection_mode,top_pct,active_ticker_count_median,active_ticker_count_min,active_ticker_count_max,active_ticker_count_mean,active_single_ticker_day_pct,total_signals,total_trades,median_trade_retention,avg_delta_win_rate,avg_delta_average_return,tickers_with_coverage_collapse,coverage_collapse_tickers,sample_adequacy_risk,sample_adequacy_reason
+layer1_full_universe,Full universe after Layer 1,full_after_layer1,,40.0,0,51,30.4996,0.0,20854,9941,100.0,0.0,0.0,0,[],low,Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan.
+top_25pct_return_20d,Top 25% by return_20d,top_pct,0.25,10.0,0,13,7.8692,0.0,9537,4889,50.4202,-0.6731,0.2682,0,[],low,Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan.
+top_30pct_return_20d,Top 30% by return_20d,top_pct,0.3,12.0,0,16,9.366,0.0,10970,5557,57.5342,-0.838,-0.0237,0,[],low,Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan.

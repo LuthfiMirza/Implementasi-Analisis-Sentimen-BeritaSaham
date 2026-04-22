@@ -1,0 +1,55 @@
+Phase 2 Layer 2 Relative Strength Closeout
+==========================================
+
+Scope:
+- Menutup jalur Layer 2 Relative Strength setelah evaluasi sampai Phase 2.6.
+
+Source of truth:
+- output/phase_2_6_relative_strength_micro_confirmation_summary.json
+- output/phase_2_6_relative_strength_micro_confirmation_report.txt
+- output/project_roadmap_status.txt
+
+Final decision:
+- Layer 2 track status = best_prototype_candidate_locked_not_frozen_yet
+- Best prototype candidate = top_25pct_return_20d
+- Best candidate policy = explicit deterministic tie handling + ceil cut
+- freeze_layer_2_candidate = false
+- lock_not_frozen_yet = true
+- No more RS iterations without new methodological reason = true
+
+Kenapa jalur RS dihentikan sekarang:
+- RS track sudah dievaluasi sampai batas wajar melalui confirmation, robustness, boundary refinement, dan micro confirmation.
+- Tidak ada refinement sempit yang berhasil mengubah kandidat terbaik menjadi final freezeable candidate.
+- Iterasi RS tambahan tidak lagi defensible tanpa alasan metodologis baru yang jelas.
+
+Kandidat terbaik:
+- variant_id = top_25pct_return_20d
+- full_period_total_trades = 4889
+- full_period_median_trade_retention = 50.4202
+- full_period_avg_delta_win_rate = -0.6731
+- full_period_avg_delta_average_return = 0.2682
+- winner_count_across_slices = 4/6
+
+Kenapa tidak dibekukan:
+- Freeze final gagal meskipun winner count sudah naik.
+- Dispersion kualitas antar-slice masih terlalu lebar untuk freeze final.
+- Micro confirmation tidak memecahkan blocker robustness terakhir.
+
+Final blocker:
+- blocker_id = micro_policy_still_has_too_wide_slice_quality_dispersion
+- candidate_avg_delta_average_return_range = 1.1379
+- candidate_avg_delta_win_rate_range = 2.5674
+- candidate_median_trade_retention_range = 18.8158
+
+Backlog opsi Layer 2 alternatif:
+- Alternative stock selection logic
+  contoh: nonlinear momentum bucket selection, composite trend-strength gate, breadth-aware selection
+- Non-cross-sectional filter
+  contoh: absolute momentum threshold, trend persistence gate, minimum breakout quality gate
+- Regime-conditioned selection
+  contoh: filter saham berbeda untuk regime bullish lemah vs kuat, atau aktivasi filter hanya di band regime tertentu
+- Liquidity or fundamental gating
+  contoh: minimum turnover gate, free-float proxy, simple profitability or balance-sheet guardrail
+
+Official next action:
+- Decide the next Layer 2 architecture consciously from backlog options before writing new strategy code.

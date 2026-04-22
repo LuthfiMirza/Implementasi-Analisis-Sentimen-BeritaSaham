@@ -1,0 +1,23 @@
+Phase 2.5 - Boundary Cut Refinement
+===================================
+
+Cuts tested:
+- top_22_5pct_return_20d: full_trades=4581, full_retention=48.3193, full_delta_win_rate=-0.6218, full_delta_avg_return=0.0937, sample=low, slice_wins=1, dispersion=0.6574
+- top_25pct_return_20d: full_trades=4889, full_retention=50.4202, full_delta_win_rate=-0.6731, full_delta_avg_return=0.2682, sample=low, slice_wins=2, dispersion=1.1379
+- top_27_5pct_return_20d: full_trades=5265, full_retention=54.7945, full_delta_win_rate=-0.7294, full_delta_avg_return=-0.0351, sample=low, slice_wins=2, dispersion=1.1222
+- top_30pct_return_20d: full_trades=5557, full_retention=57.5342, full_delta_win_rate=-0.838, full_delta_avg_return=-0.0237, sample=low, slice_wins=1, dispersion=1.0336
+
+Per-slice winners:
+- full_period: winner=top_25pct_return_20d
+- regime_high_strength: winner=top_27_5pct_return_20d
+- regime_low_strength: winner=top_25pct_return_20d
+- regime_mid_strength: winner=top_27_5pct_return_20d
+- time_early: winner=top_30pct_return_20d
+- time_late: winner=top_25pct_return_20d
+- time_mid: winner=top_22_5pct_return_20d
+
+Decision:
+- selected_boundary_cut = top_25pct_return_20d
+- freeze_layer_2_candidate = False
+- reason = Selected boundary cut still falls short of the freeze threshold for Layer 2.
+- remaining_blocker = no_boundary_cut_yet_breaks_slice_concentration_blocker

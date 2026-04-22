@@ -1,0 +1,31 @@
+{
+  "current_batch": "batch_3",
+  "current_batch_completed": true,
+  "batch_1_operationally_complete": true,
+  "ready_for_batch_2": true,
+  "checkpoint_material_reached": true,
+  "recheck_readiness_gate_allowed": true,
+  "strategy_retry_still_blocked": true,
+  "remaining_blockers": [],
+  "recommended_next_action": "refresh_retest_gate_inputs_and_rerun_phase_b_retest_readiness_gate_for_status_only",
+  "decisive_statement": "Checkpoint material operasional sudah tercapai di bawah threshold metodologi resmi. Gate readiness boleh dijalankan ulang hanya untuk refresh blocker status; strategy retry tetap tertutup.",
+  "oos_window_threshold_semantics": {
+    "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+    "source_of_truth_field": "methodology_aligned_thresholds.history_gate::usable_oos_windows_per_ticker",
+    "methodology_minimum_windows": 3.0,
+    "stretch_target_windows_by_batch": {
+      "batch_1": 4.0,
+      "batch_2": 6.0,
+      "batch_3": 8.0
+    },
+    "legacy_default_windows": 6.0,
+    "operational_batch_completion_uses": "methodology_minimum_windows",
+    "strategy_retry_allowed_uses": "phase_b_retest_readiness_gate final_decision + framework_governance_gate, not legacy stretch target windows",
+    "reason": "Batch/progress framework harus mengikuti threshold metodologi resmi yang sudah aktif di readiness gate. Stretch target 4/6/8 tetap dicatat sebagai aspirasi non-blocking agar tidak lagi bercampur dengan definisi operasional batch completion."
+  },
+  "stretch_targets_pending": [
+    "batch_1 actual=3.0 stretch_target>=4.0",
+    "batch_2 actual=3.0 stretch_target>=6.0",
+    "batch_3 actual=3.0 stretch_target>=8.0"
+  ]
+}

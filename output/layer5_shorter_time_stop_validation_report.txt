@@ -1,0 +1,29 @@
+Layer 5 Shorter Time Stop Validation
+====================================
+
+Variants tested:
+- control_atr25_time_stop_15d: ATR14 x 2.5 + time stop 15 days
+  full: trades=6789, win_rate=43.9829, avg_return=1.0109, max_drawdown=44.3829, profit_factor=1.0866, avg_holding_period=11.3598, sample=low
+  in-sample: trades=762, win_rate=40.0262, avg_return=0.4336, max_drawdown=32.6383, profit_factor=1.1182, avg_holding_period=11.3215, sample=low
+  oos: trades=487, win_rate=38.3984, avg_return=0.1342, max_drawdown=31.2179, profit_factor=1.027, avg_holding_period=11.6838, sample=moderate
+  holdout: trades=516, win_rate=38.3721, avg_return=-0.4595, max_drawdown=34.4658, profit_factor=0.842, avg_holding_period=11.5155, sample=moderate
+  oos_degradation=69.0498, holdout_degradation=205.9732
+- candidate_atr25_time_stop_12d: ATR14 x 2.5 + time stop 12 days
+  full: trades=7305, win_rate=45.5989, avg_return=0.9388, max_drawdown=36.8573, profit_factor=1.1226, avg_holding_period=9.7975, sample=low
+  in-sample: trades=808, win_rate=41.0891, avg_return=0.5613, max_drawdown=28.0072, profit_factor=1.1735, avg_holding_period=9.7314, sample=low
+  oos: trades=518, win_rate=40.1544, avg_return=0.2516, max_drawdown=29.3906, profit_factor=1.0675, avg_holding_period=9.9884, sample=moderate
+  holdout: trades=551, win_rate=43.7387, avg_return=0.0261, max_drawdown=28.5468, profit_factor=0.9932, avg_holding_period=9.9474, sample=moderate
+  oos_degradation=55.1755, holdout_degradation=95.3501
+- candidate_atr25_time_stop_10d: ATR14 x 2.5 + time stop 10 days
+  full: trades=7854, win_rate=45.862, avg_return=0.8266, max_drawdown=38.9333, profit_factor=1.0984, avg_holding_period=8.5679, sample=low
+  in-sample: trades=861, win_rate=42.6249, avg_return=0.5761, max_drawdown=29.5303, profit_factor=1.1825, avg_holding_period=8.5331, sample=low
+  oos: trades=548, win_rate=40.6934, avg_return=0.326, max_drawdown=19.3733, profit_factor=1.103, avg_holding_period=8.7828, sample=moderate
+  holdout: trades=602, win_rate=41.3621, avg_return=-0.2988, max_drawdown=33.2356, profit_factor=0.8771, avg_holding_period=8.598, sample=low
+  oos_degradation=43.4126, holdout_degradation=151.866
+
+Decision:
+- best_variant = candidate_atr25_time_stop_12d
+- candidate_more_resilient_than_control = True
+- layer5_time_stop_revision_decision = provisionally_revise_layer5_time_stop
+- reason = Shorter time stop terbaik mengalahkan control 15 hari pada metrik holdout utama tanpa merusak OOS secara material, sehingga Layer 5 layak direvisi provisional ke time stop yang lebih pendek.
+- official_next_action = prepare_provisional_layer5_time_stop_update

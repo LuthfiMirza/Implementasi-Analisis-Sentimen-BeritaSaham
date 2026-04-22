@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-04-22T02:51:16.441989+00:00",
+  "priority_tickers": [
+    "BUMI",
+    "BBCA",
+    "ASII",
+    "UNVR",
+    "ICBP"
+  ],
+  "primary_segment_total_articles": 80.0,
+  "primary_segment_article_days_median": 7.0,
+  "article_target_met": true,
+  "article_days_target_met": true,
+  "limiting_tickers_for_total_articles": [
+    "UNVR",
+    "ICBP",
+    "ASII"
+  ],
+  "limiting_tickers_for_article_days_median": [
+    "ASII",
+    "UNVR",
+    "BUMI"
+  ],
+  "per_ticker": [
+    {
+      "ticker": "BUMI",
+      "news_count_total_current": 24,
+      "article_days_current": 7,
+      "metadata_news_count_total": 24,
+      "metadata_article_days": 7,
+      "metadata_history_rows": 2683
+    },
+    {
+      "ticker": "BBCA",
+      "news_count_total_current": 22,
+      "article_days_current": 8,
+      "metadata_news_count_total": 22,
+      "metadata_article_days": 8,
+      "metadata_history_rows": 2647
+    },
+    {
+      "ticker": "ASII",
+      "news_count_total_current": 12,
+      "article_days_current": 6,
+      "metadata_news_count_total": 12,
+      "metadata_article_days": 6,
+      "metadata_history_rows": 2690
+    },
+    {
+      "ticker": "UNVR",
+      "news_count_total_current": 11,
+      "article_days_current": 7,
+      "metadata_news_count_total": 11,
+      "metadata_article_days": 7,
+      "metadata_history_rows": 2656
+    },
+    {
+      "ticker": "ICBP",
+      "news_count_total_current": 11,
+      "article_days_current": 8,
+      "metadata_news_count_total": 11,
+      "metadata_article_days": 8,
+      "metadata_history_rows": 2690
+    }
+  ],
+  "recommended_next_action": "article_day_targets_closed_waiting_for_segmentation_sync_or_batch_decision_refresh",
+  "decisive_statement": "Primary segment article-day recovery sudah memenuhi target minimum batch-1."
+}

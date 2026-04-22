@@ -1,0 +1,9 @@
+tracker_id,tracker_scope,metric_name,unit,current_value,target_value,gap_to_target,progress_pct,batch_1_target,batch_2_target,batch_3_target,status,recheck_blocking,note
+history_min_rows,global,min_history_bars_per_ticker,bars,1171.0,120,0.0,100.0,78.0,99.0,120.0,done,True,History minimum adalah blocker tertinggi dan harus ditutup di seluruh universe.
+history_added_rows,global,additional_bars_from_v9_baseline,bars,211.0,63,0.0,100.0,21.0,42.0,63.0,done,True,Tambahan bar dihitung relatif terhadap minimum rows yang dipakai summary baseline v9 terbaru.
+history_oos_windows,global,usable_oos_windows_per_ticker,windows,3.0,3.0,0.0,100.0,3.0,3.0,3.0,done,True,"Usable OOS windows operasional mengikuti methodology-aligned threshold pada readiness gate. Stretch target legacy tetap dicatat terpisah: batch_1=4.0, batch_2=6.0, batch_3=8.0."
+coverage_ready_ratio,global,coverage_ready_ticker_ratio,ratio,1.0,0.8,0.0,100.0,0.0,0.0,1.0,done,True,Coverage-ready ratio praktis baru akan bergerak penuh saat history gate tertutup di seluruh ticker.
+primary_articles_total,primary_segment,primary_segment_total_articles,articles,89.0,18,0.0,100.0,13.0,14.0,18.0,done,True,Target interim dibuat untuk mengecek apakah article supply primary segment mulai bergerak material.
+primary_article_days_median,primary_segment,primary_segment_article_days_median,days,7.5,4.0,0.0,100.0,3.0,3.0,4.0,done,True,Median article days primary harus naik sebelum retest gate diulang.
+primary_total_oos_trades,derived_oos,total_oos_trades_primary_segment,trades,1434.0,18,0.0,100.0,13.0,15.0,18.0,done,True,Ini metric turunan; nilainya harus diukur ulang setelah batch data baru masuk.
+primary_single_fold_trade_share,derived_oos,no_single_fold_trade_share,ratio,0.372,0.5,0.0,100.0,0.6,0.55,0.5,done,True,Konsentrasi fold hanya bisa dievaluasi ulang setelah OOS rerun pada data yang sudah diperpanjang.

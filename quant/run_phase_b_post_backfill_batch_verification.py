@@ -28,8 +28,9 @@ POST_BACKFILL_DECISION_JSON_OUTPUT = "phase_b_post_backfill_batch1_decision.json
 BATCH_1_STATUSES = {
     "batch_1_not_started_snapshot_still_static",
     "batch_1_started_but_not_complete",
-    "batch_1_complete_but_checkpoint_not_material",
-    "batch_1_complete_and_checkpoint_material_reached",
+    "batch_1_priority_targets_closed_but_progress_gate_pending",
+    "batch_1_operationally_complete_but_checkpoint_not_material",
+    "batch_1_operationally_complete_and_checkpoint_material_reached",
 }
 
 
@@ -116,7 +117,7 @@ def _batch_targets(execution_plan: Dict[str, object], batch_id: str) -> Dict[str
     for item in list(execution_plan.get("execution_batches") or []):
         batch = safe_dict(item)
         if _safe_str(batch.get("batch_id")) == batch_id:
-            return safe_dict(batch.get("targets"))
+            return safe_dict(batch.get("operational_targets")) or safe_dict(batch.get("targets"))
     return {}
 
 
@@ -143,29 +144,51 @@ def _priority_batch_completion(priority_rows: Sequence[Dict[str, object]], batch
     return history_done and primary_done
 
 
+def _batch_1_operationally_complete(progress_payload: Dict[str, object]) -> bool:
+    highest_completed_batch = _safe_str(progress_payload.get("highest_completed_batch"))
+    if highest_completed_batch in {"batch_1", "batch_2", "batch_3"}:
+        return True
+    return _safe_str(progress_payload.get("current_batch")) == "batch_1" and _safe_bool(
+        progress_payload.get("current_batch_completed")
+    )
+
+
 def _resolve_batch_1_status(
     *,
     batch_targets: Dict[str, object],
     ingest_payload: Dict[str, object],
     progress_payload: Dict[str, object],
     priority_rows: Sequence[Dict[str, object]],
-) -> Tuple[str, bool, bool]:
+) -> Tuple[str, bool, bool, bool]:
     history_started = _bool_from_priority_rows(priority_rows, "history_extension_progress_ok")
     any_delta = any(_safe_int(row.get("history_rows_delta")) > 0 for row in priority_rows)
-    batch_1_officially_started = history_started or any_delta
 
-    batch_1_completed = _priority_batch_completion(priority_rows=priority_rows, batch_targets=batch_targets)
+    batch_1_priority_targets_closed = _priority_batch_completion(
+        priority_rows=priority_rows,
+        batch_targets=batch_targets,
+    )
+    batch_1_operationally_complete = _batch_1_operationally_complete(progress_payload)
+    batch_1_officially_started = (
+        history_started
+        or any_delta
+        or _safe_bool(ingest_payload.get("history_extension_progress_ok"))
+        or _safe_bool(ingest_payload.get("article_day_recovery_progress_ok"))
+        or batch_1_priority_targets_closed
+        or batch_1_operationally_complete
+    )
     checkpoint_material_reached = _safe_bool(progress_payload.get("checkpoint_material_reached"))
 
     if not batch_1_officially_started:
         status = "batch_1_not_started_snapshot_still_static"
-    elif batch_1_completed and checkpoint_material_reached:
-        status = "batch_1_complete_and_checkpoint_material_reached"
-    elif batch_1_completed:
-        status = "batch_1_complete_but_checkpoint_not_material"
+    elif batch_1_operationally_complete and checkpoint_material_reached:
+        status = "batch_1_operationally_complete_and_checkpoint_material_reached"
+    elif batch_1_operationally_complete:
+        status = "batch_1_operationally_complete_but_checkpoint_not_material"
+    elif batch_1_priority_targets_closed:
+        status = "batch_1_priority_targets_closed_but_progress_gate_pending"
     else:
         status = "batch_1_started_but_not_complete"
-    return status, batch_1_officially_started, batch_1_completed
+    return status, batch_1_officially_started, batch_1_priority_targets_closed, batch_1_operationally_complete
 
 
 def _decisive_statement(
@@ -178,11 +201,13 @@ def _decisive_statement(
         return "Batch-1 belum resmi mulai karena snapshot prioritas belum menunjukkan kenaikan history yang sah dari baseline."
     if batch_1_status == "batch_1_started_but_not_complete":
         return "Batch-1 resmi mulai bergerak karena snapshot prioritas sudah maju dari baseline."
-    if batch_1_status == "batch_1_complete_but_checkpoint_not_material":
+    if batch_1_status == "batch_1_priority_targets_closed_but_progress_gate_pending":
+        return "Target prioritas batch-1 sudah tertutup, tetapi progress artifact resmi belum mengakui batch-1 sebagai complete."
+    if batch_1_status == "batch_1_operationally_complete_but_checkpoint_not_material":
         if not _safe_bool(ingest_payload.get("article_day_recovery_progress_ok")):
             return "Batch-1 complete pada sisi history, tetapi checkpoint material masih tertahan oleh article-day recovery."
         return "Batch-1 complete, tetapi checkpoint material belum cukup untuk mengizinkan recheck readiness gate."
-    if batch_1_status == "batch_1_complete_and_checkpoint_material_reached":
+    if batch_1_status == "batch_1_operationally_complete_and_checkpoint_material_reached":
         return "Checkpoint material sudah tercapai sehingga readiness gate sekarang boleh dijalankan ulang."
     return _safe_str(progress_payload.get("decisive_statement"), "Status batch-1 tidak dapat ditentukan secara tegas.")
 
@@ -197,7 +222,9 @@ def _recommended_next_action(
         return "continue_batch_1_backfill_until_priority_snapshot_advance_is_visible"
     if batch_1_status == "batch_1_started_but_not_complete":
         return "continue_batch_1_until_history_and_primary_article_day_targets_are_closed"
-    if batch_1_status == "batch_1_complete_but_checkpoint_not_material":
+    if batch_1_status == "batch_1_priority_targets_closed_but_progress_gate_pending":
+        return "reconcile_progress_gate_semantics_before_advancing_batch_2"
+    if batch_1_status == "batch_1_operationally_complete_but_checkpoint_not_material":
         return "advance_to_batch_2_and_close_remaining_checkpoint_blockers_before_rerunning_gate"
     if recheck_allowed:
         return "rerun_phase_b_retest_readiness_gate_with_refreshed_post_backfill_inputs"
@@ -263,10 +290,16 @@ def run_phase_b_post_backfill_batch_verification(
             "Official ingest audit or progress update did not return usable payloads."
         )
     execution_plan = _load_execution_plan(output_dir=output_dir)
+    window_semantics = safe_dict(execution_plan.get("oos_window_threshold_semantics"))
     batch_targets = _batch_targets(execution_plan=execution_plan, batch_id="batch_1")
 
     priority_rows = _priority_matrix_rows(ingest_result)
-    batch_1_status, batch_1_officially_started, batch_1_completed = _resolve_batch_1_status(
+    (
+        batch_1_status,
+        batch_1_officially_started,
+        batch_1_priority_targets_closed,
+        batch_1_operationally_complete,
+    ) = _resolve_batch_1_status(
         batch_targets=batch_targets,
         ingest_payload=ingest_payload,
         progress_payload=progress_payload,
@@ -302,11 +335,17 @@ def run_phase_b_post_backfill_batch_verification(
 
     decision = {
         "generated_at": _now_iso(),
+        "evaluated_batch_id": "batch_1",
+        "current_progress_batch": _safe_str(progress_payload.get("current_batch"), "batch_1"),
         "batch_1_status": batch_1_status,
         "batch_1_officially_started": batch_1_officially_started,
-        "batch_1_completed": batch_1_completed,
+        "batch_1_priority_targets_closed": batch_1_priority_targets_closed,
+        "batch_1_operationally_complete": batch_1_operationally_complete,
+        "ready_for_batch_2": batch_1_operationally_complete,
+        "batch_1_completed": batch_1_operationally_complete,
         "checkpoint_material_reached": checkpoint_material_reached,
         "recheck_readiness_gate_allowed": recheck_allowed,
+        "oos_window_threshold_semantics": window_semantics,
         "remaining_blockers": remaining_blockers,
         "recommended_next_action": _recommended_next_action(
             batch_1_status=batch_1_status,
@@ -318,7 +357,7 @@ def run_phase_b_post_backfill_batch_verification(
             progress_payload=progress_payload,
             ingest_payload=ingest_payload,
         ),
-        "batch_id": _safe_str(ingest_payload.get("batch_id"), "batch_1"),
+        "batch_id": "batch_1",
         "batch_acceptance_status": _safe_str(ingest_payload.get("batch_acceptance_status")),
         "history_extension_progress_ok": _safe_bool(ingest_payload.get("history_extension_progress_ok")),
         "primary_article_day_recovery_progress_ok": _safe_bool(ingest_payload.get("article_day_recovery_progress_ok")),

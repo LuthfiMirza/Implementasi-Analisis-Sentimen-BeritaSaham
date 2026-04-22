@@ -10,6 +10,29 @@ use Illuminate\Support\Str;
 
 class RssLocalFetcher implements NewsFetcherInterface
 {
+    protected const DEFAULT_FEEDS = [
+        // Antara keeps the broadest free Indonesia business/market RSS coverage.
+        'https://www.antaranews.com/rss/ekonomi.xml',
+        'https://www.antaranews.com/rss/ekonomi-finansial.xml',
+        'https://www.antaranews.com/rss/ekonomi-bisnis.xml',
+        'https://www.antaranews.com/rss/ekonomi-bursa.xml',
+        // CNBC Indonesia contributes corporate and macro market headlines.
+        'https://www.cnbcindonesia.com/market/rss',
+        'https://www.cnbcindonesia.com/news/rss',
+        'https://www.cnbcindonesia.com/tech/rss',
+        // detikFinance helps fill local issuer and macro policy coverage gaps.
+        'https://finance.detik.com/bursa-dan-valas/rss',
+        'https://finance.detik.com/moneter/rss',
+        // Kontan carries frequent BEI issuer, earnings, and corporate action updates.
+        'https://www.kontan.co.id/feed',
+        // Bisnis.com broadens listed-company and market desk coverage beyond Antara/CNBC/detik.
+        'https://www.bisnis.com/rss',
+        // Katadata often covers corporate and capital-market developments around listed issuers.
+        'https://katadata.co.id/feed',
+        // Investor Daily is useful for issuer headlines when larger portals are quiet.
+        'https://investor.id/rss',
+    ];
+
     public function __construct(protected StockKeywordMapper $mapper = new StockKeywordMapper())
     {
     }
@@ -92,20 +115,12 @@ class RssLocalFetcher implements NewsFetcherInterface
     protected function feeds(): array
     {
         $env = env('NEWS_RSS_SOURCES', '');
-        $defaults = [
-            'https://www.cnbcindonesia.com/market/rss',
-            'https://www.cnbcindonesia.com/tech/rss',
-            'https://www.cnbcindonesia.com/news/rss',
-            'https://finance.detik.com/bursa-dan-valas/rss',
-            'https://finance.detik.com/moneter/rss',
-        ];
-
         $custom = collect(preg_split('/[;,]/', $env))
             ->map(fn ($f) => trim($f))
             ->filter()
             ->all();
 
-        return collect(array_merge($defaults, $custom))->unique()->values()->all();
+        return collect(array_merge(self::DEFAULT_FEEDS, $custom))->unique()->values()->all();
     }
 
     protected function parseFeedItems(string $xmlString, string $feedUrl): array

@@ -1,0 +1,53 @@
+Entry Effective-Constraint Audit
+================================
+
+Generated at: 2026-04-22
+
+Why control and candidate were identical:
+- The candidate path was separated correctly.
+- The identity happened because `close > ema50` was already fully implied upstream on the executed signal path.
+- Evidence:
+  - phase_1_signal_base = 26216
+  - phase_1_signal_layer1 = 20854
+  - phase_1_signal_layer1 AND return_20d > 0 = 17704
+  - phase_1_signal_layer1 AND return_20d > 0 AND close > ema50 = 17704
+  - rows with phase_1_signal_layer1 AND return_20d > 0 but close <= ema50 = 0
+- Root cause:
+  - explicit `close > ema50` from Layer 2 was non-binding because upstream Phase 1 signal generation already requires `adj_close > ema50`
+  - so removing the explicit Layer 2 version changed nothing on the actual signal path
+
+Effective vs redundant rules in the current control stack:
+- Effective / binding:
+  - Phase 1 base signal generation
+    - already contains `adj_close > ema50` and volume-threshold gating
+  - Layer 1 market regime
+    - reduces signal rows from 26216 to 20854
+  - `return_20d > 0`
+    - further reduces rows from 20854 to 17704
+- Redundant / non-binding:
+  - explicit `close > ema50`
+    - reduces 0 rows after Phase 1 + Layer 1 + `return_20d > 0`
+  - Layer 5
+    - downstream exit rule, not an entry eligibility constraint
+  - Layer 4
+    - downstream sizing rule, not an entry eligibility constraint
+
+Selected next simplification cycle:
+- remove `return_20d > 0`
+- keep upstream Phase 1 signal generation unchanged
+- keep Layer 1 unchanged
+- keep Layer 3 optional off-by-default
+- keep Layer 4 and Layer 5 unchanged
+
+Next candidate entry:
+- Phase 1 base signal generation + Layer 1 market regime only
+- current control remains comparator:
+  - Phase 1 base signal generation + Layer 1 + `return_20d > 0`
+
+Why this candidate is selected:
+- It is the next narrow simplification that will definitely change stack behavior.
+- The audit shows `return_20d > 0` is the only remaining explicit Layer 2 rule that still removes entries.
+- It stays within single-scope entry simplification and does not touch exit or sizing.
+
+Official next action:
+- Implement and test `phase1_plus_layer1_only` versus the current control.

@@ -1,0 +1,24 @@
+Phase 1.2 - Narrow Confirmation for Layer 1 Candidate
+=====================================================
+
+Candidate:
+- ihsg_ema50 > ihsg_ema200
+
+Policy results:
+- current_non_bullish_on_missing: Exact same-date IHSG join; missing IHSG dates are forced to non-bullish.
+  bullish_day_pct=71.3813, pre_filter_signals=3151, post_filter_signals=2602, skipped_signals=549
+  total_trades=1356, median_trade_retention=81.7857, avg_delta_win_rate=-0.0957, avg_delta_average_return=0.0898
+  coverage_collapse=0, affected_missing_date_rows=652, bullish_overrides_on_missing_rows=0
+- carry_forward_previous_available_regime: Exact same-date join first, then missing stock dates inherit the latest available IHSG regime state.
+  bullish_day_pct=72.9423, pre_filter_signals=3151, post_filter_signals=2603, skipped_signals=548
+  total_trades=1356, median_trade_retention=81.7857, avg_delta_win_rate=-0.0957, avg_delta_average_return=0.0898
+  coverage_collapse=0, affected_missing_date_rows=652, bullish_overrides_on_missing_rows=503
+- explicit_previous_trading_day_alignment: Each stock date is aligned to the most recent IHSG trading day on or before that date.
+  bullish_day_pct=72.9423, pre_filter_signals=3151, post_filter_signals=2603, skipped_signals=548
+  total_trades=1356, median_trade_retention=81.7857, avg_delta_win_rate=-0.0957, avg_delta_average_return=0.0898
+  coverage_collapse=0, affected_missing_date_rows=652, bullish_overrides_on_missing_rows=503
+
+Decision:
+- best_policy = explicit_previous_trading_day_alignment
+- freeze_layer_1 = True
+- reason = Reasonable alignment policies are operationally identical on this dataset, coverage stays healthy, and the selected policy keeps average return delta positive while win-rate delta is close to flat.

@@ -1,0 +1,25 @@
+Baseline v2 Subset Validation
+=============================
+
+- Decision: keep_candidate_experimental
+- Candidate: baseline_v2_hold3_with_trend_guard
+- Subset supported: True
+- Can promote for subset: False
+- Can retry Phase B for subset: False
+- Recommended tickers: BMRI, GOTO, BBCA, BBRI
+- Recommended groups: sector:perbankan
+- Next action: keep_candidate_experimental_for_watchlist_subset
+
+Best subset:
+- subset_id=seed_improve_tickers
+- subset_label=seed_improve_tickers
+- tickers=BMRI|GOTO
+- candidate_better_than_active=True
+- candidate_eligible_ticker_count=0
+- delta_selection_score=+94.9812
+- noise_risk=True
+
+Decision notes:
+- Subset candidate menunjukkan perbaikan pada subset tertentu.
+- Guardrail subset belum terpenuhi sehingga candidate belum boleh dipromosikan untuk subset.
+- Subset terbaik masih terindikasi noise karena trade/coverage belum cukup.

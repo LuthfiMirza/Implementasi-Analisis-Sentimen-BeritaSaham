@@ -1,0 +1,35 @@
+Layer 1 Holdout Regime Sensitivity Validation
+=============================================
+
+Variants tested:
+- current_ema50_above_ema200: ihsg_ema50 > ihsg_ema200
+  full: trades=6789, win_rate=43.9829, avg_return=1.0109, max_drawdown=44.3829, profit_factor=1.0866, sample=low
+  in-sample: trades=762, win_rate=40.0262, avg_return=0.4336, max_drawdown=32.6383, profit_factor=1.1182, sample=low
+  oos: trades=487, win_rate=38.3984, avg_return=0.1342, max_drawdown=31.2179, profit_factor=1.027, sample=moderate
+  holdout: trades=516, win_rate=38.3721, avg_return=-0.4595, max_drawdown=34.4658, profit_factor=0.842, sample=moderate
+  oos_degradation=69.0498, holdout_degradation=205.9732
+- ema50_above_ema200_and_ema50_slope_up: ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50
+  full: trades=6054, win_rate=44.1361, avg_return=1.1664, max_drawdown=34.8014, profit_factor=1.1353, sample=low
+  in-sample: trades=652, win_rate=40.184, avg_return=0.5494, max_drawdown=28.4004, profit_factor=1.1595, sample=high
+  oos: trades=407, win_rate=37.3464, avg_return=0.0463, max_drawdown=31.6517, profit_factor=1.0037, sample=high
+  holdout: trades=450, win_rate=39.1111, avg_return=-0.1735, max_drawdown=22.6883, profit_factor=0.9304, sample=moderate
+  oos_degradation=91.5726, holdout_degradation=131.5799
+- ema50_above_ema200_buffer_0p5pct: ihsg_ema50 > ihsg_ema200 * 1.005
+  full: trades=6567, win_rate=43.9318, avg_return=1.0368, max_drawdown=48.2131, profit_factor=1.0901, sample=low
+  in-sample: trades=705, win_rate=40.5674, avg_return=0.6473, max_drawdown=33.3327, profit_factor=1.1807, sample=low
+  oos: trades=439, win_rate=38.041, avg_return=0.0597, max_drawdown=33.7331, profit_factor=1.0057, sample=moderate
+  holdout: trades=496, win_rate=37.5, avg_return=-0.4727, max_drawdown=36.0906, profit_factor=0.8386, sample=moderate
+  oos_degradation=90.7771, holdout_degradation=173.0264
+- ema50_above_ema200_and_ema200_slope_up: ihsg_ema50 > ihsg_ema200 AND ihsg_ema200 > prev_ihsg_ema200
+  full: trades=6579, win_rate=44.0492, avg_return=1.0317, max_drawdown=38.7642, profit_factor=1.1012, sample=low
+  in-sample: trades=733, win_rate=39.6999, avg_return=0.4234, max_drawdown=31.9482, profit_factor=1.1154, sample=low
+  oos: trades=452, win_rate=38.4956, avg_return=0.1761, max_drawdown=29.3293, profit_factor=1.0404, sample=moderate
+  holdout: trades=486, win_rate=38.4774, avg_return=-0.3391, max_drawdown=29.4634, profit_factor=0.8777, sample=moderate
+  oos_degradation=58.4081, holdout_degradation=180.0897
+
+Decision:
+- best_holdout_variant = ema50_above_ema200_and_ema50_slope_up
+- candidate_more_holdout_resilient_than_current = False
+- layer1_revision_decision = keep_current_layer1_regime
+- reason = Tidak ada varian Layer 1 yang cukup tegas memperbaiki holdout resilience versus current regime, sehingga Layer 1 tetap dipertahankan dan residual weakness bergeser ke exit/drawdown behaviour.
+- official_next_action = open_layer5_drawdown_control_planning

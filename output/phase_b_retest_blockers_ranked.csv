@@ -1,7 +1,7 @@
 rank,gate_name,gate_status,failed_threshold_count,blocker_score,primary_reason,recommended_requirement
-1,history_gate,PASS,0,0.0,"History minimum, additional bars, dan OOS window per ticker belum cukup.",Perpanjang history sampai minimum 120 bar dan 3 usable OOS windows per ticker.
-2,universe_coverage_gate,PASS,0,0.0,Coverage ticker yang benar-benar siap retest masih kurang merata.,Naikkan proporsi ticker yang benar-benar ready sebelum retest dibuka.
-3,news_distribution_gate,PASS,0,0.0,Distribusi news/sample masih terlalu tipis atau timpang untuk segment utama.,Ratakan coverage news/article days untuk primary segment atau ubah horizon label terlebih dulu.
-4,oos_fairness_gate,PASS,0,0.0,OOS support masih kecil atau terlalu terkonsentrasi pada ticker/fold tertentu.,Tambahkan sample OOS sampai trade dan konsentrasi fold/ticker memenuhi fairness threshold.
-5,framework_governance_gate,PASS,0,0.0,Framework redesign atau policy retest belum difinalkan.,"Finalkan framework redesign, segment policy, dan blok global promotion."
+1,framework_governance_gate,FAIL,4,8.0,Framework redesign atau policy retest belum difinalkan.,"Finalkan framework redesign, segment policy, dan blok global promotion."
+2,news_distribution_gate,FAIL,1,1.0148,Distribusi news/sample masih terlalu tipis atau timpang untuk segment utama.,Ratakan coverage news/article days untuk primary segment atau ubah horizon label terlebih dulu.
+3,history_gate,PASS,0,0.0,"History minimum, additional bars, dan OOS window per ticker belum cukup.",Perpanjang history sampai minimum 120 bar dan 3 usable OOS windows per ticker.
+4,universe_coverage_gate,PASS,0,0.0,Coverage ticker yang benar-benar siap retest masih kurang merata.,Naikkan proporsi ticker yang benar-benar ready sebelum retest dibuka.
+5,oos_fairness_gate,PASS,0,0.0,OOS support masih kecil atau terlalu terkonsentrasi pada ticker/fold tertentu.,Tambahkan sample OOS sampai trade dan konsentrasi fold/ticker memenuhi fairness threshold.
 6,roadmap_discipline_gate,PASS,0,0.0,Roadmap discipline berubah dari status closeout yang sudah ditetapkan.,Pulihkan status roadmap ke Phase B closed dan Phase C tetap blocked.

@@ -327,7 +327,11 @@ class RunPhaseBDataExtensionProgressUpdateTestCase(unittest.TestCase):
             progress = result["phase_b_data_extension_progress_update"]["progress_since_baseline_v9"]
             self.assertEqual(0.0, progress["additional_bars_from_v9_baseline"]["current"])
             self.assertEqual(2.0, progress["usable_oos_windows_per_ticker"]["current"])
-            self.assertEqual(0.0, progress["coverage_ready_ticker_ratio"]["current"])
+            self.assertEqual(1.0, progress["coverage_ready_ticker_ratio"]["current"])
+            self.assertEqual(
+                2.0,
+                result["phase_b_data_extension_progress_update"]["oos_window_threshold_semantics"]["methodology_minimum_windows"],
+            )
 
 
 if __name__ == "__main__":

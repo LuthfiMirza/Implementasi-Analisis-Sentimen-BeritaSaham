@@ -1,0 +1,5 @@
+candidate_id,primary_segment,tested_segment,segment_role,segment_support_ok,support_check_passed,support_check_reason,eligible_ticker_count,total_trades_sum,mean_average_return_all,mean_average_return_eligible,mean_score_all,sample_skew_gap,outlier_bias_risk,decision_hint
+baseline_v3_ema20_trend_guard,sentiment_segment=sentiment_poor,sentiment_segment=sentiment_poor,primary,True,True,segment_support_confirmed,3,18,4.5183,7.2823,25.97587,-2.764,False,segment_validated
+baseline_v3_ema20_trend_guard,sentiment_segment=sentiment_poor,volatility_segment=mixed_volatility,supporting,True,True,segment_support_confirmed,4,29,3.61745,3.61745,28.1021,0.0,False,segment_validated
+baseline_v3_ema20_trend_guard,sentiment_segment=sentiment_poor,liquidity_segment=thin_sparse,supporting,True,True,segment_support_confirmed,4,30,0.0496,0.0496,22.66185,0.0,False,segment_validated
+baseline_v3_ema20_trend_guard,sentiment_segment=sentiment_poor,news_segment=mid_news,supporting,True,True,segment_support_confirmed,3,19,2.93485,5.17103,18.65918,-2.23618,False,segment_validated

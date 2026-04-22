@@ -1,57 +1,94 @@
 {
-    "generated_at": "2026-04-17T01:33:26+00:00",
-    "status": "blocked",
-    "reason": "Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.",
-    "blocking_items": [
-        "Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)",
-        "Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)",
-        "Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.",
-        "Strict mode belum final karena masih subset-only atau belum terdefinisi."
-    ],
+    "generated_at": "2026-04-19T13:41:37+00:00",
+    "status": "closed_with_notes",
+    "closeout_status": "closed_with_notes",
+    "reason": "Phase A bisa dianggap selesai operasional, tetapi masih ada catatan non-blocking.",
+    "runtime_status": "runtime_ok",
+    "ojk_article_count": 43,
+    "ojk_backfill_status": "ready",
+    "macro_runtime_status": "ready",
+    "blocker_reason": null,
+    "next_action": "none",
+    "blocking_items": [],
+    "blocker_reasons": [],
     "notes": [
+        "Baseline Phase A masih provisional.",
+        "Artikel OJK historis masih neutral-only, sehingga sistem bergantung pada moderation layer, bukan arah sentimen langsung.",
         "Test suite inti tidak dijalankan pada closeout ini."
     ],
     "baseline": {
         "available": true,
         "source_path": "/Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/output/phase_a_baseline_final.json",
-        "baseline_status": "draft",
+        "baseline_status": "provisional",
         "readiness_status": "partially_ready",
-        "default_volume_spike_threshold": 2,
+        "default_volume_spike_threshold": 1.5,
         "strict_mode_default": false,
         "adaptive_threshold_enabled": false,
         "group_override_count": 0,
-        "strict_mode_decision_code": "strict_default_not_available",
-        "warnings": [
-            "Threshold decision JSON not found: output/phase_a_threshold_decision.json.",
-            "Tuning decision JSON not found: output/phase_a_tuning_decision.json.",
-            "Threshold best-by-group CSV not found: output/phase_a_threshold_best_by_group.csv.",
-            "Threshold best-by-ticker CSV not found: output/phase_a_threshold_best_by_ticker.csv.",
-            "Threshold sweep decision not available. default_volume_spike_threshold falls back to 2.0.",
-            "Tuning decision not available. strict_mode_default falls back to false."
-        ]
+        "strict_mode_decision_code": "strict_default_no",
+        "warnings": []
+    },
+    "mysql_connectivity": {
+        "ok": true,
+        "status": "ok",
+        "connection_name": "mysql",
+        "driver": "mysql",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "database": "sentimena_dashboard",
+        "error": null,
+        "next_action": "none"
     },
     "ojk_backfill": {
-        "available": false,
-        "ready": false,
-        "article_count": 0,
-        "neutral_article_count": 0,
-        "neutral_only": false,
-        "oldest_published_at": null,
-        "newest_published_at": null,
+        "available": true,
+        "ready": true,
+        "check_status": "ready",
+        "blocker_reason": null,
+        "article_count": 43,
+        "neutral_article_count": 43,
+        "neutral_only": true,
+        "oldest_published_at": "2026-01-02",
+        "newest_published_at": "2026-04-19",
         "min_article_count_required": 5,
         "min_history_days_required": 30,
-        "error": "SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)"
+        "error": null,
+        "next_action": "none"
     },
     "macro_regulatory_signal": {
         "feature_flag_enabled": true,
-        "ready": false,
+        "ready": true,
+        "check_status": "ready",
+        "blocker_reason": null,
         "signal": {
-            "attention_regime": "unavailable",
-            "confidence_multiplier": "n/a",
-            "narrative": "Macro regulatory signal tidak bisa dievaluasi karena akses database gagal."
+            "enabled": true,
+            "active": true,
+            "reference_date": "2026-04-19",
+            "period_days": 30,
+            "article_count": 9,
+            "neutral_article_count": 9,
+            "neutral_share": 1,
+            "article_share": 1,
+            "average_quality": 0.622,
+            "recent_3d_count": 0,
+            "recent_7d_count": 3,
+            "attention_regime": "regulatory_overhang",
+            "caution_flag": true,
+            "context_score": 0.962,
+            "macro_policy_attention_score": 0.962,
+            "confidence_multiplier": 0.731,
+            "score_multiplier": 0.827,
+            "threshold_tightening_factor": 1.115,
+            "directional_bias": 0,
+            "headline_sample": [
+                "Siaran Pers: Roadmap Pasar Derivatif dan Pasar Modal Berkelanjutan 2026-2030 Perkuat Pendalaman Pasar Serta Pendanaan dan Investasi Berkelanjutan",
+                "Siaran Pers: OJK Dukung Akselerasi Program 3 Juta Rumah Melalui Sinergi dan Penguatan Kebijakan SLIK",
+                "Siaran Pers: Dorong Pembiayaan Pembangunan, OJK Perkuat Regulasi Tata Kelola dan Pengawasan Industri Perasuransian, Penjaminan dan Dana Pensiun, PPDP Regulatory Dissemination Day 2026"
+            ],
+            "narrative": "Regulatory regulatory_overhang: 9 artikel OJK makro (9 netral) pada 30 hari terakhir. Confidence directional dimoderasi, bukan diarahkan ulang."
         },
-        "neutral_only_handled": false,
-        "error": "SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)"
+        "neutral_only_handled": true,
+        "error": null,
+        "next_action": "none"
     },
     "tests": {
         "python": {

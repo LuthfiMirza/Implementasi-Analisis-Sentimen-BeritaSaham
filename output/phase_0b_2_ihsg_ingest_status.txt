@@ -1,0 +1,20 @@
+Phase 0B.2 - IHSG Historical Ingest
+====================================
+
+Status: completed
+Dataset: data/IHSG.csv
+Source: yfinance_^JKSE
+Rows: 8774
+Date range: 1990-04-06 .. 2026-04-22
+
+Validation:
+- weekend_rows = 0
+- duplicate_dates = 0
+- monotonic_ascending = True
+- max_gap_days = 12
+- ema200_ready = True
+
+Price policy recommendation:
+- regime / return / momentum / EMA series: use adj_close
+- raw OHLC for ATR / stop / candle logic: unresolved, not official for new backtests yet
+- next required phase: Phase 0B.3 indicator master table

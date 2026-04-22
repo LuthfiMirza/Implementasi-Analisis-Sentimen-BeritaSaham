@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-17T02:00:17.661001+00:00",
-  "phase_a_gate_status": "blocked",
+  "generated_at": "2026-04-22T00:46:39.747823+00:00",
+  "phase_a_gate_status": "closed_with_notes",
   "phase_c_should_start_now": false,
   "phase_c_reason": "Fase C sebaiknya baru disentuh setelah Fase B selesai atau minimal closed_with_notes dengan baseline yang stabil.",
   "items": [

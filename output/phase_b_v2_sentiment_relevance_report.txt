@@ -1,0 +1,9 @@
+Phase B v2 Sentiment Relevance
+==============================
+
+- Generated at: 2026-04-19T02:09:03.110065+00:00
+- Verdict: sentiment_feature_not_informative_enough_yet
+- Informative tickers: 0/10
+- Sparse tickers: 10
+- Flat tickers: 10
+- No article tickers: 1

@@ -75,8 +75,7 @@ BEST_CONFIG_COLUMNS = [
 GO_NO_GO_DECISIONS = {
     "no_improvement",
     "improved_but_keep_experimental",
-    "usable_for_retry",
-    "promote_new_baseline_eval_design",
+    "usable_for_framework_redesign_only",
 }
 
 ENTRY_RULE_BY_CANDIDATE_ID = {
@@ -367,6 +366,19 @@ def build_global_summary(
         & grouped["min_trades_threshold"].eq(int(baseline_floor))
     )
     current_row = grouped.loc[current_mask].iloc[0].to_dict() if current_mask.any() else grouped.iloc[0].to_dict()
+    current_total_trades_sum = max(1.0, _safe_float(current_row.get("total_trades_sum"), 1.0))
+    eligible_ticker_floor = max(3, math.ceil(_safe_int(grouped["ticker_count"].max()) * 0.4)) if not grouped.empty else 3
+    grouped["trade_label"] = grouped["hold_period"].map(lambda value: f"t_plus_{_safe_int(value)}")
+    grouped["trade_retention_vs_current_pct"] = grouped["total_trades_sum"].map(
+        lambda value: round((_safe_float(value) / current_total_trades_sum) * 100.0, 4)
+    )
+    grouped["eligible_ticker_floor"] = eligible_ticker_floor
+    grouped["trade_retention_floor_pct"] = 85.0
+    grouped["meets_eligible_ticker_floor"] = grouped["eligible_ticker_count"].ge(eligible_ticker_floor)
+    grouped["meets_trade_retention_floor"] = grouped["trade_retention_vs_current_pct"].ge(85.0)
+    grouped["usable_for_framework_redesign"] = (
+        grouped["meets_eligible_ticker_floor"] & grouped["meets_trade_retention_floor"]
+    )
     best_row = grouped.iloc[0].to_dict()
 
     return {
@@ -401,39 +413,38 @@ def determine_baseline_redesign_go_no_go(
     )
 
     ticker_count = _safe_int(best.get("ticker_count"), 0)
-    retry_gate = max(2, math.ceil(ticker_count * 0.3)) if ticker_count else 2
-    promote_gate = max(4, math.ceil(ticker_count * 0.5)) if ticker_count else 4
+    eligible_ticker_floor = _safe_int(best.get("eligible_ticker_floor"), max(3, math.ceil(ticker_count * 0.4)) if ticker_count else 3)
     eligible_ticker_count = _safe_int(best.get("eligible_ticker_count"))
     positive_score_ticker_count = _safe_int(best.get("positive_score_ticker_count"))
     mean_score = _safe_float(best.get("mean_score"))
+    trade_retention_vs_current_pct = _safe_float(best.get("trade_retention_vs_current_pct"))
+    usable_for_framework_redesign = bool(best.get("usable_for_framework_redesign"))
 
     if not improved:
         decision = "no_improvement"
-        can_retry = False
-        recommended_next = "no_retry_yet_until_baseline_revised"
+        recommended_next = "keep_data_extension_as_primary_track"
         next_action = "revise_baseline_further"
-    elif eligible_ticker_count >= promote_gate and mean_score > 1.0 and positive_score_ticker_count >= retry_gate:
-        decision = "promote_new_baseline_eval_design"
-        can_retry = True
-        recommended_next = "reassess_phase_b_retry_candidates"
-        next_action = "promote_new_eval_design_and_prepare_phase_b_retry"
-    elif eligible_ticker_count >= retry_gate and mean_score > 0:
-        decision = "usable_for_retry"
-        can_retry = True
-        recommended_next = "reassess_phase_b_retry_candidates"
-        next_action = "prepare_phase_b_retry_gate"
+    elif usable_for_framework_redesign and mean_score > 0 and positive_score_ticker_count >= max(2, eligible_ticker_floor - 1):
+        decision = "usable_for_framework_redesign_only"
+        recommended_next = "refresh_framework_redesign_scope_after_data_extension"
+        next_action = "hold_redesign_candidate_as_framework_input_only"
     else:
         decision = "improved_but_keep_experimental"
-        can_retry = False
-        recommended_next = "no_retry_yet_until_baseline_revised"
+        recommended_next = "keep_data_extension_as_primary_track"
         next_action = "revise_baseline_further"
 
     return {
         "decision": decision,
         "best_global_hold_period": _safe_int(best.get("hold_period")),
         "best_global_min_trades": _safe_int(best.get("min_trades_threshold")),
+        "best_trade_label": str(best.get("trade_label") or ""),
         "baseline_trade_design_improved": bool(improved),
-        "can_retry_phase_b_after_this": bool(can_retry),
+        "can_retry_phase_b_after_this": False,
+        "phase_b_retry_blocked_until_data_extension": True,
+        "min_eligible_ticker_floor": eligible_ticker_floor,
+        "trade_retention_vs_current_pct": trade_retention_vs_current_pct,
+        "trade_retention_floor_pct": _safe_float(best.get("trade_retention_floor_pct"), 85.0),
+        "usable_for_framework_redesign": usable_for_framework_redesign,
         "recommended_next_experiment": recommended_next,
         "next_action": next_action,
         "decision_notes": dedupe(
@@ -441,12 +452,16 @@ def determine_baseline_redesign_go_no_go(
                 "Config terbaik global meningkatkan usability dibanding desain evaluasi baseline saat ini."
                 if improved
                 else "Tidak ada config redesign yang memperbaiki usability baseline secara berarti.",
-                "Coverage ticker eligible masih terlalu kecil untuk membuka retry Phase B."
-                if eligible_ticker_count < retry_gate
+                "Coverage ticker eligible masih terlalu kecil untuk dianggap usable."
+                if eligible_ticker_count < eligible_ticker_floor
                 else "",
-                "Score rata-rata config terbaik masih belum cukup kuat untuk promosi desain evaluasi."
-                if mean_score <= 1.0
+                "Trade retention terhadap baseline evaluasi aktif masih terlalu tipis."
+                if trade_retention_vs_current_pct < _safe_float(best.get("trade_retention_floor_pct"), 85.0)
                 else "",
+                "Score rata-rata config terbaik masih belum cukup kuat untuk dijadikan input redesign yang usable."
+                if mean_score <= 0
+                else "",
+                "Hasil redesign ini hanya boleh dipakai sebagai input framework redesign; retry Phase B tetap diblokir sampai data extension selesai."
             ]
         ),
     }
@@ -467,6 +482,12 @@ def build_recommendations_text(
         f"- Can retry Phase B after this: {go_no_go['can_retry_phase_b_after_this']}",
         f"- Best global hold period: {go_no_go['best_global_hold_period']}",
         f"- Best global min trades: {go_no_go['best_global_min_trades']}",
+        f"- Best trade label: {go_no_go.get('best_trade_label')}",
+        f"- Min eligible ticker floor: {go_no_go.get('min_eligible_ticker_floor')}",
+        f"- Trade retention vs current: {go_no_go.get('trade_retention_vs_current_pct')}",
+        f"- Trade retention floor pct: {go_no_go.get('trade_retention_floor_pct')}",
+        f"- Usable for framework redesign: {go_no_go.get('usable_for_framework_redesign')}",
+        f"- Phase B retry blocked until data extension: {go_no_go.get('phase_b_retry_blocked_until_data_extension')}",
         f"- Recommended next experiment: {go_no_go['recommended_next_experiment']}",
         f"- Next action: {go_no_go['next_action']}",
         "",
@@ -538,6 +559,7 @@ def build_best_candidate_payload(
         "candidate_id": str(template.get("candidate_id")),
         "entry_rule": str(template.get("entry_rule")),
         "hold_period": hold_period,
+        "trade_label": str(best.get("trade_label") or f"t_plus_{hold_period}"),
         "min_trades_threshold": min_trades,
         "min_trades": min_trades,
         "profit_buffer_pct": _safe_float(best.get("profit_buffer_pct"), _safe_float(template.get("profit_buffer_pct"), 0.0)),
@@ -568,7 +590,9 @@ def build_best_candidate_payload(
         "selected_candidate": _sanitize_for_json(selected_candidate),
         "redesign_summary": {
             "decision": go_no_go.get("decision"),
-            "can_retry_phase_b_after_this": bool(go_no_go.get("can_retry_phase_b_after_this")),
+            "can_retry_phase_b_after_this": False,
+            "phase_b_retry_blocked_until_data_extension": True,
+            "usable_for_framework_redesign": bool(go_no_go.get("usable_for_framework_redesign")),
             "recommended_next_experiment": go_no_go.get("recommended_next_experiment"),
             "next_action": go_no_go.get("next_action"),
             "decision_notes": list(go_no_go.get("decision_notes") or []),
@@ -628,11 +652,8 @@ def update_transition_artifact(
     can_retry = bool(go_no_go.get("can_retry_phase_b_after_this"))
     payload["baseline_redesign_status"] = decision
     payload["baseline_redesign_next_action"] = go_no_go.get("next_action")
-    payload["phase_b_retry_readiness"] = (
-        "ready_for_retry_gate"
-        if can_retry
-        else "not_ready_yet"
-    )
+    payload["phase_b_retry_readiness"] = "not_ready_yet"
+    payload["baseline_redesign_trade_label"] = go_no_go.get("best_trade_label")
     transition_path.write_text(json.dumps(payload, indent=2, ensure_ascii=True), encoding="utf-8")
 
     report_path = Path(output_dir) / "phase_a_to_phase_b_transition_report.txt"
@@ -642,7 +663,8 @@ def update_transition_artifact(
         "Baseline Redesign Update:",
         f"- baseline_redesign_status: {decision}",
         f"- baseline_redesign_next_action: {go_no_go.get('next_action')}",
-        f"- phase_b_retry_readiness: {'ready_for_retry_gate' if can_retry else 'not_ready_yet'}",
+        f"- baseline_redesign_trade_label: {go_no_go.get('best_trade_label')}",
+        "- phase_b_retry_readiness: not_ready_yet",
     ]
     report_path.write_text(report_text.rstrip() + "\n" + "\n".join(appendix) + "\n", encoding="utf-8")
     return {"updated": True, "path": str(transition_path), "report_path": str(report_path), "warnings": warnings}

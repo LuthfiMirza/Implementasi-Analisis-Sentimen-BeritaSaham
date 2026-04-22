@@ -1,0 +1,59 @@
+{
+  "phase": "universe_expansion_freeze_execution",
+  "status": "partial_freeze_ready_not_executed",
+  "source_files": {
+    "candidate_file": "data/universe/layer2_expansion_target_candidates.csv",
+    "policy_file": "data/universe/layer2_expansion_policy.json",
+    "planning_summary_file": "output/universe_expansion_plan_summary.json"
+  },
+  "final_freeze_ready_decision": {
+    "final_universe_ready_for_mass_rebuild": false,
+    "reason": "Only scaffold-backed repo-confirmed names were frozen. Remaining candidates still require manual or external confirmation before the 30-name universe can be executed."
+  },
+  "frozen_tickers": [
+    "BBCA",
+    "BBRI",
+    "BMRI",
+    "TLKM",
+    "ASII",
+    "ADRO",
+    "INDF",
+    "ICBP",
+    "UNVR"
+  ],
+  "pending_manual_confirmation_tickers": [
+    "BBNI",
+    "BBTN",
+    "EXCL",
+    "ISAT",
+    "PGAS",
+    "UNTR",
+    "PTBA",
+    "ITMG",
+    "MEDC",
+    "ANTM",
+    "INCO",
+    "MYOR",
+    "KLBF",
+    "CPIN",
+    "JPFA",
+    "SMGR",
+    "INTP",
+    "JSMR",
+    "AKRA",
+    "TPIA",
+    "ACES"
+  ],
+  "counts": {
+    "target_universe_size": 30,
+    "frozen_count": 9,
+    "pending_manual_confirmation_count": 21,
+    "slots_missing_to_target": 21
+  },
+  "commands_after_file_complete": [
+    "python3 -m quant.rebuild_yfinance_ohlcv --universe-file data/universe/layer2_expansion_target_candidates.csv --output-dir data/stocks",
+    "python3 -m quant.build_indicator_master_table --stocks-dir data/stocks --ihsg-file data/IHSG.csv --output-dir data/indicator_master --artifact-dir output",
+    "python3 -m quant.run_phase_2_relative_strength_stock_selection",
+    "python3 -m quant.run_phase_2_1_relative_strength_redesign"
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "generated_at": "2026-04-22T02:49:35.572490+00:00",
+  "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+  "source_of_truth_fields": [
+    "blocking_thresholds",
+    "highest_blocking_gate"
+  ],
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "distribution_status": {
+    "dominant_ticker_before": null,
+    "dominant_ticker_after": "BUMI",
+    "single_ticker_article_share_before": null,
+    "single_ticker_article_share_after": 0.2697,
+    "median_news_density_pct_before": null,
+    "median_news_density_pct_after": 0.3204,
+    "news_distribution_gate_closed": false,
+    "per_ticker_primary_distribution": [
+      {
+        "ticker": "BUMI",
+        "article_count_total": 24.0,
+        "article_days": 7,
+        "news_density_pct": 0.2609,
+        "article_share": 0.2697
+      },
+      {
+        "ticker": "BBCA",
+        "article_count_total": 22.0,
+        "article_days": 8,
+        "news_density_pct": 0.30223,
+        "article_share": 0.2472
+      },
+      {
+        "ticker": "ASII",
+        "article_count_total": 12.0,
+        "article_days": 6,
+        "news_density_pct": 0.22305,
+        "article_share": 0.1348
+      },
+      {
+        "ticker": "ICBP",
+        "article_count_total": 11.0,
+        "article_days": 8,
+        "news_density_pct": 0.2974,
+        "article_share": 0.1236
+      },
+      {
+        "ticker": "UNVR",
+        "article_count_total": 11.0,
+        "article_days": 7,
+        "news_density_pct": 0.26355,
+        "article_share": 0.1236
+      },
+      {
+        "ticker": "INDF",
+        "article_count_total": 9.0,
+        "article_days": 8,
+        "news_density_pct": 0.29729,
+        "article_share": 0.1011
+      }
+    ],
+    "under_covered_tickers_priority": [
+      {
+        "ticker": "BUMI",
+        "article_days_current": 7,
+        "news_count_total_current": 24,
+        "priority_score": 6,
+        "reason": "dominant_primary_ticker,currently_in_primary_segment"
+      },
+      {
+        "ticker": "BBCA",
+        "article_days_current": 8,
+        "news_count_total_current": 22,
+        "priority_score": 5,
+        "reason": "at_median_bridge_candidate,currently_in_primary_segment"
+      },
+      {
+        "ticker": "ICBP",
+        "article_days_current": 8,
+        "news_count_total_current": 11,
+        "priority_score": 5,
+        "reason": "at_median_bridge_candidate,currently_in_primary_segment"
+      },
+      {
+        "ticker": "INDF",
+        "article_days_current": 8,
+        "news_count_total_current": 9,
+        "priority_score": 5,
+        "reason": "at_median_bridge_candidate,currently_in_primary_segment"
+      },
+      {
+        "ticker": "ASII",
+        "article_days_current": 6,
+        "news_count_total_current": 12,
+        "priority_score": 2,
+        "reason": "currently_in_primary_segment"
+      },
+      {
+        "ticker": "UNVR",
+        "article_days_current": 7,
+        "news_count_total_current": 11,
+        "priority_score": 2,
+        "reason": "currently_in_primary_segment"
+      }
+    ]
+  },
+  "fairness_status": {
+    "total_oos_trades_primary_segment_before": null,
+    "total_oos_trades_primary_segment_after": 1434.0,
+    "no_single_fold_trade_share_before": null,
+    "no_single_fold_trade_share_after": 0.372,
+    "ticker_trade_breakdown": [
+      {
+        "ticker": "BBCA",
+        "candidate_total_trades": 341.0,
+        "candidate_signal_count": 723.0,
+        "average_return": -0.149,
+        "trade_share": 0.2378
+      },
+      {
+        "ticker": "ADRO",
+        "candidate_total_trades": 307.0,
+        "candidate_signal_count": 637.0,
+        "average_return": -0.0286,
+        "trade_share": 0.2141
+      },
+      {
+        "ticker": "ASII",
+        "candidate_total_trades": 293.0,
+        "candidate_signal_count": 610.0,
+        "average_return": -0.1484,
+        "trade_share": 0.2043
+      },
+      {
+        "ticker": "UNVR",
+        "candidate_total_trades": 278.0,
+        "candidate_signal_count": 568.0,
+        "average_return": -0.3588,
+        "trade_share": 0.1939
+      },
+      {
+        "ticker": "BUMI",
+        "candidate_total_trades": 215.0,
+        "candidate_signal_count": 416.0,
+        "average_return": 0.6615,
+        "trade_share": 0.1499
+      }
+    ],
+    "fold_trade_breakdown": [
+      {
+        "fold_id": 1,
+        "candidate_total_trades": 218.0,
+        "candidate_signal_count": 474.0,
+        "trade_share": 0.372
+      },
+      {
+        "fold_id": 3,
+        "candidate_total_trades": 186.0,
+        "candidate_signal_count": 382.0,
+        "trade_share": 0.3174
+      },
+      {
+        "fold_id": 2,
+        "candidate_total_trades": 182.0,
+        "candidate_signal_count": 384.0,
+        "trade_share": 0.3106
+      }
+    ],
+    "diagnosis": "Trade sample utama masih hanya 11 dan fold-3 menyumbang porsi terbesar; fairness belum akan tertutup tanpa refresh hasil OOS atau sample trade baru."
+  },
+  "recommended_next_move": "Naikkan article-day lintas universe untuk mendorong median_news_density_pct ke atas 5.0, lalu rerun baseline_v9 OOS validation agar fairness metrics ikut refresh."
+}

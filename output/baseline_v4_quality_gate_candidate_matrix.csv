@@ -1,0 +1,4 @@
+candidate_id,entry_anchor_rule,quality_gate_id,gate_summary,min_body_to_range_ratio,min_close_vs_open_pct,min_range_pct,min_close_vs_anchor_pct,hold_period,min_trades_threshold,status
+baseline_v4_quality_gate_guard,close_gt_ema20_and_bullish_candle,body_strength_floor,Require stronger bullish body before accepting fast anchor signal.,0.55,0.35,0.8,0.0,3,5,scaffold_only
+baseline_v4_quality_gate_guard_confirmed,close_gt_ema20_and_bullish_candle,body_strength_plus_anchor_confirmation,Add minimum close distance above fast anchor to reject weak closes.,0.5,0.3,0.8,0.2,3,5,scaffold_only
+baseline_v4_quality_gate_guard_volatility_floor,close_gt_ema20_and_bullish_candle,body_strength_plus_volatility_floor,Reject quiet candles that sit above anchor without meaningful range expansion.,0.45,0.25,1.1,0.1,3,5,scaffold_only

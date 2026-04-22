@@ -731,6 +731,45 @@ def generate_baseline_signal(
     return frame
 
 
+def apply_market_regime_gate(
+    df: pd.DataFrame,
+    signal_column: str,
+    regime_column: str = "market_regime_bullish",
+    gated_signal_column: Optional[str] = None,
+    skipped_column: str = "market_regime_entry_skipped",
+) -> pd.DataFrame:
+    """Gate new entries when the market regime is non-bullish.
+
+    Parameters
+    ----------
+    df:
+        Input DataFrame containing a signal column and a market regime column.
+    signal_column:
+        Boolean signal column representing candidate entries before regime gating.
+    regime_column:
+        Boolean column where True means bullish regime and False means non-bullish.
+    gated_signal_column:
+        Output signal column after the gate is applied. Defaults to
+        ``<signal_column>_regime_filtered``.
+    skipped_column:
+        Boolean output column indicating entries blocked by the regime filter.
+    """
+
+    frame = _validate_ohlcv_frame(df)
+    if signal_column not in frame.columns:
+        raise ValueError(f"Signal column '{signal_column}' was not found in the DataFrame.")
+    if regime_column not in frame.columns:
+        raise ValueError(f"Regime column '{regime_column}' was not found in the DataFrame.")
+
+    output_signal_column = gated_signal_column or f"{signal_column}_regime_filtered"
+    signal_series = pd.Series(frame[signal_column], index=frame.index, dtype="boolean").fillna(False).astype(bool)
+    regime_series = pd.Series(frame[regime_column], index=frame.index, dtype="boolean").fillna(False).astype(bool)
+
+    frame[skipped_column] = (signal_series & ~regime_series).fillna(False)
+    frame[output_signal_column] = (signal_series & regime_series).fillna(False)
+    return frame
+
+
 def backtest_signal_frame(
     df: pd.DataFrame,
     signal_column: str,

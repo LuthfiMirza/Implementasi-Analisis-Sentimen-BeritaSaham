@@ -1,0 +1,9 @@
+Phase B v2 Next Best Experiment
+===============================
+
+- Generated at: 2026-04-19T02:09:03.110065+00:00
+- Selected experiment: retry_baseline_with_hold_period_labeling_redesign
+- Can start immediately after redesign: True
+- Summary: Ulang baseline saja dengan hold period hasil audit dan trade floor yang lebih realistis; jangan tambah sentiment/adaptive dulu.
+- Proposed hold period: 3
+- Proposed min trades: 5

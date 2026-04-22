@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-21T14:06:38.363007+00:00",
+  "generated_at": "2026-04-22T02:49:35.580551+00:00",
   "policy_realignment_applied": true,
   "source_of_truth": {
     "official_oos_methodology_artifact": "output/baseline_v9_segment_oos_summary.json",
@@ -50,11 +50,11 @@
   },
   "current_actual_metrics": {
     "usable_oos_windows_per_ticker": 3,
-    "primary_segment_usable_oos_windows": 7,
-    "additional_bars_from_v9_baseline": 0,
-    "primary_segment_ticker_count": 5,
-    "median_news_density_pct": 0.3252,
-    "no_single_ticker_article_share": 0.2817,
+    "primary_segment_usable_oos_windows": 8,
+    "additional_bars_from_v9_baseline": 211,
+    "primary_segment_ticker_count": 6,
+    "median_news_density_pct": 0.3204,
+    "no_single_ticker_article_share": 0.2697,
     "active_ticker_count_in_oos": 5,
     "total_oos_trades_primary_segment": 1434
   },
@@ -74,7 +74,38 @@
       "methodological_risk": "Sedang; risiko utamanya adalah threshold terlihat lebih longgar bila hanya diturunkan secara absolut tanpa guardrail tambahan.",
       "comparability_impact": "Hasil readiness lama vs baru tidak apples-to-apples pada layer gate, tetapi hasil OOS resmi tetap comparable karena metodologi OOS tidak berubah.",
       "large_artifact_rerun_required": false,
-      "residual_blockers_after_window_threshold_alignment": [],
+      "residual_blockers_after_window_threshold_alignment": [
+        {
+          "blocker_name": "news_distribution_gate::median_news_density_pct",
+          "actual_value": 0.3204,
+          "target_value": 0.3252,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::baseline_filter_overlap_risk_acceptable",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::signal_sparsity_flatness_audit_passed",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::baseline_validation_candidate_usable",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::official_strategy_retry_reopened",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        }
+      ],
       "assessment": "defensible_if_threshold_is_reframed_as_methodology_aligned_not_silently_loosened"
     },
     {
@@ -85,7 +116,38 @@
       "methodological_risk": "Tinggi; source-of-truth OOS terbaru harus dibuka ulang dan seluruh justifikasi evaluasi perlu di-audit ulang.",
       "comparability_impact": "Comparability terhadap artifact OOS final saat ini rusak karena baseline_v9 summary, go/no-go, dan audit turunannya harus di-regenerate dengan metodologi baru.",
       "large_artifact_rerun_required": true,
-      "residual_blockers_after_oos_redesign": [],
+      "residual_blockers_after_oos_redesign": [
+        {
+          "blocker_name": "news_distribution_gate::median_news_density_pct",
+          "actual_value": 0.3204,
+          "target_value": 0.3252,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::baseline_filter_overlap_risk_acceptable",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::signal_sparsity_flatness_audit_passed",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::baseline_validation_candidate_usable",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::official_strategy_retry_reopened",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        }
+      ],
       "assessment": "not_preferred_unless_team_intentionally_reopens_official_oos_methodology"
     },
     {
@@ -96,7 +158,38 @@
       "methodological_risk": "Rendah ke sedang; perubahan hanya di layer policy gate, bukan di desain evaluasi resmi.",
       "comparability_impact": "Comparability OOS resmi tetap utuh, sedangkan comparability gate menjadi jelas karena definisi baru eksplisit terkait metodologi resmi saat ini.",
       "large_artifact_rerun_required": false,
-      "residual_blockers_after_window_threshold_alignment": [],
+      "residual_blockers_after_window_threshold_alignment": [
+        {
+          "blocker_name": "news_distribution_gate::median_news_density_pct",
+          "actual_value": 0.3204,
+          "target_value": 0.3252,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::baseline_filter_overlap_risk_acceptable",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::signal_sparsity_flatness_audit_passed",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::baseline_validation_candidate_usable",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        },
+        {
+          "blocker_name": "framework_governance_gate::official_strategy_retry_reopened",
+          "actual_value": 0,
+          "target_value": 1,
+          "operator": ">="
+        }
+      ],
       "assessment": "most_defensible"
     }
   ],
@@ -111,7 +204,38 @@
     ],
     "requires_large_oos_rerun": false
   },
-  "remaining_active_blockers_even_if_window_policy_is_aligned": [],
+  "remaining_active_blockers_even_if_window_policy_is_aligned": [
+    {
+      "blocker_name": "news_distribution_gate::median_news_density_pct",
+      "actual_value": 0.3204,
+      "target_value": 0.3252,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::baseline_filter_overlap_risk_acceptable",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::signal_sparsity_flatness_audit_passed",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::baseline_validation_candidate_usable",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::official_strategy_retry_reopened",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    }
+  ],
   "roadmap_update_assessment": {
     "ready_for_retest": false,
     "ready_to_update_project_roadmap_status_txt_as_ready_for_retest": false,

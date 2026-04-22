@@ -1,0 +1,81 @@
+{
+  "artifact": "phase_2_layer_2_relative_strength_closeout",
+  "generated_at": "2026-04-22",
+  "scope": "Layer 2 Relative Strength track closeout after Phase 2.6",
+  "source_of_truth": {
+    "phase_2_6_summary": "output/phase_2_6_relative_strength_micro_confirmation_summary.json",
+    "phase_2_6_report": "output/phase_2_6_relative_strength_micro_confirmation_report.txt",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "final_decision": {
+    "layer_2_track_status": "best_prototype_candidate_locked_not_frozen_yet",
+    "best_prototype_candidate": "top_25pct_return_20d",
+    "best_candidate_policy": "explicit deterministic tie handling + ceil cut",
+    "freeze_layer_2_candidate": false,
+    "lock_not_frozen_yet": true,
+    "allow_more_rs_iterations_without_new_methodological_reason": false
+  },
+  "why_rs_track_is_stopped_now": [
+    "Relative Strength track sudah dievaluasi sampai batas wajar melalui confirmation, robustness, boundary refinement, dan micro confirmation.",
+    "Tidak ada refinement sempit yang berhasil mengubah kandidat terbaik menjadi final freezeable candidate.",
+    "Loop iterasi tambahan sekarang tidak lagi defensible tanpa alasan metodologis baru yang jelas."
+  ],
+  "best_candidate_summary": {
+    "variant_id": "top_25pct_return_20d",
+    "full_period_total_trades": 4889,
+    "full_period_median_trade_retention": 50.4202,
+    "full_period_avg_delta_win_rate": -0.6731,
+    "full_period_avg_delta_average_return": 0.2682,
+    "winner_count_across_slices": 4,
+    "slice_count_excluding_full": 6
+  },
+  "why_not_frozen": [
+    "Freeze final gagal meskipun candidate winner count naik menjadi 4/6 pada Phase 2.6.",
+    "Dispersion kualitas antar-slice masih terlalu lebar untuk freeze final.",
+    "Micro confirmation tidak menghilangkan blocker robustness terakhir."
+  ],
+  "final_blocker": {
+    "blocker_id": "micro_policy_still_has_too_wide_slice_quality_dispersion",
+    "candidate_avg_delta_average_return_range": 1.1379,
+    "candidate_avg_delta_win_rate_range": 2.5674,
+    "candidate_median_trade_retention_range": 18.8158
+  },
+  "backlog_options_for_future_layer_2": [
+    {
+      "option_id": "alternative_stock_selection_logic",
+      "label": "Alternative stock selection logic",
+      "examples": [
+        "nonlinear momentum bucket selection",
+        "composite trend-strength gate",
+        "breadth-aware selection"
+      ]
+    },
+    {
+      "option_id": "non_cross_sectional_filter",
+      "label": "Non-cross-sectional filter",
+      "examples": [
+        "absolute momentum threshold",
+        "trend persistence gate",
+        "minimum breakout quality gate"
+      ]
+    },
+    {
+      "option_id": "regime_conditioned_selection",
+      "label": "Regime-conditioned selection",
+      "examples": [
+        "different stock filters for weak vs strong bullish regime",
+        "RS activation only in selected regime bands"
+      ]
+    },
+    {
+      "option_id": "liquidity_or_fundamental_gating",
+      "label": "Liquidity or fundamental gating",
+      "examples": [
+        "minimum turnover gate",
+        "minimum free-float proxy",
+        "simple profitability or balance-sheet guardrail"
+      ]
+    }
+  ],
+  "official_next_action": "Decide the next Layer 2 architecture consciously from backlog options before writing new strategy code."
+}

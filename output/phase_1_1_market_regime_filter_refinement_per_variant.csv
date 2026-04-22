@@ -1,0 +1,6 @@
+variant_id,variant_label,definition,mode,bullish_day_pct,pre_filter_signals,post_filter_signals,skipped_signals,pre_filter_total_trades,post_filter_total_trades,trade_retention_pct_median,avg_delta_win_rate,avg_delta_average_return,tickers_with_coverage_collapse,coverage_collapse_tickers
+price_above_ema200,Baseline current,ihsg_adj_close > ihsg_ema200,hard_gate,69.7414,3151,2707,444,1664,1432,86.4583,-1.4029,-0.1989,0,[]
+price_above_ema200_and_slope_up,Price above EMA200 and EMA200 slope up,ihsg_adj_close > ihsg_ema200 AND ihsg_ema200 > prev_ihsg_ema200,hard_gate,69.7414,3151,2707,444,1664,1432,86.4583,-1.4029,-0.1989,0,[]
+price_above_ema200_buffer_1pct,Price above EMA200 by 1%,ihsg_adj_close > ihsg_ema200 * 1.01,hard_gate,66.036,3151,2616,535,1664,1376,82.6389,-0.7614,-0.1364,0,[]
+ema50_above_ema200,EMA50 above EMA200,ihsg_ema50 > ihsg_ema200,hard_gate,71.3813,3151,2602,549,1664,1356,81.7857,-0.0957,0.0898,0,[]
+soft_risk_off_near_ema200,Soft risk-off near EMA200,ihsg_adj_close > ihsg_ema200 OR (ihsg_adj_close > ihsg_ema200 * 0.99 AND ihsg_ema200 > prev_ihsg_ema200),soft_risk_off,69.7414,3151,2707,444,1664,1432,86.4583,-1.4029,-0.1989,0,[]

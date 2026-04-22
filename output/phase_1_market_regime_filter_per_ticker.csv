@@ -1,0 +1,8 @@
+ticker,rows,date_start,date_end,applied_threshold,applied_strict_mode,bullish_days,non_bullish_days,bullish_day_pct,pre_filter_signals,post_filter_signals,skipped_signals,signal_retention_pct,coverage_collapsed,pre_filter_total_trades,post_filter_total_trades,trade_retention_pct,pre_filter_win_rate,post_filter_win_rate,delta_win_rate,pre_filter_average_return,post_filter_average_return,delta_average_return,pre_filter_max_drawdown,post_filter_max_drawdown,delta_max_drawdown
+ASII,6341,2000-10-17,2026-04-22,1.5,False,4422,1919,69.7366,587,486,101,82.7939,False,295,248,84.0678,56.61,53.63,-2.98,1.2896,0.9453,-0.3443,28.1085,36.6517,8.5432
+BBCA,5392,2004-06-08,2026-04-22,1.5,False,3949,1443,73.2381,509,446,63,87.6228,False,276,240,86.9565,52.17,50.42,-1.75,0.2998,0.2795,-0.0203,29.9531,26.1163,-3.8368
+BBRI,5543,2003-11-10,2026-04-22,1.5,False,4079,1464,73.5883,483,439,44,90.8903,False,256,231,90.2344,46.48,46.32,-0.16,0.1429,0.1007,-0.0422,49.1702,44.4829,-4.6873
+BMRI,5628,2003-07-14,2026-04-22,1.5,False,4162,1466,73.9517,532,468,64,87.9699,False,280,248,88.5714,47.86,47.98,0.12,0.3601,0.4355,0.0754,28.0467,23.4929,-4.5538
+GOTO,961,2022-04-11,2026-04-22,1.5,False,619,342,64.4121,61,43,18,70.4918,False,31,21,67.7419,32.26,28.57,-3.69,-1.7196,-2.7963,-1.0767,47.7039,47.1468,-0.5571
+TLKM,5311,2004-09-28,2026-04-22,1.5,False,3869,1442,72.8488,429,357,72,83.2168,False,238,195,81.9328,43.28,42.05,-1.23,-0.1968,-0.157,0.0398,55.1931,37.6195,-17.5736
+UNVR,5591,2003-09-03,2026-04-22,1.5,False,4126,1465,73.7972,550,468,82,85.0909,False,288,249,86.4583,47.92,47.79,-0.13,0.1207,0.0965,-0.0242,43.4045,38.436,-4.9685

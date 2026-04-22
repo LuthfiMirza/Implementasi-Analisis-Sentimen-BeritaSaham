@@ -1,0 +1,98 @@
+{
+  "generated_at": "2026-04-22T02:51:17.109892+00:00",
+  "current_batch": "batch_3",
+  "current_batch_completed": true,
+  "batch_1_operationally_complete": true,
+  "ready_for_batch_2": true,
+  "next_batch_ready_to_start": false,
+  "next_batch_id": "",
+  "highest_completed_batch": "batch_3",
+  "completed_batches": [
+    "batch_1",
+    "batch_2",
+    "batch_3"
+  ],
+  "progress_since_baseline_v9": {
+    "min_history_bars_per_ticker": {
+      "baseline": 1171.0,
+      "current": 1171.0,
+      "delta": 0.0
+    },
+    "additional_bars_from_v9_baseline": {
+      "baseline": 211.0,
+      "current": 211.0,
+      "delta": 0.0
+    },
+    "usable_oos_windows_per_ticker": {
+      "baseline": 3.0,
+      "current": 3.0,
+      "delta": 0.0
+    },
+    "coverage_ready_ticker_ratio": {
+      "baseline": 1.0,
+      "current": 1.0,
+      "delta": 0.0
+    },
+    "primary_segment_total_articles": {
+      "baseline": 89.0,
+      "current": 89.0,
+      "delta": 0.0
+    },
+    "primary_segment_article_days_median": {
+      "baseline": 7.5,
+      "current": 7.5,
+      "delta": 0.0
+    },
+    "total_oos_trades_primary_segment": {
+      "baseline": 1434.0,
+      "current": 1434.0,
+      "delta": 0.0
+    },
+    "no_single_fold_trade_share": {
+      "baseline": 0.372,
+      "current": 0.372,
+      "delta": 0.0
+    }
+  },
+  "remaining_blockers": [],
+  "checkpoint_material_reached": true,
+  "recheck_readiness_gate_allowed": true,
+  "strategy_retry_still_blocked": true,
+  "oos_window_threshold_semantics": {
+    "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+    "source_of_truth_field": "methodology_aligned_thresholds.history_gate::usable_oos_windows_per_ticker",
+    "methodology_minimum_windows": 3.0,
+    "stretch_target_windows_by_batch": {
+      "batch_1": 4.0,
+      "batch_2": 6.0,
+      "batch_3": 8.0
+    },
+    "legacy_default_windows": 6.0,
+    "operational_batch_completion_uses": "methodology_minimum_windows",
+    "strategy_retry_allowed_uses": "phase_b_retest_readiness_gate final_decision + framework_governance_gate, not legacy stretch target windows",
+    "reason": "Batch/progress framework harus mengikuti threshold metodologi resmi yang sudah aktif di readiness gate. Stretch target 4/6/8 tetap dicatat sebagai aspirasi non-blocking agar tidak lagi bercampur dengan definisi operasional batch completion."
+  },
+  "stretch_targets_pending": [
+    "batch_1 actual=3.0 stretch_target>=4.0",
+    "batch_2 actual=3.0 stretch_target>=6.0",
+    "batch_3 actual=3.0 stretch_target>=8.0"
+  ],
+  "recommended_next_action": "refresh_retest_gate_inputs_and_rerun_phase_b_retest_readiness_gate_for_status_only",
+  "decisive_statement": "Checkpoint material operasional sudah tercapai di bawah threshold metodologi resmi. Gate readiness boleh dijalankan ulang hanya untuk refresh blocker status; strategy retry tetap tertutup.",
+  "metadata_segmentation_updated": true,
+  "artifact_availability": {
+    "phase_b_retest_readiness_gate": true,
+    "phase_b_retest_next_requirements": true,
+    "phase_b_data_extension_audit": true,
+    "framework_redesign_scope": true,
+    "universe_reconstruction_precheck": true,
+    "phase_b_final_closeout": true,
+    "project_after_phase_b_decision": true,
+    "baseline_v9_segment_oos_summary": true,
+    "baseline_v9_segment_oos_go_no_go": true,
+    "phase_b_data_extension_execution_plan": true,
+    "phase_b_recheck_trigger": true,
+    "phase_b_data_extension_progress_tracker": true
+  },
+  "limitations": []
+}

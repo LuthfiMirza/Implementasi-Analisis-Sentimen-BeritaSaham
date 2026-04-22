@@ -4,24 +4,54 @@ namespace App\Console\Commands;
 
 use App\Models\Stock;
 use App\Models\StockPrice;
+use App\Services\Stocks\DailyPriceSeriesValidator;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class FetchStockHistoryCommand extends Command
 {
-    protected $signature = 'stocks:fetch-history {--days=90 : Jumlah hari historis yang diinginkan untuk backfill harga 1D}';
+    protected $signature = 'stocks:fetch-history
+        {--days=90 : Jumlah hari historis yang diinginkan untuk backfill harga 1D}
+        {--stock=* : Optional stock code(s) to target}
+        {--rebuild-daily-series : Replace the full stored 1D interval with a validated daily series}';
 
     protected $description = 'Fetch harga historis (OHLCV) via Yahoo Finance untuk semua saham aktif';
+
+    public function __construct(
+        protected DailyPriceSeriesValidator $dailyPriceSeriesValidator
+    ) {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
         $days = max(1, (int) $this->option('days'));
         $range = $this->resolveYahooRange($days);
-        $stocks = Stock::where('is_active', true)->get();
+        $rebuildDailySeries = (bool) $this->option('rebuild-daily-series');
+        $requestedCodes = collect((array) $this->option('stock'))
+            ->map(fn (mixed $code): string => strtoupper(trim((string) $code)))
+            ->filter()
+            ->values();
+
+        $stocks = Stock::query()
+            ->where('is_active', true)
+            ->when(
+                $requestedCodes->isNotEmpty(),
+                fn ($query) => $query->whereIn('code', $requestedCodes->all())
+            )
+            ->orderBy('code')
+            ->get();
+
+        if ($stocks->isEmpty()) {
+            $this->error('No active stocks matched the requested selection.');
+
+            return self::FAILURE;
+        }
 
         foreach ($stocks as $stock) {
-            $symbol = $stock->code.'.JK';
+            $symbol = trim((string) ($stock->yahoo_symbol ?: $stock->code.'.JK'));
             $url = 'https://query1.finance.yahoo.com/v8/finance/chart/'.$symbol;
             $params = [
                 'interval' => '1d',
@@ -44,15 +74,16 @@ class FetchStockHistoryCommand extends Command
             $result = data_get($json, 'chart.result.0');
             $timestamps = data_get($result, 'timestamp', []);
             $quote = data_get($result, 'indicators.quote.0', []);
+            $timezone = (string) data_get($result, 'meta.exchangeTimezoneName', config('app.timezone', 'UTC'));
 
             if (! is_array($timestamps) || ! is_array($quote)) {
                 $this->error("{$stock->code}: invalid payload");
                 continue;
             }
 
-            $saved = 0;
+            $dailyRows = [];
             foreach ($timestamps as $idx => $ts) {
-                $date = Carbon::createFromTimestamp($ts)->toDateString();
+                $date = Carbon::createFromTimestamp($ts, 'UTC')->setTimezone($timezone)->toDateString();
                 $open = data_get($quote, "open.$idx");
                 $high = data_get($quote, "high.$idx");
                 $low = data_get($quote, "low.$idx");
@@ -63,23 +94,100 @@ class FetchStockHistoryCommand extends Command
                     continue;
                 }
 
-                StockPrice::updateOrCreate(
-                    ['stock_id' => $stock->id, 'price_date' => $date, 'interval_type' => '1d'],
-                    [
-                        'open' => $open,
-                        'high' => $high,
-                        'low' => $low,
-                        'close' => $close,
-                        'volume' => (int) $vol,
-                    ]
-                );
-                $saved++;
+                $dailyRows[] = [
+                    'date' => $date,
+                    'open' => (float) $open,
+                    'high' => (float) $high,
+                    'low' => (float) $low,
+                    'close' => (float) $close,
+                    'volume' => (int) $vol,
+                ];
             }
 
-            $this->info("{$stock->code}: fetched ".count($timestamps)." days, saved {$saved} rows");
+            $validation = $this->dailyPriceSeriesValidator->validate($dailyRows);
+            if (! $validation['valid']) {
+                $this->error(
+                    sprintf(
+                        '%s: daily history validation failed (%s)',
+                        $stock->code,
+                        implode(', ', $validation['errors'])
+                    )
+                );
+
+                continue;
+            }
+
+            if ($rebuildDailySeries) {
+                $saved = $this->replaceDailyHistory($stock, $dailyRows);
+            } else {
+                $saved = $this->upsertDailyHistory($stock, $dailyRows);
+            }
+
+            $this->info("{$stock->code}: fetched ".count($dailyRows)." days, saved {$saved} rows");
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $dailyRows
+     */
+    protected function replaceDailyHistory(Stock $stock, array $dailyRows): int
+    {
+        return DB::transaction(function () use ($stock, $dailyRows): int {
+            StockPrice::query()
+                ->where('stock_id', $stock->id)
+                ->where('interval_type', '1d')
+                ->delete();
+
+            $now = now();
+            $payload = collect($dailyRows)
+                ->map(fn (array $row): array => [
+                    'stock_id' => $stock->id,
+                    'price_date' => $row['date'],
+                    'interval_type' => '1d',
+                    'open' => $row['open'],
+                    'high' => $row['high'],
+                    'low' => $row['low'],
+                    'close' => $row['close'],
+                    'volume' => $row['volume'],
+                    'source' => 'yahoo_daily_rebuild_raw',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ])
+                ->chunk(500);
+
+            foreach ($payload as $chunk) {
+                StockPrice::insert($chunk->all());
+            }
+
+            return count($dailyRows);
+        });
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $dailyRows
+     */
+    protected function upsertDailyHistory(Stock $stock, array $dailyRows): int
+    {
+        $saved = 0;
+
+        foreach ($dailyRows as $row) {
+            StockPrice::updateOrCreate(
+                ['stock_id' => $stock->id, 'price_date' => $row['date'], 'interval_type' => '1d'],
+                [
+                    'open' => $row['open'],
+                    'high' => $row['high'],
+                    'low' => $row['low'],
+                    'close' => $row['close'],
+                    'volume' => $row['volume'],
+                    'source' => 'yahoo_history_incremental',
+                ]
+            );
+            $saved++;
+        }
+
+        return $saved;
     }
 
     protected function resolveYahooRange(int $days): string

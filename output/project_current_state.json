@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-04-22T00:46:43.288569+00:00",
+  "project_state": "frozen_waiting_data_extension_and_framework_redesign",
+  "roadmap_alignment_status": "aligned_to_project_roadmap_status",
+  "active_operational_baseline": {
+    "baseline_id": "phase_a_active_baseline",
+    "source": "output/phase_a_baseline_final.json",
+    "use_for_operations": true,
+    "status_note": "Gunakan baseline aktif Phase A untuk operasional sampai ada bukti yang cukup untuk menggantinya."
+  },
+  "experimental_baseline_candidate": {
+    "candidate_id": "baseline_v2_hold3_with_trend_guard",
+    "status": "keep_candidate_experimental",
+    "scope": "framework_redesign_input_only",
+    "promote_globally": false,
+    "recommended_tickers": [],
+    "recommended_groups": []
+  },
+  "phase_b": {
+    "status": "phase_b_closed_with_learnings_no_candidate",
+    "retry_ready": false,
+    "retry_scope_allowed": "none",
+    "readiness_gate_status": "belum_boleh_retest",
+    "next_action": "stop_and_collect_more_data_then_redesign_framework",
+    "reason": "Phase B retry tetap ditutup sampai data extension selesai, framework evaluasi diredesign, dan keputusan resmi baru diterbitkan."
+  },
+  "phase_c": {
+    "decision": "phase_c_no_go_yet",
+    "can_start": false,
+    "reason": "Phase C tetap no-go karena Phase B sudah ditutup tanpa kandidat strategi yang usable."
+  },
+  "framework_redesign_status": {
+    "baseline_redesign_status": "baseline_v2_no_go_redesign_again",
+    "candidate_validation_status": "keep_candidate_experimental",
+    "baseline_candidate_usable_for_redesign_only": false,
+    "data_extension_required_before_any_retry": true,
+    "next_action": "stop_and_collect_more_data_then_redesign_framework"
+  },
+  "project_closeout_status": {
+    "formal_closeout_status": "closed_with_notes",
+    "operational_freeze_allowed": true,
+    "note": "Project dibekukan pada state operasional saat ini, walaupun closeout formal masih punya blocker runtime yang terpisah."
+  },
+  "allowed_actions": [
+    "Gunakan baseline aktif Phase A untuk operasional.",
+    "Lanjutkan data extension dan refresh audit coverage/OOS secara berkala.",
+    "Gunakan hasil redesign baseline hanya sebagai input redesign framework evaluasi.",
+    "Refresh current-state summary setelah closeout/readiness artifacts diperbarui."
+  ],
+  "forbidden_actions": [
+    "Jangan retry item 5-8 secara global.",
+    "Jangan promote baseline v2 menjadi baseline operasional global.",
+    "Jangan promote candidate watchlist-only menjadi baseline operasional.",
+    "Jangan mulai Phase C.",
+    "Jangan hidupkan adaptive search space lagi."
+  ],
+  "next_decision_gate": {
+    "gate_id": "data_extension_and_framework_redesign_completion",
+    "promote_condition": "Coverage data, OOS window, overlap audit, signal sparsity audit, dan baseline redesign usability sudah ditutup secara resmi.",
+    "reject_condition": "Framework redesign membuktikan candidate redesign tetap tidak usable setelah data extension material.",
+    "default_until_then": "keep_phase_b_closed_and_continue_data_extension"
+  },
+  "warnings": []
+}

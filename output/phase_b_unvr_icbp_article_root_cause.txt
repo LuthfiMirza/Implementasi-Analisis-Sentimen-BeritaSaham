@@ -1,0 +1,28 @@
+Phase B UNVR/ICBP Article Root Cause
+- root_cause_class=external_source_limited
+- unvr_source_articles_sparse=False
+- icbp_source_articles_sparse=False
+- ticker_mapping_gap_detected=False
+- alignment_export_gap_detected=True
+- pipeline_bug_confirmed=False
+- local_fix_applied=False
+- article_coverage_improved=True
+- batch_1_helpful_progress_detected=False
+- recommended_next_action=do_not_rerun_readiness_gate_or_change_baseline_rerun_article_push_only_if_new_qualifying_articles_exist_for_unvr_or_icbp
+
+UNVR:
+- db_articles_all=4
+- db_articles_qualifying=3
+- snapshot_articles=3
+- snapshot_article_days=3
+- ticker_root_cause=article_exists_but_below_quality_threshold
+- decisive_statement=Artikel UNVR ada di DB dan mapping benar, tetapi belum lolos quality gate export; ini bukan bukti local pipeline failure.
+
+ICBP:
+- db_articles_all=4
+- db_articles_qualifying=4
+- snapshot_articles=4
+- snapshot_article_days=3
+- ticker_root_cause=coverage_aligned_no_local_issue
+- decisive_statement=Artikel ICBP yang lolos kualitas sudah selaras dengan snapshot; kendala tersisa ada pada coverage source.
+

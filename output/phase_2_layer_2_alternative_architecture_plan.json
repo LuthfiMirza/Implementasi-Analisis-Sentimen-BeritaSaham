@@ -1,0 +1,99 @@
+{
+  "artifact": "phase_2_layer_2_alternative_architecture_plan",
+  "generated_at": "2026-04-22",
+  "source_of_truth": {
+    "layer_2_closeout_json": "output/phase_2_layer_2_relative_strength_closeout.json",
+    "layer_2_closeout_txt": "output/phase_2_layer_2_relative_strength_closeout.txt",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "options_compared": [
+    {
+      "option_id": "non_cross_sectional_filter",
+      "priority_order": 1,
+      "summary": "Filter absolut tanpa ranking silang antar saham.",
+      "strengths": [
+        "Paling langsung menjawab kegagalan RS cross-sectional.",
+        "Lebih sederhana, lebih testable, dan memakai data yang sudah ada.",
+        "Tidak memaksa winner/loser relatif antar saham sehingga lebih tahan terhadap dispersion antar-slice."
+      ],
+      "risks": [
+        "Bisa terlalu longgar bila threshold terlalu rendah.",
+        "Perlu disiplin pada liquidity gate agar sampel tidak tercemar saham tipis."
+      ]
+    },
+    {
+      "option_id": "alternative_stock_selection_logic",
+      "priority_order": 2,
+      "summary": "Tetap memilih saham terbaik, tetapi dengan logika ranking/selection lain.",
+      "strengths": [
+        "Masih dekat dengan jalur Layer 2 yang lama.",
+        "Bisa menjaga sample tetap terkontrol."
+      ],
+      "risks": [
+        "Masih berada di keluarga masalah yang sama dengan RS cross-sectional.",
+        "Terlalu dini setelah closeout RS karena risiko mengulang blocker slice instability."
+      ]
+    },
+    {
+      "option_id": "regime_conditioned_selection",
+      "priority_order": 3,
+      "summary": "Aturan pemilihan berbeda per regime market.",
+      "strengths": [
+        "Secara teori bisa menangkap perbedaan perilaku saham di regime berbeda."
+      ],
+      "risks": [
+        "Menambah branching desain sebelum rule dasar Layer 2 terbukti.",
+        "Memperbesar risiko fragmentasi sample dan governance complexity."
+      ]
+    },
+    {
+      "option_id": "liquidity_or_fundamental_gating",
+      "priority_order": 4,
+      "summary": "Gate tambahan berbasis likuiditas atau kualitas emiten.",
+      "strengths": [
+        "Baik untuk hygiene universe.",
+        "Bisa dipakai sebagai pengaman tambahan."
+      ],
+      "risks": [
+        "Bukan arsitektur Layer 2 lengkap jika berdiri sendiri.",
+        "Lebih cocok sebagai guardrail pendamping opsi utama."
+      ]
+    }
+  ],
+  "selected_option": {
+    "option_id": "non_cross_sectional_filter",
+    "label": "Absolute momentum threshold with light liquidity gate",
+    "why_selected": [
+      "Paling cocok setelah kegagalan RS karena memutus dependensi pada ranking silang antar saham.",
+      "Selaras dengan blocker final RS yang berasal dari dispersion antar-slice dan bukan dari kekurangan data utama.",
+      "Memakai indikator yang sudah tersedia: return_20d, close, ema50, volume_ma20."
+    ]
+  },
+  "proposed_initial_rule": {
+    "rule_family": "absolute_momentum_plus_liquidity_gate",
+    "definition": [
+      "Layer 1 bullish tetap wajib.",
+      "Izinkan saham sebagai kandidat Layer 2 hanya jika return_20d > 0.",
+      "Dan close > ema50.",
+      "Dan average liquidity lulus gate minimum sederhana."
+    ],
+    "recommended_liquidity_gate": "Gunakan 20-day average traded value sederhana: close * volume_ma20 >= threshold minimum nominal yang dibekukan eksplisit saat implementasi.",
+    "selection_style": "boolean eligibility filter, not top-x-percent ranking"
+  },
+  "minimum_changes_to_start_implementation": {
+    "planning_artifacts_now": [
+      "output/phase_2_layer_2_alternative_architecture_plan.json",
+      "output/phase_2_layer_2_alternative_architecture_plan.txt"
+    ],
+    "future_code_files_minimum": [
+      "quant/run_phase_2_alt_non_cross_sectional_filter.py",
+      "quant/test_run_phase_2_alt_non_cross_sectional_filter.py"
+    ],
+    "future_output_artifacts_minimum": [
+      "output/phase_2_alt_non_cross_sectional_filter_summary.json",
+      "output/phase_2_alt_non_cross_sectional_filter_report.txt"
+    ]
+  },
+  "main_risk": "Threshold absolut bisa terlalu longgar atau terlalu ketat; liquidity gate harus dibekukan eksplisit agar tidak menjadi moving target evaluasi.",
+  "official_next_action": "Implement the first Layer 2 alternative experiment as a non-cross-sectional absolute momentum threshold with light liquidity gate."
+}

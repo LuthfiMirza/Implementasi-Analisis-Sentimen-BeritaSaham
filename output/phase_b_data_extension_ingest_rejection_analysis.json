@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-04-22T01:51:40.647247+00:00",
+  "context": {
+    "phase_b_status": "phase_b_closed_with_learnings_no_candidate",
+    "current_batch": "batch_1",
+    "current_batch_completed": false,
+    "checkpoint_material_reached": false,
+    "recheck_readiness_gate_allowed": false,
+    "batch_acceptance_status": "rejected"
+  },
+  "batch_1_targets": {
+    "min_history_bars_per_ticker": 78,
+    "additional_bars_from_v9_baseline": 21,
+    "usable_oos_windows_per_ticker": 4,
+    "primary_segment_total_articles": 13,
+    "primary_segment_article_days_median": 3
+  },
+  "aggregate_progress": {
+    "file_change_detected": true,
+    "baseline_min_history": 2459.0,
+    "current_min_history": 2459.0,
+    "baseline_min_windows": 7.0,
+    "current_min_windows": 203.0,
+    "history_progress_valid": false,
+    "metadata_refresh_valid": true,
+    "segmentation_refresh_valid": true,
+    "baseline_primary_articles": 56.0,
+    "current_primary_articles": 54.0,
+    "baseline_primary_article_days_median": 6.0,
+    "current_primary_article_days_median": 6.0,
+    "primary_article_day_recovery_valid": false
+  },
+  "go_no_go": {
+    "generated_at": "2026-04-22T01:51:40.647229+00:00",
+    "decision": "ingest_rejected_no_material_progress",
+    "material_progress_detected": false,
+    "history_progress_valid": false,
+    "metadata_refresh_valid": true,
+    "segmentation_refresh_valid": true,
+    "primary_article_day_recovery_valid": false,
+    "batch_1_closure_progress_valid": true,
+    "highest_blocking_issue": "history_effective_not_increasing",
+    "recommended_next_action": "extend_history_rows_and_reingest_priority_tickers_before_refreshing_progress",
+    "current_batch": "batch_1",
+    "batch_acceptance_status": "rejected",
+    "accepted_tickers": [],
+    "rejected_tickers": [
+      "ADRO",
+      "BUMI",
+      "BBCA",
+      "ASII",
+      "UNVR"
+    ],
+    "tickers_with_warnings": [],
+    "decisive_statement": "File data berubah, tetapi progress batch belum sah karena history efektif tidak naik.",
+    "limitations": []
+  },
+  "diagnostic_row_count": 5,
+  "checklist_row_count": 6,
+  "limitations": []
+}

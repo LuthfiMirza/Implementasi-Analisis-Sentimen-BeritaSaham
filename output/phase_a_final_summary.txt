@@ -1,37 +1,26 @@
 Phase A Final Summary
 =====================
 
-- Status: blocked
-- Reason: Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.
-- Baseline status: draft
+- Status: closed_with_notes
+- Reason: Phase A bisa dianggap selesai operasional, tetapi masih ada catatan non-blocking.
+- Baseline status: provisional
 - Readiness status: partially_ready
-- Baseline usable now: False
+- Baseline usable now: True
 - Baseline final now: False
-- Strict mode final now: False
+- Strict mode final now: True
 - Macro OJK neutral-only policy: note_if_macro_regulatory_signal_ready_else_blocker
-- Macro OJK current classification: unknown_runtime
+- Macro OJK current classification: note
 - UI verification blocker: False
-- Ready to start Phase B: False
-
-Blocking items:
-- Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)
-- Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)
-- Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.
-- Strict mode belum final karena masih subset-only atau belum terdefinisi.
+- Ready to start Phase B: True
 
 Notes:
+- Baseline Phase A masih provisional.
+- Artikel OJK historis masih neutral-only, sehingga sistem bergantung pada moderation layer, bukan arah sentimen langsung.
 - Test suite inti tidak dijalankan pada closeout ini.
 - Controller/report coverage sudah ada; verifikasi UI manual include_macro_news dan macro_regulatory_signal tetap berguna, tetapi bukan blocker formal.
-- Status neutral-only OJK belum bisa diklasifikasikan penuh karena runtime closeout terakhir tidak dapat membaca database.
+- OJK historical yang neutral-only diperlakukan sebagai note, bukan blocker, karena moderation layer context-only sudah tersedia.
 
-Minimum blockers:
-- P1 phase_a_real_baseline_not_frozen: Baseline real belum benar-benar beku atau strict mode belum final.
-  Action: Regenerasi artifact evaluator/analyzer/tuning/threshold sweep real, lalu freeze baseline lagi.
-- P2 phase_a_runtime_closeout_not_validated: Closeout runtime belum tervalidasi pada environment yang punya MySQL + OJK historical data aktif.
-  Action: Pastikan MySQL aktif dan data OJK historis tersedia, lalu rerun closeout.
+Minimum blockers: none
 
 Minimum next steps:
-- Jalankan threshold sweep real untuk menghasilkan phase_a_threshold_decision.json dan best-by-group/best-by-ticker yang aktual.
-- Jalankan decision layer tuning real jika phase_a_tuning_decision.json belum tersedia, lalu refreeze baseline dengan python3 -m quant.freeze_phase_a_baseline --output-dir output.
-- Aktifkan koneksi MySQL yang benar, pastikan artikel OJK historis tersedia, lalu rerun php artisan phase-a:closeout sampai status tidak lagi blocked.
-- Verifikasi UI /backtest dan /analytics dengan include_macro_news=1 dan macro_regulatory_signal=1 sebagai catatan penutup, bukan blocker formal.
+- Phase A sudah melewati gate minimum. Gunakan baseline beku saat memulai eksperimen Fase B.

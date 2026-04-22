@@ -47,6 +47,8 @@ class NewsSeeder extends Seeder
             ['stock' => 'INDF', 'title' => 'Indofood tanggapi kenaikan bahan baku dengan efisiensi biaya', 'sentiment_label' => 'neutral', 'sentiment_score' => 0.05],
             ['stock' => 'ICBP', 'title' => 'ICBP perluas ekspor mie instan, margin terjaga', 'sentiment_label' => 'positive', 'sentiment_score' => 0.31],
             ['stock' => 'ADRO', 'title' => 'Harga batu bara melemah, Adaro fokus pada energi terbarukan', 'sentiment_label' => 'negative', 'sentiment_score' => -0.52],
+            ['stock' => 'BUMI', 'title' => 'Bumi Resources targetkan efisiensi produksi saat harga batu bara berfluktuasi', 'sentiment_label' => 'neutral', 'sentiment_score' => 0.08],
+            ['stock' => 'DEWA', 'title' => 'Darma Henwa incar kontrak tambang baru untuk perkuat utilisasi alat berat', 'sentiment_label' => 'positive', 'sentiment_score' => 0.29],
             ['stock' => 'UNVR', 'title' => 'Unilever tekan biaya pemasaran, volume mulai pulih', 'sentiment_label' => 'positive', 'sentiment_score' => 0.27],
         ];
 

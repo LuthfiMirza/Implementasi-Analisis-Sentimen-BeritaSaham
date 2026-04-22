@@ -1,0 +1,38 @@
+Baseline v4 Redesign Plan
+=========================
+
+- Recommended v4 direction: candidate_a_fast_anchor_quality_gate
+- Current project mode: baseline_v2_redesign_required
+- Phase B status: phase_b_needs_redesign_before_continue
+- Phase C decision: phase_c_no_go_yet
+- Final decision so far: baseline_v2_no_go_redesign_again
+
+Conclusions:
+- Jangan lanjutkan redesign dengan entry relaxation only.
+- Uji quality gate setelah fast trend anchor sebelum menambah pelonggaran entry baru.
+- Uji exit/hold redesign sebagai prioritas kedua bila quality gate tidak cukup.
+
+Why v2 failed:
+- Baseline v2 gagal karena coverage dan sample masih terlalu kecil: eligible_ticker_count=1 dari minimum 3, total_trades_sum=10 dari minimum 15, validation_status=invalid, score=-12.4920. Candidate belum promotable walau sempat lebih baik relatif terhadap baseline aktif pada subset sempit.
+
+Why v3 failed:
+- Baseline v3 gagal karena entry relaxation only membuka coverage tetapi merusak kualitas trade. Rule terbaik baseline_v3_ema20_trend_guard menaikkan eligible_ticker_count dari 1 ke 8, total_trades_sum dari 10 ke 56, trade_retention_vs_baseline=5.6000, coverage_gain_vs_old_rule=7, tetapi mean_average_return turun dari +4.24329 menjadi -0.01014. quality_preserved=False, jadi arah ini tidak layak diteruskan.
+
+Directions to avoid:
+- Jangan lanjutkan redesign dengan entry relaxation only.
+- Hindari volume-relaxed entry sebagai kandidat default.
+- Jangan hidupkan ulang item 5-8 sebagai eksperimen aktif untuk menyelamatkan baseline.
+- Jangan promosikan baseline v2 atau v3 sebelum ada validasi v4 yang lolos guardrail coverage dan quality.
+
+Hypothesis priorities:
+- candidate_a_fast_anchor_quality_gate: priority=high, should_test_next=True, focus=Fast entry anchor + post-entry quality gate
+- candidate_b_simple_entry_exit_hold_redesign: priority=medium_high, should_test_next=False, focus=Keep entry simple, redesign exit/hold
+- candidate_c_hybrid_conservative_anchor: priority=medium, should_test_next=False, focus=Hybrid conservative anchor + light quality gate
+
+Next best experiment:
+- experiment_id=baseline_v4_quality_gate_guard
+- goal=Uji apakah fast trend anchor tetap bisa menjaga coverage >=3 ticker eligible setelah ditambah quality gate ringan yang memangkas candle/trade lemah.
+- scope=Bandingkan anchor EMA20 trend guard dengan 3-4 variasi quality gate ringan pada hold_period=3 dan min_trades=5, tanpa mengubah scoring engine atau baseline aktif.
+- expected_success_signal=eligible_ticker_count >= 3, total_trades_sum tetap jauh di atas baseline reference, dan mean_average_return membaik material versus baseline_v3_ema20_trend_guard tanpa quality collapse.
+- expected_failure_signal=coverage turun lagi ke <3 ticker atau mean_average_return tetap <= 0 sehingga quality tetap tidak preserved.
+- command=python3 -m quant.run_baseline_v4_quality_gate_experiment --output-dir output --hold-period 3 --min-trades 5 --scaffold-only

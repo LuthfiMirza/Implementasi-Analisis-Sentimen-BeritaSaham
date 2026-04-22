@@ -1,0 +1,70 @@
+DEWA and BUMI Coverage Audit
+============================
+
+Generated at: 2026-04-19 23:05:00 WIB
+
+Goal
+- Fetch issuer news for `DEWA` and `BUMI`
+- Rerun quality/sentiment normalization
+- Re-export Phase A real-data coverage
+- Check whether both tickers can now be evaluated more fairly
+
+Commands Run
+- `php artisan news:fetch --stock=DEWA --limit=10 --debug`
+- `php artisan news:fetch --stock=BUMI --limit=10 --debug`
+- `php artisan news:rescore-quality --days=180 --force`
+- `php artisan news:rescore-sentiment`
+- `php artisan phase-a:export-real-data --data-dir=data --metadata-file=data/ticker_metadata.csv --include-sentiment-series`
+
+Fetcher Result
+- DEWA:
+  raw=28, saved=4, updated=10, dropped_relevance=5
+  providers seen: rss_local=8, ojk_rss=10, gnews=10
+- BUMI:
+  raw=17, saved=1, updated=10, dropped_relevance=1
+  providers seen: rss_local=7, ojk_rss=10
+
+Post-Fetch Global Count
+- news_articles=86
+- stock_linked_articles=43
+- macro_articles=43
+
+Database-Level Coverage
+- DEWA:
+  price_days=87
+  news_articles=5
+  sentiment_articles=5
+  sentiment_days=5
+  quality_scored_articles=5
+- BUMI:
+  price_days=87
+  news_articles=2
+  sentiment_articles=2
+  sentiment_days=2
+  quality_scored_articles=2
+
+Exported Trade-Date Coverage
+- DEWA:
+  `data/ticker_metadata.csv` still shows only `sentiment_days_with_articles=1` and `sentiment_article_count_total=1`
+  `data/DEWA.csv` has only one trade-date row with `sentiment_news_count_1d > 0`, namely `2026-04-18`
+- BUMI:
+  `data/ticker_metadata.csv` still shows `sentiment_days_with_articles=0` and `sentiment_article_count_total=0`
+  `data/BUMI.csv` has no trade-date rows with `sentiment_news_count_1d > 0`
+
+Important Quality Note
+- DEWA raw fetch improved, but several kept articles are weak issuer matches, not clean Darma Henwa operational coverage.
+- BUMI also picked up a false positive:
+  `Asteroid Raksasa 'God of Chaos' Terdeteksi Menuju Bumi`
+
+Interpretation
+- DEWA:
+  The news fetch path is now proven to run and it did add raw DB coverage.
+  However, effective usable sentiment coverage for the quant export remains thin.
+- BUMI:
+  The news fetch path is also proven attempted, but usable issuer-specific coverage is still weak and noisy.
+
+Bottom Line
+- DEWA and BUMI are now fairer to judge than before, because they are no longer “never fetched”.
+- But neither ticker should yet be treated as strong sentiment-ready inputs for roadmap gating.
+- DEWA improved materially at the raw DB layer.
+- BUMI remains weak both in quantity and relevance quality.

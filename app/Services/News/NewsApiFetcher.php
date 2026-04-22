@@ -146,10 +146,11 @@ class NewsApiFetcher implements NewsFetcherInterface
      */
     protected function buildQueries(Stock $stock): array
     {
-        $aliases = collect($this->mapper->keywords($stock))->take(4)->values();
-        $aliasOnly = $this->mapper->queryString($stock);
+        $aliases = collect($this->mapper->searchAliases($stock, 5))->values();
         $ctxShort = array_slice(config('news.context_keywords', []), 0, 5);
         $sectorShort = array_slice($this->mapper->sectorKeywords($stock), 0, 4);
+        $primaryAlias = (string) ($aliases->first() ?? $stock->code);
+        $secondaryAliases = $aliases->slice(1, 2)->values();
 
         $aliasGroup = $aliases->map(fn ($alias) => '"'.$alias.'"')->implode(' OR ');
         $contextGroup = collect(array_merge($ctxShort, $sectorShort))
@@ -157,12 +158,20 @@ class NewsApiFetcher implements NewsFetcherInterface
             ->unique()
             ->map(fn ($term) => '"'.$term.'"')
             ->implode(' OR ');
+        $tickerGroup = collect([
+            $stock->code,
+            'saham '.$stock->code,
+            'emiten '.$stock->code,
+        ])->unique()->map(fn ($term) => '"'.$term.'"')->implode(' OR ');
 
         $candidates = array_values(array_filter([
+            '"'.$primaryAlias.'"',
+            ...$secondaryAliases->map(fn ($alias) => '"'.$alias.'"')->all(),
+            $contextGroup ? '"'.$primaryAlias.'" AND ('.$contextGroup.')' : null,
             $contextGroup ? '('.$aliasGroup.') AND ('.$contextGroup.')' : null,
-            $aliasOnly,
+            $aliasGroup,
+            $contextGroup ? '('.$tickerGroup.') AND ('.$contextGroup.')' : null,
             $this->mapper->contextualQuery($stock, $ctxShort),
-            $contextGroup ? '"'.$stock->code.'" AND ('.$contextGroup.')' : null,
         ]));
 
         return collect($candidates)

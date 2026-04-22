@@ -1,0 +1,284 @@
+{
+  "phase": "phase_1_2_market_regime_alignment_confirmation",
+  "status": "completed",
+  "generated_at": "2026-04-22T06:14:33.670996+00:00",
+  "candidate_definition": "ihsg_ema50 > ihsg_ema200",
+  "source_files": {
+    "stock_indicator_master_file": "data/indicator_master/stock_indicator_master.csv",
+    "ihsg_indicator_master_file": "data/indicator_master/IHSG_indicator_master.csv",
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "metadata_file": "data/ticker_metadata.csv"
+  },
+  "policies_tested": [
+    {
+      "policy_id": "current_non_bullish_on_missing",
+      "policy_label": "Current missing => non-bullish",
+      "policy_description": "Exact same-date IHSG join; missing IHSG dates are forced to non-bullish."
+    },
+    {
+      "policy_id": "carry_forward_previous_available_regime",
+      "policy_label": "Carry-forward previous available regime",
+      "policy_description": "Exact same-date join first, then missing stock dates inherit the latest available IHSG regime state."
+    },
+    {
+      "policy_id": "explicit_previous_trading_day_alignment",
+      "policy_label": "Explicit previous-trading-day alignment",
+      "policy_description": "Each stock date is aligned to the most recent IHSG trading day on or before that date."
+    }
+  ],
+  "policy_results": [
+    {
+      "policy_id": "current_non_bullish_on_missing",
+      "policy_label": "Current missing => non-bullish",
+      "policy_description": "Exact same-date IHSG join; missing IHSG dates are forced to non-bullish.",
+      "bullish_day_pct": 71.3813,
+      "pre_filter_signals": 3151,
+      "post_filter_signals": 2602,
+      "skipped_signals": 549,
+      "pre_filter_total_trades": 1664,
+      "post_filter_total_trades": 1356,
+      "trade_retention_pct_median": 81.7857,
+      "avg_delta_win_rate": -0.0957,
+      "avg_delta_average_return": 0.0898,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "affected_missing_date_rows": 652,
+      "affected_missing_unique_dates": 153,
+      "bullish_overrides_on_missing_rows": 0
+    },
+    {
+      "policy_id": "carry_forward_previous_available_regime",
+      "policy_label": "Carry-forward previous available regime",
+      "policy_description": "Exact same-date join first, then missing stock dates inherit the latest available IHSG regime state.",
+      "bullish_day_pct": 72.9423,
+      "pre_filter_signals": 3151,
+      "post_filter_signals": 2603,
+      "skipped_signals": 548,
+      "pre_filter_total_trades": 1664,
+      "post_filter_total_trades": 1356,
+      "trade_retention_pct_median": 81.7857,
+      "avg_delta_win_rate": -0.0957,
+      "avg_delta_average_return": 0.0898,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "affected_missing_date_rows": 652,
+      "affected_missing_unique_dates": 153,
+      "bullish_overrides_on_missing_rows": 503
+    },
+    {
+      "policy_id": "explicit_previous_trading_day_alignment",
+      "policy_label": "Explicit previous-trading-day alignment",
+      "policy_description": "Each stock date is aligned to the most recent IHSG trading day on or before that date.",
+      "bullish_day_pct": 72.9423,
+      "pre_filter_signals": 3151,
+      "post_filter_signals": 2603,
+      "skipped_signals": 548,
+      "pre_filter_total_trades": 1664,
+      "post_filter_total_trades": 1356,
+      "trade_retention_pct_median": 81.7857,
+      "avg_delta_win_rate": -0.0957,
+      "avg_delta_average_return": 0.0898,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "affected_missing_date_rows": 652,
+      "affected_missing_unique_dates": 153,
+      "bullish_overrides_on_missing_rows": 503
+    }
+  ],
+  "alignment_diagnostics": [
+    {
+      "policy_id": "current_non_bullish_on_missing",
+      "policy_label": "Current missing => non-bullish",
+      "missing_direct_rows": 153,
+      "missing_direct_unique_dates": 153,
+      "bullish_override_on_missing_dates": 0,
+      "sample_missing_dates": [
+        {
+          "date": "2000-10-25",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-25",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-26",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-27",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-28",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-29",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-01-01",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-03-05",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-03-26",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-04-13",
+          "aligned_ihsg_date": NaN,
+          "market_regime_bullish": false
+        }
+      ]
+    },
+    {
+      "policy_id": "carry_forward_previous_available_regime",
+      "policy_label": "Carry-forward previous available regime",
+      "missing_direct_rows": 153,
+      "missing_direct_unique_dates": 153,
+      "bullish_override_on_missing_dates": 99,
+      "sample_missing_dates": [
+        {
+          "date": "2000-10-25",
+          "aligned_ihsg_date": "2000-10-24",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-25",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-26",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-27",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-28",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-29",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-01-01",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-03-05",
+          "aligned_ihsg_date": "2001-03-02",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-03-26",
+          "aligned_ihsg_date": "2001-03-23",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-04-13",
+          "aligned_ihsg_date": "2001-04-12",
+          "market_regime_bullish": false
+        }
+      ]
+    },
+    {
+      "policy_id": "explicit_previous_trading_day_alignment",
+      "policy_label": "Explicit previous-trading-day alignment",
+      "missing_direct_rows": 153,
+      "missing_direct_unique_dates": 153,
+      "bullish_override_on_missing_dates": 99,
+      "sample_missing_dates": [
+        {
+          "date": "2000-10-25",
+          "aligned_ihsg_date": "2000-10-24",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-25",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-26",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-27",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-28",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2000-12-29",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-01-01",
+          "aligned_ihsg_date": "2000-12-22",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-03-05",
+          "aligned_ihsg_date": "2001-03-02",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-03-26",
+          "aligned_ihsg_date": "2001-03-23",
+          "market_regime_bullish": false
+        },
+        {
+          "date": "2001-04-13",
+          "aligned_ihsg_date": "2001-04-12",
+          "market_regime_bullish": false
+        }
+      ]
+    }
+  ],
+  "stability_diagnostics": {
+    "avg_delta_win_rate_range": 0.0,
+    "avg_delta_average_return_range": 0.0,
+    "post_filter_total_trades_range": 0
+  },
+  "best_policy_decision": {
+    "status": "selected",
+    "selected_policy_id": "explicit_previous_trading_day_alignment",
+    "selected_policy_label": "Explicit previous-trading-day alignment",
+    "reason": "Selected the alignment policy with healthy coverage and the strongest quality profile; ties break toward explicit previous-trading-day semantics."
+  },
+  "freeze_decision": {
+    "freeze_layer_1": true,
+    "reason": "Reasonable alignment policies are operationally identical on this dataset, coverage stays healthy, and the selected policy keeps average return delta positive while win-rate delta is close to flat.",
+    "stable_reasonable_policy_cluster": true
+  },
+  "warnings": []
+}

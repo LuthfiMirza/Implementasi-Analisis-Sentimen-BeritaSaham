@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-04-21T23:30:55.900647+00:00",
+  "candidate_id": "baseline_v2_hold3_with_trend_guard",
+  "entry_rule": "close_gt_ema50_and_bullish_candle",
+  "hold_period": 3,
+  "min_trades": 10,
+  "score": 213.57580000000002,
+  "eligible_ticker_count": 12,
+  "average_return": -0.05121666666666665,
+  "win_rate": 41.233333333333334,
+  "max_drawdown": 43.533416666666675,
+  "why_selected": "Config redesign terbaik memakai hold_period=3, min_trades=10, eligible_ticker_count=12, total_trades_sum=1231, mean_score=+30.4758, global_selection_score=+213.5758.",
+  "why_not_selected_if_weak": null,
+  "selected_candidate": {
+    "candidate_id": "baseline_v2_hold3_with_trend_guard",
+    "entry_rule": "close_gt_ema50_and_bullish_candle",
+    "hold_period": 3,
+    "trade_label": "t_plus_3",
+    "min_trades_threshold": 10,
+    "min_trades": 10,
+    "profit_buffer_pct": 0.0,
+    "score": 213.57580000000002,
+    "mean_score": 30.475800000000003,
+    "eligible_ticker_count": 12,
+    "total_trades_sum": 1231,
+    "average_return": -0.05121666666666665,
+    "win_rate": 41.233333333333334,
+    "max_drawdown": 43.533416666666675,
+    "why_selected": "Config redesign terbaik memakai hold_period=3, min_trades=10, eligible_ticker_count=12, total_trades_sum=1231, mean_score=+30.4758, global_selection_score=+213.5758.",
+    "why_not_selected_if_weak": null
+  },
+  "redesign_summary": {
+    "decision": "usable_for_framework_redesign_only",
+    "can_retry_phase_b_after_this": false,
+    "phase_b_retry_blocked_until_data_extension": true,
+    "usable_for_framework_redesign": true,
+    "recommended_next_experiment": "refresh_framework_redesign_scope_after_data_extension",
+    "next_action": "hold_redesign_candidate_as_framework_input_only",
+    "decision_notes": [
+      "Config terbaik global meningkatkan usability dibanding desain evaluasi baseline saat ini.",
+      "Hasil redesign ini hanya boleh dipakai sebagai input framework redesign; retry Phase B tetap diblokir sampai data extension selesai."
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-04-20T11:01:43.637782+00:00",
+  "pipeline_bug_confirmed": true,
+  "local_code_fix_applied": true,
+  "extended_range_support_detected": true,
+  "legacy_three_month_cap_detected": false,
+  "config_misalignment_confirmed": true,
+  "fix_target_file": "/Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/app/Console/Commands/FetchStockHistoryCommand.php",
+  "verification_evidence": "Fetch command supports 6mo/1y/2y/max backfill windows.",
+  "recommended_verification": "run_fetch_history_with_days_180_plus_then_export_phase_a_real_data_and_check_row_growth_per_priority_ticker"
+}

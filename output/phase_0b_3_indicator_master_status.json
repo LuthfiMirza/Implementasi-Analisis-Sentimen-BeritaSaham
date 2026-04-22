@@ -1,0 +1,382 @@
+{
+  "phase": "phase_0b_3_indicator_master_table",
+  "status": "completed",
+  "stock_sources_used": 51,
+  "stock_rows": 263825,
+  "ihsg_rows": 8774,
+  "stocks": [
+    {
+      "label": "AALI",
+      "rows": 6220,
+      "date_start": "2001-04-05",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "ACES",
+      "rows": 4525,
+      "date_start": "2007-11-06",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "ADRO",
+      "rows": 4360,
+      "date_start": "2008-07-16",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "AKRA",
+      "rows": 5060,
+      "date_start": "2005-09-29",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "AMRT",
+      "rows": 4243,
+      "date_start": "2009-01-15",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "ANTM",
+      "rows": 5060,
+      "date_start": "2005-09-29",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "ASII",
+      "rows": 6341,
+      "date_start": "2000-10-17",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "AUTO",
+      "rows": 6299,
+      "date_start": "2000-12-14",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "BBCA",
+      "rows": 5392,
+      "date_start": "2004-06-08",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "BBNI",
+      "rows": 5512,
+      "date_start": "2003-12-23",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "BBRI",
+      "rows": 5543,
+      "date_start": "2003-11-10",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "BBTN",
+      "rows": 4014,
+      "date_start": "2009-12-17",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "BMRI",
+      "rows": 5628,
+      "date_start": "2003-07-14",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "BRPT",
+      "rows": 5901,
+      "date_start": "2002-06-26",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "BSDE",
+      "rows": 4388,
+      "date_start": "2008-06-06",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "CPIN",
+      "rows": 5059,
+      "date_start": "2005-09-29",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "CTRA",
+      "rows": 6330,
+      "date_start": "2000-11-01",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "ERAA",
+      "rows": 3527,
+      "date_start": "2011-12-14",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "ESSA",
+      "rows": 3493,
+      "date_start": "2012-02-01",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "EXCL",
+      "rows": 5060,
+      "date_start": "2005-09-29",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "GGRM",
+      "rows": 6174,
+      "date_start": "2001-06-07",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "GOTO",
+      "rows": 961,
+      "date_start": "2022-04-11",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "HMSP",
+      "rows": 6097,
+      "date_start": "2001-09-25",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "ICBP",
+      "rows": 6352,
+      "date_start": "2000-10-02",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "INCO",
+      "rows": 5059,
+      "date_start": "2005-09-29",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "INDF",
+      "rows": 6353,
+      "date_start": "2000-10-02",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "INDY",
+      "rows": 4386,
+      "date_start": "2008-06-11",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "INTP",
+      "rows": 6305,
+      "date_start": "2000-12-06",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "ISAT",
+      "rows": 5450,
+      "date_start": "2004-03-18",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "ITMG",
+      "rows": 4496,
+      "date_start": "2007-12-18",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "JPFA",
+      "rows": 6266,
+      "date_start": "2001-01-31",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "JSMR",
+      "rows": 4521,
+      "date_start": "2007-11-12",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "KLBF",
+      "rows": 5518,
+      "date_start": "2003-12-15",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "LSIP",
+      "rows": 5947,
+      "date_start": "2002-04-22",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "MAPI",
+      "rows": 5280,
+      "date_start": "2004-11-10",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "MEDC",
+      "rows": 6437,
+      "date_start": "2000-06-06",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "MIKA",
+      "rows": 2716,
+      "date_start": "2015-03-24",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "MNCN",
+      "rows": 4618,
+      "date_start": "2007-06-22",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "MYOR",
+      "rows": 6316,
+      "date_start": "2000-11-22",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "PGAS",
+      "rows": 5517,
+      "date_start": "2003-12-15",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "PTBA",
+      "rows": 5772,
+      "date_start": "2002-12-23",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "PWON",
+      "rows": 5059,
+      "date_start": "2005-09-29",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "RALS",
+      "rows": 5294,
+      "date_start": "2004-10-22",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "SCMA",
+      "rows": 5887,
+      "date_start": "2002-07-16",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "SILO",
+      "rows": 3090,
+      "date_start": "2013-09-12",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "SMGR",
+      "rows": 5060,
+      "date_start": "2005-09-29",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "TBIG",
+      "rows": 3807,
+      "date_start": "2010-10-26",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "TLKM",
+      "rows": 5311,
+      "date_start": "2004-09-28",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "TPIA",
+      "rows": 5859,
+      "date_start": "2002-08-23",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "UNTR",
+      "rows": 6371,
+      "date_start": "2000-09-05",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    },
+    {
+      "label": "UNVR",
+      "rows": 5591,
+      "date_start": "2003-09-03",
+      "date_end": "2026-04-22",
+      "max_gap_days": 12
+    }
+  ],
+  "ihsg": {
+    "label": "IHSG",
+    "rows": 8774,
+    "date_start": "1990-04-06",
+    "date_end": "2026-04-22",
+    "max_gap_days": 12
+  },
+  "price_policy": {
+    "official_indicator_basis": "adj_close",
+    "regime_return_momentum_ema_use": "adj_close",
+    "raw_ohlc_for_atr_exit": "not_official_yet"
+  },
+  "layer_1_regime_ready": true,
+  "layer_5_atr_exit_ready": false,
+  "layer_5_blocker": "raw_ohlc_corporate_action_policy_not_frozen; back_adjusted_ohlc_or_split_aware_policy_required",
+  "next_action": "phase_1_market_regime_filter"
+}

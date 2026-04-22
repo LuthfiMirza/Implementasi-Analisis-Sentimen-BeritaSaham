@@ -1,0 +1,5 @@
+variant_id,variant_label,top_pct,full_period_total_trades,full_period_median_trade_retention,full_period_avg_delta_win_rate,full_period_avg_delta_average_return,full_period_sample_adequacy_risk,full_period_tickers_with_coverage_collapse,slice_count_excluding_full,candidate_slice_win_count,candidate_positive_return_slice_count,candidate_negative_return_slice_count,candidate_low_risk_slice_count,candidate_avg_delta_average_return_range,candidate_avg_delta_win_rate_range,candidate_median_trade_retention_range
+top_22_5pct_return_20d,Top 22.5% by return_20d,0.225,4581,48.3193,-0.6218,0.0937,low,0,6,1,5,1,4,0.6574,2.578,17.3738
+top_25pct_return_20d,Top 25% by return_20d,0.25,4889,50.4202,-0.6731,0.2682,low,0,6,2,5,1,4,1.1379,2.5674,18.8158
+top_27_5pct_return_20d,Top 27.5% by return_20d,0.275,5265,54.7945,-0.7294,-0.0351,low,0,6,2,4,2,5,1.1222,2.4148,18.065
+top_30pct_return_20d,Top 30% by return_20d,0.3,5557,57.5342,-0.838,-0.0237,low,0,6,1,4,2,5,1.0336,2.5176,16.4966

@@ -134,6 +134,7 @@ class RunBaselineV2CandidateValidationTestCase(unittest.TestCase):
             self.assertIn("baseline_v2_validation_status", transition)
             self.assertIn("baseline_v2_validation_next_action", transition)
             self.assertIn("phase_b_retry_readiness_after_candidate_validation", transition)
+            self.assertIn("baseline_v2_validation_scope", transition)
 
             self.assertFalse(result["per_ticker_df"].empty)
 

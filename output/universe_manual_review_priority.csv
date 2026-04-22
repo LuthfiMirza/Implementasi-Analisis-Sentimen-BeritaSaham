@@ -1,0 +1,22 @@
+ticker,company_name,sector_group,manual_review_reason,priority_rank,priority_bucket,shortlist_15_safe,hard_floor_24_path
+BBNI,Bank Negara Indonesia Tbk,finance,"Completes the finance cluster behind already-frozen BBCA/BBRI/BMRI and is the cleanest first finance add for manual confirmation.",1,approve_first,yes,yes
+PGAS,Perusahaan Gas Negara Tbk,infrastructure,"Adds the first infrastructure slot, which helps satisfy the minimum sector-group breadth instead of over-concentrating only in existing frozen sectors.",2,approve_first,yes,yes
+ANTM,Aneka Tambang Tbk,materials,"Adds the first materials slot and improves sector diversification needed for a defensible expanded universe.",3,approve_first,yes,yes
+KLBF,Kalbe Farma Tbk,healthcare,"Adds the first healthcare slot and gives the hard-floor set a new non-cyclical sector group.",4,approve_first,yes,yes
+UNTR,United Tractors Tbk,industrial,"Strengthens industrial breadth next to frozen ASII without relying on another finance or consumer duplicate first.",5,approve_first,yes,yes
+PTBA,Bukit Asam Tbk,energy,"Adds a second energy name behind frozen ADRO so the energy sleeve is not a single-name dependency.",6,approve_first,yes,yes
+EXCL,XL Axiata Tbk,telco,"Adds a second telco name behind frozen TLKM so the telco sleeve is not single-name only.",7,approve_first,yes,yes
+MYOR,Mayora Indah Tbk,consumer,"Broadens the consumer sleeve beyond the already-frozen INDF/ICBP/UNVR cluster.",8,approve_first,yes,yes
+SMGR,Semen Indonesia Tbk,materials,"Adds a second materials name to reduce dependence on a single candidate in that new sector group.",9,approve_first,yes,yes
+JSMR,Jasa Marga Tbk,infrastructure,"Adds a second infrastructure name so the new sector group is not represented by only one ticker.",10,approve_first,yes,yes
+ISAT,Indosat Tbk,telco,"Further improves telco breadth and reduces dependence on only TLKM plus one pending telco.",11,approve_first,yes,yes
+AKRA,AKR Corporindo Tbk,industrial,"Adds industrial-distribution exposure and prevents the expanded universe from leaning too heavily on a single industrial profile.",12,approve_first,yes,yes
+CPIN,Charoen Pokphand Indonesia Tbk,consumer,"Adds another consumer/agri profile and improves internal diversity inside the consumer sleeve.",13,approve_first,yes,yes
+ITMG,Indo Tambangraya Megah Tbk,energy,"Adds a third energy candidate so the hard-floor set does not rely on only ADRO/PTBA in one cyclical sleeve.",14,approve_first,yes,yes
+TPIA,Chandra Asri Pacific Tbk,materials,"Adds another materials profile and keeps the hard-floor path diversified across more than six sector groups.",15,approve_first,yes,yes
+BBTN,Bank Tabungan Negara Tbk,finance,"Backup finance add after BBNI; useful, but finance is already heavily represented by frozen anchors.",16,approve_if_more_than_24,backup,no
+INCO,Vale Indonesia Tbk,materials,"Backup materials add after ANTM/SMGR/TPIA; useful if a materials candidate is rejected.",17,approve_if_more_than_24,backup,no
+MEDC,Medco Energi Internasional Tbk,energy,"Backup energy add after PTBA/ITMG; useful if one energy candidate is rejected.",18,approve_if_more_than_24,backup,no
+JPFA,Japfa Comfeed Indonesia Tbk,consumer,"Backup consumer add after MYOR/CPIN; useful if a consumer candidate is rejected.",19,approve_if_more_than_24,backup,no
+INTP,Indocement Tunggal Prakarsa Tbk,materials,"Backup materials add after SMGR/TPIA; useful when more than the hard floor is desired.",20,approve_if_more_than_24,backup,no
+ACES,Ace Hardware Indonesia Tbk,consumer,"Backup discretionary-consumer add after the safer hard-floor set is completed.",21,approve_if_more_than_24,backup,no

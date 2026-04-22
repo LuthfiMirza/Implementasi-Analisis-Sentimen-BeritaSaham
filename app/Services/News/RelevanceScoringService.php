@@ -45,7 +45,10 @@ class RelevanceScoringService
         $directTitleHits = $this->mapper->directHits($stock, $textTitle);
         $directBodyHits = $this->mapper->directHits($stock, $textBody);
         $directHits = array_values(array_unique(array_merge($directTitleHits, $directBodyHits)));
-        $competingHits = $this->mapper->competingIssuerHits($stock, $text);
+        $competingHits = $this->filterOverlappingCompetitorHits(
+            $this->mapper->competingIssuerHits($stock, $text),
+            $directHits
+        );
 
         $contextKeywords = config('news.context_keywords', []);
         $idxContextKeywords = [
@@ -259,5 +262,48 @@ class RelevanceScoringService
             'detected_language' => $language,
             'quality_flags' => $flags,
         ];
+    }
+
+    /**
+     * Hindari false negative saat issuer parent-brand hanya overlap dengan direct hit yang lebih spesifik.
+     *
+     * @param array<string, array<int, string>> $competingHits
+     * @param array<int, string> $directHits
+     * @return array<string, array<int, string>>
+     */
+    protected function filterOverlappingCompetitorHits(array $competingHits, array $directHits): array
+    {
+        if ($competingHits === [] || $directHits === []) {
+            return $competingHits;
+        }
+
+        $directHitsLower = collect($directHits)
+            ->map(fn ($hit) => mb_strtolower(trim((string) $hit)))
+            ->filter()
+            ->values();
+
+        return collect($competingHits)
+            ->map(function ($hits) use ($directHitsLower) {
+                return collect($hits)
+                    ->filter(function ($keyword) use ($directHitsLower) {
+                        $keywordLower = mb_strtolower(trim((string) $keyword));
+                        if ($keywordLower === '') {
+                            return false;
+                        }
+
+                        foreach ($directHitsLower as $directHit) {
+                            if ($directHit !== $keywordLower && str_contains($directHit, $keywordLower)) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    })
+                    ->unique()
+                    ->values()
+                    ->all();
+            })
+            ->filter(fn ($hits) => count($hits) > 0)
+            ->all();
     }
 }

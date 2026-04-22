@@ -1,0 +1,24 @@
+Baseline v2 Watchlist Validation
+================================
+
+- Decision: keep_candidate_experimental
+- Candidate: baseline_v2_hold3_with_trend_guard
+- Watchlist supported: True
+- Stable subset found: False
+- Can promote for subset: False
+- Can reject candidate: False
+- Recommended tickers: GOTO, BMRI, BBCA, BBRI
+- Recommended groups: sector:perbankan
+- Next action: keep_candidate_experimental_for_watchlist_subset
+
+Best snapshot:
+- subset_id=ticker_goto
+- subset_label=GOTO
+- observation_window=3
+- tickers=GOTO
+- candidate_better_than_active=True
+- delta_score_mean=+177.2368
+- noise_risk=True
+- Note: Watchlist subset menunjukkan improvement terhadap baseline aktif.
+- Note: Subset belum cukup stabil lintas horizon observasi.
+- Note: Signal masih cenderung noise karena trade atau coverage belum cukup.

@@ -1,0 +1,19 @@
+Phase B Data Extension Execution Plan
+- execution_plan_ready=True
+- highest_priority_execution_target=history_extension_all_tickers_with_primary_segment_article_day_recovery
+- recommended_next_action=refresh_phase_b_retest_readiness_gate_for_status_only_then_continue_phase_0b_data_audit
+- recheck_readiness_gate_allowed=True
+- decisive_statement=Target operasional batch/progress sekarang sudah memakai methodology-aligned usable OOS windows. Stretch target legacy 4/6/8 tetap dicatat, tetapi tidak lagi memblok status operasional batch.
+
+Priority tickers:
+- BUMI
+- BBCA
+- ASII
+- UNVR
+- ICBP
+
+Priority segments:
+- sentiment_segment=sentiment_poor
+- liquidity_segment=liquid_active
+- volatility_segment=higher_volatility
+- news_segment=mid_news

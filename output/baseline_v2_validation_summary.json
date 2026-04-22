@@ -1,0 +1,96 @@
+{
+  "generated_at": "2026-04-21T23:31:05.657220+00:00",
+  "candidate_context": {
+    "candidate_id": "baseline_v2_hold3_with_trend_guard",
+    "entry_rule": "close_gt_ema50_and_bullish_candle",
+    "hold_period": 3,
+    "trade_label": "t_plus_3",
+    "min_trades_threshold": 10,
+    "min_trades": 10,
+    "profit_buffer_pct": 0.0,
+    "score": 213.57580000000002,
+    "mean_score": 30.475800000000003,
+    "eligible_ticker_count": 12,
+    "total_trades_sum": 1231,
+    "average_return": -0.05121666666666665,
+    "win_rate": 41.233333333333334,
+    "max_drawdown": 43.533416666666675,
+    "why_selected": "Config redesign terbaik memakai hold_period=3, min_trades=10, eligible_ticker_count=12, total_trades_sum=1231, mean_score=+30.4758, global_selection_score=+213.5758.",
+    "why_not_selected_if_weak": null
+  },
+  "guardrails": {
+    "min_trades": 5,
+    "min_eligible_tickers": 3
+  },
+  "active_baseline_summary": {
+    "variant": "active_baseline",
+    "candidate_id": "baseline_active_eval_aligned",
+    "entry_rule": "close_gt_ema50_and_volume_spike_threshold",
+    "hold_period": 3,
+    "min_trades_threshold": 10,
+    "profit_buffer_pct": 0.0,
+    "ticker_count": 12,
+    "eligible_ticker_count": 12,
+    "positive_score_ticker_count": 10,
+    "total_trades_sum": 1231,
+    "signal_count_sum": 2040,
+    "mean_score": 8.090716666666667,
+    "mean_win_rate": 41.23333333333333,
+    "mean_buffered_win_rate": 41.23516666666667,
+    "mean_average_return": -0.05121666666666665,
+    "mean_max_drawdown": 43.53341666666666,
+    "global_selection_score": 233.19071666666667
+  },
+  "candidate_summary": {
+    "variant": "baseline_v2_candidate",
+    "candidate_id": "baseline_v2_hold3_with_trend_guard",
+    "entry_rule": "close_gt_ema50_and_bullish_candle",
+    "hold_period": 3,
+    "min_trades_threshold": 10,
+    "profit_buffer_pct": 0.0,
+    "ticker_count": 12,
+    "eligible_ticker_count": 12,
+    "positive_score_ticker_count": 5,
+    "total_trades_sum": 2904,
+    "signal_count_sum": 6077,
+    "mean_score": -0.07445833333333325,
+    "mean_win_rate": 40.785833333333336,
+    "mean_buffered_win_rate": 40.78589166666667,
+    "mean_average_return": -0.18624166666666667,
+    "mean_max_drawdown": 60.678491666666666,
+    "global_selection_score": 377.3255416666667
+  },
+  "delta_summary": {
+    "delta_eligible_ticker_count": 0,
+    "delta_positive_score_ticker_count": -5,
+    "delta_total_trades_sum": 1673,
+    "delta_signal_count_sum": 4037,
+    "delta_mean_score": -8.165175,
+    "delta_mean_average_return": -0.135025
+  },
+  "stability": {
+    "improve_ticker_count": 2,
+    "neutral_ticker_count": 2,
+    "worsen_ticker_count": 8,
+    "coverage_improved_ticker_count": 0,
+    "subset_candidate_tickers": [
+      "ASII",
+      "GOTO"
+    ],
+    "improve_tickers": [
+      "ASII",
+      "GOTO"
+    ],
+    "worsen_tickers": [
+      "ADRO",
+      "BBCA",
+      "BBRI",
+      "BMRI",
+      "BUMI",
+      "DEWA",
+      "ICBP",
+      "INDF"
+    ]
+  },
+  "warnings": []
+}

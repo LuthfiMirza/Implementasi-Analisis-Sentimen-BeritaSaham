@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-04-22T01:57:37.885509+00:00",
+  "primary_segment_total_articles": 54.0,
+  "primary_segment_article_days_median": 6.0,
+  "priority_tickers_checked": [
+    "ASII",
+    "BUMI",
+    "UNVR",
+    "ADRO",
+    "BBCA",
+    "INDF",
+    "TLKM",
+    "DEWA"
+  ],
+  "article_coverage_push_effective": false,
+  "batch_1_status": "batch_1_not_started_snapshot_still_static",
+  "batch_1_completed": true,
+  "checkpoint_material_reached": false,
+  "recheck_readiness_gate_allowed": false,
+  "remaining_blockers": [
+    "additional_bars_from_v9_baseline actual=0.0 target>=42",
+    "usable_oos_windows_per_ticker actual=3.0 target>=6"
+  ],
+  "recommended_next_action": "continue_batch_1_backfill_until_priority_snapshot_advance_is_visible",
+  "decisive_statement": "Walaupun batch-1 complete, retest tetap belum boleh dibuka sebelum readiness gate resmi di-rerun."
+}

@@ -1,0 +1,12 @@
+Entry Simplification Cycle 2 Closeout
+=====================================
+
+Current official decision:
+- candidate_more_oos_resilient_than_control = True
+- return20d_positive_drop_decision = provisionally_drop_from_core_stack
+- note = Candidate baru menunjukkan ketahanan OOS/holdout yang lebih baik secara mayoritas metrik utama, sehingga `return_20d > 0` layak dibuang dari stack inti secara provisional.
+- paper trading tetap tertutup
+- retest tetap tertutup
+
+Official next action:
+- prepare_core_stack_update_without_return20d_positive

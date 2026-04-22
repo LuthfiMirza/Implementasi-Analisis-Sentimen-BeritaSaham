@@ -1,18 +1,14 @@
 gate_name,threshold_id,operator,target_value,actual_value,pass,gap_value,gap_ratio,priority,source,note
-history_gate,min_history_bars_per_ticker,>=,120,960,True,0.0,0.0,high,ticker_metadata/data,Minimum history per ticker for fair retest.
-history_gate,additional_bars_from_v9_baseline,>=,0,0,True,0.0,0.0,high,ticker_metadata/data + v9 methodology,Additional bars beyond official baseline after policy realignment.
+history_gate,min_history_bars_per_ticker,>=,120,1171,True,0.0,0.0,high,ticker_metadata/data,Minimum history per ticker for fair retest.
+history_gate,additional_bars_from_v9_baseline,>=,0,211,True,0.0,0.0,high,ticker_metadata/data + v9 methodology,Additional bars beyond official baseline after policy realignment.
 history_gate,usable_oos_windows_per_ticker,>=,3,3,True,0.0,0.0,high,phase_b_data_extension_audit.json,Minimum usable OOS windows across tickers after methodology-aligned policy realignment.
 universe_coverage_gate,coverage_ready_ticker_ratio,>=,0.8,0.9167,True,0.0,0.0,high,ticker_metadata/data,Share of tickers already satisfying history + OOS window gate.
-universe_coverage_gate,primary_segment_ticker_count,>=,5,5,True,0.0,0.0,normal,baseline_v6_universe_segmentation.csv,Primary segment breadth.
-universe_coverage_gate,safe_segment_ticker_count[liquidity_segment=liquid_active],>=,3,6,True,0.0,0.0,normal,baseline_v6_next_experiment_governance.json + segmentation,Each safe segment must have minimum ticker breadth.
-universe_coverage_gate,safe_segment_ticker_count[volatility_segment=higher_volatility],>=,3,4,True,0.0,0.0,normal,baseline_v6_next_experiment_governance.json + segmentation,Each safe segment must have minimum ticker breadth.
-universe_coverage_gate,safe_segment_ticker_count[sentiment_segment=sentiment_rich],>=,3,7,True,0.0,0.0,normal,baseline_v6_next_experiment_governance.json + segmentation,Each safe segment must have minimum ticker breadth.
-universe_coverage_gate,safe_segment_ticker_count[news_segment=mid_news],>=,3,4,True,0.0,0.0,normal,baseline_v6_next_experiment_governance.json + segmentation,Each safe segment must have minimum ticker breadth.
-news_distribution_gate,median_news_density_pct,>=,0.3252,0.3252,True,0.0,0.0,high,ticker_metadata/data,Median aligned news density across current universe after explicit density-policy alignment review.
-news_distribution_gate,primary_segment_total_articles,>=,18,71,True,0.0,0.0,high,baseline_v6_universe_segmentation.csv,Total aligned articles in primary segment.
-news_distribution_gate,primary_segment_article_days_median,>=,4,6.0,True,0.0,0.0,high,baseline_v6_universe_segmentation.csv,Median article days across primary-segment tickers.
-news_distribution_gate,no_single_ticker_article_share,<=,0.35,0.2817,True,0.0,0.0,normal,baseline_v6_universe_segmentation.csv,Single ticker should not dominate primary-segment article supply.
-oos_fairness_gate,primary_segment_usable_oos_windows,>=,3,7,True,0.0,0.0,high,phase_b_data_extension_audit.json + segmentation,Primary segment minimum usable windows after methodology-aligned policy realignment.
+universe_coverage_gate,primary_segment_ticker_count,>=,5,6,True,0.0,0.0,normal,baseline_v6_universe_segmentation.csv,Primary segment breadth.
+news_distribution_gate,median_news_density_pct,>=,0.3252,0.3204,False,0.0048,0.0148,high,ticker_metadata/data,Median aligned news density across current universe after explicit density-policy alignment review.
+news_distribution_gate,primary_segment_total_articles,>=,18,89,True,0.0,0.0,high,baseline_v6_universe_segmentation.csv,Total aligned articles in primary segment.
+news_distribution_gate,primary_segment_article_days_median,>=,4,7.5,True,0.0,0.0,high,baseline_v6_universe_segmentation.csv,Median article days across primary-segment tickers.
+news_distribution_gate,no_single_ticker_article_share,<=,0.35,0.2697,True,0.0,0.0,normal,baseline_v6_universe_segmentation.csv,Single ticker should not dominate primary-segment article supply.
+oos_fairness_gate,primary_segment_usable_oos_windows,>=,3,8,True,0.0,0.0,high,phase_b_data_extension_audit.json + segmentation,Primary segment minimum usable windows after methodology-aligned policy realignment.
 oos_fairness_gate,active_ticker_count_in_oos,>=,4,5,True,0.0,0.0,normal,baseline_v9_segment_oos_go_no_go.json,Primary active ticker count in OOS.
 oos_fairness_gate,total_oos_trades_primary_segment,>=,18,1434,True,0.0,0.0,high,baseline_v9_segment_oos_go_no_go.json,Primary segment total OOS trade sample.
 oos_fairness_gate,no_single_ticker_trade_share,<=,0.5,0.2378,True,0.0,0.0,normal,baseline_v9_segment_oos_results.csv,Ticker concentration in primary OOS trades.
@@ -21,6 +17,13 @@ framework_governance_gate,evaluation_framework_redesign_finalized,>=,1,1,True,0.
 framework_governance_gate,segment_policy_finalized,>=,1,1,True,0.0,0.0,normal,framework_redesign_scope.json,Segment policy must be formalized before retest.
 framework_governance_gate,retest_readiness_gate_published,>=,1,1,True,0.0,0.0,normal,phase_b_retest_readiness_gate.json,This runner publishes the formal retest gate.
 framework_governance_gate,global_promotion_block_still_active,>=,1,1,True,0.0,0.0,normal,v9 go/no-go + framework scope,Global promotion must remain blocked.
+framework_governance_gate,baseline_filter_overlap_audit_completed,>=,1,1,True,0.0,0.0,high,phase_b_v2_overlap_audit.json,Overlap baseline versus filter tambahan harus diaudit eksplisit.
+framework_governance_gate,baseline_filter_overlap_risk_acceptable,>=,1,0,False,1.0,1.0,high,phase_b_v2_overlap_audit.json,Overlap risk harus tidak high sebelum ada diskusi retry.
+framework_governance_gate,baseline_trade_design_audit_completed,>=,1,1,True,0.0,0.0,high,phase_b_v2_trade_design_audit.json,"Hold period, trade labeling, retention, dan min trade floor harus diaudit."
+framework_governance_gate,signal_sparsity_flatness_audit_passed,>=,1,0,False,1.0,1.0,high,phase_b_v2_trade_design_audit.json,Signal sparsity/flatness harus lolos audit sebelum retest boleh dipertimbangkan.
+framework_governance_gate,baseline_redesign_candidate_usable,>=,1,1,True,0.0,0.0,high,baseline_redesign_go_no_go.json,Baseline redesign harus menghasilkan kandidat yang setidaknya usable untuk framework redesign.
+framework_governance_gate,baseline_validation_candidate_usable,>=,1,0,False,1.0,1.0,high,baseline_v2_validation_go_no_go.json,Kandidat redesign harus lolos validation minimum sebelum dianggap usable.
+framework_governance_gate,official_strategy_retry_reopened,>=,1,0,False,1.0,1.0,high,phase_b_final_closeout.json + project_after_phase_b_decision.json,Retry strategi butuh keputusan resmi baru yang membuka ulang track eksperimen.
 roadmap_discipline_gate,phase_b_closed,>=,1,1,True,0.0,0.0,normal,phase_b_final_closeout.json,Phase B must remain closed.
 roadmap_discipline_gate,phase_c_no_go_yet,>=,1,1,True,0.0,0.0,normal,project_roadmap_status.json,Phase C must remain blocked.
 roadmap_discipline_gate,item5_8_parked,>=,1,1,True,0.0,0.0,normal,phase_b_final_closeout.json,Items 5-8 must remain parked.

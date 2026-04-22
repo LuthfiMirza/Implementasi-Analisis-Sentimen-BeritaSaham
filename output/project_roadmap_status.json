@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-21T14:18:10.519806+00:00",
+  "generated_at": "2026-04-22T00:46:39.750758+00:00",
   "project_root": ".",
   "phase_summary": {
     "phase_a": {
@@ -21,36 +21,24 @@
       "total": 4
     }
   },
-  "current_focus": "phase_b_retest_closeout",
+  "current_focus": "phase_b_closed_data_extension_and_framework_redesign",
   "latest_execution_status": {
     "phase_b_status": "phase_b_closed_with_learnings_no_candidate",
     "phase_c_decision": "phase_c_no_go_yet",
     "root_problem_class": "foundation_and_signal_usability",
-    "baseline_redesign_status": "improved_but_keep_experimental",
+    "baseline_redesign_status": "usable_for_framework_redesign_only",
     "baseline_v3_signal_rule_status": "no_go",
     "baseline_v3_signal_rule_best_rule": "baseline_v3_ema20_trend_guard",
     "baseline_revision_status": "baseline_v2_no_go_redesign_again",
-    "baseline_v2_validation_status": "reject_candidate",
+    "baseline_v2_validation_status": "keep_candidate_experimental",
     "baseline_v2_subset_status": "keep_candidate_experimental",
-    "current_track": "phase_b_retest_executed_formal_closeout_published",
-    "recommended_next_action": "stop_and_collect_more_data_then_redesign_framework",
-    "retest_readiness_status": "boleh_retest",
-    "retest_readiness_snapshot_published": true,
-    "strategy_retest_status": "executed",
-    "strategy_retest_result": "no_go_even_for_segment",
-    "strategy_retest_candidate": "baseline_v3_ema20_trend_guard",
-    "strategy_retest_primary_segment": "sentiment_segment=sentiment_poor",
-    "official_primary_segment_tickers": [
-      "ADRO",
-      "ASII",
-      "BBCA",
-      "BUMI",
-      "UNVR"
-    ],
-    "can_continue_strategy_experiments_now": false
+    "retest_readiness_status": "belum_boleh_retest",
+    "can_continue_strategy_experiments_now": "false",
+    "current_track": "stop_and_collect_more_data_then_redesign_framework",
+    "recommended_next_action": "stop_and_collect_more_data_then_redesign_framework"
   },
   "phase_a_final_status": {
-    "generated_at": "2026-04-19T13:42:02.645465+00:00",
+    "generated_at": "2026-04-22T00:46:39.743615+00:00",
     "status": "closed_with_notes",
     "reason": "Phase A bisa dianggap selesai operasional, tetapi masih ada catatan non-blocking.",
     "baseline_status": "provisional",
@@ -305,31 +293,5 @@
       "remaining_gap": "Perlu penyimpanan journal, agregasi performa per setup, dan UI/report khusus trader workflow.",
       "recommended_next_action": "Tunda sampai sinyal Phase B stabil, lalu putuskan schema journal yang mengikuti output backtest/trade windows yang sudah matang."
     }
-  ],
-  "retest_execution": {
-    "status": "executed",
-    "readiness_gate_decision": "boleh_retest",
-    "roadmap_ready_for_retest_snapshot_published": true,
-    "official_result": "no_go_even_for_segment",
-    "candidate_id": "baseline_v3_ema20_trend_guard",
-    "primary_segment": "sentiment_segment=sentiment_poor",
-    "official_primary_segment_tickers": [
-      "ADRO",
-      "ASII",
-      "BBCA",
-      "BUMI",
-      "UNVR"
-    ],
-    "phase_b_final_status": "phase_b_closed_with_learnings_no_candidate",
-    "phase_c_decision": "phase_c_no_go_yet",
-    "recommended_next_action": "stop_and_collect_more_data_then_redesign_framework",
-    "source_artifacts": {
-      "readiness_gate": "output/phase_b_retest_readiness_gate.json",
-      "readiness_blockers": "output/phase_b_readiness_blocker_audit.json",
-      "oos_summary": "output/baseline_v9_segment_oos_summary.json",
-      "oos_go_no_go": "output/baseline_v9_segment_oos_go_no_go.json",
-      "phase_b_closeout": "output/phase_b_final_closeout.json",
-      "project_after_phase_b_decision": "output/project_after_phase_b_decision.json"
-    }
-  }
+  ]
 }

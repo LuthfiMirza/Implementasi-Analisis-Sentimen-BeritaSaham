@@ -356,7 +356,7 @@ def _current_batch_targets(execution_plan: Dict[str, object], batch_id: str) -> 
     for item in list(execution_plan.get("execution_batches") or []):
         batch = safe_dict(item)
         if _safe_str(batch.get("batch_id")) == batch_id:
-            return safe_dict(batch.get("targets"))
+            return safe_dict(batch.get("operational_targets")) or safe_dict(batch.get("targets"))
     return {}
 
 

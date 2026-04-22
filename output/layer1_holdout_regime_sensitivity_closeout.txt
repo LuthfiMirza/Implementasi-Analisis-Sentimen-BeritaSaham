@@ -1,0 +1,13 @@
+Layer 1 Holdout Regime Sensitivity Closeout
+===========================================
+
+Current official decision:
+- best_holdout_variant = ema50_above_ema200_and_ema50_slope_up
+- candidate_more_holdout_resilient_than_current = False
+- layer1_revision_decision = keep_current_layer1_regime
+- note = Tidak ada varian Layer 1 yang cukup tegas memperbaiki holdout resilience versus current regime, sehingga Layer 1 tetap dipertahankan dan residual weakness bergeser ke exit/drawdown behaviour.
+- paper trading tetap tertutup
+- retest tetap tertutup
+
+Official next action:
+- open_layer5_drawdown_control_planning

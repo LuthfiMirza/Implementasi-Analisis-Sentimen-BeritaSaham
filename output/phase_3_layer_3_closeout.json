@@ -1,0 +1,31 @@
+{
+  "artifact": "phase_3_layer_3_closeout",
+  "generated_at": "2026-04-22",
+  "source_of_truth": {
+    "phase_3_rsi14_integration_summary": "output/phase_3_rsi14_integration_summary.json",
+    "phase_3_rsi14_integration_report": "output/phase_3_rsi14_integration_report.txt",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "final_decision": {
+    "layer_3_status": "optional_integration_layer",
+    "layer_3_rule": "RSI14 >= 50 AND RSI14 <= 70",
+    "layer_3_frozen": false,
+    "layer_3_default_active": false,
+    "layer_3_note": "Menaikkan avg_delta_win_rate +0.6145 tetapi menurunkan avg_delta_average_return dari +0.0455 ke +0.0052; diaktifkan saat walk-forward sebagai toggle."
+  },
+  "comparison_snapshot": {
+    "layer_1_plus_layer_2_alternative": {
+      "total_trades": 8507,
+      "median_trade_retention": 85.5895,
+      "avg_delta_win_rate": 0.3924,
+      "avg_delta_average_return": 0.0455
+    },
+    "layer_1_plus_layer_2_alternative_plus_layer_3": {
+      "total_trades": 6815,
+      "median_trade_retention": 68.75,
+      "avg_delta_win_rate": 0.6145,
+      "avg_delta_average_return": 0.0052
+    }
+  },
+  "official_next_action": "Implement Layer 5 ATR trailing stop as the first experimental integration pass; Layer 3 remains optional and not default-active."
+}

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\NewsArticle;
 use App\Models\Stock;
 use App\Models\StockPrice;
+use App\Services\Stocks\DailyPriceSeriesValidator;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -25,12 +26,14 @@ class ExportPhaseARealDataCommand extends Command
         'sentiment_average_1d',
         'sentiment_weighted_1d',
         'sentiment_news_count_1d',
+        'sentiment_unavailable_count_1d',
     ];
 
     private const SENTIMENT_EMPTY_ROW = [
         'sentiment_average_1d' => 0.0,
         'sentiment_weighted_1d' => 0.0,
         'sentiment_news_count_1d' => 0,
+        'sentiment_unavailable_count_1d' => 0,
     ];
 
     protected $signature = 'phase-a:export-real-data
@@ -42,6 +45,12 @@ class ExportPhaseARealDataCommand extends Command
         {--include-inactive : Include inactive stocks as well}';
 
     protected $description = 'Export real stock_prices rows into the CSV dataset expected by the Phase A quant pipeline';
+
+    public function __construct(
+        protected DailyPriceSeriesValidator $dailyPriceSeriesValidator
+    ) {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -81,6 +90,28 @@ class ExportPhaseARealDataCommand extends Command
                 ->where('interval_type', $interval)
                 ->orderBy('price_date')
                 ->get(['price_date', 'open', 'high', 'low', 'close', 'volume', 'source']));
+
+            $validation = $this->dailyPriceSeriesValidator->validate(
+                $rows->map(fn (StockPrice $price): array => [
+                    'date' => Carbon::parse($price->price_date)->toDateString(),
+                    'open' => $price->open,
+                    'high' => $price->high,
+                    'low' => $price->low,
+                    'close' => $price->close,
+                    'volume' => $price->volume,
+                ])->all()
+            );
+
+            if (! $validation['valid']) {
+                $skippedTickers++;
+                $this->line(sprintf(
+                    'Skip %s: price history failed daily validation (%s).',
+                    $stock->code,
+                    implode(', ', $validation['errors'])
+                ));
+
+                continue;
+            }
 
             if ($rows->count() < $minRows) {
                 $skippedTickers++;
@@ -124,7 +155,7 @@ class ExportPhaseARealDataCommand extends Command
                     ? 'trade_date_window_prev_trade_exclusive_current_trade_inclusive'
                     : null,
                 'sentiment_fill_policy' => $includeSentimentSeries
-                    ? 'zero_score_and_zero_count_when_no_articles'
+                    ? 'zero_score_and_zero_count_when_no_sentiment_available_and_track_unavailable_count'
                     : null,
                 'sentiment_trade_date_start' => $includeSentimentSeries
                     ? ($firstDate ? Carbon::parse($firstDate)->toDateString() : null)
@@ -259,6 +290,7 @@ class ExportPhaseARealDataCommand extends Command
             ->get([
                 'published_at',
                 'sentiment_label',
+                'sentiment_method',
                 'sentiment_score',
                 'relevance_score',
                 'source_weight',
@@ -300,12 +332,23 @@ class ExportPhaseARealDataCommand extends Command
             return self::SENTIMENT_EMPTY_ROW;
         }
 
-        $scores = $articles->map(fn (NewsArticle $article): float => $this->resolveSentimentScore($article));
+        $availableArticles = $articles->filter(fn (NewsArticle $article) => $this->isSentimentAvailable($article))->values();
+        $unavailableCount = $articles->count() - $availableArticles->count();
+        if ($availableArticles->isEmpty()) {
+            return [
+                'sentiment_average_1d' => 0.0,
+                'sentiment_weighted_1d' => 0.0,
+                'sentiment_news_count_1d' => 0,
+                'sentiment_unavailable_count_1d' => $unavailableCount,
+            ];
+        }
+
+        $scores = $availableArticles->map(fn (NewsArticle $article): float => $this->resolveSentimentScore($article));
         $weightedSum = 0.0;
         $totalWeight = 0.0;
 
         /** @var \App\Models\NewsArticle $article */
-        foreach ($articles as $article) {
+        foreach ($availableArticles as $article) {
             $score = $this->resolveSentimentScore($article);
             $relevance = max(0.1, (float) ($article->relevance_score ?? 1.0));
             $sourceWeight = max(0.5, (float) ($article->source_weight ?? 1.0));
@@ -320,7 +363,8 @@ class ExportPhaseARealDataCommand extends Command
             'sentiment_weighted_1d' => $totalWeight > 0
                 ? round($weightedSum / $totalWeight, 4)
                 : 0.0,
-            'sentiment_news_count_1d' => $articles->count(),
+            'sentiment_news_count_1d' => $availableArticles->count(),
+            'sentiment_unavailable_count_1d' => $unavailableCount,
         ];
     }
 
@@ -341,6 +385,11 @@ class ExportPhaseARealDataCommand extends Command
             'days_with_articles' => $daysWithArticles,
             'article_count_total' => $articleCountTotal,
         ];
+    }
+
+    protected function isSentimentAvailable(NewsArticle $article): bool
+    {
+        return ($article->sentiment_method ?? null) !== 'python_unavailable';
     }
 
     protected function resolveSentimentScore(NewsArticle $article): float

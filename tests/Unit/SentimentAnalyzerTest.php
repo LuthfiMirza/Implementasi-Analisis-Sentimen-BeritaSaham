@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\Sentiment\HybridSentimentAnalyzer;
+use App\Services\Sentiment\PythonApiSentimentAnalyzer;
 use App\Services\Sentiment\RuleBasedSentimentAnalyzer;
 use Tests\TestCase;
 
@@ -39,13 +40,29 @@ class SentimentAnalyzerTest extends TestCase
         $this->assertStringContainsString('negasi', $result['reason_summary']);
     }
 
-    public function test_hybrid_fallback_to_rule_based_when_python_missing(): void
+    public function test_python_unavailable_is_explicit_and_not_hybrid_fallback(): void
     {
+        config()->set('sentiment.engine', 'python');
+        config()->set('sentiment.python_endpoint', null);
+
+        $analyzer = new PythonApiSentimentAnalyzer();
+        $result = $analyzer->analyze('Penurunan pendapatan dan suspensi perdagangan');
+
+        $this->assertSame('neutral', $result['label']);
+        $this->assertSame('python_unavailable', $result['method']);
+        $this->assertSame('python_endpoint_missing', $result['python_status']);
+    }
+
+    public function test_hybrid_mode_no_longer_falls_back_to_rule_based(): void
+    {
+        config()->set('sentiment.engine', 'hybrid');
+        config()->set('sentiment.python_endpoint', null);
+
         $analyzer = new HybridSentimentAnalyzer();
         $result = $analyzer->analyze('Penurunan pendapatan dan suspensi perdagangan');
 
-        $this->assertSame('negative', $result['label']);
-        $this->assertEquals('hybrid_fallback', $result['method']);
+        $this->assertSame('neutral', $result['label']);
+        $this->assertSame('python_unavailable', $result['method']);
         $this->assertNotNull($result['confidence']);
     }
 }

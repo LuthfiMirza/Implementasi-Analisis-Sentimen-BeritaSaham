@@ -1,0 +1,29 @@
+Baseline v2 Recommendations
+===========================
+
+- Decision: baseline_v2_candidate_ready
+- Baseline v2 candidate selected: baseline_v2_hold3_with_trend_guard
+- Baseline revision supported: True
+- Can retry Phase B after baseline v2: False
+- Recommended retry target: none_yet_until_baseline_v2_validated
+- Next action: validate_baseline_v2_candidate
+
+Selected candidate snapshot:
+- candidate_id=baseline_v2_hold3_with_trend_guard
+- entry_rule=close_gt_ema50_and_bullish_candle
+- hold_period=3
+- min_trades_threshold=5
+- eligible_ticker_count=1
+- total_trades_sum=10.0
+- mean_score=-12.4920
+- mean_average_return=+4.2433
+
+Recommended revision axes:
+- Kurangi ketergantungan entry pada volume spike sebagai syarat wajib.
+- Tetapkan hold period default 3 sebagai kandidat baseline v2 utama.
+- Pilih entry yang lebih sederhana tetapi tetap menjaga trend sebagai syarat esensial.
+
+Decision notes:
+- Candidate terpilih memperbaiki score global terhadap baseline redesign saat ini.
+- Coverage ticker eligible masih terlalu kecil untuk membuka retry Phase B.
+- Candidate terpilih layak divalidasi dulu sebagai baseline v2 sebelum Phase B diulang.

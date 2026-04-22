@@ -1,0 +1,10 @@
+DB connectivity restored: true
+Root cause class: mixed_root_cause
+MySQL service reachable: true
+Laravel env valid: true
+Laravel config cache stale: false
+Credentials validated: true
+Artisan DB access working: true
+Backfill prerequisite ready: true
+Highest blocking issue: none
+Recommended next action: rerun_priority_backfill_execution_now_that_db_prerequisite_is_ready

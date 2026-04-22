@@ -1,0 +1,97 @@
+{
+  "phase": "phase_4_position_sizing",
+  "status": "completed",
+  "generated_at": "2026-04-22T12:22:46.698517+00:00",
+  "source_files": {
+    "stock_indicator_master_file": "data/indicator_master/stock_indicator_master.csv",
+    "ihsg_indicator_master_file": "data/indicator_master/IHSG_indicator_master.csv",
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "metadata_file": "data/ticker_metadata.csv"
+  },
+  "position_sizing_policy": {
+    "risk_per_trade_pct": 2.0,
+    "max_position_pct": 10.0,
+    "initial_capital": 100000000.0,
+    "note": "Layer 4 first pass uses sequential portfolio compounding over realized trades; overlapping portfolio allocation is not yet modeled separately."
+  },
+  "layer_3_context": {
+    "layer_3_status": "optional_integration_layer",
+    "layer_3_default_active": false
+  },
+  "variant_results": [
+    {
+      "variant_id": "atr_trailing_stop_no_layer3_unsized",
+      "variant_label": "ATR trailing stop without Layer 3 (unsized baseline)",
+      "layer_3_active": false,
+      "position_sizing_active": false,
+      "risk_per_trade_pct": NaN,
+      "max_position_pct": NaN,
+      "initial_capital": 100000000.0,
+      "total_trades": 5941,
+      "portfolio_return_pct": 1.8416648582801834e+17,
+      "portfolio_ending_value": 1.8416648582801843e+23,
+      "portfolio_max_drawdown_pct": 99.9912,
+      "avg_return_per_trade": 1.0854,
+      "avg_win_rate": 44.3023,
+      "avg_holding_period_actual": 11.2976,
+      "avg_position_size_pct": 100.0,
+      "cap_hit_rate_pct": 0.0,
+      "max_drawdown_per_trade": 4.8938,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "atr_trailing_stop_no_layer3_sized",
+      "variant_label": "ATR trailing stop without Layer 3 + fixed fractional sizing",
+      "layer_3_active": false,
+      "position_sizing_active": true,
+      "risk_per_trade_pct": 2.0,
+      "max_position_pct": 10.0,
+      "initial_capital": 100000000.0,
+      "total_trades": 5941,
+      "portfolio_return_pct": 43609.3665,
+      "portfolio_ending_value": 43709366511.3871,
+      "portfolio_max_drawdown_pct": 44.1235,
+      "avg_return_per_trade": 1.0854,
+      "avg_win_rate": 44.3023,
+      "avg_holding_period_actual": 11.2976,
+      "avg_position_size_pct": 9.9855,
+      "cap_hit_rate_pct": 99.1752,
+      "max_drawdown_per_trade": 4.8938,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "atr_trailing_stop_with_layer3_toggle_sized",
+      "variant_label": "ATR trailing stop with Layer 3 toggle + fixed fractional sizing",
+      "layer_3_active": true,
+      "position_sizing_active": true,
+      "risk_per_trade_pct": 2.0,
+      "max_position_pct": 10.0,
+      "initial_capital": 100000000.0,
+      "total_trades": 5118,
+      "portfolio_return_pct": 11552.2358,
+      "portfolio_ending_value": 11652235823.364,
+      "portfolio_max_drawdown_pct": 42.748,
+      "avg_return_per_trade": 0.9807,
+      "avg_win_rate": 44.4705,
+      "avg_holding_period_actual": 11.4228,
+      "avg_position_size_pct": 9.9877,
+      "cap_hit_rate_pct": 99.2771,
+      "max_drawdown_per_trade": 4.7908,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    }
+  ],
+  "integration_decision": {
+    "layer_4_usable_as_integration_layer": true,
+    "reason": "Layer 4 first pass completed; next action is walk-forward preparation with sizing active."
+  },
+  "warnings": []
+}

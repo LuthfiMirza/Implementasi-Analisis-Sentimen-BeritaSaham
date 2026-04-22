@@ -1,0 +1,52 @@
+{
+  "generated_at": "2026-04-19T12:55:48.025826+00:00",
+  "experiment_id": "baseline_v4_quality_gate_guard",
+  "scaffold_only": false,
+  "objective": "Prepare the first v4 experiment around fast anchor + quality gate without changing baseline defaults or running a full experiment matrix.",
+  "candidate_matrix": [
+    {
+      "candidate_id": "baseline_v4_quality_gate_guard",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "body_strength_floor",
+      "gate_summary": "Require stronger bullish body before accepting fast anchor signal.",
+      "min_body_to_range_ratio": 0.55,
+      "min_close_vs_open_pct": 0.35,
+      "min_range_pct": 0.8,
+      "min_close_vs_anchor_pct": 0.0,
+      "hold_period": 3,
+      "min_trades_threshold": 5,
+      "status": "scaffold_only"
+    },
+    {
+      "candidate_id": "baseline_v4_quality_gate_guard_confirmed",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "body_strength_plus_anchor_confirmation",
+      "gate_summary": "Add minimum close distance above fast anchor to reject weak closes.",
+      "min_body_to_range_ratio": 0.5,
+      "min_close_vs_open_pct": 0.3,
+      "min_range_pct": 0.8,
+      "min_close_vs_anchor_pct": 0.2,
+      "hold_period": 3,
+      "min_trades_threshold": 5,
+      "status": "scaffold_only"
+    },
+    {
+      "candidate_id": "baseline_v4_quality_gate_guard_volatility_floor",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "body_strength_plus_volatility_floor",
+      "gate_summary": "Reject quiet candles that sit above anchor without meaningful range expansion.",
+      "min_body_to_range_ratio": 0.45,
+      "min_close_vs_open_pct": 0.25,
+      "min_range_pct": 1.1,
+      "min_close_vs_anchor_pct": 0.1,
+      "hold_period": 3,
+      "min_trades_threshold": 5,
+      "status": "scaffold_only"
+    }
+  ],
+  "execution_notes": [
+    "Gunakan anchor cepat yang sudah terbukti membuka coverage, tetapi tambahkan quality gate ringan.",
+    "Jangan ubah baseline aktif atau scoring engine.",
+    "Bandingkan hanya terhadap reference rule dan fast-anchor v3 sebagai control."
+  ]
+}

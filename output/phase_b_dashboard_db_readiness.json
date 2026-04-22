@@ -1,0 +1,8 @@
+{
+  "generated_at": "2026-04-22T01:50:16.799564+00:00",
+  "laravel_can_query_db": true,
+  "dashboard_db_ready": true,
+  "db_connectivity_restored": true,
+  "highest_blocking_issue": "none",
+  "recommended_next_action": "db_ready_for_backfill_but_keep_retest_gate_closed_until_backfill_progress_is_verified"
+}

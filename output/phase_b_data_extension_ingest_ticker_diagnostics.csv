@@ -1,0 +1,6 @@
+ticker,priority_rank,ingest_status,file_change_detected,history_progress_valid,article_day_progress_valid,metadata_refresh_valid,segmentation_refresh_valid,progress_classification,root_cause,history_rows_delta,usable_oos_windows_delta,article_days_delta,news_count_total_delta
+ADRO,1,rejected,True,False,True,True,True,file_changed_but_progress_not_valid,history_effective_not_increasing,0,196,1,-3
+BUMI,2,rejected,True,False,False,True,True,file_changed_but_progress_not_valid,history_effective_not_increasing,0,196,0,-1
+BBCA,3,rejected,True,False,False,True,True,file_changed_but_progress_not_valid,history_effective_not_increasing,0,196,0,2
+ASII,4,rejected,True,False,False,True,True,file_changed_but_progress_not_valid,history_effective_not_increasing,0,196,0,0
+UNVR,5,rejected,True,False,False,True,True,file_changed_but_progress_not_valid,history_effective_not_increasing,0,196,0,-3

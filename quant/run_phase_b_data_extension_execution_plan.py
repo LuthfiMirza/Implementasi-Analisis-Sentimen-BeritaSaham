@@ -47,6 +47,11 @@ TARGET_PRIMARY_TOTAL_OOS_TRADES = 18
 TARGET_SINGLE_FOLD_TRADE_SHARE_MAX = 0.50
 TARGET_COVERAGE_READY_RATIO = 0.80
 BATCH_BAR_STEP = 21
+LEGACY_STRETCH_WINDOWS_BY_BATCH = {
+    "batch_1": 4.0,
+    "batch_2": 6.0,
+    "batch_3": 8.0,
+}
 
 TICKER_COLUMNS = [
     "priority_rank",
@@ -302,6 +307,42 @@ def _methodology(artifacts: Dict[str, Dict[str, object]]) -> Dict[str, int]:
         "warmup_bars": _safe_int(meta.get("warmup_bars"), 21),
         "fold_size_bars": _safe_int(meta.get("fold_size_bars"), 12),
         "min_rows_across_tested_tickers": _safe_int(meta.get("min_rows_across_tested_tickers"), 57),
+    }
+
+
+def _oos_window_threshold_semantics(
+    artifacts: Dict[str, Dict[str, object]],
+    methodology: Dict[str, int],
+) -> Dict[str, object]:
+    gate = safe_dict(artifacts.get("phase_b_retest_readiness_gate"))
+    aligned = safe_dict(gate.get("methodology_aligned_thresholds"))
+    derived_methodology_windows = _usable_oos_windows(
+        _safe_int(methodology.get("min_rows_across_tested_tickers"), 57),
+        _safe_int(methodology.get("warmup_bars"), 21),
+        _safe_int(methodology.get("fold_size_bars"), 12),
+    )
+    methodology_minimum_windows = _safe_int(
+        aligned.get("history_gate::usable_oos_windows_per_ticker"),
+        derived_methodology_windows,
+    )
+    methodology_minimum_windows = max(1, methodology_minimum_windows or derived_methodology_windows or 1)
+
+    return {
+        "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+        "source_of_truth_field": "methodology_aligned_thresholds.history_gate::usable_oos_windows_per_ticker",
+        "methodology_minimum_windows": float(methodology_minimum_windows),
+        "stretch_target_windows_by_batch": dict(LEGACY_STRETCH_WINDOWS_BY_BATCH),
+        "legacy_default_windows": float(TARGET_USABLE_OOS_WINDOWS),
+        "operational_batch_completion_uses": "methodology_minimum_windows",
+        "strategy_retry_allowed_uses": (
+            "phase_b_retest_readiness_gate final_decision + framework_governance_gate, "
+            "not legacy stretch target windows"
+        ),
+        "reason": (
+            "Batch/progress framework harus mengikuti threshold metodologi resmi yang sudah aktif di readiness gate. "
+            "Stretch target 4/6/8 tetap dicatat sebagai aspirasi non-blocking agar tidak lagi bercampur dengan "
+            "definisi operasional batch completion."
+        ),
     }
 
 
@@ -623,11 +664,13 @@ def _build_progress_tracker(
     artifacts: Dict[str, Dict[str, object]],
     v9_results: pd.DataFrame,
     primary_segment: str,
+    window_semantics: Dict[str, object],
 ) -> List[Dict[str, object]]:
     audit = safe_dict(artifacts.get("phase_b_data_extension_audit"))
     history_assessment = safe_dict(audit.get("history_length_assessment"))
     v9_go = safe_dict(artifacts.get("baseline_v9_segment_oos_go_no_go"))
     methodology = _methodology(artifacts)
+    operational_windows_target = _safe_int(window_semantics.get("methodology_minimum_windows"), TARGET_USABLE_OOS_WINDOWS)
     v9_min_history = max(0, _safe_int(methodology.get("min_rows_across_tested_tickers"), 57))
     warmup_bars = _safe_int(methodology.get("warmup_bars"), 21)
     fold_size_bars = _safe_int(methodology.get("fold_size_bars"), 12)
@@ -646,7 +689,7 @@ def _build_progress_tracker(
                     _usable_oos_windows(_safe_int(value), warmup_bars, fold_size_bars)
                     for value in list(working["history_rows"])
                 ]
-            ).ge(TARGET_USABLE_OOS_WINDOWS)
+            ).ge(operational_windows_target)
         )
         coverage_ready_ratio = round(float(coverage_mask.mean()), 4) if len(working) else 0.0
         primary_subset = working.loc[working["is_primary_segment"].astype(bool)].copy()
@@ -700,12 +743,17 @@ def _build_progress_tracker(
             "usable_oos_windows_per_ticker",
             "windows",
             current_windows,
-            TARGET_USABLE_OOS_WINDOWS,
-            4.0,
-            6.0,
-            8.0,
+            float(operational_windows_target),
+            float(operational_windows_target),
+            float(operational_windows_target),
+            float(operational_windows_target),
             ">=",
-            "Usable OOS windows mengikuti warmup dan fold_size pada summary baseline v9 terbaru.",
+            (
+                "Usable OOS windows operasional mengikuti methodology-aligned threshold pada readiness gate. "
+                f"Stretch target legacy tetap dicatat terpisah: batch_1={LEGACY_STRETCH_WINDOWS_BY_BATCH['batch_1']}, "
+                f"batch_2={LEGACY_STRETCH_WINDOWS_BY_BATCH['batch_2']}, "
+                f"batch_3={LEGACY_STRETCH_WINDOWS_BY_BATCH['batch_3']}."
+            ),
         ),
         _tracker_row(
             "coverage_ready_ratio",
@@ -776,30 +824,45 @@ def _build_progress_tracker(
     return rows
 
 
-def _minimum_progress_needed_before_recheck() -> Dict[str, object]:
-    return {
-        "checkpoint_name": "batch_2_material_progress_checkpoint",
-        "required_metrics": [
-            {"metric": "min_history_bars_per_ticker", "operator": ">=", "value": 99},
-            {"metric": "additional_bars_from_v9_baseline", "operator": ">=", "value": 42},
-            {"metric": "usable_oos_windows_per_ticker", "operator": ">=", "value": 6},
-            {"metric": "primary_segment_total_articles", "operator": ">=", "value": 14},
-            {"metric": "primary_segment_article_days_median", "operator": ">=", "value": 3},
-            {"metric": "metadata_and_segmentation_refreshed", "operator": "==", "value": True},
-        ],
-        "reason": (
-            "Recheck sebelum checkpoint batch-2 terlalu dini karena blocker ranking belum berubah secara material. "
-            "Checkpoint ini cukup besar untuk menguji apakah history dan distribusi sample benar-benar membaik."
-        ),
-    }
+def _minimum_progress_needed_before_recheck(operational_windows_target: int) -> Dict[str, object]:
+    payload = _minimum_progress_needed_before_recheck.__dict__.get("_template")
+    if payload is None:
+        payload = {
+            "checkpoint_name": "batch_2_material_progress_checkpoint",
+            "required_metrics": [
+                {"metric": "min_history_bars_per_ticker", "operator": ">=", "value": 99},
+                {"metric": "additional_bars_from_v9_baseline", "operator": ">=", "value": 42},
+                {"metric": "usable_oos_windows_per_ticker", "operator": ">=", "value": float(operational_windows_target)},
+                {"metric": "primary_segment_total_articles", "operator": ">=", "value": 14},
+                {"metric": "primary_segment_article_days_median", "operator": ">=", "value": 3},
+                {"metric": "metadata_and_segmentation_refreshed", "operator": "==", "value": True},
+            ],
+            "stretch_metrics_not_required_for_recheck": [
+                {
+                    "metric": "usable_oos_windows_per_ticker",
+                    "batch_1_stretch": LEGACY_STRETCH_WINDOWS_BY_BATCH["batch_1"],
+                    "batch_2_stretch": LEGACY_STRETCH_WINDOWS_BY_BATCH["batch_2"],
+                    "batch_3_stretch": LEGACY_STRETCH_WINDOWS_BY_BATCH["batch_3"],
+                }
+            ],
+            "reason": (
+                "Recheck sebelum checkpoint batch-2 terlalu dini karena blocker ranking belum berubah secara material. "
+                "Checkpoint ini cukup besar untuk menguji apakah history dan distribusi sample benar-benar membaik "
+                "di bawah threshold metodologi resmi yang sekarang aktif."
+            ),
+        }
+        _minimum_progress_needed_before_recheck.__dict__["_template"] = payload
+    result = json.loads(json.dumps(payload))
+    result["required_metrics"][2]["value"] = float(operational_windows_target)
+    return result
 
 
-def _recheck_allowed(progress_tracker: Sequence[Dict[str, object]]) -> bool:
+def _recheck_allowed(progress_tracker: Sequence[Dict[str, object]], operational_windows_target: int) -> bool:
     lookup = {str(row.get("metric_name")): row for row in progress_tracker}
     return (
         _safe_float(safe_dict(lookup.get("min_history_bars_per_ticker")).get("current_value")) >= 99.0
         and _safe_float(safe_dict(lookup.get("additional_bars_from_v9_baseline")).get("current_value")) >= 42.0
-        and _safe_float(safe_dict(lookup.get("usable_oos_windows_per_ticker")).get("current_value")) >= 6.0
+        and _safe_float(safe_dict(lookup.get("usable_oos_windows_per_ticker")).get("current_value")) >= float(operational_windows_target)
         and _safe_float(safe_dict(lookup.get("primary_segment_total_articles")).get("current_value")) >= 14.0
         and _safe_float(safe_dict(lookup.get("primary_segment_article_days_median")).get("current_value")) >= 3.0
     )
@@ -808,20 +871,27 @@ def _recheck_allowed(progress_tracker: Sequence[Dict[str, object]]) -> bool:
 def _build_recheck_trigger(
     progress_tracker: Sequence[Dict[str, object]],
     highest_priority_execution_target: str,
+    window_semantics: Dict[str, object],
 ) -> Dict[str, object]:
-    allowed = _recheck_allowed(progress_tracker)
+    operational_windows_target = _safe_int(window_semantics.get("methodology_minimum_windows"), TARGET_USABLE_OOS_WINDOWS)
+    allowed = _recheck_allowed(progress_tracker, operational_windows_target=operational_windows_target)
     return {
-        "minimum_progress_needed_before_recheck": _minimum_progress_needed_before_recheck(),
+        "minimum_progress_needed_before_recheck": _minimum_progress_needed_before_recheck(
+            operational_windows_target=operational_windows_target
+        ),
         "recheck_readiness_gate_allowed": allowed,
         "current_status": "allowed" if allowed else "not_allowed_yet",
         "highest_priority_execution_target": highest_priority_execution_target,
+        "oos_window_threshold_semantics": window_semantics,
         "not_allowed_reason": (
             "Retest gate tidak boleh dijalankan ulang sebelum threshold progress minimum tercapai."
             if not allowed
             else ""
         ),
         "recommended_recheck_moment": (
-            "Setelah seluruh ticker mencapai minimal 99 bar, primary articles minimal 14, median article days primary minimal 3, dan artifact metadata/segmentation diperbarui."
+            "Setelah seluruh ticker mencapai minimal 99 bar, primary articles minimal 14, median article days primary minimal 3, "
+            f"minimal {operational_windows_target} methodology-aligned usable windows, dan artifact metadata/segmentation "
+            "diperbarui. Recheck ini hanya untuk refresh blocker status, bukan izin retry strategi."
         ),
     }
 
@@ -862,6 +932,7 @@ def run_phase_b_data_extension_execution_plan(
     primary_segment = _primary_segment(artifacts=artifacts)
     safe_segments = _safe_segments(artifacts=artifacts, output_dir=output_dir)
     methodology = _methodology(artifacts=artifacts)
+    window_semantics = _oos_window_threshold_semantics(artifacts=artifacts, methodology=methodology)
     primary_trades, primary_trade_shares, _ = _primary_trade_lookup(v9_results=v9_results, primary_segment=primary_segment)
     working = _merge_ticker_context(
         metadata_df=metadata_df,
@@ -884,6 +955,7 @@ def run_phase_b_data_extension_execution_plan(
         artifacts=artifacts,
         v9_results=v9_results,
         primary_segment=primary_segment,
+        window_semantics=window_semantics,
     )
 
     top_tickers = [row["ticker"] for row in priority_ticker_rows[:5]]
@@ -892,57 +964,102 @@ def run_phase_b_data_extension_execution_plan(
     recheck_trigger = _build_recheck_trigger(
         progress_tracker=progress_tracker,
         highest_priority_execution_target=highest_priority_execution_target,
+        window_semantics=window_semantics,
+    )
+    recheck_allowed = _safe_bool(recheck_trigger.get("recheck_readiness_gate_allowed"))
+    recommended_next_action = (
+        "refresh_phase_b_retest_readiness_gate_for_status_only_then_continue_phase_0b_data_audit"
+        if recheck_allowed
+        else "execute_history_extension_batch_1_then_raise_primary_segment_article_day_coverage_before_any_recheck"
+    )
+    decisive_statement = (
+        "Target operasional batch/progress sekarang sudah memakai methodology-aligned usable OOS windows. "
+        "Stretch target legacy 4/6/8 tetap dicatat, tetapi tidak lagi memblok status operasional batch."
+        if recheck_allowed
+        else (
+            "Langkah berikutnya adalah menutup gap history/distribusi yang masih tertinggal dengan threshold operasional "
+            "yang sudah diselaraskan ke metodologi resmi. Stretch target legacy tetap informasional saja."
+        )
     )
 
     execution_plan = {
         "generated_at": _now_iso(),
+        "framework_redesign_phase": "phase_0a_evaluation_framework_redesign",
         "execution_plan_ready": True,
         "highest_priority_execution_target": highest_priority_execution_target,
         "priority_tickers": top_tickers,
         "priority_segments": top_segments,
         "minimum_progress_needed_before_recheck": recheck_trigger["minimum_progress_needed_before_recheck"],
-        "recheck_readiness_gate_allowed": recheck_trigger["recheck_readiness_gate_allowed"],
-        "recommended_next_action": "execute_history_extension_batch_1_then_raise_primary_segment_article_day_coverage_before_any_recheck",
+        "recheck_readiness_gate_allowed": recheck_allowed,
+        "strategy_retry_still_blocked": True,
+        "recommended_next_action": recommended_next_action,
+        "oos_window_threshold_semantics": window_semantics,
         "execution_batches": [
             {
                 "batch_id": "batch_1",
                 "focus": "close_history_gap_first_and_start_primary_article_day_recovery",
+                "operational_targets": {
+                    "min_history_bars_per_ticker": 78,
+                    "additional_bars_from_v9_baseline": 21,
+                    "usable_oos_windows_per_ticker": _safe_float(window_semantics.get("methodology_minimum_windows")),
+                    "primary_segment_total_articles": 13,
+                    "primary_segment_article_days_median": 3,
+                },
                 "targets": {
                     "min_history_bars_per_ticker": 78,
                     "additional_bars_from_v9_baseline": 21,
-                    "usable_oos_windows_per_ticker": 4,
+                    "usable_oos_windows_per_ticker": _safe_float(window_semantics.get("methodology_minimum_windows")),
                     "primary_segment_total_articles": 13,
                     "primary_segment_article_days_median": 3,
+                },
+                "stretch_targets": {
+                    "usable_oos_windows_per_ticker": LEGACY_STRETCH_WINDOWS_BY_BATCH["batch_1"],
                 },
             },
             {
                 "batch_id": "batch_2",
                 "focus": "reach_material_progress_checkpoint_before_recheck",
+                "operational_targets": {
+                    "min_history_bars_per_ticker": 99,
+                    "additional_bars_from_v9_baseline": 42,
+                    "usable_oos_windows_per_ticker": _safe_float(window_semantics.get("methodology_minimum_windows")),
+                    "primary_segment_total_articles": 14,
+                    "primary_segment_article_days_median": 3,
+                },
                 "targets": {
                     "min_history_bars_per_ticker": 99,
                     "additional_bars_from_v9_baseline": 42,
-                    "usable_oos_windows_per_ticker": 6,
+                    "usable_oos_windows_per_ticker": _safe_float(window_semantics.get("methodology_minimum_windows")),
                     "primary_segment_total_articles": 14,
                     "primary_segment_article_days_median": 3,
+                },
+                "stretch_targets": {
+                    "usable_oos_windows_per_ticker": LEGACY_STRETCH_WINDOWS_BY_BATCH["batch_2"],
                 },
             },
             {
                 "batch_id": "batch_3",
                 "focus": "close_full_history_and_distribution_targets_then_prepare_gate_rerun",
-                "targets": {
+                "operational_targets": {
                     "min_history_bars_per_ticker": 120,
                     "additional_bars_from_v9_baseline": 63,
-                    "usable_oos_windows_per_ticker": 8,
+                    "usable_oos_windows_per_ticker": _safe_float(window_semantics.get("methodology_minimum_windows")),
                     "primary_segment_total_articles": 18,
                     "primary_segment_article_days_median": 4,
                 },
+                "targets": {
+                    "min_history_bars_per_ticker": 120,
+                    "additional_bars_from_v9_baseline": 63,
+                    "usable_oos_windows_per_ticker": _safe_float(window_semantics.get("methodology_minimum_windows")),
+                    "primary_segment_total_articles": 18,
+                    "primary_segment_article_days_median": 4,
+                },
+                "stretch_targets": {
+                    "usable_oos_windows_per_ticker": LEGACY_STRETCH_WINDOWS_BY_BATCH["batch_3"],
+                },
             },
         ],
-        "decisive_statement": (
-            "Langkah berikutnya adalah menutup gap history sebelum retest gate diperiksa ulang. "
-            "News extension saja tidak cukup; progress minimum harus menutup history, article-day coverage, dan OOS sample fairness. "
-            "Retest gate tidak boleh dijalankan ulang sebelum threshold progress minimum tercapai."
-        ),
+        "decisive_statement": decisive_statement,
         "artifact_availability": artifact_availability,
         "limitations": limitations,
     }

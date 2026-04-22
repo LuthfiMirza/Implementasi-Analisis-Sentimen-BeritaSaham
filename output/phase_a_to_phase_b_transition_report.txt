@@ -45,3 +45,127 @@ Phase B Item 5 Execution:
 - Execution status: executed
 - Reason: Eksperimen item 5 berhasil dijalankan dan artifact terukur sudah ditulis.
 - Command: python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --require-candle-volume-confirmation --candle-volume-confirmation-threshold 1.00 --metadata-file data/ticker_metadata.csv
+
+Phase B Postmortem Update:
+- Phase B status: phase_b_needs_redesign_before_continue
+- Phase B summary: Fase B ditutup tanpa promosi baseline (item5=no_go, item6=no_go, item7=no_go, item8=no_go); pola gagal didominasi foundation_and_signal_usability, sehingga redesign minimum dibutuhkan sebelum lanjut.
+- Phase C decision: phase_c_no_go_yet
+- Next phase recommendation: return_to_baseline_data_evaluation_redesign
+- Updated at: 2026-04-19T01:51:27.589046+00:00
+
+Baseline Redesign Update:
+- baseline_redesign_status: improved_but_keep_experimental
+- baseline_redesign_next_action: revise_baseline_further
+- phase_b_retry_readiness: not_ready_yet
+
+Baseline Revision Update:
+- baseline_revision_status: baseline_v2_candidate_ready
+- baseline_revision_next_action: validate_baseline_v2_candidate
+- phase_b_retry_readiness_after_baseline_v2: not_ready_yet
+
+Baseline v2 Validation Update:
+- baseline_v2_validation_status: keep_candidate_experimental
+- baseline_v2_validation_next_action: keep_candidate_experimental_and_continue_validation
+- phase_b_retry_readiness_after_candidate_validation: not_ready_yet
+
+Baseline v2 Subset Validation Update:
+- baseline_v2_subset_status: keep_candidate_experimental
+- baseline_v2_subset_next_action: keep_candidate_experimental_for_watchlist_subset
+- phase_b_subset_retry_readiness: not_ready_yet
+
+Baseline v2 Watchlist Validation Update:
+- baseline_v2_watchlist_status: keep_candidate_experimental
+- baseline_v2_watchlist_next_action: keep_candidate_experimental_for_watchlist_subset
+
+Baseline v2 Watchlist Monitoring Update:
+- baseline_v2_watchlist_monitoring_status: keep_candidate_experimental
+- baseline_v2_watchlist_monitoring_next_action: keep_candidate_experimental_for_watchlist_subset
+
+Project Current State Update:
+- project_current_state_status: frozen_with_experimental_watchlist_monitoring
+- project_current_state_next_action: keep_candidate_experimental_for_watchlist_subset
+- project_operational_baseline: phase_a_active_baseline
+- project_experimental_candidate: baseline_v2_hold3_with_trend_guard
+- project_phase_b_retry_status: not_ready
+- project_phase_c_status: phase_c_no_go_yet
+
+Baseline Redesign Update:
+- baseline_redesign_status: improved_but_keep_experimental
+- baseline_redesign_next_action: revise_baseline_further
+- phase_b_retry_readiness: not_ready_yet
+
+Baseline v2 Validation Update:
+- baseline_v2_validation_status: keep_candidate_experimental
+- baseline_v2_validation_next_action: keep_candidate_experimental_and_continue_validation
+- phase_b_retry_readiness_after_candidate_validation: not_ready_yet
+
+Baseline Redesign Update:
+- baseline_redesign_status: improved_but_keep_experimental
+- baseline_redesign_next_action: revise_baseline_further
+- phase_b_retry_readiness: not_ready_yet
+
+Baseline v2 Validation Update:
+- baseline_v2_validation_status: keep_candidate_experimental
+- baseline_v2_validation_next_action: keep_candidate_experimental_and_continue_validation
+- phase_b_retry_readiness_after_candidate_validation: not_ready_yet
+
+Baseline Redesign Update:
+- baseline_redesign_status: improved_but_keep_experimental
+- baseline_redesign_next_action: revise_baseline_further
+- phase_b_retry_readiness: not_ready_yet
+
+Baseline v2 Validation Update:
+- baseline_v2_validation_status: reject_candidate
+- baseline_v2_validation_next_action: revise_baseline_further
+- phase_b_retry_readiness_after_candidate_validation: not_ready_yet
+
+Project Current State Update:
+- project_current_state_status: frozen_with_experimental_watchlist_monitoring
+- project_current_state_next_action: keep_candidate_experimental_for_watchlist_subset
+- project_operational_baseline: phase_a_active_baseline
+- project_experimental_candidate: baseline_v2_hold3_with_trend_guard
+- project_phase_b_retry_status: not_ready
+- project_phase_c_status: phase_c_no_go_yet
+
+Baseline Redesign Update:
+- baseline_redesign_status: usable_for_framework_redesign_only
+- baseline_redesign_next_action: hold_redesign_candidate_as_framework_input_only
+- baseline_redesign_trade_label: t_plus_3
+- phase_b_retry_readiness: not_ready_yet
+
+Baseline v2 Validation Update:
+- baseline_v2_validation_status: keep_candidate_experimental
+- baseline_v2_validation_next_action: keep_candidate_experimental_and_continue_validation
+- baseline_v2_validation_scope: framework_redesign_only
+- phase_b_retry_readiness_after_candidate_validation: not_ready_yet
+
+Phase B Postmortem Update:
+- Phase B status: phase_b_closed_with_learnings_no_candidate
+- Phase B summary: Fase B ditutup tanpa promosi baseline (item5=no_go, item6=no_go, item7=no_go, item8=no_go); pola gagal didominasi foundation_and_signal_usability, dan langkah resmi berikutnya adalah collect more data plus redesign framework evaluasi.
+- Phase C decision: phase_c_no_go_yet
+- Next phase recommendation: stop_and_collect_more_data_then_redesign_framework
+- Updated at: 2026-04-21T23:31:11.363075+00:00
+
+Project Current State Update:
+- project_current_state_status: frozen_waiting_data_extension_and_framework_redesign
+- project_current_state_next_action: stop_and_collect_more_data_then_redesign_framework
+- project_operational_baseline: phase_a_active_baseline
+- project_experimental_candidate: baseline_v2_hold3_with_trend_guard
+- project_phase_b_retry_status: not_ready
+- project_phase_c_status: phase_c_no_go_yet
+
+Project Current State Update:
+- project_current_state_status: frozen_waiting_data_extension_and_framework_redesign
+- project_current_state_next_action: stop_and_collect_more_data_then_redesign_framework
+- project_operational_baseline: phase_a_active_baseline
+- project_experimental_candidate: baseline_v2_hold3_with_trend_guard
+- project_phase_b_retry_status: not_ready
+- project_phase_c_status: phase_c_no_go_yet
+
+Project Current State Update:
+- project_current_state_status: frozen_waiting_data_extension_and_framework_redesign
+- project_current_state_next_action: stop_and_collect_more_data_then_redesign_framework
+- project_operational_baseline: phase_a_active_baseline
+- project_experimental_candidate: baseline_v2_hold3_with_trend_guard
+- project_phase_b_retry_status: not_ready
+- project_phase_c_status: phase_c_no_go_yet

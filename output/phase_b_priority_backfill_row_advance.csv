@@ -1,0 +1,6 @@
+ticker,rows_before,rows_after,rows_delta,new_unique_dates_count,non_duplicate_row_advance_detected,date_end_before,date_end_after,date_end_advanced,usable_oos_windows_before,usable_oos_windows_after,usable_oos_windows_delta,article_days_before,article_days_after,article_days_delta,news_count_total_before,news_count_total_after,news_count_total_delta,ticker_status
+ADRO,2459,2459,0,0,False,2026-04-21,2026-04-21,False,7,7,0,8,8,0,12,12,0,static
+BUMI,2460,2460,0,0,False,2026-04-21,2026-04-21,False,7,7,0,6,6,0,19,19,0,static
+BBCA,2460,2460,0,0,False,2026-04-21,2026-04-21,False,7,7,0,7,7,0,19,19,0,static
+ASII,2459,2459,0,0,False,2026-04-21,2026-04-21,False,7,7,0,5,5,0,9,9,0,static
+UNVR,2460,2460,0,0,False,2026-04-21,2026-04-21,False,7,7,0,6,6,0,7,7,0,static

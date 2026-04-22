@@ -1,0 +1,12 @@
+Phase B Data Extension Ingest Rejection Analysis
+- decision=ingest_rejected_no_material_progress
+- material_progress_detected=False
+- history_progress_valid=False
+- metadata_refresh_valid=True
+- segmentation_refresh_valid=True
+- primary_article_day_recovery_valid=False
+- batch_1_closure_progress_valid=True
+- highest_blocking_issue=history_effective_not_increasing
+- recommended_next_action=extend_history_rows_and_reingest_priority_tickers_before_refreshing_progress
+
+- decisive_statement=File data berubah, tetapi progress batch belum sah karena history efektif tidak naik.

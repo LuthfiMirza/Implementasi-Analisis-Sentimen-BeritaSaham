@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-04-22T01:50:16.799555+00:00",
+  "recovery_attempted": true,
+  "start_command_executed": {
+    "command": "/Applications/XAMPP/xamppfiles/xampp startmysql",
+    "returncode": 2,
+    "stdout": "You need to be root to perform this action.\n",
+    "stderr": "",
+    "combined_output": "You need to be root to perform this action.",
+    "succeeded": false
+  },
+  "manual_root_required": true,
+  "external_operational_blocker_still_active": false,
+  "xampp_status_stale": true,
+  "recommended_next_action": "db_ready_for_backfill_but_keep_retest_gate_closed_until_backfill_progress_is_verified"
+}

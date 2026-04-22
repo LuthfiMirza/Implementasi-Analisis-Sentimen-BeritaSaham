@@ -1,0 +1,6 @@
+ticker,batch_id,batch_scope,is_primary_segment,history_rows_baseline,history_rows_current,history_rows_delta,usable_oos_windows_baseline,usable_oos_windows_current,usable_oos_windows_delta,news_count_total_baseline,news_count_total_current,news_count_total_delta,article_days_baseline,article_days_current,article_days_delta,duplicate_rows_detected,date_continuity_ok,missing_ohlcv_fields,history_extension_progress_ok,article_day_recovery_progress_ok,metadata_ready,segmentation_ready,ingest_status,ingest_reason
+BUMI,batch_3,priority_ticker,True,2683,2683,0,8,221,213,24,24,0,7,7,0,False,True,,False,False,True,True,rejected,history_extension_did_not_increase_usable_coverage
+BBCA,batch_3,priority_ticker,True,2647,2647,0,8,218,210,22,22,0,8,8,0,False,True,,False,False,True,True,rejected,history_extension_did_not_increase_usable_coverage
+ASII,batch_3,priority_ticker,True,2690,2690,0,8,222,214,12,12,0,6,6,0,False,True,,False,False,True,True,rejected,history_extension_did_not_increase_usable_coverage
+UNVR,batch_3,priority_ticker,True,2656,2656,0,8,219,211,11,11,0,7,7,0,False,True,,False,False,True,True,rejected,history_extension_did_not_increase_usable_coverage
+ICBP,batch_3,priority_ticker,True,2690,2690,0,8,222,214,11,11,0,8,8,0,False,True,,False,False,True,True,rejected,history_extension_did_not_increase_usable_coverage

@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-04-19T02:09:03.110065+00:00",
+  "ticker_count": 10,
+  "informative_ticker_count": 0,
+  "sparse_ticker_count": 10,
+  "flat_ticker_count": 10,
+  "no_article_ticker_count": 1,
+  "article_day_ratio_mean": 0.02511,
+  "sentiment_average_std_mean": 0.022595,
+  "sentiment_weighted_std_mean": 0.022127,
+  "sentiment_average_change_ratio_mean": 0.007959,
+  "sentiment_weighted_change_ratio_mean": 0.007959,
+  "verdict": "sentiment_feature_not_informative_enough_yet",
+  "item7_readiness_context": {
+    "valid_ticker_count": 9,
+    "unusable_ticker_count": 1,
+    "dataset_is_item7_ready": true
+  },
+  "warnings": []
+}

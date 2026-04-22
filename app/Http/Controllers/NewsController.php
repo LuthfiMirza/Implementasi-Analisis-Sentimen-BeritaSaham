@@ -38,7 +38,15 @@ class NewsController extends Controller
         }
 
         if ($sentiment) {
-            $query->where('sentiment_label', $sentiment);
+            if ($sentiment === 'unavailable') {
+                $query->where('sentiment_method', 'python_unavailable');
+            } else {
+                $query->where('sentiment_label', $sentiment)
+                    ->where(function ($builder) {
+                        $builder->whereNull('sentiment_method')
+                            ->orWhere('sentiment_method', '!=', 'python_unavailable');
+                    });
+            }
         }
 
         if ($method) {
@@ -119,14 +127,41 @@ class NewsController extends Controller
             'articles' => $articles->map(fn ($a) => [
                 'title' => $a->title,
                 'summary' => Str::limit($a->summary ?? $a->content_snippet, 120),
-                'sentiment' => $a->sentiment_label ?? 'neutral',
-                'score' => $a->sentiment_score,
+                'sentiment' => $this->displaySentimentLabel($a),
+                'score' => $this->displaySentimentScore($a),
                 'quality' => $a->quality_band,
                 'source' => $a->source?->name ?? $a->source_provider,
+                'sentiment_method' => $a->sentiment_method,
+                'sentiment_available' => $this->isSentimentAvailable($a),
+                'sentiment_status' => $this->isSentimentAvailable($a) ? 'available' : 'unavailable',
+                'python_status' => data_get($a->sentiment_meta, 'python_status'),
                 'url' => $a->source_url,
                 'published' => $a->published_at?->format('d M H:i'),
-                'relative' => $a->published_at?->diffForHumans(now(), locale: 'id'),
+                'relative' => $a->published_at?->locale('id')->diffForHumans(now()),
             ])->values(),
         ]);
+    }
+
+    protected function isSentimentAvailable(NewsArticle $article): bool
+    {
+        return ($article->sentiment_method ?? null) !== 'python_unavailable';
+    }
+
+    protected function displaySentimentLabel(NewsArticle $article): string
+    {
+        if (! $this->isSentimentAvailable($article)) {
+            return 'unavailable';
+        }
+
+        return $article->sentiment_label ?? 'neutral';
+    }
+
+    protected function displaySentimentScore(NewsArticle $article): ?float
+    {
+        if (! $this->isSentimentAvailable($article)) {
+            return null;
+        }
+
+        return $article->sentiment_score !== null ? (float) $article->sentiment_score : null;
     }
 }

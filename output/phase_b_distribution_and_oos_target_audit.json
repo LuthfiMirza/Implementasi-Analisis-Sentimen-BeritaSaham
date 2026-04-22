@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-21T14:06:52.634689+00:00",
+  "generated_at": "2026-04-22T00:46:29.678945+00:00",
   "source_of_truth_artifacts": {
     "readiness_gate": "output/phase_b_retest_readiness_gate.json",
     "blocker_audit": "output/phase_b_readiness_blocker_audit.json",
@@ -50,16 +50,22 @@
       "INDF",
       "TLKM",
       "DEWA"
+    ],
+    "framework_blockers_active": [
+      "framework_governance_gate::baseline_filter_overlap_risk_acceptable",
+      "framework_governance_gate::baseline_validation_candidate_usable",
+      "framework_governance_gate::official_strategy_retry_reopened",
+      "framework_governance_gate::signal_sparsity_flatness_audit_passed"
     ]
   },
   "before_after": {
     "dominant_ticker_before": "BUMI",
     "dominant_ticker_after": "BUMI",
-    "single_ticker_article_share_before": 0.3571,
+    "single_ticker_article_share_before": 0.2817,
     "single_ticker_article_share_after": 0.2817,
     "median_news_density_pct_before": 0.3252,
     "median_news_density_pct_after": 0.3252,
-    "active_ticker_count_in_oos_before": 4,
+    "active_ticker_count_in_oos_before": 5,
     "active_ticker_count_in_oos_after": 5
   },
   "targeted_tickers": [
@@ -476,6 +482,11 @@
       "provider_contribution_summary": []
     }
   ],
-  "active_gate_blockers": [],
-  "recommended_next_move": "Naikkan article-day pada boundary tickers ber-trade tinggi agar median sentiment split bisa naik ke 8 sambil menambah coverage pada under-covered primary tickers; namun median_news_density_pct gate tetap jauh di bawah target 5.0 sehingga readiness kemungkinan besar masih gagal tanpa ekspansi article-day jauh lebih besar."
+  "active_gate_blockers": [
+    "framework_governance_gate::baseline_filter_overlap_risk_acceptable",
+    "framework_governance_gate::baseline_validation_candidate_usable",
+    "framework_governance_gate::official_strategy_retry_reopened",
+    "framework_governance_gate::signal_sparsity_flatness_audit_passed"
+  ],
+  "recommended_next_move": "Naikkan article-day pada boundary tickers ber-trade tinggi dan under-covered primary tickers untuk memperbaiki distribusi resmi. Namun audit ini tidak cukup untuk membuka retry sendiri; blocker framework seperti overlap audit, signal sparsity-flatness, dan usability baseline redesign tetap harus lolos."
 }

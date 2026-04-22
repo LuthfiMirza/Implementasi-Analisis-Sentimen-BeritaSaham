@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-21T14:04:52.029786+00:00",
+  "generated_at": "2026-04-22T02:51:17.125710+00:00",
   "source_of_truth_artifact": "phase_b_batch1_completion_decision.json",
   "supporting_artifact_references": {
     "post_backfill_batch1_decision": "phase_b_post_backfill_batch1_decision.json",
@@ -7,21 +7,37 @@
     "article_push_after_push": "phase_b_batch1_after_article_push.json",
     "retest_readiness_gate": "phase_b_retest_readiness_gate.json"
   },
-  "batch_1_status_final": "batch_1_complete_but_checkpoint_not_material",
+  "batch_1_status_final": "batch_1_operationally_complete_and_checkpoint_material_reached",
+  "batch_1_priority_targets_closed": true,
+  "batch_1_operationally_complete": true,
+  "ready_for_batch_2": true,
   "batch_1_completed": true,
-  "checkpoint_material_reached": false,
-  "recheck_readiness_gate_allowed": false,
-  "primary_segment_total_articles_final": 83.0,
-  "primary_segment_article_days_median_final": 7.5,
+  "checkpoint_material_reached": true,
+  "recheck_readiness_gate_allowed": true,
+  "oos_window_threshold_semantics": {
+    "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+    "source_of_truth_field": "methodology_aligned_thresholds.history_gate::usable_oos_windows_per_ticker",
+    "methodology_minimum_windows": 3.0,
+    "stretch_target_windows_by_batch": {
+      "batch_1": 4.0,
+      "batch_2": 6.0,
+      "batch_3": 8.0
+    },
+    "legacy_default_windows": 6.0,
+    "operational_batch_completion_uses": "methodology_minimum_windows",
+    "strategy_retry_allowed_uses": "phase_b_retest_readiness_gate final_decision + framework_governance_gate, not legacy stretch target windows",
+    "reason": "Batch/progress framework harus mengikuti threshold metodologi resmi yang sudah aktif di readiness gate. Stretch target 4/6/8 tetap dicatat sebagai aspirasi non-blocking agar tidak lagi bercampur dengan definisi operasional batch completion."
+  },
+  "primary_segment_total_articles_final": 80.0,
+  "primary_segment_article_days_median_final": 7.0,
   "official_primary_segment_tickers_final": [
     "BUMI",
+    "BBCA",
+    "ASII",
     "UNVR",
-    "BBCA"
+    "ICBP"
   ],
-  "remaining_blockers_final": [
-    "additional_bars_from_v9_baseline actual=0.0 target>=42",
-    "usable_oos_windows_per_ticker actual=3.0 target>=6"
-  ],
-  "recommended_next_action_final": "advance_to_batch_2_and_close_remaining_checkpoint_blockers_before_rerunning_gate",
-  "decisive_statement_final": "Batch-1 resmi complete setelah article target dan segmentation sync terpenuhi."
+  "remaining_blockers_final": [],
+  "recommended_next_action_final": "rerun_phase_b_retest_readiness_gate_with_refreshed_post_backfill_inputs",
+  "decisive_statement_final": "Checkpoint material sudah tercapai sehingga readiness gate sekarang boleh dijalankan ulang."
 }

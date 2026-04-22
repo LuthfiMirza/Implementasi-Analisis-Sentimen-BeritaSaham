@@ -1,0 +1,19 @@
+Entry Simplification Cycle 2 Validation
+=======================================
+
+Full-period integration comparison:
+- control: trades=5941, win_rate=44.3023, avg_return=1.0854, max_drawdown=44.1235, profit_factor=1.0974, sample=low
+- candidate: trades=6789, win_rate=43.9829, avg_return=1.0109, max_drawdown=44.3829, profit_factor=1.0866, sample=low
+
+Walk-forward comparison:
+- control OOS: trades=439, win_rate=38.2688, avg_return=-0.0909, max_drawdown=31.6175, profit_factor=0.9629, sample=moderate
+- candidate OOS: trades=487, win_rate=38.3984, avg_return=0.1342, max_drawdown=31.2179, profit_factor=1.027, sample=moderate
+- control holdout: trades=461, win_rate=38.6117, avg_return=-0.4867, max_drawdown=29.0187, profit_factor=0.8416, sample=moderate
+- candidate holdout: trades=516, win_rate=38.3721, avg_return=-0.4595, max_drawdown=34.4658, profit_factor=0.842, sample=moderate
+- control oos_degradation = 114.819
+- candidate oos_degradation = 69.0498
+
+Decision:
+- candidate_more_oos_resilient_than_control = True
+- return20d_positive_drop_decision = provisionally_drop_from_core_stack
+- reason = Candidate baru menunjukkan ketahanan OOS/holdout yang lebih baik secara mayoritas metrik utama, sehingga `return_20d > 0` layak dibuang dari stack inti secara provisional.

@@ -1,0 +1,10 @@
+Phase B Post-Backfill Ingest Audit
+- batch_id=batch_3
+- batch_acceptance_status=rejected
+- history_extension_progress_ok=True
+- article_day_recovery_progress_ok=True
+- metadata_segmentation_update_ok=True
+- accepted_tickers=-
+- rejected_tickers=BUMI, BBCA, ASII, UNVR, ICBP
+- tickers_with_warnings=-
+- decisive_statement=Progress update hanya boleh dihitung dari ingest yang lolos audit kualitas.

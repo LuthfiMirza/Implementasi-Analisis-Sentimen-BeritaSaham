@@ -114,6 +114,8 @@ class RunPhaseBPrimaryArticleCoveragePushTestCase(unittest.TestCase):
             payload = result["phase_b_batch1_after_article_push"]
             self.assertEqual("batch_1_started_but_not_complete", payload["batch_1_status"])
             self.assertFalse(payload["batch_1_completed"])
+            self.assertFalse(payload["batch_1_priority_targets_closed"])
+            self.assertFalse(payload["batch_1_operationally_complete"])
             self.assertFalse(payload["checkpoint_material_reached"])
             self.assertFalse(payload["recheck_readiness_gate_allowed"])
 
@@ -156,8 +158,10 @@ class RunPhaseBPrimaryArticleCoveragePushTestCase(unittest.TestCase):
             )
 
             payload = result["phase_b_batch1_after_article_push"]
-            self.assertEqual("batch_1_complete_but_checkpoint_not_material", payload["batch_1_status"])
-            self.assertTrue(payload["batch_1_completed"])
+            self.assertEqual("batch_1_priority_targets_closed_but_progress_gate_pending", payload["batch_1_status"])
+            self.assertTrue(payload["batch_1_priority_targets_closed"])
+            self.assertFalse(payload["batch_1_operationally_complete"])
+            self.assertFalse(payload["batch_1_completed"])
             self.assertFalse(payload["checkpoint_material_reached"])
             self.assertFalse(payload["recheck_readiness_gate_allowed"])
 

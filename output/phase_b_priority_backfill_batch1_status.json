@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-04-22T01:51:40.688181+00:00",
+  "backfill_execution_attempted": true,
+  "priority_tickers_processed": [
+    "ADRO",
+    "BUMI",
+    "BBCA",
+    "ASII",
+    "UNVR"
+  ],
+  "row_advance_detected": false,
+  "date_end_advanced": false,
+  "usable_oos_windows_advanced": false,
+  "primary_article_day_recovery_advanced": false,
+  "batch_1_status": "batch_1_complete_ready_for_batch_2",
+  "batch_1_officially_started": false,
+  "batch_1_material_progress_detected": false,
+  "recommended_next_action": "freeze_batch_1_snapshot_and_prepare_batch_2_extension_without_reopening_strategy_track"
+}

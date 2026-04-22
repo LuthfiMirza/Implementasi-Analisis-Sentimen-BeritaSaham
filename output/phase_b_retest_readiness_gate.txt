@@ -1,15 +1,20 @@
 Phase B Retest Readiness Gate
-- final_decision=boleh_retest
-- highest_blocking_gate=history_gate
-- recommended_next_action=freeze_retest_scope_and_run_only_after_current_gate_snapshot_is_published
-- decisive_statement=Semua gate PASS. Retest boleh dibuka kembali tanpa mengubah baseline aktif, tanpa membuka Phase C, dan tanpa promosi global.
+- final_decision=belum_boleh_retest
+- highest_blocking_gate=framework_governance_gate
+- recommended_next_action=collect_more_data_and_refresh_framework_audits_before_any_strategy_retry
+- decisive_statement=Retest masih dilarang karena blocker coverage/OOS bukan satu-satunya masalah; audit overlap baseline, signal sparsity-flatness, usability redesign baseline, dan closeout resmi juga harus lolos.
 
 Gate status:
 - history_gate=PASS
 - universe_coverage_gate=PASS
-- news_distribution_gate=PASS
+- news_distribution_gate=FAIL
 - oos_fairness_gate=PASS
-- framework_governance_gate=PASS
+- framework_governance_gate=FAIL
 - roadmap_discipline_gate=PASS
 
 Blocking thresholds:
+- news_distribution_gate::median_news_density_pct actual=0.3204 target>=0.3252
+- framework_governance_gate::baseline_filter_overlap_risk_acceptable actual=0 target>=1
+- framework_governance_gate::signal_sparsity_flatness_audit_passed actual=0 target>=1
+- framework_governance_gate::baseline_validation_candidate_usable actual=0 target>=1
+- framework_governance_gate::official_strategy_retry_reopened actual=0 target>=1

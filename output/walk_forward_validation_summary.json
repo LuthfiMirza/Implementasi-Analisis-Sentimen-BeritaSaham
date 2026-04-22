@@ -1,0 +1,492 @@
+{
+  "phase": "walk_forward_validation",
+  "status": "completed",
+  "generated_at": "2026-04-22T12:33:23.341420+00:00",
+  "source_files": {
+    "stock_indicator_master_file": "data/indicator_master/stock_indicator_master.csv",
+    "ihsg_indicator_master_file": "data/indicator_master/IHSG_indicator_master.csv",
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "metadata_file": "data/ticker_metadata.csv",
+    "layer_3_closeout": "output/phase_3_layer_3_closeout.json",
+    "layer_5_summary": "output/phase_5_atr_trailing_stop_summary.json",
+    "layer_4_summary": "output/phase_4_position_sizing_summary.json",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "walk_forward_windows": [
+    {
+      "window_id": "in_sample",
+      "label": "In-sample 2019-2021",
+      "start_date": "2019-01-01",
+      "end_date": "2021-12-31",
+      "role": "in_sample"
+    },
+    {
+      "window_id": "out_of_sample",
+      "label": "Out-of-sample 2022-2023",
+      "start_date": "2022-01-01",
+      "end_date": "2023-12-31",
+      "role": "out_of_sample"
+    },
+    {
+      "window_id": "final_holdout",
+      "label": "Final holdout 2024-2025",
+      "start_date": "2024-01-01",
+      "end_date": "2025-12-31",
+      "role": "final_holdout"
+    }
+  ],
+  "stack_results": [
+    {
+      "stack_id": "rebuild_core_without_layer3",
+      "stack_label": "Layer 1 + Layer 2 alternative + Layer 5 ATR trailing stop + Layer 4 sizing",
+      "layer_1_policy": "IHSG EMA50 > EMA200 with explicit previous-trading-day alignment",
+      "layer_2_policy": "return_20d > 0 AND close > ema50 without liquidity gate",
+      "layer_3_policy": "inactive",
+      "layer_4_policy": {
+        "risk_per_trade_pct": 2.0,
+        "max_position_pct": 10.0
+      },
+      "layer_5_policy": {
+        "exit_policy": "atr_trailing_stop",
+        "atr_multiplier": 2.5,
+        "time_stop_days": 15
+      },
+      "window_results": [
+        {
+          "window_id": "in_sample",
+          "window_label": "In-sample 2019-2021",
+          "window_role": "in_sample",
+          "requested_start_date": "2019-01-01",
+          "requested_end_date": "2021-12-31",
+          "effective_data_start_date": "2019-01-01",
+          "effective_data_end_date": "2021-12-30",
+          "first_trade_date": "2019-01-03",
+          "last_trade_date": "2021-12-23",
+          "total_trades": 671,
+          "win_rate": 40.6855,
+          "average_return_per_trade": 0.6134,
+          "max_drawdown_pct": 28.6825,
+          "profit_factor": 1.1723,
+          "portfolio_return_pct": 45.0667,
+          "portfolio_ending_value": 145066657.1901,
+          "avg_position_size_pct": 9.9836,
+          "cap_hit_rate_pct": 98.9568,
+          "sample_adequacy": {
+            "risk": "low",
+            "reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan.",
+            "active_ticker_count_median": 16.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        },
+        {
+          "window_id": "out_of_sample",
+          "window_label": "Out-of-sample 2022-2023",
+          "window_role": "out_of_sample",
+          "requested_start_date": "2022-01-01",
+          "requested_end_date": "2023-12-31",
+          "effective_data_start_date": "2022-01-03",
+          "effective_data_end_date": "2023-12-29",
+          "first_trade_date": "2022-01-04",
+          "last_trade_date": "2023-12-29",
+          "total_trades": 439,
+          "win_rate": 38.2688,
+          "average_return_per_trade": -0.0909,
+          "max_drawdown_pct": 31.6175,
+          "profit_factor": 0.9629,
+          "portfolio_return_pct": -5.5937,
+          "portfolio_ending_value": 94406282.9845,
+          "avg_position_size_pct": 9.9992,
+          "cap_hit_rate_pct": 99.7722,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 439.",
+            "active_ticker_count_median": 19.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        },
+        {
+          "window_id": "final_holdout",
+          "window_label": "Final holdout 2024-2025",
+          "window_role": "final_holdout",
+          "requested_start_date": "2024-01-01",
+          "requested_end_date": "2025-12-31",
+          "effective_data_start_date": "2024-01-02",
+          "effective_data_end_date": "2025-12-30",
+          "first_trade_date": "2024-01-03",
+          "last_trade_date": "2025-12-30",
+          "total_trades": 461,
+          "win_rate": 38.6117,
+          "average_return_per_trade": -0.4867,
+          "max_drawdown_pct": 29.0187,
+          "profit_factor": 0.8416,
+          "portfolio_return_pct": -21.6433,
+          "portfolio_ending_value": 78356697.0886,
+          "avg_position_size_pct": 9.9938,
+          "cap_hit_rate_pct": 99.5662,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 461.",
+            "active_ticker_count_median": 19.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        }
+      ],
+      "window_lookup": {
+        "in_sample": {
+          "window_id": "in_sample",
+          "window_label": "In-sample 2019-2021",
+          "window_role": "in_sample",
+          "requested_start_date": "2019-01-01",
+          "requested_end_date": "2021-12-31",
+          "effective_data_start_date": "2019-01-01",
+          "effective_data_end_date": "2021-12-30",
+          "first_trade_date": "2019-01-03",
+          "last_trade_date": "2021-12-23",
+          "total_trades": 671,
+          "win_rate": 40.6855,
+          "average_return_per_trade": 0.6134,
+          "max_drawdown_pct": 28.6825,
+          "profit_factor": 1.1723,
+          "portfolio_return_pct": 45.0667,
+          "portfolio_ending_value": 145066657.1901,
+          "avg_position_size_pct": 9.9836,
+          "cap_hit_rate_pct": 98.9568,
+          "sample_adequacy": {
+            "risk": "low",
+            "reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan.",
+            "active_ticker_count_median": 16.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        },
+        "out_of_sample": {
+          "window_id": "out_of_sample",
+          "window_label": "Out-of-sample 2022-2023",
+          "window_role": "out_of_sample",
+          "requested_start_date": "2022-01-01",
+          "requested_end_date": "2023-12-31",
+          "effective_data_start_date": "2022-01-03",
+          "effective_data_end_date": "2023-12-29",
+          "first_trade_date": "2022-01-04",
+          "last_trade_date": "2023-12-29",
+          "total_trades": 439,
+          "win_rate": 38.2688,
+          "average_return_per_trade": -0.0909,
+          "max_drawdown_pct": 31.6175,
+          "profit_factor": 0.9629,
+          "portfolio_return_pct": -5.5937,
+          "portfolio_ending_value": 94406282.9845,
+          "avg_position_size_pct": 9.9992,
+          "cap_hit_rate_pct": 99.7722,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 439.",
+            "active_ticker_count_median": 19.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        },
+        "final_holdout": {
+          "window_id": "final_holdout",
+          "window_label": "Final holdout 2024-2025",
+          "window_role": "final_holdout",
+          "requested_start_date": "2024-01-01",
+          "requested_end_date": "2025-12-31",
+          "effective_data_start_date": "2024-01-02",
+          "effective_data_end_date": "2025-12-30",
+          "first_trade_date": "2024-01-03",
+          "last_trade_date": "2025-12-30",
+          "total_trades": 461,
+          "win_rate": 38.6117,
+          "average_return_per_trade": -0.4867,
+          "max_drawdown_pct": 29.0187,
+          "profit_factor": 0.8416,
+          "portfolio_return_pct": -21.6433,
+          "portfolio_ending_value": 78356697.0886,
+          "avg_position_size_pct": 9.9938,
+          "cap_hit_rate_pct": 99.5662,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 461.",
+            "active_ticker_count_median": 19.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        }
+      },
+      "stability_assessment": {
+        "oos_degradation_vs_in_sample_pct": 114.819,
+        "holdout_degradation_vs_in_sample_pct": 179.3446,
+        "stability_flags": {
+          "oos_positive_average_return": false,
+          "holdout_positive_average_return": false,
+          "oos_sample_adequacy_not_high": true,
+          "holdout_sample_adequacy_not_high": true
+        }
+      }
+    },
+    {
+      "stack_id": "rebuild_core_with_layer3_optional_toggle",
+      "stack_label": "Layer 1 + Layer 2 alternative + Layer 3 optional + Layer 5 ATR trailing stop + Layer 4 sizing",
+      "layer_1_policy": "IHSG EMA50 > EMA200 with explicit previous-trading-day alignment",
+      "layer_2_policy": "return_20d > 0 AND close > ema50 without liquidity gate",
+      "layer_3_policy": "RSI14 >= 50 AND RSI14 <= 70",
+      "layer_4_policy": {
+        "risk_per_trade_pct": 2.0,
+        "max_position_pct": 10.0
+      },
+      "layer_5_policy": {
+        "exit_policy": "atr_trailing_stop",
+        "atr_multiplier": 2.5,
+        "time_stop_days": 15
+      },
+      "window_results": [
+        {
+          "window_id": "in_sample",
+          "window_label": "In-sample 2019-2021",
+          "window_role": "in_sample",
+          "requested_start_date": "2019-01-01",
+          "requested_end_date": "2021-12-31",
+          "effective_data_start_date": "2019-01-01",
+          "effective_data_end_date": "2021-12-30",
+          "first_trade_date": "2019-01-03",
+          "last_trade_date": "2021-12-23",
+          "total_trades": 596,
+          "win_rate": 40.7718,
+          "average_return_per_trade": 0.4745,
+          "max_drawdown_pct": 26.421,
+          "profit_factor": 1.1316,
+          "portfolio_return_pct": 28.5787,
+          "portfolio_ending_value": 128578682.5029,
+          "avg_position_size_pct": 9.9875,
+          "cap_hit_rate_pct": 99.4966,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 596.",
+            "active_ticker_count_median": 11.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        },
+        {
+          "window_id": "out_of_sample",
+          "window_label": "Out-of-sample 2022-2023",
+          "window_role": "out_of_sample",
+          "requested_start_date": "2022-01-01",
+          "requested_end_date": "2023-12-31",
+          "effective_data_start_date": "2022-01-03",
+          "effective_data_end_date": "2023-12-29",
+          "first_trade_date": "2022-01-04",
+          "last_trade_date": "2023-12-29",
+          "total_trades": 390,
+          "win_rate": 37.9487,
+          "average_return_per_trade": -0.2735,
+          "max_drawdown_pct": 29.2625,
+          "profit_factor": 0.916,
+          "portfolio_return_pct": -11.2041,
+          "portfolio_ending_value": 88795932.1484,
+          "avg_position_size_pct": 9.9991,
+          "cap_hit_rate_pct": 99.7436,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 390.",
+            "active_ticker_count_median": 14.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        },
+        {
+          "window_id": "final_holdout",
+          "window_label": "Final holdout 2024-2025",
+          "window_role": "final_holdout",
+          "requested_start_date": "2024-01-01",
+          "requested_end_date": "2025-12-31",
+          "effective_data_start_date": "2024-01-02",
+          "effective_data_end_date": "2025-12-30",
+          "first_trade_date": "2024-01-03",
+          "last_trade_date": "2025-12-30",
+          "total_trades": 418,
+          "win_rate": 39.7129,
+          "average_return_per_trade": -0.3166,
+          "max_drawdown_pct": 28.9891,
+          "profit_factor": 0.8898,
+          "portfolio_return_pct": -13.7027,
+          "portfolio_ending_value": 86297266.6948,
+          "avg_position_size_pct": 9.9971,
+          "cap_hit_rate_pct": 99.7608,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 418.",
+            "active_ticker_count_median": 15.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        }
+      ],
+      "window_lookup": {
+        "in_sample": {
+          "window_id": "in_sample",
+          "window_label": "In-sample 2019-2021",
+          "window_role": "in_sample",
+          "requested_start_date": "2019-01-01",
+          "requested_end_date": "2021-12-31",
+          "effective_data_start_date": "2019-01-01",
+          "effective_data_end_date": "2021-12-30",
+          "first_trade_date": "2019-01-03",
+          "last_trade_date": "2021-12-23",
+          "total_trades": 596,
+          "win_rate": 40.7718,
+          "average_return_per_trade": 0.4745,
+          "max_drawdown_pct": 26.421,
+          "profit_factor": 1.1316,
+          "portfolio_return_pct": 28.5787,
+          "portfolio_ending_value": 128578682.5029,
+          "avg_position_size_pct": 9.9875,
+          "cap_hit_rate_pct": 99.4966,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 596.",
+            "active_ticker_count_median": 11.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        },
+        "out_of_sample": {
+          "window_id": "out_of_sample",
+          "window_label": "Out-of-sample 2022-2023",
+          "window_role": "out_of_sample",
+          "requested_start_date": "2022-01-01",
+          "requested_end_date": "2023-12-31",
+          "effective_data_start_date": "2022-01-03",
+          "effective_data_end_date": "2023-12-29",
+          "first_trade_date": "2022-01-04",
+          "last_trade_date": "2023-12-29",
+          "total_trades": 390,
+          "win_rate": 37.9487,
+          "average_return_per_trade": -0.2735,
+          "max_drawdown_pct": 29.2625,
+          "profit_factor": 0.916,
+          "portfolio_return_pct": -11.2041,
+          "portfolio_ending_value": 88795932.1484,
+          "avg_position_size_pct": 9.9991,
+          "cap_hit_rate_pct": 99.7436,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 390.",
+            "active_ticker_count_median": 14.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        },
+        "final_holdout": {
+          "window_id": "final_holdout",
+          "window_label": "Final holdout 2024-2025",
+          "window_role": "final_holdout",
+          "requested_start_date": "2024-01-01",
+          "requested_end_date": "2025-12-31",
+          "effective_data_start_date": "2024-01-02",
+          "effective_data_end_date": "2025-12-30",
+          "first_trade_date": "2024-01-03",
+          "last_trade_date": "2025-12-30",
+          "total_trades": 418,
+          "win_rate": 39.7129,
+          "average_return_per_trade": -0.3166,
+          "max_drawdown_pct": 28.9891,
+          "profit_factor": 0.8898,
+          "portfolio_return_pct": -13.7027,
+          "portfolio_ending_value": 86297266.6948,
+          "avg_position_size_pct": 9.9971,
+          "cap_hit_rate_pct": 99.7608,
+          "sample_adequacy": {
+            "risk": "moderate",
+            "reason": "Prototype masih usable, tetapi sample validation masih tipis karena total trades window hanya 418.",
+            "active_ticker_count_median": 15.0,
+            "active_single_ticker_day_pct": 0.0,
+            "tickers_with_coverage_collapse": 0,
+            "coverage_collapse_tickers": []
+          },
+          "window_notes": [
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+          ]
+        }
+      },
+      "stability_assessment": {
+        "oos_degradation_vs_in_sample_pct": 157.6396,
+        "holdout_degradation_vs_in_sample_pct": 166.7229,
+        "stability_flags": {
+          "oos_positive_average_return": false,
+          "holdout_positive_average_return": false,
+          "oos_sample_adequacy_not_high": true,
+          "holdout_sample_adequacy_not_high": true
+        }
+      }
+    }
+  ],
+  "official_decision": {
+    "layer_3_mode_decision": {
+      "without_layer3_more_stable": true,
+      "layer_3_recommendation": "optional_on_only",
+      "reason": "Stack tanpa Layer 3 lebih stabil pada OOS/holdout, sehingga Layer 3 tetap mode opsional dan tidak menjadi default."
+    },
+    "paper_trading_candidate_track": {
+      "decision": "not_ready",
+      "reason": "Stack rebuild belum cukup kuat untuk dibuka ke paper-trading candidate track pada first walk-forward pass.",
+      "failed_checks": [
+        "win_rate_below_minimum",
+        "profit_factor_below_minimum",
+        "max_drawdown_above_minimum_gate",
+        "oos_degradation_above_minimum_gate",
+        "sharpe_not_evaluated_in_first_walk_forward_pass"
+      ]
+    },
+    "forbidden_next_step": "Do not open paper trading yet; do not redesign layers before reading this walk-forward result."
+  },
+  "warnings": []
+}

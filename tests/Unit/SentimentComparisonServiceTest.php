@@ -67,7 +67,7 @@ class SentimentComparisonServiceTest extends TestCase
             'title' => 'BBRI ekspansi kredit',
             'sentiment_label' => 'positive',
             'sentiment_score' => 0.4,
-            'published_at' => Carbon::parse('2026-04-12'),
+            'published_at' => now()->subDays(2),
         ]);
 
         NewsArticle::factory()->create([
@@ -77,7 +77,7 @@ class SentimentComparisonServiceTest extends TestCase
             'summary' => 'Penguatan pengawasan pasar modal dan emiten diumumkan OJK.',
             'sentiment_label' => 'neutral',
             'sentiment_score' => 0.0,
-            'published_at' => Carbon::parse('2026-04-12'),
+            'published_at' => now()->subDays(2),
         ]);
 
         $service = $this->app->make(SentimentComparisonService::class);

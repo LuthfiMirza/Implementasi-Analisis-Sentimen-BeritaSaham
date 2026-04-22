@@ -23,14 +23,15 @@ class FeatureBuilderService
         $ma20 = $this->movingAverage($orderedPrices, 20);
 
         $articlesInPeriod = $this->articlesInPeriod($articles, $periodDays, $referencePoint);
+        $availableArticles = $articlesInPeriod->filter(fn ($article) => $this->isSentimentAvailable($article))->values();
 
         $sentimentMap = ['positive' => 1, 'neutral' => 0, 'negative' => -1];
-        $scores = $articlesInPeriod->map(function ($a) use ($sentimentMap) {
+        $scores = $availableArticles->map(function ($a) use ($sentimentMap) {
             return $sentimentMap[$a->sentiment_label] ?? 0;
         });
         $sentimentAverage = $scores->count() > 0 ? round($scores->avg(), 4) : 0;
 
-        $weightedScores = $articlesInPeriod->map(function ($a) use ($sentimentMap) {
+        $weightedScores = $availableArticles->map(function ($a) use ($sentimentMap) {
             if (! is_null($a->sentiment_score)) {
                 return (float) $a->sentiment_score;
             }
@@ -38,7 +39,7 @@ class FeatureBuilderService
         });
         $weightedSentiment = $weightedScores->count() > 0 ? round($weightedScores->avg(), 4) : 0;
 
-        $newsVolume = $articlesInPeriod->count();
+        $newsVolume = $availableArticles->count();
         $macroSignal = is_array($analytics['macro_regulatory_signal'] ?? null)
             ? $analytics['macro_regulatory_signal']
             : [];
@@ -66,9 +67,11 @@ class FeatureBuilderService
             'weighted_sentiment_quality' => data_get($analytics, 'weighted_sentiment_stats.weighted_sentiment_average', $weightedSentiment),
             'sentiment_dominance' => $analytics['sentiment_dominance'] ?? 'neutral',
             'news_volume' => $newsVolume,
-            'positive_news_count' => $articlesInPeriod->where('sentiment_label', 'positive')->count(),
-            'neutral_news_count' => $articlesInPeriod->where('sentiment_label', 'neutral')->count(),
-            'negative_news_count' => $articlesInPeriod->where('sentiment_label', 'negative')->count(),
+            'sentiment_available_count' => $availableArticles->count(),
+            'sentiment_unavailable_count' => max(0, $articlesInPeriod->count() - $availableArticles->count()),
+            'positive_news_count' => $availableArticles->where('sentiment_label', 'positive')->count(),
+            'neutral_news_count' => $availableArticles->where('sentiment_label', 'neutral')->count(),
+            'negative_news_count' => $availableArticles->where('sentiment_label', 'negative')->count(),
             'macro_regulatory_signal_enabled' => (bool) ($macroSignal['enabled'] ?? false),
             'macro_regulatory_signal_active' => (bool) ($macroSignal['active'] ?? false),
             'macro_regulatory_attention_score' => (float) ($macroSignal['context_score'] ?? 0.0),
@@ -87,7 +90,7 @@ class FeatureBuilderService
             'ma_gap' => $this->maGap($ma5, $ma20),
             'volatility' => $volatility,
             'rsi' => $this->rsi($orderedPrices),
-            'headline_count' => $this->headlineCount($articlesInPeriod, $stock),
+            'headline_count' => $this->headlineCount($availableArticles, $stock),
             'last_close' => $orderedPrices->last()->close ?? null,
             'price_trend' => $analytics['price_trend'] ?? 'datar',
             'cumulative_return' => $analytics['cumulative_return'] ?? null,
@@ -221,5 +224,10 @@ class FeatureBuilderService
             })
             ->sortBy('published_at')
             ->values();
+    }
+
+    protected function isSentimentAvailable($article): bool
+    {
+        return ($article->sentiment_method ?? null) !== 'python_unavailable';
     }
 }

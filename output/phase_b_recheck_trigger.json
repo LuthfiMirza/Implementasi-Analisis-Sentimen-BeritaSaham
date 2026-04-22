@@ -1,0 +1,65 @@
+{
+  "minimum_progress_needed_before_recheck": {
+    "checkpoint_name": "batch_2_material_progress_checkpoint",
+    "required_metrics": [
+      {
+        "metric": "min_history_bars_per_ticker",
+        "operator": ">=",
+        "value": 99
+      },
+      {
+        "metric": "additional_bars_from_v9_baseline",
+        "operator": ">=",
+        "value": 42
+      },
+      {
+        "metric": "usable_oos_windows_per_ticker",
+        "operator": ">=",
+        "value": 3.0
+      },
+      {
+        "metric": "primary_segment_total_articles",
+        "operator": ">=",
+        "value": 14
+      },
+      {
+        "metric": "primary_segment_article_days_median",
+        "operator": ">=",
+        "value": 3
+      },
+      {
+        "metric": "metadata_and_segmentation_refreshed",
+        "operator": "==",
+        "value": true
+      }
+    ],
+    "stretch_metrics_not_required_for_recheck": [
+      {
+        "metric": "usable_oos_windows_per_ticker",
+        "batch_1_stretch": 4.0,
+        "batch_2_stretch": 6.0,
+        "batch_3_stretch": 8.0
+      }
+    ],
+    "reason": "Recheck sebelum checkpoint batch-2 terlalu dini karena blocker ranking belum berubah secara material. Checkpoint ini cukup besar untuk menguji apakah history dan distribusi sample benar-benar membaik di bawah threshold metodologi resmi yang sekarang aktif."
+  },
+  "recheck_readiness_gate_allowed": true,
+  "current_status": "allowed",
+  "highest_priority_execution_target": "history_extension_all_tickers_with_primary_segment_article_day_recovery",
+  "oos_window_threshold_semantics": {
+    "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+    "source_of_truth_field": "methodology_aligned_thresholds.history_gate::usable_oos_windows_per_ticker",
+    "methodology_minimum_windows": 3.0,
+    "stretch_target_windows_by_batch": {
+      "batch_1": 4.0,
+      "batch_2": 6.0,
+      "batch_3": 8.0
+    },
+    "legacy_default_windows": 6.0,
+    "operational_batch_completion_uses": "methodology_minimum_windows",
+    "strategy_retry_allowed_uses": "phase_b_retest_readiness_gate final_decision + framework_governance_gate, not legacy stretch target windows",
+    "reason": "Batch/progress framework harus mengikuti threshold metodologi resmi yang sudah aktif di readiness gate. Stretch target 4/6/8 tetap dicatat sebagai aspirasi non-blocking agar tidak lagi bercampur dengan definisi operasional batch completion."
+  },
+  "not_allowed_reason": "",
+  "recommended_recheck_moment": "Setelah seluruh ticker mencapai minimal 99 bar, primary articles minimal 14, median article days primary minimal 3, minimal 3 methodology-aligned usable windows, dan artifact metadata/segmentation diperbarui. Recheck ini hanya untuk refresh blocker status, bukan izin retry strategi."
+}

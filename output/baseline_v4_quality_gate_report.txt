@@ -1,0 +1,35 @@
+Baseline v4 Quality Gate Experiment
+===================================
+
+- Decision: no_go
+- Best candidate: baseline_v4_quality_gate_guard
+- Coverage ok: False
+- Trade support ok: True
+- Quality preserved: True
+- Recommended next action: redesign_quality_gate_or_shift_to_exit_hold_hypothesis
+
+Reference baseline:
+- eligible_ticker_count=1
+- total_trades_sum=10
+- mean_average_return=+4.24329
+
+V3 control:
+- eligible_ticker_count=8
+- total_trades_sum=56
+- mean_average_return=-0.01014
+
+Best v4 candidate:
+- candidate_id=baseline_v4_quality_gate_guard
+- quality_gate_id=body_strength_floor
+- eligible_ticker_count=2
+- total_trades_sum=34
+- mean_average_return=+7.41434
+- trade_retention_vs_reference=3.4000
+- coverage_gain_vs_reference=1
+- mean_average_return_delta_vs_v3=+7.42448
+
+Decision notes:
+- Coverage masih di bawah target minimum 3 ticker eligible.
+- Trade support jauh di atas baseline reference.
+- Quality preserved vs baseline_v3_ema20_trend_guard.
+- Jangan lanjutkan entry relaxation only.

@@ -50,6 +50,10 @@ TRACKED_JSON_ARTIFACTS = [
     ("universe_reconstruction_precheck", "universe_reconstruction_precheck.json"),
     ("phase_b_final_closeout", "phase_b_final_closeout.json"),
     ("project_after_phase_b_decision", "project_after_phase_b_decision.json"),
+    ("baseline_redesign_go_no_go", "baseline_redesign_go_no_go.json"),
+    ("baseline_v2_validation_go_no_go", "baseline_v2_validation_go_no_go.json"),
+    ("phase_b_v2_overlap_audit", "phase_b_v2_overlap_audit.json"),
+    ("phase_b_v2_trade_design_audit", "phase_b_v2_trade_design_audit.json"),
     ("baseline_v9_segment_oos_summary", "baseline_v9_segment_oos_summary.json"),
     ("baseline_v9_segment_oos_go_no_go", "baseline_v9_segment_oos_go_no_go.json"),
     ("phase_b_oos_policy_alignment_audit", OOS_POLICY_ALIGNMENT_AUDIT_OUTPUT),
@@ -124,6 +128,10 @@ def _safe_bool(value: object, default: bool = False) -> bool:
     if normalized in {"0", "false", "no", "n", "off"}:
         return False
     return default
+
+
+def _strategy_retry_allowed(final_decision: object) -> bool:
+    return str(final_decision or "").strip() in {"ready_for_strategy_retry"}
 
 
 def _load_optional_json(output_dir: Path, filename: str) -> Tuple[Dict[str, object], List[str], bool]:
@@ -530,6 +538,10 @@ def _build_thresholds(
     framework = safe_dict(artifacts.get("framework_redesign_scope"))
     closeout = safe_dict(artifacts.get("phase_b_final_closeout"))
     project_decision = safe_dict(artifacts.get("project_after_phase_b_decision"))
+    baseline_redesign = safe_dict(artifacts.get("baseline_redesign_go_no_go"))
+    baseline_validation = safe_dict(artifacts.get("baseline_v2_validation_go_no_go"))
+    overlap_audit = safe_dict(artifacts.get("phase_b_v2_overlap_audit"))
+    trade_design_audit = safe_dict(artifacts.get("phase_b_v2_trade_design_audit"))
     roadmap = safe_dict(artifacts.get("project_roadmap_status"))
     universe_precheck = safe_dict(artifacts.get("universe_reconstruction_precheck"))
 
@@ -712,6 +724,54 @@ def _build_thresholds(
         threshold_rows, "framework_governance_gate", "global_promotion_block_still_active", ">=", 1,
         1 if global_block_active else 0, global_block_active, "v9 go/no-go + framework scope", "Global promotion must remain blocked.", "normal"
     )
+    overlap_audit_completed = bool(overlap_audit) and bool(_safe_str(overlap_audit.get("overall_conclusion")))
+    overlap_risk = _safe_str(overlap_audit.get("overall_overlap_risk")) or "unknown"
+    overlap_risk_acceptable = overlap_audit_completed and overlap_risk in {"low", "moderate"}
+    _append_threshold(
+        threshold_rows, "framework_governance_gate", "baseline_filter_overlap_audit_completed", ">=", 1,
+        1 if overlap_audit_completed else 0, overlap_audit_completed, "phase_b_v2_overlap_audit.json", "Overlap baseline versus filter tambahan harus diaudit eksplisit.", "high"
+    )
+    _append_threshold(
+        threshold_rows, "framework_governance_gate", "baseline_filter_overlap_risk_acceptable", ">=", 1,
+        1 if overlap_risk_acceptable else 0, overlap_risk_acceptable, "phase_b_v2_overlap_audit.json", "Overlap risk harus tidak high sebelum ada diskusi retry.", "high"
+    )
+
+    trade_design_audit_completed = bool(trade_design_audit) and bool(list(trade_design_audit.get("hold_period_diagnostics") or []))
+    trade_design_flags = safe_dict(trade_design_audit.get("diagnosis_flags"))
+    signal_sparsity_flatness_passed = trade_design_audit_completed and (not _safe_bool(trade_design_flags.get("baseline_needs_entry_exit_redesign")))
+    _append_threshold(
+        threshold_rows, "framework_governance_gate", "baseline_trade_design_audit_completed", ">=", 1,
+        1 if trade_design_audit_completed else 0, trade_design_audit_completed, "phase_b_v2_trade_design_audit.json", "Hold period, trade labeling, retention, dan min trade floor harus diaudit.", "high"
+    )
+    _append_threshold(
+        threshold_rows, "framework_governance_gate", "signal_sparsity_flatness_audit_passed", ">=", 1,
+        1 if signal_sparsity_flatness_passed else 0, signal_sparsity_flatness_passed, "phase_b_v2_trade_design_audit.json", "Signal sparsity/flatness harus lolos audit sebelum retest boleh dipertimbangkan.", "high"
+    )
+
+    redesign_decision = _safe_str(baseline_redesign.get("decision"))
+    redesign_usable = redesign_decision == "usable_for_framework_redesign_only" and _safe_bool(baseline_redesign.get("usable_for_framework_redesign"))
+    validation_decision = _safe_str(baseline_validation.get("decision"))
+    validation_usable = validation_decision == "candidate_usable_for_framework_redesign_only"
+    _append_threshold(
+        threshold_rows, "framework_governance_gate", "baseline_redesign_candidate_usable", ">=", 1,
+        1 if redesign_usable else 0, redesign_usable, "baseline_redesign_go_no_go.json", "Baseline redesign harus menghasilkan kandidat yang setidaknya usable untuk framework redesign.", "high"
+    )
+    _append_threshold(
+        threshold_rows, "framework_governance_gate", "baseline_validation_candidate_usable", ">=", 1,
+        1 if validation_usable else 0, validation_usable, "baseline_v2_validation_go_no_go.json", "Kandidat redesign harus lolos validation minimum sebelum dianggap usable.", "high"
+    )
+    official_strategy_retry_blocked = (
+        (not _safe_bool(project_decision.get("can_continue_strategy_experiments_now"), False))
+        and (not _safe_bool(closeout.get("can_continue_strategy_experiments_now"), False))
+    )
+    _append_threshold(
+        threshold_rows, "framework_governance_gate", "official_strategy_retry_reopened", ">=", 1,
+        0 if official_strategy_retry_blocked else 1,
+        not official_strategy_retry_blocked,
+        "phase_b_final_closeout.json + project_after_phase_b_decision.json",
+        "Retry strategi butuh keputusan resmi baru yang membuka ulang track eksperimen.",
+        "high",
+    )
 
     parked_items = set(str(item) for item in list(closeout.get("parked_items") or []))
     fixed_items = dedupe(
@@ -753,6 +813,7 @@ def _build_thresholds(
         "universe_precheck": universe_precheck,
         "project_decision": project_decision,
         "policy_realignment": policy_realignment,
+        "official_strategy_retry_blocked": official_strategy_retry_blocked,
     }
     return threshold_rows, context
 
@@ -875,6 +936,22 @@ def _source_reference_for_threshold(row: Dict[str, object], primary_segment: str
             "no_single_fold_trade_share": "max fold candidate_total_trades / total candidate_total_trades",
         }
         return "output/baseline_v9_segment_oos_results.csv", f"{field_map[threshold_id]} for {primary_segment}"
+    if threshold_id in {
+        "baseline_filter_overlap_audit_completed",
+        "baseline_filter_overlap_risk_acceptable",
+    }:
+        return "output/phase_b_v2_overlap_audit.json", threshold_id
+    if threshold_id in {
+        "baseline_trade_design_audit_completed",
+        "signal_sparsity_flatness_audit_passed",
+    }:
+        return "output/phase_b_v2_trade_design_audit.json", threshold_id
+    if threshold_id == "baseline_redesign_candidate_usable":
+        return "output/baseline_redesign_go_no_go.json", "decision + usable_for_framework_redesign"
+    if threshold_id == "baseline_validation_candidate_usable":
+        return "output/baseline_v2_validation_go_no_go.json", "decision"
+    if threshold_id == "official_strategy_retry_reopened":
+        return "output/phase_b_final_closeout.json + output/project_after_phase_b_decision.json", "can_continue_strategy_experiments_now"
 
     if gate_name == "framework_governance_gate":
         return "output/framework_redesign_scope.json", threshold_id
@@ -915,6 +992,13 @@ def _recommended_fix_for_threshold(row: Dict[str, object]) -> str:
         "total_oos_trades_primary_segment": "Tambah history/coverage sampai total trade OOS primary segment mencapai minimal 18.",
         "no_single_ticker_trade_share": "Ratakan trade contribution antar ticker di primary segment.",
         "no_single_fold_trade_share": "Perpanjang history lalu rerun OOS agar distribusi trade per fold tidak melebihi 50%.",
+        "baseline_filter_overlap_audit_completed": "Publikasikan audit overlap baseline versus filter tambahan sebelum retest dipertimbangkan lagi.",
+        "baseline_filter_overlap_risk_acceptable": "Redesign filter tambahan sampai overlap risk tidak lagi high terhadap baseline aktif.",
+        "baseline_trade_design_audit_completed": "Publikasikan audit trade design baseline yang eksplisit untuk hold period, labeling, retention, dan min trades floor.",
+        "signal_sparsity_flatness_audit_passed": "Perbaiki sparsity/flatness sinyal lewat redesign trade design dan label horizon sebelum retest.",
+        "baseline_redesign_candidate_usable": "Lanjutkan baseline redesign sampai ada kandidat yang minimal usable untuk framework redesign.",
+        "baseline_validation_candidate_usable": "Ulang candidate validation setelah redesign/data extension sampai kandidat lolos validation minimum.",
+        "official_strategy_retry_reopened": "Tetap hormati closeout resmi; jangan buka retry strategi sebelum ada keputusan resmi baru.",
     }
     if threshold_id == "additional_bars_from_v9_baseline":
         if target_value <= 0:
@@ -1899,7 +1983,7 @@ def _build_policy_realignment_summary(
         "blockers_removed_by_policy_conflict_resolution": resolved_blockers,
         "blockers_still_active_after_policy_realignment": remaining_blockers,
         "readiness_status_after_policy_realignment": payload.get("final_decision"),
-        "strategy_retest_allowed_after_policy_realignment": payload.get("final_decision") == "boleh_retest",
+        "strategy_retest_allowed_after_policy_realignment": _strategy_retry_allowed(payload.get("final_decision")),
         "roadmap_update_allowed_after_policy_realignment": False,
     }
 
@@ -1950,7 +2034,7 @@ def _build_news_distribution_policy_realignment_summary(
         "blockers_removed_by_density_policy_conflict_resolution": removed_by_density_conflict_resolution,
         "blockers_expected_to_remain": remaining_blockers,
         "readiness_status_after_density_policy_realignment": payload.get("final_decision"),
-        "strategy_retest_allowed_after_density_policy_realignment": payload.get("final_decision") == "boleh_retest",
+        "strategy_retest_allowed_after_density_policy_realignment": _strategy_retry_allowed(payload.get("final_decision")),
         "roadmap_update_assessment": {
             "allowed": False,
             "reason": "Blocker breadth dan share control masih aktif sehingga roadmap belum boleh diupdate sebagai ready-for-retest.",
@@ -2018,19 +2102,31 @@ def run_phase_b_retest_readiness_gate(
         "framework_governance_gate": _gate_status(threshold_rows, "framework_governance_gate"),
         "roadmap_discipline_gate": _gate_status(threshold_rows, "roadmap_discipline_gate"),
     }
-    final_decision = "boleh_retest" if all(value == "PASS" for value in gate_values.values()) else "belum_boleh_retest"
+    all_gates_pass = all(value == "PASS" for value in gate_values.values())
+    official_strategy_retry_blocked = bool(context.get("official_strategy_retry_blocked"))
+    final_decision = (
+        "ready_for_strategy_retry"
+        if all_gates_pass and not official_strategy_retry_blocked
+        else "belum_boleh_retest"
+    )
     highest_blocking_gate = blockers[0]["gate_name"] if blockers else "none"
     blocking_thresholds = _blocking_thresholds(threshold_rows=threshold_rows)
 
-    if final_decision == "boleh_retest":
-        decisive_statement = "Semua gate PASS. Retest boleh dibuka kembali tanpa mengubah baseline aktif, tanpa membuka Phase C, dan tanpa promosi global."
+    if final_decision == "ready_for_strategy_retry":
+        decisive_statement = "Semua gate PASS dan track strategi sudah dibuka ulang secara resmi. Retry boleh dipertimbangkan dalam scope yang dibekukan."
         next_action = "freeze_retest_scope_and_run_only_after_current_gate_snapshot_is_published"
+    elif all_gates_pass and official_strategy_retry_blocked:
+        decisive_statement = (
+            "Semua blocker data/framework yang diaudit sudah PASS, tetapi closeout resmi masih menutup track strategi. "
+            "Gate ini hanya boleh dipakai sebagai refresh blocker status, bukan izin retry."
+        )
+        next_action = "maintain_phase_b_closeout_and_continue_data_extension_framework_sync"
     else:
         decisive_statement = (
-            "Bottleneck utama bukan hanya news coverage, tetapi kombinasi history pendek, distribusi sample timpang, dan OOS support yang belum layak. "
-            "Retest masih dilarang terutama karena history dan distribusi sample belum memenuhi threshold minimum."
+            "Retest masih dilarang karena blocker coverage/OOS bukan satu-satunya masalah; "
+            "audit overlap baseline, signal sparsity-flatness, usability redesign baseline, dan closeout resmi juga harus lolos."
         )
-        next_action = "extend_history_then_rebalance_distribution_before_any_strategy_retest"
+        next_action = "collect_more_data_and_refresh_framework_audits_before_any_strategy_retry"
 
     payload = {
         "generated_at": _now_iso(),
@@ -2040,6 +2136,7 @@ def run_phase_b_retest_readiness_gate(
         "blocking_thresholds": blocking_thresholds,
         "recommended_next_action": next_action,
         "decisive_statement": decisive_statement,
+        "strategy_retry_still_blocked_by_official_closeout": official_strategy_retry_blocked,
         "primary_segment": context.get("primary_segment"),
         "safe_segments_evaluated": list(context.get("safe_segments") or []),
         "policy_realignment_applied": bool(safe_dict(context.get("policy_realignment")).get("policy_realignment_applied")),
@@ -2052,6 +2149,24 @@ def run_phase_b_retest_readiness_gate(
         "post_realignment_density_threshold": safe_dict(context.get("policy_realignment")).get("post_realignment_density_threshold"),
         "share_control_policy_unchanged": bool(safe_dict(context.get("policy_realignment")).get("share_control_policy_unchanged")),
         "methodology_aligned_thresholds": safe_dict(context.get("policy_realignment")).get("aligned_thresholds"),
+        "framework_threshold_semantics": {
+            "methodology_minimum_windows": _safe_int(
+                safe_dict(safe_dict(context.get("policy_realignment")).get("aligned_thresholds")).get(
+                    "history_gate::usable_oos_windows_per_ticker"
+                )
+            ),
+            "stretch_target_windows": _safe_int(LEGACY_POLICY_THRESHOLDS.get("history_gate::usable_oos_windows_per_ticker")),
+            "strategy_retry_allowed_depends_on": [
+                "all methodology-aligned readiness gates",
+                "framework_governance_gate",
+                "official closeout reopening",
+            ],
+            "operational_progress_should_use": "methodology_minimum_windows_not_legacy_stretch_target",
+            "reason": (
+                "Legacy stretch target 6 windows tetap dicatat sebagai konteks redesign, tetapi gate operasional resmi "
+                "harus memakai threshold metodologi-aligned yang benar-benar reachable di bawah metodologi OOS aktif."
+            ),
+        },
         "policy_alignment_reason": safe_dict(context.get("policy_realignment")).get("reason"),
         "artifact_availability": artifact_availability,
         "limitations": limitations,
@@ -2064,7 +2179,8 @@ def run_phase_b_retest_readiness_gate(
         "priority_requirements": _recommended_priorities(blockers=blockers),
         "blocking_thresholds": blocking_thresholds,
         "can_continue_to_phase_c": False,
-        "can_continue_strategy_experiments_now": final_decision == "boleh_retest",
+        "can_continue_strategy_experiments_now": _strategy_retry_allowed(final_decision),
+        "framework_threshold_semantics": safe_dict(payload.get("framework_threshold_semantics")),
         "decisive_statement": decisive_statement,
     }
     blocker_audit = _build_readiness_blocker_audit(

@@ -1,19 +1,328 @@
 {
-  "generated_at": "2026-04-21T14:04:52.487321+00:00",
+  "generated_at": "2026-04-22T01:57:37.885152+00:00",
   "ticker": "BBCA",
   "official_article_days_before": 7,
   "official_article_days_after": 7,
-  "official_article_count_before": 17,
-  "official_article_count_after": 17,
+  "official_article_count_before": 19,
+  "official_article_count_after": 19,
   "included_in_official_primary_segment_after": true,
   "official_membership_reason_after": "included because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_poor matches phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; post_backfill_batch1_decision.priority_ticker_verification is_primary_segment=True",
-  "db_article_days_before": 0,
-  "db_article_days_after": 0,
-  "db_article_count_before": 0,
-  "db_article_count_after": 0,
-  "provider_fetch_summary": [],
-  "before_by_date": [],
-  "after_by_date": [],
+  "db_article_days_before": 10,
+  "db_article_days_after": 10,
+  "db_article_count_before": 22,
+  "db_article_count_after": 22,
+  "provider_fetch_summary": [
+    {
+      "provider": "google_news_rss",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 7,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0
+    },
+    {
+      "provider": "idx_disclosure",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0
+    },
+    {
+      "provider": "business_site_search",
+      "raw_count": 5,
+      "saved_count": 0,
+      "updated_count": 2,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0
+    },
+    {
+      "provider": "gnews",
+      "raw_count": 1,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 1,
+      "failed": 0
+    },
+    {
+      "provider": "rss_local",
+      "raw_count": 5,
+      "saved_count": 0,
+      "updated_count": 3,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 1,
+      "failed": 0
+    },
+    {
+      "provider": "newsapi",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0
+    },
+    {
+      "provider": "finnhub",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0
+    },
+    {
+      "provider": "gdelt",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 1
+    }
+  ],
+  "before_by_date": [
+    {
+      "published_date": "2026-04-22",
+      "article_count": 3,
+      "providers": {
+        "business_site_search": 2,
+        "google_news_rss": 1
+      },
+      "titles": [
+        "Sejarah BCA: Jejak dan Transformasi Bank Swasta Terbesar di Indonesia",
+        "Erajaya Group Dapat Pinjaman Rp 2,1 Triliun dari BCA, untuk Apa Saja?",
+        "Cheng Yu Pilihan Vice President of Digital Services PT Bank Central Asia Tbk Jayanti Zainal: Le Zai Qi Zhong - harian.disway.id - HARIAN DISWAY"
+      ]
+    },
+    {
+      "published_date": "2026-04-21",
+      "article_count": 6,
+      "providers": {
+        "google_news_rss": 6
+      },
+      "titles": [
+        "BCA (BBCA) Dukung Implementasi QRIS Cross Border di Korea Selatan - Investortrust.id",
+        "MSCI Berpotensi Pakai Data Kepemilikan di Atas 1%, Bobot BBCA Cs Bakal Terpangkas - kontan.co.id",
+        "Ada yang Ramal BBCA Naik 54%, Waktunya Serok? - investor.id",
+        "MSCI Bekukan Rebalancing Saham RI, BBCA dan BBNI Dinilai Tetap Stabil - Kompas.com"
+      ]
+    },
+    {
+      "published_date": "2026-04-20",
+      "article_count": 2,
+      "providers": {
+        "rss_local": 2
+      },
+      "titles": [
+        "Asing Net Buy Saham Ini Saat IHSG Koreksi di Sesi 1",
+        "Asing Terciduk Kompak Lego 10 Saham Ini Kala IHSG Reli Pekan Lalu"
+      ]
+    },
+    {
+      "published_date": "2026-04-19",
+      "article_count": 1,
+      "providers": {
+        "google_news_rss": 1
+      },
+      "titles": [
+        "Praktis! Ini Cara Lengkap Bayar MyRepublic Via Bank BCA - MetroTVNews.com"
+      ]
+    },
+    {
+      "published_date": "2026-04-18",
+      "article_count": 2,
+      "providers": {
+        "rss_local": 1,
+        "unknown": 1
+      },
+      "titles": [
+        "BCA sabet empat penghargaan mitra Surat Utang Negara dari Kemenkeu",
+        "Laba BCA tumbuh dobel digit, perbankan tetap defensif"
+      ]
+    },
+    {
+      "published_date": "2026-04-16",
+      "article_count": 2,
+      "providers": {
+        "google_news_rss": 2
+      },
+      "titles": [
+        "Bank BCA Terima Kredit Valas Naik 14,9 Persen di Tahun 2025 - USAID IUWASH Tangguh",
+        "Asing Buang Saham BBCA, Harga Bisa Mentok ke Sini - investor.id"
+      ]
+    },
+    {
+      "published_date": "2026-04-15",
+      "article_count": 2,
+      "providers": {
+        "rss_local": 1,
+        "google_news_rss": 1
+      },
+      "titles": [
+        "TRJA Perluas Usaha, MPPA Siapkan Rights Issue Besar di Tengah Penguatan IHSG",
+        "Cek rekomendasi teknikal saham BBCA, CPIN, dan PWON untuk perdagangan Rabu (15/4) - MSN"
+      ]
+    },
+    {
+      "published_date": "2026-04-14",
+      "article_count": 1,
+      "providers": {
+        "google_news_rss": 1
+      },
+      "titles": [
+        "Patroli Kantor Perbankan, Satsamapta Polresta Palangka Raya Datangi Bank BCA - NEWS IN KALTENG"
+      ]
+    },
+    {
+      "published_date": "2026-04-13",
+      "article_count": 2,
+      "providers": {
+        "google_news_rss": 2
+      },
+      "titles": [
+        "Pergeseran di Saham BBCA - investor.id",
+        "Waspada Terhadap Nomor Halo BCA Palsu di Website Instansi - BCA.co.id"
+      ]
+    },
+    {
+      "published_date": "2026-04-10",
+      "article_count": 1,
+      "providers": {
+        "google_news_rss": 1
+      },
+      "titles": [
+        "Situasi di Saham BBCA Mulai Berbeda - investor.id"
+      ]
+    }
+  ],
+  "after_by_date": [
+    {
+      "published_date": "2026-04-22",
+      "article_count": 3,
+      "providers": {
+        "business_site_search": 2,
+        "google_news_rss": 1
+      },
+      "titles": [
+        "Sejarah BCA: Jejak dan Transformasi Bank Swasta Terbesar di Indonesia",
+        "Erajaya Group Dapat Pinjaman Rp 2,1 Triliun dari BCA, untuk Apa Saja?",
+        "Cheng Yu Pilihan Vice President of Digital Services PT Bank Central Asia Tbk Jayanti Zainal: Le Zai Qi Zhong - harian.disway.id - HARIAN DISWAY"
+      ]
+    },
+    {
+      "published_date": "2026-04-21",
+      "article_count": 6,
+      "providers": {
+        "google_news_rss": 6
+      },
+      "titles": [
+        "BCA (BBCA) Dukung Implementasi QRIS Cross Border di Korea Selatan - Investortrust.id",
+        "MSCI Berpotensi Pakai Data Kepemilikan di Atas 1%, Bobot BBCA Cs Bakal Terpangkas - kontan.co.id",
+        "Ada yang Ramal BBCA Naik 54%, Waktunya Serok? - investor.id",
+        "MSCI Bekukan Rebalancing Saham RI, BBCA dan BBNI Dinilai Tetap Stabil - Kompas.com"
+      ]
+    },
+    {
+      "published_date": "2026-04-20",
+      "article_count": 2,
+      "providers": {
+        "rss_local": 2
+      },
+      "titles": [
+        "Asing Net Buy Saham Ini Saat IHSG Koreksi di Sesi 1",
+        "Asing Terciduk Kompak Lego 10 Saham Ini Kala IHSG Reli Pekan Lalu"
+      ]
+    },
+    {
+      "published_date": "2026-04-19",
+      "article_count": 1,
+      "providers": {
+        "google_news_rss": 1
+      },
+      "titles": [
+        "Praktis! Ini Cara Lengkap Bayar MyRepublic Via Bank BCA - MetroTVNews.com"
+      ]
+    },
+    {
+      "published_date": "2026-04-18",
+      "article_count": 2,
+      "providers": {
+        "rss_local": 1,
+        "unknown": 1
+      },
+      "titles": [
+        "BCA sabet empat penghargaan mitra Surat Utang Negara dari Kemenkeu",
+        "Laba BCA tumbuh dobel digit, perbankan tetap defensif"
+      ]
+    },
+    {
+      "published_date": "2026-04-16",
+      "article_count": 2,
+      "providers": {
+        "google_news_rss": 2
+      },
+      "titles": [
+        "Bank BCA Terima Kredit Valas Naik 14,9 Persen di Tahun 2025 - USAID IUWASH Tangguh",
+        "Asing Buang Saham BBCA, Harga Bisa Mentok ke Sini - investor.id"
+      ]
+    },
+    {
+      "published_date": "2026-04-15",
+      "article_count": 2,
+      "providers": {
+        "rss_local": 1,
+        "google_news_rss": 1
+      },
+      "titles": [
+        "TRJA Perluas Usaha, MPPA Siapkan Rights Issue Besar di Tengah Penguatan IHSG",
+        "Cek rekomendasi teknikal saham BBCA, CPIN, dan PWON untuk perdagangan Rabu (15/4) - MSN"
+      ]
+    },
+    {
+      "published_date": "2026-04-14",
+      "article_count": 1,
+      "providers": {
+        "google_news_rss": 1
+      },
+      "titles": [
+        "Patroli Kantor Perbankan, Satsamapta Polresta Palangka Raya Datangi Bank BCA - NEWS IN KALTENG"
+      ]
+    },
+    {
+      "published_date": "2026-04-13",
+      "article_count": 2,
+      "providers": {
+        "google_news_rss": 2
+      },
+      "titles": [
+        "Pergeseran di Saham BBCA - investor.id",
+        "Waspada Terhadap Nomor Halo BCA Palsu di Website Instansi - BCA.co.id"
+      ]
+    },
+    {
+      "published_date": "2026-04-10",
+      "article_count": 1,
+      "providers": {
+        "google_news_rss": 1
+      },
+      "titles": [
+        "Situasi di Saham BBCA Mulai Berbeda - investor.id"
+      ]
+    }
+  ],
   "added_rows_after_push": [],
   "added_row_count": 0,
   "added_new_dates": [],

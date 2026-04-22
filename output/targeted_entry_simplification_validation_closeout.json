@@ -1,0 +1,84 @@
+{
+  "artifact": "targeted_entry_simplification_validation_closeout",
+  "generated_at": "2026-04-22",
+  "source_of_truth": {
+    "entry_simplification_validation_summary": "output/targeted_entry_simplification_validation_summary.json",
+    "entry_simplification_validation_report": "output/targeted_entry_simplification_validation_report.txt",
+    "entry_simplification_plan": "output/targeted_entry_simplification_plan.json",
+    "walk_forward_validation_closeout": "output/walk_forward_validation_closeout.json",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "current_official_decision": {
+    "candidate_validation_status": "completed_candidate_did_not_beat_control",
+    "candidate_more_oos_resilient_than_control": false,
+    "close_above_ema50_removed_from_core_stack": false,
+    "drop_decision": "not_yet_keep_under_review",
+    "paper_trading_allowed": false,
+    "retest_allowed": false,
+    "note": "Removing `close > ema50` produced no observable change versus the current control on the current evaluation stack."
+  },
+  "comparison_snapshot": {
+    "control_full_period": {
+      "total_trades": 5941,
+      "win_rate": 44.3023,
+      "average_return_per_trade": 1.0854,
+      "max_drawdown_pct": 44.1235,
+      "profit_factor": 1.0974,
+      "sample_adequacy_risk": "low"
+    },
+    "candidate_full_period": {
+      "total_trades": 5941,
+      "win_rate": 44.3023,
+      "average_return_per_trade": 1.0854,
+      "max_drawdown_pct": 44.1235,
+      "profit_factor": 1.0974,
+      "sample_adequacy_risk": "low"
+    },
+    "control_out_of_sample": {
+      "total_trades": 439,
+      "win_rate": 38.2688,
+      "average_return_per_trade": -0.0909,
+      "max_drawdown_pct": 31.6175,
+      "profit_factor": 0.9629,
+      "sample_adequacy_risk": "moderate"
+    },
+    "candidate_out_of_sample": {
+      "total_trades": 439,
+      "win_rate": 38.2688,
+      "average_return_per_trade": -0.0909,
+      "max_drawdown_pct": 31.6175,
+      "profit_factor": 0.9629,
+      "sample_adequacy_risk": "moderate"
+    },
+    "control_holdout": {
+      "total_trades": 461,
+      "win_rate": 38.6117,
+      "average_return_per_trade": -0.4867,
+      "max_drawdown_pct": 29.0187,
+      "profit_factor": 0.8416,
+      "sample_adequacy_risk": "moderate"
+    },
+    "candidate_holdout": {
+      "total_trades": 461,
+      "win_rate": 38.6117,
+      "average_return_per_trade": -0.4867,
+      "max_drawdown_pct": 29.0187,
+      "profit_factor": 0.8416,
+      "sample_adequacy_risk": "moderate"
+    },
+    "control_oos_degradation_vs_in_sample_pct": 114.819,
+    "candidate_oos_degradation_vs_in_sample_pct": 114.819
+  },
+  "interpretation": {
+    "main_takeaway": "The current simplification candidate does not create a new behavior regime; it is operationally identical to the control on the present evaluation stack.",
+    "what_this_means": [
+      "The `close > ema50` gate is not yet supported as a formal removable blocker because dropping it produced no measurable difference in trades or quality.",
+      "The root entry problem appears deeper than this single dual-confirmation tweak.",
+      "A further entry simplification cycle is required before revisiting any exit or sizing redesign."
+    ]
+  },
+  "official_next_action": {
+    "action": "open_next_entry_simplification_cycle_planning",
+    "note": "Proceed to the next narrow entry simplification cycle because the current candidate failed to improve OOS and behaved identically to control."
+  }
+}

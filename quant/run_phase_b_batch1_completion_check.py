@@ -349,9 +349,13 @@ def _build_batch1_closeout_summary(
             "retest_readiness_gate": "phase_b_retest_readiness_gate.json",
         },
         "batch_1_status_final": _safe_str(completion_payload.get("batch_1_status")),
-        "batch_1_completed": _safe_bool(completion_payload.get("batch_1_completed")),
+        "batch_1_priority_targets_closed": _safe_bool(completion_payload.get("batch_1_priority_targets_closed")),
+        "batch_1_operationally_complete": _safe_bool(completion_payload.get("batch_1_operationally_complete")),
+        "ready_for_batch_2": _safe_bool(completion_payload.get("ready_for_batch_2")),
+        "batch_1_completed": _safe_bool(completion_payload.get("batch_1_operationally_complete")),
         "checkpoint_material_reached": _safe_bool(completion_payload.get("checkpoint_material_reached")),
         "recheck_readiness_gate_allowed": _safe_bool(completion_payload.get("recheck_readiness_gate_allowed")),
+        "oos_window_threshold_semantics": safe_dict(completion_payload.get("oos_window_threshold_semantics")),
         "primary_segment_total_articles_final": round(_safe_float(completion_payload.get("primary_segment_total_articles")), 4),
         "primary_segment_article_days_median_final": round(_safe_float(completion_payload.get("primary_segment_article_days_median")), 4),
         "official_primary_segment_tickers_final": official_primary_tickers,
@@ -416,21 +420,29 @@ def run_phase_b_batch1_completion_check(
         "primary_segment_article_days_median": round(_safe_float(article_status.get("primary_segment_article_days_median")), 4),
         "segmentation_refresh_completed": _safe_bool(segmentation_status.get("segmentation_refresh_completed")),
         "batch_1_status": _safe_str(decision.get("batch_1_status")),
-        "batch_1_completed": _safe_bool(decision.get("batch_1_completed")),
+        "batch_1_priority_targets_closed": _safe_bool(decision.get("batch_1_priority_targets_closed")),
+        "batch_1_operationally_complete": _safe_bool(decision.get("batch_1_operationally_complete")),
+        "ready_for_batch_2": _safe_bool(decision.get("ready_for_batch_2")),
+        "batch_1_completed": _safe_bool(decision.get("batch_1_operationally_complete")),
         "checkpoint_material_reached": _safe_bool(decision.get("checkpoint_material_reached")),
         "recheck_readiness_gate_allowed": _safe_bool(decision.get("recheck_readiness_gate_allowed")),
+        "oos_window_threshold_semantics": safe_dict(decision.get("oos_window_threshold_semantics")),
         "remaining_blockers": list(decision.get("remaining_blockers") or []),
         "recommended_next_action": _safe_str(decision.get("recommended_next_action")),
         "decisive_statement": (
-            "Batch-1 resmi complete setelah article target dan segmentation sync terpenuhi."
-            if _safe_bool(decision.get("batch_1_completed")) and not _safe_bool(decision.get("checkpoint_material_reached"))
+            "Batch-1 operasional complete dan siap lanjut ke batch berikut tanpa membuka readiness gate."
+            if _safe_bool(decision.get("batch_1_operationally_complete")) and not _safe_bool(decision.get("checkpoint_material_reached"))
             else (
                 "Checkpoint material sudah tercapai sehingga readiness gate sekarang boleh dijalankan ulang."
                 if _safe_bool(decision.get("checkpoint_material_reached"))
                 else (
+                    "Target prioritas batch-1 sudah tertutup, tetapi progress artifact resmi belum mengakui batch sebagai complete."
+                    if _safe_bool(decision.get("batch_1_priority_targets_closed"))
+                    else (
                     "Segmentation refresh berhasil, tetapi article coverage primary masih belum cukup."
                     if _safe_bool(segmentation_status.get("segmentation_refresh_completed"))
                     else "Batch-1 belum complete karena article-day recovery primary segment masih di bawah target minimum."
+                    )
                 )
             )
         ),
@@ -480,7 +492,9 @@ def run_phase_b_batch1_completion_check(
             closeout_summary,
             [
                 "batch_1_status_final",
-                "batch_1_completed",
+                "batch_1_priority_targets_closed",
+                "batch_1_operationally_complete",
+                "ready_for_batch_2",
                 "checkpoint_material_reached",
                 "recheck_readiness_gate_allowed",
                 "primary_segment_total_articles_final",
@@ -524,7 +538,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     payload = safe_dict(result.get("phase_b_batch1_completion_decision"))
     print("Phase B batch-1 completion check complete.")
     print(f"batch_1_status={payload.get('batch_1_status')}")
-    print(f"batch_1_completed={payload.get('batch_1_completed')}")
+    print(f"batch_1_operationally_complete={payload.get('batch_1_operationally_complete')}")
     print(f"recheck_readiness_gate_allowed={payload.get('recheck_readiness_gate_allowed')}")
     return 0
 

@@ -53,6 +53,8 @@ class RunPhaseBPostBackfillBatchVerificationTestCase(unittest.TestCase):
             self.assertEqual("batch_1_not_started_snapshot_still_static", decision["batch_1_status"])
             self.assertFalse(decision["batch_1_officially_started"])
             self.assertFalse(decision["batch_1_completed"])
+            self.assertFalse(decision["batch_1_priority_targets_closed"])
+            self.assertFalse(decision["batch_1_operationally_complete"])
             self.assertFalse(decision["checkpoint_material_reached"])
             self.assertFalse(decision["recheck_readiness_gate_allowed"])
 
@@ -92,6 +94,8 @@ class RunPhaseBPostBackfillBatchVerificationTestCase(unittest.TestCase):
             self.assertEqual("batch_1_started_but_not_complete", decision["batch_1_status"])
             self.assertTrue(decision["batch_1_officially_started"])
             self.assertFalse(decision["batch_1_completed"])
+            self.assertFalse(decision["batch_1_priority_targets_closed"])
+            self.assertFalse(decision["batch_1_operationally_complete"])
             self.assertFalse(decision["checkpoint_material_reached"])
             self.assertFalse(decision["recheck_readiness_gate_allowed"])
 
@@ -134,8 +138,10 @@ class RunPhaseBPostBackfillBatchVerificationTestCase(unittest.TestCase):
             )
 
             decision = result["phase_b_post_backfill_batch1_decision"]
-            self.assertEqual("batch_1_complete_but_checkpoint_not_material", decision["batch_1_status"])
+            self.assertEqual("batch_1_operationally_complete_but_checkpoint_not_material", decision["batch_1_status"])
             self.assertTrue(decision["batch_1_officially_started"])
+            self.assertTrue(decision["batch_1_priority_targets_closed"])
+            self.assertTrue(decision["batch_1_operationally_complete"])
             self.assertTrue(decision["batch_1_completed"])
             self.assertFalse(decision["checkpoint_material_reached"])
             self.assertFalse(decision["recheck_readiness_gate_allowed"])
@@ -179,8 +185,10 @@ class RunPhaseBPostBackfillBatchVerificationTestCase(unittest.TestCase):
             )
 
             decision = result["phase_b_post_backfill_batch1_decision"]
-            self.assertEqual("batch_1_complete_and_checkpoint_material_reached", decision["batch_1_status"])
+            self.assertEqual("batch_1_operationally_complete_and_checkpoint_material_reached", decision["batch_1_status"])
             self.assertTrue(decision["batch_1_officially_started"])
+            self.assertTrue(decision["batch_1_priority_targets_closed"])
+            self.assertTrue(decision["batch_1_operationally_complete"])
             self.assertTrue(decision["batch_1_completed"])
             self.assertTrue(decision["checkpoint_material_reached"])
             self.assertTrue(decision["recheck_readiness_gate_allowed"])

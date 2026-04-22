@@ -1,0 +1,140 @@
+{
+  "generated_at": "2026-04-20T05:54:10.423803+00:00",
+  "input_context": {
+    "v7_best_candidate_id": "baseline_v3_ema20_trend_guard",
+    "v7_tested_segment": "sentiment_segment=sentiment_poor",
+    "v7_decision": "keep_experimental_for_segment_review",
+    "global_promotion_allowed": false
+  },
+  "safe_segments_from_governance": [
+    "volatility_segment=mixed_volatility",
+    "sentiment_segment=sentiment_poor",
+    "liquidity_segment=thin_sparse",
+    "news_segment=mid_news"
+  ],
+  "segments_to_avoid": [
+    "sentiment_segment=sentiment_rich",
+    "liquidity_segment=liquid_active",
+    "news_segment=high_news",
+    "volatility_segment=higher_volatility",
+    "category=finance",
+    "sector=perbankan"
+  ],
+  "candidate_id": "baseline_v3_ema20_trend_guard",
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "supporting_segments_checked": [
+    "volatility_segment=mixed_volatility",
+    "liquidity_segment=thin_sparse",
+    "news_segment=mid_news"
+  ],
+  "supporting_segments_passed": [
+    "volatility_segment=mixed_volatility",
+    "liquidity_segment=thin_sparse",
+    "news_segment=mid_news"
+  ],
+  "supporting_segments_failed": [],
+  "primary_segment_row": {
+    "candidate_id": "baseline_v3_ema20_trend_guard",
+    "primary_segment": "sentiment_segment=sentiment_poor",
+    "tested_segment": "sentiment_segment=sentiment_poor",
+    "segment_role": "primary",
+    "segment_support_ok": true,
+    "support_check_passed": true,
+    "support_check_reason": "segment_support_confirmed",
+    "eligible_ticker_count": 3,
+    "total_trades_sum": 18,
+    "mean_average_return_all": 4.5183,
+    "mean_average_return_eligible": 7.2823,
+    "mean_score_all": 25.97587,
+    "sample_skew_gap": -2.764,
+    "outlier_bias_risk": false,
+    "decision_hint": "segment_validated"
+  },
+  "supporting_segment_rows": [
+    {
+      "candidate_id": "baseline_v3_ema20_trend_guard",
+      "primary_segment": "sentiment_segment=sentiment_poor",
+      "tested_segment": "volatility_segment=mixed_volatility",
+      "segment_role": "supporting",
+      "segment_support_ok": true,
+      "support_check_passed": true,
+      "support_check_reason": "segment_support_confirmed",
+      "eligible_ticker_count": 4,
+      "total_trades_sum": 29,
+      "mean_average_return_all": 3.61745,
+      "mean_average_return_eligible": 3.61745,
+      "mean_score_all": 28.1021,
+      "sample_skew_gap": 0.0,
+      "outlier_bias_risk": false,
+      "decision_hint": "segment_validated"
+    },
+    {
+      "candidate_id": "baseline_v3_ema20_trend_guard",
+      "primary_segment": "sentiment_segment=sentiment_poor",
+      "tested_segment": "liquidity_segment=thin_sparse",
+      "segment_role": "supporting",
+      "segment_support_ok": true,
+      "support_check_passed": true,
+      "support_check_reason": "segment_support_confirmed",
+      "eligible_ticker_count": 4,
+      "total_trades_sum": 30,
+      "mean_average_return_all": 0.0496,
+      "mean_average_return_eligible": 0.0496,
+      "mean_score_all": 22.66185,
+      "sample_skew_gap": 0.0,
+      "outlier_bias_risk": false,
+      "decision_hint": "segment_validated"
+    },
+    {
+      "candidate_id": "baseline_v3_ema20_trend_guard",
+      "primary_segment": "sentiment_segment=sentiment_poor",
+      "tested_segment": "news_segment=mid_news",
+      "segment_role": "supporting",
+      "segment_support_ok": true,
+      "support_check_passed": true,
+      "support_check_reason": "segment_support_confirmed",
+      "eligible_ticker_count": 3,
+      "total_trades_sum": 19,
+      "mean_average_return_all": 2.93485,
+      "mean_average_return_eligible": 5.17103,
+      "mean_score_all": 18.65918,
+      "sample_skew_gap": -2.23618,
+      "outlier_bias_risk": false,
+      "decision_hint": "segment_validated"
+    }
+  ],
+  "segment_stability_ok": true,
+  "decision": {
+    "candidate_id": "baseline_v3_ema20_trend_guard",
+    "primary_segment": "sentiment_segment=sentiment_poor",
+    "supporting_segments": [
+      "volatility_segment=mixed_volatility",
+      "liquidity_segment=thin_sparse",
+      "news_segment=mid_news"
+    ],
+    "decision": "promote_to_segment_only_validation",
+    "segment_stability_ok": true,
+    "global_promotion_allowed": false,
+    "recommended_next_action": "promote_candidate_to_segment_only_validation_on_primary_segment_without_global_promotion",
+    "supporting_segments_checked": [
+      "volatility_segment=mixed_volatility",
+      "liquidity_segment=thin_sparse",
+      "news_segment=mid_news"
+    ],
+    "supporting_segments_failed": [],
+    "primary_segment_support_ok": true,
+    "decision_notes": [
+      "Primary segment lolos dan seluruh supporting safe segments konsisten.",
+      "Kandidat layak naik ke validasi khusus subset, tetapi tetap dilarang untuk promosi global."
+    ]
+  },
+  "prior_segment_context": {
+    "v7_supported_result_count": 4,
+    "v7_tested_safe_segments": [
+      "volatility_segment=mixed_volatility",
+      "sentiment_segment=sentiment_poor",
+      "liquidity_segment=thin_sparse",
+      "news_segment=mid_news"
+    ]
+  }
+}

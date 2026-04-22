@@ -1,0 +1,17 @@
+{
+  "best_rule": "baseline_v3_ema20_trend_guard",
+  "decision": "no_go",
+  "coverage_improved": true,
+  "quality_preserved": false,
+  "eligible_ticker_count": 8,
+  "recommended_next_action": "drop_rule_from_redesign_shortlist",
+  "recommended_redesign_candidates": [],
+  "baseline_reference_rule": {
+    "candidate_id": "baseline_v2_hold3_with_trend_guard",
+    "entry_rule": "close_gt_ema50_and_bullish_candle",
+    "eligible_ticker_count": 1,
+    "total_trades_sum": 10,
+    "mean_score": -12.491990000000001,
+    "mean_average_return": 4.24329
+  }
+}

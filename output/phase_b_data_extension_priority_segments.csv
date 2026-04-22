@@ -1,0 +1,6 @@
+priority_rank,segment_name,segment_role,ticker_count,overlap_with_primary_tickers,history_rows_min,bars_needed_to_120,current_articles_total,target_articles_total,current_article_days_median,target_article_days_median,execution_wave,execution_priority_score,execution_reason
+1,sentiment_segment=sentiment_poor,primary,6,6,2647,0,89,18,7.5,4.0,wave_1_primary,130.0,"Primary segment memegang blocker langsung pada history, news distribution, dan OOS fairness."
+2,liquidity_segment=liquid_active,supporting,6,2,1171,0,130,,9.0,,wave_2_supporting_overlap,24.0,Segment aman ini overlap dengan ticker primary dan bisa membantu pemerataan coverage.
+3,volatility_segment=higher_volatility,supporting,4,1,1171,0,70,,9.0,,wave_2_supporting_overlap,12.0,Segment aman ini overlap dengan ticker primary dan bisa membantu pemerataan coverage.
+4,news_segment=mid_news,supporting,4,0,1171,0,60,,9.0,,wave_3_secondary,0.0,"Segment aman ini tetap dipantau, tetapi bukan pengungkit pertama untuk membuka retest."
+5,sentiment_segment=sentiment_rich,supporting,6,0,1171,0,115,,9.0,,wave_3_secondary,0.0,"Segment aman ini tetap dipantau, tetapi bukan pengungkit pertama untuk membuka retest."

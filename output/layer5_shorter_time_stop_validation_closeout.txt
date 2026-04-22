@@ -1,0 +1,13 @@
+Layer 5 Shorter Time Stop Validation Closeout
+=============================================
+
+Current official decision:
+- best_variant = candidate_atr25_time_stop_12d
+- candidate_more_resilient_than_control = True
+- layer5_time_stop_revision_decision = provisionally_revise_layer5_time_stop
+- note = Shorter time stop terbaik mengalahkan control 15 hari pada metrik holdout utama tanpa merusak OOS secara material, sehingga Layer 5 layak direvisi provisional ke time stop yang lebih pendek.
+- paper trading tetap tertutup
+- retest tetap tertutup
+
+Official next action:
+- prepare_provisional_layer5_time_stop_update

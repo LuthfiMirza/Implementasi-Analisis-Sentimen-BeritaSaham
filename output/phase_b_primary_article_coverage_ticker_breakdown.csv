@@ -1,0 +1,9 @@
+ticker,before_snapshot_articles,before_snapshot_article_days,db_before_articles,db_before_article_days,fetch_attempted,fetch_saved_total,fetch_updated_total,fetch_raw_total,providers_with_raw_hits,providers_with_saved_hits,db_after_articles,db_after_article_days,after_snapshot_articles,after_snapshot_article_days,snapshot_article_delta,snapshot_article_days_delta,still_blocking
+ASII,9,5,11,7,True,1,5,21,google_news_rss|business_site_search|rss_local,google_news_rss|business_site_search,12,7,9,5,0,0,False
+BUMI,19,6,23,8,True,2,10,25,google_news_rss|business_site_search|rss_local,google_news_rss|business_site_search|rss_local,25,8,19,6,0,0,False
+UNVR,7,6,12,8,True,0,8,15,google_news_rss|business_site_search,google_news_rss|business_site_search,12,8,7,6,0,0,False
+ADRO,12,8,16,10,True,0,10,21,google_news_rss|business_site_search|rss_local,google_news_rss|business_site_search|rss_local,16,10,12,8,0,0,False
+BBCA,19,7,22,10,True,0,12,21,google_news_rss|business_site_search|gnews|rss_local,google_news_rss|business_site_search|rss_local,22,10,19,7,0,0,False
+INDF,0,0,9,8,True,0,5,11,google_news_rss|business_site_search,google_news_rss,9,8,0,0,0,0,True
+TLKM,0,0,19,12,True,0,14,24,google_news_rss|business_site_search|gnews|rss_local,google_news_rss|business_site_search|rss_local,19,12,0,0,0,0,True
+DEWA,0,0,15,10,True,0,9,35,google_news_rss|business_site_search|gnews|rss_local,google_news_rss|business_site_search|rss_local,15,10,0,0,0,0,True

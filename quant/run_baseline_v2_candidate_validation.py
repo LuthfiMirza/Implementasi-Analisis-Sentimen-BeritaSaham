@@ -88,8 +88,7 @@ PER_TICKER_COLUMNS = [
 DECISION_VALUES = {
     "reject_candidate",
     "keep_candidate_experimental",
-    "promote_candidate_as_temp_baseline",
-    "promote_candidate_and_prepare_phase_b_retry",
+    "candidate_usable_for_framework_redesign_only",
 }
 
 VALIDATION_STATUS_VALUES = {
@@ -527,14 +526,17 @@ def build_validation_assessment(
         next_action = "redesign_baseline_v2_again"
     elif coverage_ok and trade_sample_ok and candidate_is_better and mean_score > 0 and improvement_ok:
         validation_status = "promotable"
-        recommendation = "Kandidat baseline v2 layak dipromosikan dan bisa dipakai untuk membuka retry terbatas Phase B."
-        next_action = "promote_baseline_v2_and_prepare_phase_b_retry"
+        recommendation = (
+            "Kandidat baseline v2 terlihat usable untuk memperjelas redesign framework evaluasi, "
+            "tetapi tetap tidak boleh dipromosikan menjadi baseline operasional atau membuka retry Phase B."
+        )
+        next_action = "archive_candidate_for_framework_redesign_only"
     elif candidate_is_better and no_trade_collapse and mean_score > -1.0 and (
         trade_sample_ok or eligible_ticker_count >= max(1, int(min_eligible_tickers) - 1)
     ):
         validation_status = "usable"
-        recommendation = "Kandidat baseline v2 usable, tetapi guardrail promosi penuh belum cukup kuat."
-        next_action = "keep_baseline_v2_experimental_and_monitor"
+        recommendation = "Kandidat baseline v2 masih bersifat audit-only dan hanya boleh dipakai sebagai input redesign framework."
+        next_action = "hold_candidate_for_framework_redesign_only"
     else:
         validation_status = "weak"
         recommendation = "Kandidat baseline v2 belum cukup kuat untuk promosi. Tetap eksperimental sambil redesign atau observasi tambahan."
@@ -637,16 +639,12 @@ def determine_go_no_go(
     neutral_ticker_count = int((per_ticker_df["validation_outcome"] == "neutral").sum())
     worsen_ticker_count = int((per_ticker_df["validation_outcome"] == "worsen").sum())
 
-    can_promote = bool(
+    usable_for_framework_redesign = bool(
         candidate_is_better
         and eligible_ticker_count >= int(min_eligible_tickers)
         and positive_ticker_count >= int(min_eligible_tickers)
         and _safe_float(candidate.get("mean_score")) > 0
-    )
-    can_retry_phase_b = bool(
-        can_promote
-        and coverage_improved
-        and worsen_ticker_count <= max(1, positive_ticker_count // 2)
+        and bool(assessment.get("trade_sample_ok"))
     )
 
     validation_status = str(assessment.get("validation_status") or "")
@@ -654,19 +652,12 @@ def determine_go_no_go(
     if validation_status == "invalid" or not candidate_is_better:
         decision = "reject_candidate"
         recommended_next_action = "revise_baseline_further"
-    elif validation_status == "promotable" and can_retry_phase_b:
-        decision = "promote_candidate_and_prepare_phase_b_retry"
-        recommended_next_action = "promote_candidate_and_reopen_phase_b_retry_gate"
-    elif validation_status == "promotable" and can_promote:
-        decision = "promote_candidate_as_temp_baseline"
-        recommended_next_action = "promote_candidate_for_temp_use_and_reassess_phase_b"
+    elif validation_status in {"promotable", "usable"} and usable_for_framework_redesign:
+        decision = "candidate_usable_for_framework_redesign_only"
+        recommended_next_action = "hold_candidate_for_framework_redesign_and_data_extension"
     else:
         decision = "keep_candidate_experimental"
-        recommended_next_action = (
-            "keep_candidate_experimental_and_continue_validation"
-            if validation_status == "usable"
-            else "keep_candidate_experimental_and_continue_validation"
-        )
+        recommended_next_action = "keep_candidate_experimental_and_continue_validation"
 
     return {
         "decision": decision,
@@ -678,8 +669,9 @@ def determine_go_no_go(
         "positive_ticker_count": positive_ticker_count,
         "neutral_ticker_count": neutral_ticker_count,
         "worsen_ticker_count": worsen_ticker_count,
-        "can_promote_baseline_v2": bool(can_promote),
-        "can_retry_phase_b_after_validation": bool(can_retry_phase_b),
+        "can_promote_baseline_v2": False,
+        "can_retry_phase_b_after_validation": False,
+        "usable_for_framework_redesign_only": usable_for_framework_redesign,
         "recommended_next_action": recommended_next_action,
         "decision_notes": dedupe(
             [
@@ -688,6 +680,9 @@ def determine_go_no_go(
                 else "Candidate tidak cukup mengungguli baseline aktif pada setting evaluasi yang sama.",
                 "Coverage eligible ticker belum mencapai guardrail minimum."
                 if eligible_ticker_count < int(min_eligible_tickers)
+                else "",
+                "Candidate hanya boleh dipakai sebagai input redesign framework; baseline operasional tetap Phase A aktif."
+                if decision == "candidate_usable_for_framework_redesign_only"
                 else "",
                 "Candidate hanya cocok untuk subset kecil ticker sehingga belum layak dipromosikan penuh."
                 if decision == "keep_candidate_experimental"
@@ -766,6 +761,7 @@ def build_report_text(
         f"- Positive ticker count: {go_no_go['positive_ticker_count']}",
         f"- Can promote baseline v2: {go_no_go['can_promote_baseline_v2']}",
         f"- Can retry Phase B after validation: {go_no_go['can_retry_phase_b_after_validation']}",
+        f"- Usable for framework redesign only: {go_no_go.get('usable_for_framework_redesign_only')}",
         f"- Recommendation: {validation_assessment['recommendation']}",
         f"- Recommended next action: {validation_assessment['next_action']}",
         "",
@@ -801,9 +797,8 @@ def update_transition_artifact(output_dir: Path, go_no_go: Dict[str, object]) ->
 
     payload["baseline_v2_validation_status"] = go_no_go.get("decision")
     payload["baseline_v2_validation_next_action"] = go_no_go.get("recommended_next_action")
-    payload["phase_b_retry_readiness_after_candidate_validation"] = (
-        "ready_for_retry_gate" if bool(go_no_go.get("can_retry_phase_b_after_validation")) else "not_ready_yet"
-    )
+    payload["phase_b_retry_readiness_after_candidate_validation"] = "not_ready_yet"
+    payload["baseline_v2_validation_scope"] = "framework_redesign_only"
     transition_path.write_text(json.dumps(payload, indent=2, ensure_ascii=True), encoding="utf-8")
 
     report_path = Path(output_dir) / "phase_a_to_phase_b_transition_report.txt"
@@ -813,7 +808,8 @@ def update_transition_artifact(output_dir: Path, go_no_go: Dict[str, object]) ->
         "Baseline v2 Validation Update:",
         f"- baseline_v2_validation_status: {go_no_go.get('decision')}",
         f"- baseline_v2_validation_next_action: {go_no_go.get('recommended_next_action')}",
-        f"- phase_b_retry_readiness_after_candidate_validation: {'ready_for_retry_gate' if bool(go_no_go.get('can_retry_phase_b_after_validation')) else 'not_ready_yet'}",
+        "- baseline_v2_validation_scope: framework_redesign_only",
+        "- phase_b_retry_readiness_after_candidate_validation: not_ready_yet",
     ]
     report_path.write_text(report_text.rstrip() + "\n" + "\n".join(appendix) + "\n", encoding="utf-8")
     return {"updated": True, "path": str(transition_path), "report_path": str(report_path), "warnings": warnings}

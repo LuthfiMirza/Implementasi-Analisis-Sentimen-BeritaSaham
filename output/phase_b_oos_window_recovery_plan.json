@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-21T14:06:38.362917+00:00",
+  "generated_at": "2026-04-22T02:49:35.580487+00:00",
   "source_of_truth_artifact": "output/baseline_v9_segment_oos_summary.json",
   "source_of_truth_field": "methodology",
   "formula": "usable_oos_windows_per_ticker = floor((min_rows_across_tested_tickers - warmup_bars) / fold_size_bars)",

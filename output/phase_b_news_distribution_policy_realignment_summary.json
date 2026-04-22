@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-21T14:06:38.363096+00:00",
+  "generated_at": "2026-04-22T02:49:35.580626+00:00",
   "news_distribution_policy_realignment_applied": true,
   "density_component_realigned": true,
   "old_density_policy": {
@@ -18,9 +18,40 @@
   "source_policy_audit_artifact": "output/phase_b_news_distribution_policy_alignment_audit.json",
   "reason_for_realignment": "Masalah eksplisit ada pada density subcheck: threshold 5.0 tidak reachable secara wajar di universe resmi saat ini.",
   "blockers_removed_by_density_policy_conflict_resolution": [],
-  "blockers_expected_to_remain": [],
-  "readiness_status_after_density_policy_realignment": "boleh_retest",
-  "strategy_retest_allowed_after_density_policy_realignment": true,
+  "blockers_expected_to_remain": [
+    {
+      "blocker_name": "news_distribution_gate::median_news_density_pct",
+      "actual_value": 0.3204,
+      "target_value": 0.3252,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::baseline_filter_overlap_risk_acceptable",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::signal_sparsity_flatness_audit_passed",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::baseline_validation_candidate_usable",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::official_strategy_retry_reopened",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    }
+  ],
+  "readiness_status_after_density_policy_realignment": "belum_boleh_retest",
+  "strategy_retest_allowed_after_density_policy_realignment": false,
   "roadmap_update_assessment": {
     "allowed": false,
     "reason": "Blocker breadth dan share control masih aktif sehingga roadmap belum boleh diupdate sebagai ready-for-retest."

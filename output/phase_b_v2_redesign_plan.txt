@@ -1,0 +1,18 @@
+Phase B v2 Minimum Redesign Plan
+================================
+
+- Generated at: 2026-04-21T23:31:11.363075+00:00
+- Scope: minimum_redesign_only
+- Reason: Phase B belum layak lanjut ke Phase C; redesign difokuskan pada baseline, data, dan evaluasi.
+
+Minimum experiments:
+- P1: phase_b_v2_exp1_baseline_trade_shape_audit | Audit entry/exit baseline, hold period, dan labeling untuk melihat mengapa semua filter tambahan menurunkan retensi trade.
+  success_criteria=Ada hipotesis konkret tentang sumber collapse trade dan perubahan minimal yang bisa diuji.
+- P2: phase_b_v2_exp2_filter_overlap_audit | Audit overlap baseline versus filter item 5/6/7 agar eksperimen tidak hanya menduplikasi constraint yang sudah aktif.
+  success_criteria=Ditemukan filter mana yang redundant dan mana yang benar-benar orthogonal terhadap baseline.
+- P3: phase_b_v2_exp3_sample_size_coverage_audit | Audit sample size per ticker, comparable coverage, dan kecukupan min_trades terhadap horizon data yang ada.
+  success_criteria=Ada aturan coverage minimum yang realistis dan konsisten untuk evaluasi berikutnya.
+- P4: phase_b_v2_exp4_sentiment_series_relevance_audit | Audit distribusi sentiment series, article count, dan timing relevansi sentiment terhadap trigger entry.
+  success_criteria=Jelas apakah sentiment layak dipakai sebagai gate timing atau hanya cocok sebagai konteks, bukan filter entry.
+- P5: phase_b_v2_exp5_single_change_rerun | Rerun satu eksperimen paling kecil dengan satu perubahan saja setelah audit di atas, bukan sweep besar.
+  success_criteria=Ada bukti apakah redesign minimum memperbaiki retention dan usability tanpa menambah kompleksitas besar.

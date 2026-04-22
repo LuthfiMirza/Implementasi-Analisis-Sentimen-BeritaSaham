@@ -1,0 +1,6 @@
+ticker,batch_id,is_primary_segment,ingest_status,history_rows_delta,usable_oos_windows_delta,article_days_delta,metadata_ready,segmentation_ready,ingest_reason
+BUMI,batch_3,True,rejected,0,213,0,True,True,history_extension_did_not_increase_usable_coverage
+BBCA,batch_3,True,rejected,0,210,0,True,True,history_extension_did_not_increase_usable_coverage
+ASII,batch_3,True,rejected,0,214,0,True,True,history_extension_did_not_increase_usable_coverage
+UNVR,batch_3,True,rejected,0,211,0,True,True,history_extension_did_not_increase_usable_coverage
+ICBP,batch_3,True,rejected,0,214,0,True,True,history_extension_did_not_increase_usable_coverage

@@ -33,7 +33,7 @@ class SentimentComparisonService
 
         $articles = NewsArticle::forStockContext($stock, $includeMacroNews)
             ->whereNotNull('published_at')
-            ->where('published_at', '>=', now()->subDays($period))
+            ->where('published_at', '>=', now()->subDays($period)->startOfDay())
             ->orderBy('published_at')
             ->get();
 

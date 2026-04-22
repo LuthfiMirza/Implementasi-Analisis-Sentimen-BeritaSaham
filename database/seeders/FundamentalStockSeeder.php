@@ -46,6 +46,14 @@ class FundamentalStockSeeder extends Seeder
                 'pbv' => 1.5, 'per' => 5.2, 'roe' => 28.5,
                 'der' => 0.4, 'eps' => 1250, 'dividend_yield' => 12.5,
             ],
+            'BUMI' => [
+                'pbv' => 0.9, 'per' => 6.8, 'roe' => 9.4,
+                'der' => 3.2, 'eps' => 18, 'dividend_yield' => 0.0,
+            ],
+            'DEWA' => [
+                'pbv' => 0.7, 'per' => 6.4, 'roe' => 11.5,
+                'der' => 1.8, 'eps' => 9, 'dividend_yield' => 0.0,
+            ],
             'UNVR' => [
                 'pbv' => 18.5, 'per' => 22.1, 'roe' => 85.2,
                 'der' => 2.1, 'eps' => 108, 'dividend_yield' => 4.1,

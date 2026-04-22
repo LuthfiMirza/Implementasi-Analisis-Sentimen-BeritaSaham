@@ -1,0 +1,22 @@
+{
+  "phase": "phase_0b_2_ihsg_historical_ingest",
+  "status": "completed",
+  "source_dataset": "data/IHSG.csv",
+  "source": "yfinance_^JKSE",
+  "rows": 8774,
+  "date_start": "1990-04-06",
+  "date_end": "2026-04-22",
+  "validation": {
+    "weekend_rows": 0,
+    "duplicate_dates": 0,
+    "monotonic_ascending": true,
+    "max_gap_days": 12,
+    "ema200_ready": true
+  },
+  "price_policy_recommendation": {
+    "regime_return_momentum_series": "adj_close",
+    "raw_ohlc_status_for_atr_and_exit_logic": "not_yet_safe_for_new_backtests_until_split_aware_ohlc_policy_is_frozen",
+    "next_required_phase": "phase_0b_3_indicator_master_table",
+    "atr_exit_followup": "decide_between_full_back_adjusted_ohlc_or_explicit_split_aware_raw_ohlc_policy_before_atr_stoploss_candle_logic"
+  }
+}

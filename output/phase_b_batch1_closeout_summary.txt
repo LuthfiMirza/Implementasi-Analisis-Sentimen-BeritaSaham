@@ -1,7 +1,9 @@
 Phase B Batch-1 Closeout Summary
-- batch_1_status_final=batch_1_complete_but_checkpoint_not_material
-- batch_1_completed=True
-- checkpoint_material_reached=False
-- recheck_readiness_gate_allowed=False
-- primary_segment_total_articles_final=83.0
-- primary_segment_article_days_median_final=7.5
+- batch_1_status_final=batch_1_operationally_complete_and_checkpoint_material_reached
+- batch_1_priority_targets_closed=True
+- batch_1_operationally_complete=True
+- ready_for_batch_2=True
+- checkpoint_material_reached=True
+- recheck_readiness_gate_allowed=True
+- primary_segment_total_articles_final=80.0
+- primary_segment_article_days_median_final=7.0

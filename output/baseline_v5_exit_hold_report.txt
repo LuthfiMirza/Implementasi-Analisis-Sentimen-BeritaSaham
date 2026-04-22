@@ -1,0 +1,45 @@
+Baseline v5 Exit/Hold Redesign
+===============================
+
+- Decision: no_go
+- Best candidate: baseline_v5_hold4_extension
+- Supports exit/hold hypothesis: False
+- Coverage ok: False
+- Trade support ok: False
+- Quality preserved: False
+- Improved vs v4 anchor: True
+- Recommended next action: exit_hold_not_enough_keep_anchor_but_reassess_root_cause
+
+Reference baseline:
+- eligible_ticker_count=0
+- total_trades_sum=4
+- mean_average_return=-0.21967
+
+V3 control:
+- eligible_ticker_count=1
+- total_trades_sum=35
+- mean_average_return=-2.02307
+
+V4 anchor control:
+- eligible_ticker_count=0
+- total_trades_sum=27
+- mean_average_return=-2.07347
+
+Best v5 candidate:
+- candidate_id=baseline_v5_hold4_extension
+- exit_rule_id=fixed_hold_4
+- eligible_ticker_count=0
+- total_trades_sum=21
+- mean_average_return=-0.33547
+- trade_retention_vs_v4_anchor=0.7778
+- coverage_gain_vs_v4_anchor=0
+- mean_average_return_delta_vs_v4_anchor=+1.73800
+- mean_average_return_delta_vs_v3=+1.68759
+
+Decision notes:
+- Anchor entry utama tetap dipertahankan; eksperimen hanya mengubah exit/hold.
+- Coverage masih di bawah target minimum 3 ticker eligible.
+- Trade retention terhadap anchor v4 turun terlalu jauh.
+- Quality belum preserved versus baseline_v3_ema20_trend_guard.
+- Average return membaik material versus baseline_v4_quality_gate_guard iterasi pertama.
+- Data belum cukup membuktikan bahwa masalah utama ada di exit/hold logic.

@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-04-20T11:01:43.637804+00:00",
+  "root_cause_class": "mixed_root_cause",
+  "minimum_operational_requirements": [
+    "fetch date window must extend beyond the current snapshot horizon for priority tickers",
+    "export phase-a real data only after stock_prices rows actually increase",
+    "metadata and segmentation refresh must be rerun against the advanced snapshot",
+    "ingest progress is valid only when both history rows and primary article-day coverage increase materially"
+  ],
+  "required_fetch_command": "php artisan stocks:fetch-history --days=180",
+  "required_export_command": "php artisan phase-a:export-real-data --data-dir=data --metadata-file=data/ticker_metadata.csv --include-sentiment-series",
+  "required_validation_checks": [
+    "priority ticker CSV row count must increase versus baseline",
+    "date_end for priority tickers must move forward or the window length must expand materially",
+    "primary segment article-day coverage must increase from the previous ingest baseline",
+    "progress update and ingest audit must be rerun only after the snapshot changes"
+  ],
+  "batch_1_minimum_targets": {
+    "min_history_bars_per_ticker": 78.0,
+    "usable_oos_windows_per_ticker": 4.0,
+    "primary_segment_total_articles": 13.0,
+    "primary_segment_article_days_median": 3.0
+  },
+  "recommended_next_action": "rerun_bulk_history_fetch_with_extended_days_then_export_phase_a_real_data_then_refresh_segmentation_and_repeat_ingest_audit"
+}

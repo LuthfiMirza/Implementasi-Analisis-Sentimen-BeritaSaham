@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-04-19T02:09:03.110065+00:00",
+  "baseline_runtime": {
+    "default_volume_spike_threshold": 1.5,
+    "strict_mode_default": false,
+    "adaptive_threshold_enabled": false,
+    "group_override_count": 0,
+    "unique_runtime_config_count": 1,
+    "runtime_thresholds": [
+      1.5
+    ]
+  },
+  "overlap_assessment": {
+    "item5": {
+      "overlap_level": "high",
+      "best_global_threshold": 1.0,
+      "same_as_baseline_threshold": false,
+      "redundancy_signals": [
+        "Artifact item 5 sudah menyatakan threshold collapse ke aturan baseline.",
+        "Filter tambahan item 5 menambah syarat tetapi tidak menghasilkan kandidat baru."
+      ]
+    },
+    "item6": {
+      "overlap_level": "low",
+      "redundancy_signals": [
+        "Filter weekly trend relatif orthogonal terhadap baseline, tetapi tidak menambah informasi yang cukup untuk menjaga retention trade."
+      ]
+    },
+    "item7": {
+      "overlap_level": "low",
+      "sentiment_ready_ticker_count": 9,
+      "sentiment_unusable_ticker_count": 1,
+      "redundancy_signals": [
+        "Sentiment momentum bukan overlap langsung dengan baseline, tetapi sinyal tambahannya tidak cukup usable pada data real."
+      ]
+    },
+    "item8": {
+      "overlap_level": "high",
+      "thresholds_tested": [
+        1.5,
+        2.0,
+        2.5
+      ],
+      "strict_options_tested": [
+        false,
+        true
+      ],
+      "includes_baseline_config": true,
+      "search_space_span": 1.0,
+      "redundancy_signals": [
+        "Adaptive search space item 8 masih berpusat pada threshold yang sangat dekat dengan baseline.",
+        "Baseline config persis ikut masuk ke adaptive search space.",
+        "Adaptive baseline belum didukung override/group model, sehingga variasi konfigurasi praktis masih sempit.",
+        "Artifact item 8 menyatakan model adaptive belum usable."
+      ]
+    }
+  },
+  "overall_overlap_risk": "high",
+  "overall_conclusion": "Baseline aktif sudah menyerap sebagian besar variasi threshold sederhana; eksperimen item 5 dan item 8 terutama terlihat redundant atau terlalu sempit.",
+  "warnings": [],
+  "evidence_excerpt": [
+    "Phase B Item 5 Recommendations",
+    "================================",
+    "",
+    "- Decision: no_go",
+    "- Apakah item 5 layak lanjut: Tidak layak dipromosikan; item 5 sebaiknya dihentikan sebagai kandidat default.",
+    "- Threshold terbaik global: 1.0",
+    "- Apakah cocok global: tidak",
+    "- Apakah hanya cocok subset: tidak",
+    "- Apakah tetap experimental: tidak",
+    "- Apakah item 6 boleh mulai sekarang: Item 6 boleh mulai sekarang karena keputusan item 5 sudah cukup tegas.",
+    "",
+    "Recommended groups:"
+  ]
+}

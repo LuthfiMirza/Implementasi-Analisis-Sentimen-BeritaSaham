@@ -9,7 +9,10 @@ use App\Services\News\ApiNewsFetcher;
 use App\Services\News\FinnhubNewsFetcher;
 use App\Services\News\GdeltFetcher;
 use App\Services\News\GNewsFetcher;
+use App\Services\News\GoogleNewsRssFetcher;
+use App\Services\News\IdxDisclosureFetcher;
 use App\Services\News\ManualNewsFetcher;
+use App\Services\News\BusinessSiteSearchFetcher;
 use App\Services\News\MockNewsFetcher;
 use App\Services\News\NewsApiFetcher;
 use App\Services\News\OjkRssFetcher;
@@ -50,6 +53,9 @@ class NewsAggregationService
             'rss' => new RssNewsFetcher(),
             'api' => new ApiNewsFetcher(),
             'finnhub' => new FinnhubNewsFetcher(),
+            'google_news_rss' => new GoogleNewsRssFetcher($this->keywordMapper),
+            'idx_disclosure' => new IdxDisclosureFetcher(),
+            'business_site_search' => new BusinessSiteSearchFetcher($this->keywordMapper),
             'newsapi' => new NewsApiFetcher($this->keywordMapper),
             'gnews' => new GNewsFetcher($this->keywordMapper),
             'ojk' => new OjkRssFetcher(),
@@ -75,7 +81,7 @@ class NewsAggregationService
 
         $preferred = config('news.preferred_providers.'.($stock->code ?? ''), null);
         $providers = $providerOverride ?: ($providerKey === 'multi'
-            ? ($preferred ?: config('news.multi_providers', config('news.source_priority', ['rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'])))
+            ? ($preferred ?: config('news.multi_providers', config('news.source_priority', ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'])))
             : [$providerKey]);
 
         $rawArticles = collect();
@@ -152,7 +158,11 @@ class NewsAggregationService
             'kept_relevance_sum' => 0.0,
             'kept_entity_sum' => 0.0,
             'kept_market_sum' => 0.0,
-            'dropped_samples' => [],
+            'dropped_samples' => [
+                'relevance' => [],
+                'quality' => [],
+                'exclusion' => [],
+            ],
         ];
     }
 
@@ -174,8 +184,16 @@ class NewsAggregationService
         $scoredArticles = collect();
 
         foreach ($rawArticles as $raw) {
-            if (! $this->passesDomainAndExclusion($raw, $exclusions, $domainWhitelist, $domainBlacklist)) {
+            $domainDecision = $this->domainAndExclusionDecision($raw, $exclusions, $domainWhitelist, $domainBlacklist);
+            if (! ($domainDecision['passed'] ?? false)) {
                 $stats['dropped_exclusion']++;
+                $this->pushDroppedSample($stats, 'exclusion', [
+                    'title' => $raw['title'] ?? '(no title)',
+                    'provider' => $raw['provider'] ?? $providerKey ?? 'unknown',
+                    'reason' => $domainDecision['reason'] ?? 'excluded',
+                    'detail' => $domainDecision['detail'] ?? null,
+                    'source_domain' => $this->extractDomain($raw['source_url'] ?? null),
+                ]);
                 continue;
             }
 
@@ -205,16 +223,17 @@ class NewsAggregationService
                 $stats['drop_relevance_sum'] += $raw['relevance_score'] ?? 0;
                 $stats['drop_entity_sum'] += $raw['entity_match_score'] ?? 0;
                 $stats['drop_market_sum'] += $raw['market_context_score'] ?? 0;
-                if (count($stats['dropped_samples']) < 3) {
-                    $stats['dropped_samples'][] = [
-                        'title' => $raw['title'] ?? '(no title)',
-                        'relevance' => $raw['relevance_score'] ?? 0,
-                        'entity' => $raw['entity_match_score'] ?? 0,
-                        'market' => $raw['market_context_score'] ?? 0,
-                        'provider' => $raw['provider'] ?? 'unknown',
-                        'issuer_specificity' => $raw['issuer_specificity'] ?? 'none',
-                    ];
-                }
+                $this->pushDroppedSample($stats, 'relevance', [
+                    'title' => $raw['title'] ?? '(no title)',
+                    'provider' => $raw['provider'] ?? $providerKey ?? 'unknown',
+                    'reason' => 'relevance_below_threshold',
+                    'relevance' => round((float) ($raw['relevance_score'] ?? 0), 3),
+                    'entity' => round((float) ($raw['entity_match_score'] ?? 0), 3),
+                    'market' => round((float) ($raw['market_context_score'] ?? 0), 3),
+                    'issuer_specificity' => $raw['issuer_specificity'] ?? 'none',
+                    'direct_keyword_hits' => $raw['direct_keyword_hits'] ?? [],
+                    'competing_keyword_hits' => $raw['competing_keyword_hits'] ?? [],
+                ]);
                 continue;
             }
 
@@ -223,6 +242,14 @@ class NewsAggregationService
                 $stats['dropped_quality']++;
                 $stats['drop_score_sum'] += $finalScore;
                 $stats['drop_score_count']++;
+                $this->pushDroppedSample($stats, 'quality', [
+                    'title' => $raw['title'] ?? '(no title)',
+                    'provider' => $raw['provider'] ?? $providerKey ?? 'unknown',
+                    'reason' => 'quality_below_threshold',
+                    'final_quality' => round((float) $finalScore, 3),
+                    'relevance' => round((float) ($raw['relevance_score'] ?? 0), 3),
+                    'issuer_specificity' => $raw['issuer_specificity'] ?? 'none',
+                ]);
                 continue;
             }
 
@@ -296,7 +323,7 @@ class NewsAggregationService
                 'sentiment_label' => $rawArticle['sentiment_label'] ?? $analysis['label'],
                 'sentiment_score' => $rawArticle['sentiment_score'] ?? $analysis['score'],
                 'sentiment_confidence' => $rawArticle['sentiment_confidence'] ?? $analysis['confidence'] ?? null,
-                'sentiment_method' => $rawArticle['sentiment_method'] ?? $analysis['method'] ?? 'rule_based',
+                'sentiment_method' => $rawArticle['sentiment_method'] ?? $analysis['method'] ?? 'python_unavailable',
                 'ml_sentiment_label' => $rawArticle['ml_sentiment_label'] ?? $analysis['ml_label'] ?? null,
                 'ml_sentiment_score' => $rawArticle['ml_sentiment_score'] ?? $analysis['ml_score'] ?? null,
                 'ml_confidence' => $rawArticle['ml_confidence'] ?? $analysis['ml_confidence'] ?? null,
@@ -320,6 +347,7 @@ class NewsAggregationService
                     'matched_positive_terms' => $analysis['matched_positive_terms'] ?? [],
                     'matched_negative_terms' => $analysis['matched_negative_terms'] ?? [],
                     'reason_summary' => $analysis['reason_summary'] ?? null,
+                    'python_status' => $analysis['python_status'] ?? null,
                 ],
                 'analyzed_at' => Carbon::now(),
                 'language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
@@ -349,34 +377,64 @@ class NewsAggregationService
         return $stats;
     }
 
-    protected function passesDomainAndExclusion(array $rawArticle, array $exclusions, array $domainWhitelist, array $domainBlacklist): bool
+    protected function domainAndExclusionDecision(array $rawArticle, array $exclusions, array $domainWhitelist, array $domainBlacklist): array
     {
         $domain = $this->extractDomain($rawArticle['source_url'] ?? null);
         if ($domain && in_array($domain, $domainBlacklist, true)) {
-            return false;
+            return [
+                'passed' => false,
+                'reason' => 'domain_blacklisted',
+                'detail' => $domain,
+            ];
         }
         if ($domainWhitelist && $domain && ! in_array($domain, $domainWhitelist, true)) {
-            return false;
+            return [
+                'passed' => false,
+                'reason' => 'domain_not_whitelisted',
+                'detail' => $domain,
+            ];
         }
 
         if ($this->isMacroRegulatory($rawArticle)) {
-            return true;
+            return ['passed' => true];
         }
 
-        foreach ($exclusions as $ex) {
-            $text = strtolower(implode(' ', array_filter([
-                $rawArticle['title'] ?? '',
-                $rawArticle['summary'] ?? '',
-                $rawArticle['content_snippet'] ?? '',
-                $rawArticle['full_text'] ?? '',
-            ])));
+        $text = strtolower(implode(' ', array_filter([
+            $rawArticle['title'] ?? '',
+            $rawArticle['summary'] ?? '',
+            $rawArticle['content_snippet'] ?? '',
+            $rawArticle['full_text'] ?? '',
+        ])));
 
+        foreach ($exclusions as $ex) {
             if ($ex && str_contains($text, strtolower($ex))) {
-                return false;
+                return [
+                    'passed' => false,
+                    'reason' => 'matched_exclusion_keyword',
+                    'detail' => $ex,
+                ];
             }
         }
 
-        return true;
+        return ['passed' => true];
+    }
+
+    protected function passesDomainAndExclusion(array $rawArticle, array $exclusions, array $domainWhitelist, array $domainBlacklist): bool
+    {
+        return (bool) ($this->domainAndExclusionDecision($rawArticle, $exclusions, $domainWhitelist, $domainBlacklist)['passed'] ?? false);
+    }
+
+    protected function pushDroppedSample(array &$stats, string $bucket, array $sample, int $limit = 3): void
+    {
+        if (! isset($stats['dropped_samples'][$bucket]) || ! is_array($stats['dropped_samples'][$bucket])) {
+            $stats['dropped_samples'][$bucket] = [];
+        }
+
+        if (count($stats['dropped_samples'][$bucket]) >= $limit) {
+            return;
+        }
+
+        $stats['dropped_samples'][$bucket][] = $sample;
     }
 
     protected function isRelevant(array $rawArticle, array $keywords): bool

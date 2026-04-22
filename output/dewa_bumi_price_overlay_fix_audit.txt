@@ -1,0 +1,33 @@
+DEWA/BUMI Price Overlay Fix Audit
+Date: 2026-04-19
+
+Root cause
+- Overlay price series mixed fetched real rows with synthetic seed rows.
+- Real rows used trade dates around 00:00:00 with realistic DEWA/BUMI price levels.
+- Seed rows used trade dates around 15:00:00 with synthetic price levels.
+- This created duplicate daily points and inaccurate chart levels.
+
+Fix applied
+- PriceSeriesService now normalizes daily price series before returning chart data.
+- If any non-seed rows exist for a ticker/interval, seed rows are excluded from the series.
+- Remaining same-day duplicates are collapsed with priority:
+  1. source = null (runtime/default real row)
+  2. other non-seed rows
+  3. seed rows
+- ExportPhaseARealDataCommand now applies the same normalization before writing CSV files.
+
+Verification
+- Targeted tests passed:
+  - PriceSeriesServiceTest
+  - ExportPhaseARealDataCommandTest
+- Re-exported phase-a dataset after fix.
+- Exported rows:
+  - DEWA: 57 rows
+  - BUMI: 57 rows
+- Runtime service verification:
+  - DEWA count=57 first=2026-01-19 first_close=755.00 last=2026-04-17 last_close=550.00
+  - BUMI count=57 first=2026-01-19 first_close=412.00 last=2026-04-17 last_close=248.00
+
+Result
+- Overlay should now use real DEWA/BUMI prices instead of mixed seed+real prices.
+- Latest displayed point will follow the latest real trading day available in stock_prices.

@@ -1,0 +1,127 @@
+{
+  "generated_at": "2026-04-19T16:47:36.497368+00:00",
+  "experiment_id": "baseline_v5_exit_hold_redesign",
+  "state_snapshot": {
+    "phase_a_status": "closed_with_notes",
+    "phase_b_status": "phase_b_needs_redesign_before_continue",
+    "phase_c_decision": "phase_c_no_go_yet"
+  },
+  "guardrails": [
+    "Jangan keluar jalur roadmap.",
+    "Jangan hidupkan lagi item 5-8.",
+    "Jangan ubah baseline aktif.",
+    "Jangan lanjut ke Phase C.",
+    "Jangan ubah anchor entry utama dulu.",
+    "Jangan lanjutkan entry relaxation only."
+  ],
+  "redesign_hypothesis": {
+    "selected_hypothesis_id": "candidate_b_simple_entry_exit_hold_redesign",
+    "why_now": [
+      "Quality gate setelah fast anchor pernah terlihat menjanjikan pada iterasi pertama.",
+      "Iterasi v2 gagal total sehingga pelonggaran entry murni tidak layak diteruskan.",
+      "Langkah lurus berikutnya adalah menguji apakah kualitas bisa dipulihkan lewat redesign exit/hold di atas anchor yang sama."
+    ]
+  },
+  "anchor_to_keep_fixed": {
+    "variant_id": "baseline_v4_quality_gate_guard",
+    "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+    "quality_gate_id": "body_strength_floor",
+    "source_metrics_iter1": {
+      "decision": "no_go",
+      "eligible_ticker_count": 2,
+      "total_trades_sum": 34,
+      "mean_average_return": 7.41434,
+      "quality_preserved": true
+    },
+    "failed_relaxation_v2_snapshot": {
+      "decision": "no_go",
+      "eligible_ticker_count": 0,
+      "total_trades_sum": 15,
+      "mean_average_return": -0.7506833333333333,
+      "quality_preserved": false,
+      "trade_support_ok": false
+    }
+  },
+  "comparison_targets": [
+    "baseline_reference",
+    "baseline_v3_ema20_trend_guard",
+    "baseline_v4_quality_gate_guard"
+  ],
+  "exit_hold_variants": [
+    {
+      "variant_id": "baseline_v5_hold4_extension",
+      "candidate_id": "baseline_v5_hold4_extension",
+      "comparison_role": "v5_candidate",
+      "entry_rule": "v4_quality_gate_guard",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "body_strength_floor",
+      "exit_rule_id": "fixed_hold_4",
+      "exit_rule_summary": "Perpanjang hold dari 3 menjadi 4 bar tanpa exit tambahan.",
+      "max_hold_period": 4,
+      "stop_loss_pct": 0.0,
+      "take_profit_pct": 0.0,
+      "ema20_fail_exit": false,
+      "min_trades_threshold": 5
+    },
+    {
+      "variant_id": "baseline_v5_hold5_extension",
+      "candidate_id": "baseline_v5_hold5_extension",
+      "comparison_role": "v5_candidate",
+      "entry_rule": "v4_quality_gate_guard",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "body_strength_floor",
+      "exit_rule_id": "fixed_hold_5",
+      "exit_rule_summary": "Perpanjang hold menjadi 5 bar untuk menangkap follow-through lebih lama.",
+      "max_hold_period": 5,
+      "stop_loss_pct": 0.0,
+      "take_profit_pct": 0.0,
+      "ema20_fail_exit": false,
+      "min_trades_threshold": 5
+    },
+    {
+      "variant_id": "baseline_v5_hold5_stop3_take6",
+      "candidate_id": "baseline_v5_hold5_stop3_take6",
+      "comparison_role": "v5_candidate",
+      "entry_rule": "v4_quality_gate_guard",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "body_strength_floor",
+      "exit_rule_id": "hold5_with_stop3_take6",
+      "exit_rule_summary": "Max hold 5 bar dengan stop loss 3 persen dan take profit 6 persen.",
+      "max_hold_period": 5,
+      "stop_loss_pct": 3.0,
+      "take_profit_pct": 6.0,
+      "ema20_fail_exit": false,
+      "min_trades_threshold": 5
+    },
+    {
+      "variant_id": "baseline_v5_hold5_ema20_fail_exit",
+      "candidate_id": "baseline_v5_hold5_ema20_fail_exit",
+      "comparison_role": "v5_candidate",
+      "entry_rule": "v4_quality_gate_guard",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "body_strength_floor",
+      "exit_rule_id": "hold5_with_ema20_fail_exit",
+      "exit_rule_summary": "Max hold 5 bar tetapi keluar lebih cepat saat close jatuh di bawah EMA20.",
+      "max_hold_period": 5,
+      "stop_loss_pct": 0.0,
+      "take_profit_pct": 0.0,
+      "ema20_fail_exit": true,
+      "min_trades_threshold": 5
+    }
+  ],
+  "success_criteria": {
+    "preferred_decisions": [
+      "keep_experimental",
+      "promote_for_validation"
+    ],
+    "promote_gate": "eligible_ticker_count >= 3, quality preserved vs v3, trade retention vs v4 anchor >= 0.80, dan mean_average_return improvement vs v4 anchor >= 0.75",
+    "evidence_gate": "Jika coverage belum >=3 tetapi quality dan return improvement material sambil trade retention tetap terjaga, kandidat tetap boleh keep_experimental."
+  },
+  "carry_forward_from_v4": {
+    "primary_conclusion": "Jangan lanjutkan redesign dengan entry relaxation only.",
+    "secondary_conclusion": "Uji quality gate setelah fast trend anchor sebelum menambah pelonggaran entry baru.",
+    "third_conclusion": "Uji exit/hold redesign sebagai prioritas kedua bila quality gate tidak cukup.",
+    "default_rule_to_avoid": "volume_relaxed_entry_as_candidate_default"
+  },
+  "warnings": []
+}

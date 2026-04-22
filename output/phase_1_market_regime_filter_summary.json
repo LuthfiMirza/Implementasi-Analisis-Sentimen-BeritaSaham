@@ -1,0 +1,49 @@
+{
+  "phase": "phase_1_market_regime_filter",
+  "status": "completed",
+  "generated_at": "2026-04-22T05:48:55.615851+00:00",
+  "source_files": {
+    "indicator_master_file": "data/indicator_master/stock_indicator_master.csv",
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "metadata_file": "data/ticker_metadata.csv"
+  },
+  "official_definition": {
+    "market_regime_bullish": "ihsg_adj_close > ihsg_ema200",
+    "non_bullish_behavior": "skip_new_entries"
+  },
+  "regime_day_distribution": {
+    "total_days": 6342,
+    "bullish_days": 4423,
+    "non_bullish_days": 1919,
+    "bullish_day_pct": 69.7414,
+    "non_bullish_day_pct": 30.2586
+  },
+  "signals_before_after": {
+    "pre_filter_signals": 3151,
+    "post_filter_signals": 2707,
+    "skipped_signals": 444
+  },
+  "trades_before_after": {
+    "pre_filter_total_trades": 1664,
+    "post_filter_total_trades": 1432
+  },
+  "coverage": {
+    "tickers_with_pre_filter_signals": 7,
+    "tickers_with_post_filter_signals": 7,
+    "tickers_with_coverage_collapse": 0,
+    "trade_retention_pct_median": 86.4583
+  },
+  "quality_delta": {
+    "avg_pre_filter_win_rate": 46.6543,
+    "avg_post_filter_win_rate": 45.2514,
+    "avg_delta_win_rate": -1.4029,
+    "avg_pre_filter_average_return": 0.0424,
+    "avg_post_filter_average_return": -0.1565,
+    "avg_delta_average_return": -0.1989
+  },
+  "usability_decision": {
+    "layer_1_usable": true,
+    "coverage_collapse_detected": false
+  },
+  "warnings": []
+}

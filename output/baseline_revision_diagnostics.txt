@@ -1,0 +1,13 @@
+Baseline Revision Diagnostics
+=============================
+
+- Generated at: 2026-04-19T02:27:34.860237+00:00
+- Entry diagnosis: current_entry_too_tight
+- Exit diagnosis: hold_period_3_is_preferred
+- Labeling diagnosis: success_label_not_main_blocker
+- Coverage diagnosis: baseline_coverage_insufficient
+
+Recommended revision axes:
+- Kurangi ketergantungan entry pada volume spike sebagai syarat wajib.
+- Tetapkan hold period default 3 sebagai kandidat baseline v2 utama.
+- Pilih entry yang lebih sederhana tetapi tetap menjaga trend sebagai syarat esensial.

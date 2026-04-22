@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-04-20T11:01:43.637754+00:00",
+  "root_cause_class": "mixed_root_cause",
+  "pipeline_bug_confirmed": true,
+  "config_misalignment_confirmed": true,
+  "source_data_extended_confirmed": false,
+  "snapshot_advanced_confirmed": false,
+  "metadata_refresh_working": true,
+  "segmentation_refresh_working": true,
+  "highest_blocking_step": "fetch_update_snapshot_stage",
+  "recommended_next_action": "rerun_bulk_history_fetch_with_extended_days_then_export_phase_a_real_data_then_refresh_segmentation_and_repeat_ingest_audit",
+  "priority_tickers": [
+    "BUMI",
+    "INDF",
+    "UNVR",
+    "ICBP",
+    "BBCA",
+    "GOTO"
+  ],
+  "material_progress_detected": false,
+  "snapshot_date_range": "2026-01-19..2026-04-17",
+  "symptom_alignment": {
+    "decision": "ingest_rejected_no_material_progress",
+    "history_progress_valid": false,
+    "primary_article_day_recovery_valid": false,
+    "batch_1_closure_progress_valid": false,
+    "current_batch": "batch_1",
+    "current_batch_completed": false
+  },
+  "decisive_statement": "Pipeline fetch/export chain is aligned only through metadata refresh; the snapshot itself has not advanced materially.",
+  "limitations": []
+}

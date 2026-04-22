@@ -1,0 +1,31 @@
+{
+  "best_candidate_id": "baseline_v5_hold4_extension",
+  "best_variant_id": "baseline_v5_hold4_extension",
+  "decision": "no_go",
+  "coverage_ok": false,
+  "trade_support_ok": false,
+  "quality_preserved": false,
+  "improved_vs_v4_anchor": true,
+  "supports_exit_hold_hypothesis": false,
+  "eligible_ticker_count": 0,
+  "total_trades_sum": 21,
+  "mean_average_return": -0.33547499999999997,
+  "mean_average_return_delta_vs_v3": 1.6875916666666668,
+  "mean_average_return_delta_vs_v4_anchor": 1.7379999999999998,
+  "trade_retention_vs_reference": 5.25,
+  "trade_retention_vs_v4_anchor": 0.7778,
+  "coverage_gain_vs_reference": 0,
+  "coverage_gain_vs_v4_anchor": 0,
+  "reference_variant_id": "baseline_reference",
+  "v3_control_variant_id": "baseline_v3_ema20_trend_guard",
+  "v4_anchor_variant_id": "baseline_v4_quality_gate_guard",
+  "recommended_next_action": "exit_hold_not_enough_keep_anchor_but_reassess_root_cause",
+  "decision_notes": [
+    "Anchor entry utama tetap dipertahankan; eksperimen hanya mengubah exit/hold.",
+    "Coverage masih di bawah target minimum 3 ticker eligible.",
+    "Trade retention terhadap anchor v4 turun terlalu jauh.",
+    "Quality belum preserved versus baseline_v3_ema20_trend_guard.",
+    "Average return membaik material versus baseline_v4_quality_gate_guard iterasi pertama.",
+    "Data belum cukup membuktikan bahwa masalah utama ada di exit/hold logic."
+  ]
+}

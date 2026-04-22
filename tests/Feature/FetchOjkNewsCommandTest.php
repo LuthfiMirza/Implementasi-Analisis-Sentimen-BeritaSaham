@@ -6,12 +6,21 @@ use App\Models\NewsArticle;
 use App\Models\Stock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class FetchOjkNewsCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        File::delete(base_path('output/ojk_backfill_status.json'));
+        File::delete(base_path('output/ojk_backfill_report.txt'));
+
+        parent::tearDown();
+    }
 
     public function test_command_saves_ojk_articles_as_global_macro_news(): void
     {
@@ -42,6 +51,14 @@ class FetchOjkNewsCommandTest extends TestCase
         $this->assertSame('ojk_rss', $article->source_provider);
         $this->assertSame('https://www.ojk.go.id/id/berita/global-1', $article->source_url);
         $this->assertGreaterThanOrEqual(0.4, (float) $article->final_quality_score);
+        $this->assertFileExists(base_path('output/ojk_backfill_status.json'));
+        $this->assertFileExists(base_path('output/ojk_backfill_report.txt'));
+
+        $payload = json_decode((string) file_get_contents(base_path('output/ojk_backfill_status.json')), true);
+        $this->assertSame(1, $payload['fetched_count']);
+        $this->assertSame(1, $payload['saved_count']);
+        $this->assertSame(1, $payload['final_article_count']);
+        $this->assertSame('partial', $payload['backfill_status']);
     }
 
     public function test_backfill_command_is_idempotent_and_keeps_articles_global(): void
@@ -103,5 +120,29 @@ class FetchOjkNewsCommandTest extends TestCase
         $this->assertNotNull($article);
         $this->assertNull($article->stock_id);
         $this->assertSame('2026-04-14', $article->published_at?->toDateString());
+
+        $payload = json_decode((string) file_get_contents(base_path('output/ojk_backfill_status.json')), true);
+        $this->assertSame([
+            'from' => '2026-02-01',
+            'to' => '2026-04-15',
+        ], $payload['requested_range']);
+        $this->assertSame(1, $payload['final_article_count']);
+        $this->assertSame('partial', $payload['backfill_status']);
+    }
+
+    public function test_backfill_command_writes_explicit_artifact_for_invalid_date_range(): void
+    {
+        Stock::factory()->create(['code' => 'BBCA', 'company_name' => 'Bank Central Asia', 'is_active' => true]);
+
+        Artisan::call('news:fetch-ojk', [
+            '--backfill' => true,
+            '--from' => 'not-a-date',
+            '--to' => '2026-04-15',
+        ]);
+
+        $payload = json_decode((string) file_get_contents(base_path('output/ojk_backfill_status.json')), true);
+        $this->assertSame('empty', $payload['backfill_status']);
+        $this->assertSame('invalid_date_range', $payload['blocker_reason']);
+        $this->assertSame(0, $payload['fetched_count']);
     }
 }

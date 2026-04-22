@@ -57,7 +57,7 @@ class AuditProjectRoadmapTestCase(unittest.TestCase):
                 encoding="utf-8",
             )
             (output_dir / "phase_b_postmortem.json").write_text(
-                json.dumps({"phase_b_status": "phase_b_needs_redesign_before_continue"}),
+                json.dumps({"phase_b_status": "phase_b_closed_with_learnings_no_candidate"}),
                 encoding="utf-8",
             )
             (output_dir / "phase_b_go_no_go_next_phase.json").write_text(
@@ -65,9 +65,34 @@ class AuditProjectRoadmapTestCase(unittest.TestCase):
                     {
                         "phase_c_decision": "phase_c_no_go_yet",
                         "root_problem_class": "foundation_and_signal_usability",
-                        "recommended_next_action": "return_to_baseline_data_evaluation_redesign",
+                        "recommended_next_action": "stop_and_collect_more_data_then_redesign_framework",
                     }
                 ),
+                encoding="utf-8",
+            )
+            (output_dir / "phase_b_final_closeout.json").write_text(
+                json.dumps(
+                    {
+                        "phase_b_final_status": "phase_b_closed_with_learnings_no_candidate",
+                        "recommended_primary_next_step": "stop_and_collect_more_data_then_redesign_framework",
+                        "can_continue_strategy_experiments_now": False,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (output_dir / "project_after_phase_b_decision.json").write_text(
+                json.dumps(
+                    {
+                        "phase_b_final_status": "phase_b_closed_with_learnings_no_candidate",
+                        "phase_c_decision": "phase_c_no_go_yet",
+                        "recommended_primary_next_step": "stop_and_collect_more_data_then_redesign_framework",
+                        "can_continue_strategy_experiments_now": False,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (output_dir / "phase_b_retest_readiness_gate.json").write_text(
+                json.dumps({"final_decision": "belum_boleh_retest"}),
                 encoding="utf-8",
             )
             (output_dir / "baseline_redesign_go_no_go.json").write_text(
@@ -150,7 +175,7 @@ class AuditProjectRoadmapTestCase(unittest.TestCase):
             self.assertEqual("not_started", item_lookup[9])
             self.assertEqual("blocked", result["final_status"]["status"])
             self.assertEqual(
-                "phase_b_needs_redesign_before_continue",
+                "phase_b_closed_with_learnings_no_candidate",
                 payload["latest_execution_status"]["phase_b_status"],
             )
             self.assertEqual(
@@ -166,7 +191,7 @@ class AuditProjectRoadmapTestCase(unittest.TestCase):
                 payload["latest_execution_status"]["baseline_v3_signal_rule_best_rule"],
             )
             self.assertEqual(
-                "redesign_baseline_v2_again",
+                "stop_and_collect_more_data_then_redesign_framework",
                 payload["latest_execution_status"]["current_track"],
             )
 
@@ -181,7 +206,11 @@ class AuditProjectRoadmapTestCase(unittest.TestCase):
                 roadmap_txt,
             )
             self.assertIn(
-                "Current track: redesign_baseline_v2_again",
+                "Current track: stop_and_collect_more_data_then_redesign_framework",
+                roadmap_txt,
+            )
+            self.assertIn(
+                "Retest readiness status: belum_boleh_retest",
                 roadmap_txt,
             )
 
@@ -381,8 +410,8 @@ class AuditProjectRoadmapTestCase(unittest.TestCase):
             blockers_df["blocker_code"].tolist(),
         )
         self.assertGreaterEqual(len(next_steps), 2)
-        self.assertEqual("prepare_only", plan["gate_status"])
-        self.assertEqual("baseline_trade_design_redesign", plan["execution_order"][0]["step_code"])
+        self.assertEqual("phase_b_closed_waiting_data_extension_and_framework_redesign", plan["gate_status"])
+        self.assertEqual("baseline_trade_design_redesign_audit", plan["execution_order"][0]["step_code"])
         self.assertEqual(0, plan["execution_order"][0]["item_number"])
         self.assertEqual("phase_b_items_5_to_8_parking_rule", plan["execution_order"][-1]["step_code"])
 

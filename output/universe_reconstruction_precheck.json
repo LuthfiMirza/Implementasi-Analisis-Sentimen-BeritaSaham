@@ -1,0 +1,17 @@
+{
+  "universe_reconstruction_needed": true,
+  "why": "Universe segmentation saat ini dibangun dari history 57 bar dengan aligned news yang sangat tipis, sehingga belum cukup kuat untuk retest yang fair.",
+  "trigger_conditions": [
+    "History minimum per ticker sudah mencapai 120 bar.",
+    "Coverage news dan density sudah naik atau horizon label sudah didefinisikan ulang.",
+    "Framework data sufficiency dan OOS fairness sudah dibekukan."
+  ],
+  "what_data_must_exist_first": [
+    "Tambahan history minimal 0 bar dari kondisi minimum sekarang.",
+    "Metadata ticker yang konsisten untuk seluruh universe retest.",
+    "Aligned sentiment coverage yang cukup untuk horizon evaluasi yang dipilih."
+  ],
+  "whether_current_universe_is_usable_for_any_fair_retest": false,
+  "current_primary_segment": "sentiment_segment=sentiment_poor",
+  "current_news_distribution_status": "insufficient"
+}

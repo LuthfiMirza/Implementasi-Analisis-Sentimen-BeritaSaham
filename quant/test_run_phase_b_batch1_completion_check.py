@@ -81,6 +81,8 @@ class RunPhaseBBatch1CompletionCheckTestCase(unittest.TestCase):
             self.assertTrue(result["phase_b_segmentation_refresh_status"]["segmentation_refresh_completed"])
             self.assertEqual("batch_1_started_but_not_complete", decision["batch_1_status"])
             self.assertFalse(decision["batch_1_completed"])
+            self.assertFalse(decision["batch_1_priority_targets_closed"])
+            self.assertFalse(decision["batch_1_operationally_complete"])
             self.assertFalse(decision["checkpoint_material_reached"])
             self.assertEqual(
                 "batch_1_started_but_not_complete",
@@ -117,14 +119,18 @@ class RunPhaseBBatch1CompletionCheckTestCase(unittest.TestCase):
 
             decision = result["phase_b_batch1_completion_decision"]
             self.assertTrue(result["phase_b_segmentation_refresh_status"]["segmentation_refresh_completed"])
-            self.assertEqual("batch_1_complete_but_checkpoint_not_material", decision["batch_1_status"])
-            self.assertTrue(decision["batch_1_completed"])
+            self.assertEqual("batch_1_priority_targets_closed_but_progress_gate_pending", decision["batch_1_status"])
+            self.assertTrue(decision["batch_1_priority_targets_closed"])
+            self.assertFalse(decision["batch_1_operationally_complete"])
+            self.assertFalse(decision["batch_1_completed"])
             self.assertFalse(decision["checkpoint_material_reached"])
             self.assertFalse(decision["recheck_readiness_gate_allowed"])
             closeout = result["phase_b_batch1_closeout_summary"]
             self.assertEqual("phase_b_batch1_completion_decision.json", closeout["source_of_truth_artifact"])
-            self.assertEqual("batch_1_complete_but_checkpoint_not_material", closeout["batch_1_status_final"])
-            self.assertTrue(closeout["batch_1_completed"])
+            self.assertEqual("batch_1_priority_targets_closed_but_progress_gate_pending", closeout["batch_1_status_final"])
+            self.assertTrue(closeout["batch_1_priority_targets_closed"])
+            self.assertFalse(closeout["batch_1_operationally_complete"])
+            self.assertFalse(closeout["batch_1_completed"])
             self.assertFalse(closeout["checkpoint_material_reached"])
 
 if __name__ == "__main__":

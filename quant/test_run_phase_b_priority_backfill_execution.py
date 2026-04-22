@@ -135,6 +135,8 @@ Schedule::command('stocks:fetch-history --days=1');
             self.assertEqual("batch_1_not_started_snapshot_still_static", payload["batch_1_status"])
             self.assertFalse(payload["row_advance_detected"])
             self.assertFalse(payload["batch_1_officially_started"])
+            self.assertFalse(payload["batch_1_priority_targets_closed"])
+            self.assertFalse(payload["batch_1_operationally_complete"])
 
     def test_partial_row_advance_marks_batch_started_but_not_material(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -165,6 +167,8 @@ Schedule::command('stocks:fetch-history --days=1');
             self.assertTrue(payload["row_advance_detected"])
             self.assertTrue(payload["batch_1_officially_started"])
             self.assertFalse(payload["batch_1_material_progress_detected"])
+            self.assertFalse(payload["batch_1_priority_targets_closed"])
+            self.assertFalse(payload["batch_1_operationally_complete"])
 
     def test_batch_1_complete_is_reported_when_targets_are_reached(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -208,9 +212,11 @@ Schedule::command('stocks:fetch-history --days=1');
             )
 
             payload = result["phase_b_priority_backfill_batch1_status"]
-            self.assertEqual("batch_1_complete_ready_for_batch_2", payload["batch_1_status"])
+            self.assertEqual("batch_1_operationally_complete_ready_for_batch_2", payload["batch_1_status"])
             self.assertTrue(payload["batch_1_officially_started"])
             self.assertTrue(payload["batch_1_material_progress_detected"])
+            self.assertTrue(payload["batch_1_priority_targets_closed"])
+            self.assertTrue(payload["batch_1_operationally_complete"])
             self.assertTrue(payload["usable_oos_windows_advanced"])
             self.assertTrue(payload["primary_article_day_recovery_advanced"])
 

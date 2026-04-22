@@ -1,0 +1,263 @@
+{
+  "phase": "phase_2_1_relative_strength_redesign",
+  "status": "completed",
+  "generated_at": "2026-04-22T07:30:08.850526+00:00",
+  "source_files": {
+    "stock_indicator_master_file": "data/indicator_master/stock_indicator_master.csv",
+    "ihsg_indicator_master_file": "data/indicator_master/IHSG_indicator_master.csv",
+    "phase_2_summary_file": "output/phase_2_relative_strength_selection_summary.json",
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "metadata_file": "data/ticker_metadata.csv"
+  },
+  "layer_1_frozen_definition": {
+    "market_regime": "ihsg_ema50 > ihsg_ema200",
+    "alignment_policy": "explicit_previous_trading_day_alignment"
+  },
+  "phase_2_failure_audit": {
+    "official_failure_classes": [
+      "trade_retention_collapse",
+      "sample_coverage_insufficient"
+    ],
+    "phase_2_variant_snapshot": [
+      {
+        "variant_id": "top_25pct_return_20d",
+        "active_ticker_count_median": 10.0,
+        "total_trades": 4889,
+        "median_trade_retention": 50.4202,
+        "avg_delta_win_rate": -0.6731,
+        "avg_delta_average_return": 0.2682
+      },
+      {
+        "variant_id": "top_30pct_return_20d",
+        "active_ticker_count_median": 12.0,
+        "total_trades": 5557,
+        "median_trade_retention": 57.5342,
+        "avg_delta_win_rate": -0.838,
+        "avg_delta_average_return": -0.0237
+      }
+    ],
+    "worst_ticker_drags": {
+      "top_25pct_return_20d": [
+        {
+          "ticker": "EXCL",
+          "trade_retention_pct": 48.0874,
+          "delta_win_rate": -6.22,
+          "delta_average_return": -1.16
+        },
+        {
+          "ticker": "BBTN",
+          "trade_retention_pct": 50.0,
+          "delta_win_rate": -8.9,
+          "delta_average_return": -1.1079
+        },
+        {
+          "ticker": "ASII",
+          "trade_retention_pct": 46.6368,
+          "delta_win_rate": -6.63,
+          "delta_average_return": -0.8451
+        },
+        {
+          "ticker": "SCMA",
+          "trade_retention_pct": 50.4202,
+          "delta_win_rate": -4.14,
+          "delta_average_return": -0.8194
+        }
+      ],
+      "top_30pct_return_20d": [
+        {
+          "ticker": "EXCL",
+          "trade_retention_pct": 55.1913,
+          "delta_win_rate": -6.1,
+          "delta_average_return": -1.08
+        },
+        {
+          "ticker": "ASII",
+          "trade_retention_pct": 55.157,
+          "delta_win_rate": -9.99,
+          "delta_average_return": -0.891
+        },
+        {
+          "ticker": "JSMR",
+          "trade_retention_pct": 46.9512,
+          "delta_win_rate": -9.21,
+          "delta_average_return": -0.8018
+        },
+        {
+          "ticker": "INTP",
+          "trade_retention_pct": 46.8254,
+          "delta_win_rate": -5.8,
+          "delta_average_return": -0.6582
+        }
+      ]
+    },
+    "reason_hypothesis": "Top 25%/30% gagal terutama karena over-concentration pada universe 7 ticker: active universe turun ke 2-3 nama, trade retention sekitar 50%, lalu beberapa ticker besar seperti BBRI/BMRI/BBCA/TLKM menjadi drag kualitas ketika ranking terlalu sempit."
+  },
+  "selection_variants_tested": [
+    {
+      "variant_id": "layer1_full_universe",
+      "variant_label": "Full universe after Layer 1",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "full_after_layer1",
+      "top_pct": null
+    },
+    {
+      "variant_id": "top_40pct_return_20d",
+      "variant_label": "Top 40% by return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.4
+    },
+    {
+      "variant_id": "top_50pct_return_20d",
+      "variant_label": "Top 50% by return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.5
+    },
+    {
+      "variant_id": "above_median_return_20d",
+      "variant_label": "Above-median return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "above_median",
+      "top_pct": null
+    },
+    {
+      "variant_id": "top_50pct_vol_adjusted_return_20d",
+      "variant_label": "Top 50% by return_20d / vol20",
+      "score_column": "rs_score_vol_adjusted_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.5
+    }
+  ],
+  "variant_results": [
+    {
+      "variant_id": "layer1_full_universe",
+      "variant_label": "Full universe after Layer 1",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "full_after_layer1",
+      "top_pct": NaN,
+      "active_ticker_count_median": 40.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 51,
+      "active_ticker_count_mean": 30.4996,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 20854,
+      "total_trades": 9941,
+      "median_trade_retention": 100.0,
+      "avg_delta_win_rate": 0.0,
+      "avg_delta_average_return": 0.0,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "top_40pct_return_20d",
+      "variant_label": "Top 40% by return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.4,
+      "active_ticker_count_median": 16.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 21,
+      "active_ticker_count_mean": 12.4224,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 13495,
+      "total_trades": 6750,
+      "median_trade_retention": 69.5971,
+      "avg_delta_win_rate": -0.5188,
+      "avg_delta_average_return": -0.0131,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "top_50pct_return_20d",
+      "variant_label": "Top 50% by return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.5,
+      "active_ticker_count_median": 20.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 26,
+      "active_ticker_count_mean": 15.3342,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 15612,
+      "total_trades": 7723,
+      "median_trade_retention": 78.6026,
+      "avg_delta_win_rate": -0.1637,
+      "avg_delta_average_return": -0.0269,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "above_median_return_20d",
+      "variant_label": "Above-median return_20d",
+      "score_column": "rs_score_return_20d",
+      "selection_mode": "above_median",
+      "top_pct": NaN,
+      "active_ticker_count_median": 20.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 25,
+      "active_ticker_count_mean": 15.0236,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 15411,
+      "total_trades": 7624,
+      "median_trade_retention": 77.6786,
+      "avg_delta_win_rate": -0.0582,
+      "avg_delta_average_return": -0.0227,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "top_50pct_vol_adjusted_return_20d",
+      "variant_label": "Top 50% by return_20d / vol20",
+      "score_column": "rs_score_vol_adjusted_return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.5,
+      "active_ticker_count_median": 19.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 26,
+      "active_ticker_count_mean": 15.2027,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 15574,
+      "total_trades": 7712,
+      "median_trade_retention": 78.1395,
+      "avg_delta_win_rate": 0.0345,
+      "avg_delta_average_return": -0.0396,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    }
+  ],
+  "best_variant_decision": {
+    "status": "selected",
+    "selected_variant_id": "top_40pct_return_20d",
+    "selected_variant_label": "Top 40% by return_20d",
+    "reason": "Selected the redesign variant with the strongest balance of retained sample and quality delta."
+  },
+  "formal_decision": {
+    "decision_code": "universe_too_small_for_relative_strength_validation",
+    "quality_positive": false,
+    "non_inferior": false,
+    "selected_variant_id": "top_40pct_return_20d",
+    "selected_variant_label": "Top 40% by return_20d",
+    "reason": "All redesign variants remain quality-negative or sample-risky, so the current universe is too small for defensible relative strength validation."
+  },
+  "layer_2_usability": {
+    "layer_2_usable_now": false,
+    "reason": "Layer 2 redesign is not yet usable; the next bottleneck is universe size, not a small rule tweak."
+  },
+  "universe_assessment": {
+    "universe_now_too_small_for_final_validation": true,
+    "max_rankable_tickers_on_any_date": 51,
+    "reason": "Current pilot universe tetap terlalu kecil untuk validasi final RS, dan redesign Phase 2.1 dipakai terutama untuk menentukan apakah masih ada candidate yang cukup defensible."
+  },
+  "warnings": []
+}

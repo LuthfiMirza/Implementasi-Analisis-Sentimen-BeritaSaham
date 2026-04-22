@@ -1,0 +1,7 @@
+Phase 0B Price Policy
+=====================
+
+Status: provisional_frozen_for_indicator_build
+Regime / return / momentum / EMA: use adj_close
+ATR / stop-loss / candle logic: not official for new backtests yet
+Next required phase: Phase 0B.3 indicator master table

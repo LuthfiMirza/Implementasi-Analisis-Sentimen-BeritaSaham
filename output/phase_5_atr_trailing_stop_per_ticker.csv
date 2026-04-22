@@ -1,0 +1,154 @@
+variant_id,variant_label,ticker,entry_signals,total_trades,avg_return_per_trade,avg_win_rate,avg_holding_period_actual,max_drawdown_per_trade,coverage_collapsed
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,AALI,418,201,0.1978,43.7811,5.0,3.6362,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,ACES,315,152,-0.2243,43.4211,5.0,3.8189,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,ADRO,304,146,-0.016,39.726,5.0,4.7636,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,AKRA,267,147,0.0714,36.7347,5.0,4.3832,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,AMRT,289,139,0.909,41.7266,5.0,4.7069,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,ANTM,329,146,0.521,44.5205,5.0,4.7229,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,ASII,370,189,1.2142,56.6138,5.0,3.1303,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,AUTO,463,214,0.3466,43.9252,5.0,3.2627,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,BBCA,355,200,0.1994,49.5,5.0,2.7798,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,BBNI,396,198,0.5554,46.4646,5.0,3.2935,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,BBRI,357,184,0.1782,46.1957,5.0,3.2846,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,BBTN,265,127,0.3965,49.6063,5.0,3.6309,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,BMRI,374,196,0.475,50.0,5.0,3.2388,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,BRPT,369,153,2.9622,45.098,5.0,5.3476,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,BSDE,294,131,0.9325,49.6183,5.0,3.8154,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,CPIN,338,166,0.9541,46.988,5.0,4.0091,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,CTRA,467,213,1.2138,43.1925,5.0,4.6785,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,ERAA,211,101,0.4572,44.5545,5.0,5.0674,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,ESSA,244,105,1.0396,48.5714,5.0,5.3371,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,EXCL,343,165,0.3241,44.2424,5.0,4.2052,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,GGRM,341,174,0.4472,44.8276,5.0,3.2028,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,GOTO,41,21,-0.8162,38.0952,5.0,7.4685,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,HMSP,434,198,0.1351,45.9596,5.0,3.9561,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,ICBP,434,207,0.5448,48.3092,5.0,3.6903,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,INCO,375,171,0.7519,46.7836,5.0,4.4107,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,INDF,396,196,0.5338,46.9388,5.0,3.5603,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,INDY,313,143,0.7935,39.1608,5.0,5.3977,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,INTP,404,208,0.3402,45.1923,5.0,3.6216,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,ISAT,349,167,0.695,46.7066,5.0,3.8767,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,ITMG,297,157,0.2242,47.7707,5.0,3.8193,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,JPFA,470,204,0.4165,45.098,5.0,5.0307,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,JSMR,280,146,-0.2245,42.4658,5.0,3.3353,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,KLBF,390,191,0.5937,46.5969,5.0,2.9962,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,LSIP,448,200,0.313,44.0,5.0,4.0115,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,MAPI,384,181,0.8923,46.4088,5.0,4.7617,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,MEDC,479,218,0.6955,45.8716,5.0,4.3137,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,MIKA,86,43,0.8484,55.814,5.0,3.9063,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,MNCN,259,124,-0.7499,36.2903,5.0,5.4899,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,MYOR,475,228,1.3328,51.3158,5.0,3.3812,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,PGAS,413,206,1.137,49.5146,5.0,3.5939,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,PTBA,483,229,0.2994,45.8515,5.0,3.9812,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,PWON,361,165,1.079,51.5152,5.0,3.6708,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,RALS,348,155,0.5433,43.2258,5.0,3.9956,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,SCMA,435,198,1.1429,47.4747,5.0,4.0111,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,SILO,219,96,0.6971,54.1667,5.0,3.9629,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,SMGR,328,171,-0.2005,43.8596,5.0,3.7074,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,TBIG,228,107,0.9089,44.8598,5.0,3.7096,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,TLKM,307,167,-0.2158,43.7126,5.0,3.2516,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,TPIA,307,122,2.274,57.377,5.0,3.5145,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,UNTR,443,230,0.4967,49.5652,5.0,3.8616,False
+baseline_fixed_hold_5d,Baseline fixed hold 5 days,UNVR,409,211,0.1519,48.3412,5.0,3.3291,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,AALI,418,142,-0.1888,40.1408,10.5211,4.8891,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,ACES,315,102,-0.875,36.2745,12.0294,5.2206,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,ADRO,304,104,0.8922,46.1538,11.3846,5.6224,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,AKRA,267,105,0.325,42.8571,11.6762,5.6965,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,AMRT,289,103,0.8275,43.6893,10.6796,5.8733,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,ANTM,329,101,1.5726,44.5545,10.9604,5.503,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,ASII,370,141,1.1535,46.0993,11.0426,3.9341,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,AUTO,463,147,1.0072,43.5374,11.2925,4.391,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,BBCA,355,143,0.6742,52.4476,11.7972,3.4419,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,BBNI,396,132,0.8398,48.4848,11.5076,3.8819,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,BBRI,357,134,0.2029,48.5075,11.5299,4.1083,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,BBTN,265,89,-0.2972,40.4494,11.5056,4.8728,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,BMRI,374,137,1.2556,51.8248,11.9562,3.9363,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,BRPT,369,118,5.4962,40.678,9.5932,5.8423,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,BSDE,294,93,0.534,39.7849,11.5699,5.2424,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,CPIN,338,117,1.5819,40.1709,10.8718,4.9995,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,CTRA,467,147,1.4453,40.8163,11.1429,5.6057,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,ERAA,211,71,1.0398,40.8451,11.1268,6.3642,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,ESSA,244,73,1.8148,39.726,11.3151,6.8728,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,EXCL,343,118,0.0864,41.5254,10.7712,5.1085,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,GGRM,341,126,0.1814,37.3016,10.2778,3.8787,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,GOTO,41,14,-1.633,28.5714,11.5,8.7411,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,HMSP,434,145,0.3972,46.8966,10.7379,4.8286,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,ICBP,434,145,1.3528,47.5862,11.8345,4.3317,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,INCO,375,118,1.226,44.9153,10.9237,5.2573,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,INDF,396,132,1.183,46.2121,12.1894,4.3277,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,INDY,313,93,2.7415,43.0108,11.4086,6.5942,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,INTP,404,145,0.6691,39.3103,11.2207,4.705,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,ISAT,349,122,1.334,49.1803,11.7623,4.5559,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,ITMG,297,105,1.3456,39.0476,11.3143,4.4135,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,JPFA,470,140,1.3876,45.7143,10.6857,6.6673,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,JSMR,280,99,-0.1783,41.4141,12.0505,4.3322,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,KLBF,390,130,0.891,43.8462,11.8,4.0269,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,LSIP,448,146,1.1752,47.2603,10.9863,4.9457,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,MAPI,384,125,0.4906,48.0,11.592,5.8816,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,MEDC,479,148,2.4906,44.5946,10.973,5.4131,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,MIKA,86,29,2.2447,68.9655,12.931,4.306,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,MNCN,259,94,-0.8554,30.8511,10.6383,7.3812,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,MYOR,475,158,2.1453,45.5696,11.5949,4.1857,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,PGAS,413,131,1.8977,48.0916,12.1679,4.2953,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,PTBA,483,149,1.8997,44.9664,11.8792,4.7949,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,PWON,361,114,1.5381,45.614,11.307,4.5414,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,RALS,348,107,0.7391,43.9252,11.1589,4.9033,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,SCMA,435,138,1.4668,39.8551,11.0725,5.3622,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,SILO,219,67,2.0349,44.7761,11.3881,5.0025,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,SMGR,328,116,0.2018,45.6897,11.5517,4.6757,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,TBIG,228,71,1.6981,46.4789,12.9437,4.844,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,TLKM,307,124,-0.2458,45.1613,10.7661,3.6683,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,TPIA,307,82,5.2766,54.878,11.6707,5.1505,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,UNTR,443,155,0.8849,49.0323,11.5613,4.91,False
+atr_trailing_stop_no_layer3,ATR trailing stop without Layer 3,UNVR,409,156,-0.2945,39.1026,10.3846,4.128,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,AALI,274,122,0.1534,39.3443,10.4836,4.6743,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,ACES,223,89,-1.0462,34.8315,11.809,5.6317,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,ADRO,208,95,0.895,45.2632,11.1158,5.499,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,AKRA,169,80,-0.3231,45.0,11.5875,5.6818,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,AMRT,196,87,1.6349,49.4253,10.8621,5.1654,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,ANTM,217,81,2.204,45.679,11.642,5.415,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,ASII,272,131,1.1665,45.0382,11.1374,3.7797,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,AUTO,305,118,1.0577,44.0678,11.5254,3.8277,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,BBCA,263,124,0.6336,54.0323,11.9758,3.3948,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,BBNI,263,113,1.1639,50.4425,11.6726,3.6636,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,BBRI,247,114,0.0725,49.1228,11.5351,3.9862,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,BBTN,187,77,0.1353,41.5584,11.7273,4.6956,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,BMRI,261,116,1.5625,54.3103,12.3362,3.8759,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,BRPT,209,97,3.7144,37.1134,9.8247,6.0242,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,BSDE,214,88,0.3347,38.6364,11.3523,5.1561,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,CPIN,222,101,1.7857,41.5842,10.9802,4.6412,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,CTRA,335,131,1.8155,42.7481,11.5038,5.4733,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,ERAA,141,64,0.1831,42.1875,10.7344,6.4555,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,ESSA,160,58,2.4863,41.3793,11.6034,6.844,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,EXCL,259,108,0.3043,42.5926,10.9167,5.103,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,GGRM,236,110,0.0056,38.1818,10.2727,3.6138,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,GOTO,33,13,-1.0108,30.7692,11.6923,8.6656,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,HMSP,256,114,0.3032,46.4912,10.9386,4.4354,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,ICBP,300,130,1.6492,49.2308,11.8538,4.1188,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,INCO,248,101,1.2359,45.5446,10.9604,5.4017,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,INDF,257,119,1.1074,46.2185,12.084,4.26,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,INDY,197,79,2.5593,43.038,11.3165,6.3669,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,INTP,286,125,1.2785,44.0,11.504,4.6101,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,ISAT,251,109,1.1431,49.5413,11.8624,4.7642,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,ITMG,185,91,0.96,38.4615,11.3187,4.3402,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,JPFA,303,119,1.0319,42.8571,10.8487,5.9211,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,JSMR,204,87,-0.3447,39.0805,11.8506,4.3337,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,KLBF,261,115,0.7743,46.087,11.9565,4.0253,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,LSIP,295,128,0.7415,46.0938,11.1641,5.0751,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,MAPI,280,108,-0.4349,48.1481,11.4167,6.0504,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,MEDC,303,129,2.0324,44.186,11.2093,5.6431,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,MIKA,61,26,1.7218,65.3846,12.3846,4.3522,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,MNCN,163,77,-0.8386,32.4675,11.0519,7.1175,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,MYOR,311,135,2.3465,46.6667,11.5778,4.1069,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,PGAS,290,114,1.3729,46.4912,12.2281,4.3783,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,PTBA,306,127,1.5,40.1575,11.8346,4.7168,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,PWON,222,96,0.4811,42.7083,11.7188,4.9531,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,RALS,266,98,1.045,42.8571,11.6327,4.8535,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,SCMA,289,112,0.7924,40.1786,11.2679,5.3455,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,SILO,161,55,2.8109,49.0909,11.9091,4.584,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,SMGR,253,107,0.1909,44.8598,11.729,4.4665,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,TBIG,155,66,0.9004,40.9091,12.9545,4.8495,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,TLKM,227,108,0.2226,48.1481,11.2315,3.4946,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,TPIA,132,55,2.4953,41.8182,11.4909,5.4062,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,UNTR,292,133,1.5241,51.8797,11.6466,4.6162,False
+atr_trailing_stop_with_layer3_toggle,ATR trailing stop with Layer 3 toggle,UNVR,306,138,-0.0678,40.5797,10.7826,4.1665,False

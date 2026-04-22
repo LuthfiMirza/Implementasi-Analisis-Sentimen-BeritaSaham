@@ -1,0 +1,29 @@
+Phase 3 Layer 3 Closeout
+========================
+
+Source of truth:
+- output/phase_3_rsi14_integration_summary.json
+- output/phase_3_rsi14_integration_report.txt
+- output/project_roadmap_status.txt
+
+Final decision:
+- layer_3_status = optional_integration_layer
+- layer_3_rule = RSI14 >= 50 AND RSI14 <= 70
+- layer_3_frozen = false
+- layer_3_default_active = false
+- layer_3_note = menaikkan avg_delta_win_rate +0.6145 tetapi menurunkan avg_delta_average_return dari +0.0455 ke +0.0052; diaktifkan saat walk-forward sebagai toggle
+
+Comparison snapshot:
+- Layer 1 + Layer 2 alternatif:
+  - total_trades = 8507
+  - median_trade_retention = 85.5895
+  - avg_delta_win_rate = 0.3924
+  - avg_delta_average_return = 0.0455
+- Layer 1 + Layer 2 alternatif + Layer 3:
+  - total_trades = 6815
+  - median_trade_retention = 68.75
+  - avg_delta_win_rate = 0.6145
+  - avg_delta_average_return = 0.0052
+
+Official next action:
+- Implement Layer 5 ATR trailing stop as the first experimental integration pass; Layer 3 remains optional and not default-active.

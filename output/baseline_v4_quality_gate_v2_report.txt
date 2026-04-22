@@ -1,0 +1,35 @@
+Baseline v4 Quality Gate Experiment v2
+======================================
+
+- Decision: no_go
+- Best candidate: baseline_v4_quality_gate_v2_anchor_micro_confirm
+- Coverage ok: False
+- Trade support ok: False
+- Quality preserved: False
+- Recommended next action: redesign_quality_gate_or_shift_to_exit_hold_hypothesis
+
+Reference baseline:
+- eligible_ticker_count=0
+- total_trades_sum=30
+- mean_average_return=+0.31506
+
+V3 control:
+- eligible_ticker_count=6
+- total_trades_sum=60
+- mean_average_return=-0.45879
+
+Best v4 v2 candidate:
+- candidate_id=baseline_v4_quality_gate_v2_anchor_micro_confirm
+- quality_gate_id=body_strength_relaxed_plus_micro_anchor_confirm
+- eligible_ticker_count=0
+- total_trades_sum=15
+- mean_average_return=-0.75068
+- trade_retention_vs_reference=0.5000
+- coverage_gain_vs_reference=0
+- mean_average_return_delta_vs_v3=-0.29189
+
+Decision notes:
+- Coverage masih di bawah target minimum 3 ticker eligible.
+- Trade support belum cukup jauh di atas baseline reference.
+- Quality belum preserved versus baseline_v3_ema20_trend_guard.
+- Jangan lanjutkan entry relaxation only.

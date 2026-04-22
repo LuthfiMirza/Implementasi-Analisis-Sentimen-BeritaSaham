@@ -1,0 +1,34 @@
+Baseline Trade Design Redesign
+==============================
+
+- Decision: usable_for_framework_redesign_only
+- Baseline trade design improved: True
+- Can retry Phase B after this: False
+- Best global hold period: 3
+- Best global min trades: 10
+- Best trade label: t_plus_3
+- Min eligible ticker floor: 5
+- Trade retention vs current: 117.0152
+- Trade retention floor pct: 85.0
+- Usable for framework redesign: True
+- Phase B retry blocked until data extension: True
+- Recommended next experiment: refresh_framework_redesign_scope_after_data_extension
+- Next action: hold_redesign_candidate_as_framework_input_only
+
+Current baseline eval config:
+- hold_period=5
+- min_trades_threshold=8
+- eligible_ticker_count=12
+- total_trades_sum=1052.0
+- mean_score=+26.1327
+
+Best redesign config:
+- hold_period=3
+- min_trades_threshold=10
+- eligible_ticker_count=12
+- total_trades_sum=1231.0
+- mean_score=+30.4758
+
+Decision notes:
+- Config terbaik global meningkatkan usability dibanding desain evaluasi baseline saat ini.
+- Hasil redesign ini hanya boleh dipakai sebagai input framework redesign; retry Phase B tetap diblokir sampai data extension selesai.

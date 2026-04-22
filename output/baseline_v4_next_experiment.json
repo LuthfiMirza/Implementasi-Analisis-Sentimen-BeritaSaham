@@ -1,0 +1,15 @@
+{
+  "recommended_v4_direction": "candidate_a_fast_anchor_quality_gate",
+  "experiment_id": "baseline_v4_quality_gate_guard",
+  "experiment_goal": "Uji apakah fast trend anchor tetap bisa menjaga coverage >=3 ticker eligible setelah ditambah quality gate ringan yang memangkas candle/trade lemah.",
+  "experiment_scope": "Bandingkan anchor EMA20 trend guard dengan 3-4 variasi quality gate ringan pada hold_period=3 dan min_trades=5, tanpa mengubah scoring engine atau baseline aktif.",
+  "do_not_change": [
+    "Jangan ubah baseline aktif.",
+    "Jangan ubah scoring engine.",
+    "Jangan hidupkan item Phase B 5-8 lagi.",
+    "Jangan jadikan candidate v4 sebagai default sebelum validasi terpisah."
+  ],
+  "expected_success_signal": "eligible_ticker_count >= 3, total_trades_sum tetap jauh di atas baseline reference, dan mean_average_return membaik material versus baseline_v3_ema20_trend_guard tanpa quality collapse.",
+  "expected_failure_signal": "coverage turun lagi ke <3 ticker atau mean_average_return tetap <= 0 sehingga quality tetap tidak preserved.",
+  "recommended_command_stub": "python3 -m quant.run_baseline_v4_quality_gate_experiment --output-dir output --hold-period 3 --min-trades 5 --scaffold-only"
+}

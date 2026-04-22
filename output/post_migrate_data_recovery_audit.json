@@ -1,0 +1,280 @@
+{
+  "generated_at": "2026-04-19T20:45:00+07:00",
+  "context": {
+    "trigger": "fresh_migrate_recovery_audit",
+    "goal": "restore minimum data needed for fair roadmap evaluation without changing strategy logic"
+  },
+  "initial_state_before_recovery": {
+    "stocks": 0,
+    "stock_prices": 0,
+    "news_articles": 0,
+    "news_sources": 0,
+    "trades": 0,
+    "user_watchlists": 0,
+    "fetch_logs": 0,
+    "summary": "Fresh migrate had effectively wiped runtime and historical data from the working MySQL database."
+  },
+  "recovery_actions": [
+    {
+      "step": "seed_core_tables",
+      "command": "php artisan migrate --seed --force",
+      "result": "success",
+      "effect": "restored 10 core stocks, seeded demo news, seeded 30 daily price rows per ticker, restored watchlists and sources"
+    },
+    {
+      "step": "restore_price_history",
+      "command": "php artisan stocks:fetch-history --days=180",
+      "result": "success",
+      "effect": "all 10 core tickers now have 87 daily price rows in DB"
+    },
+    {
+      "step": "restore_macro_news",
+      "command": "php artisan news:fetch-ojk --backfill --from=2026-01-01 --to=2026-04-19 --output-dir=output --debug",
+      "result": "success",
+      "effect": "raw 37, saved 28, updated 9, final OJK article count 43, backfill status ready"
+    },
+    {
+      "step": "attempt_targeted_issuer_news_recovery",
+      "command": "php artisan news:fetch --stock=ICBP|UNVR|GOTO|INDF --limit=10 --debug",
+      "result": "partial",
+      "effect": "issuer news fetchers ran but mostly returned empty results or provider errors; no meaningful coverage lift for the lowest-coverage tickers"
+    },
+    {
+      "step": "normalize_article_scoring",
+      "command": "php artisan news:rescore-quality --days=180 --force",
+      "result": "success",
+      "effect": "Total 79, updated 36, skipped 43, failed 0"
+    },
+    {
+      "step": "normalize_article_sentiment",
+      "command": "php artisan news:rescore-sentiment",
+      "result": "success",
+      "effect": "Total 79, Changed 7; negative 3, neutral 69, positive 7"
+    },
+    {
+      "step": "refresh_quant_dataset",
+      "command": "php artisan phase-a:export-real-data --data-dir=data --metadata-file=data/ticker_metadata.csv --include-sentiment-series",
+      "result": "success",
+      "effect": "exported 10 ticker CSV files with 87 rows each"
+    },
+    {
+      "step": "refresh_phase_a_runtime_artifacts",
+      "command": "php artisan phase-a:closeout --output-dir=output --skip-tests",
+      "result": "success",
+      "effect": "phase_a_closeout_status.json now shows closed_with_notes and runtime_ok"
+    },
+    {
+      "step": "refresh_project_state_artifacts",
+      "command": "python3 -m quant.finalize_baseline_v2_decision --output-dir output && python3 -m quant.audit_project_roadmap --output-dir output",
+      "result": "success",
+      "effect": "runtime-blocked project artifacts were refreshed to reflect current MySQL and closeout state"
+    }
+  ],
+  "final_global_counts": {
+    "stocks": 10,
+    "stock_prices": 870,
+    "news_articles": 79,
+    "macro_articles": 43,
+    "stock_linked_articles": 36,
+    "news_sources": 7,
+    "trades": 0,
+    "user_watchlists": 5,
+    "fetch_logs": 5
+  },
+  "phase_a_runtime_after_recovery": {
+    "phase_a_closeout_status": "closed_with_notes",
+    "runtime_status": "runtime_ok",
+    "ojk_backfill_status": "ready",
+    "ojk_article_count": 43,
+    "macro_runtime_status": "ready"
+  },
+  "core_ticker_coverage": [
+    {
+      "ticker": "BBCA",
+      "price_days": 87,
+      "news_articles": 3,
+      "sentiment_articles": 3,
+      "sentiment_days": 2,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": false,
+      "enough_for_strategy_eval": false
+    },
+    {
+      "ticker": "BBRI",
+      "price_days": 87,
+      "news_articles": 7,
+      "sentiment_articles": 7,
+      "sentiment_days": 5,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": true,
+      "enough_for_strategy_eval": true
+    },
+    {
+      "ticker": "BMRI",
+      "price_days": 87,
+      "news_articles": 3,
+      "sentiment_articles": 3,
+      "sentiment_days": 3,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": false,
+      "enough_for_strategy_eval": false
+    },
+    {
+      "ticker": "TLKM",
+      "price_days": 87,
+      "news_articles": 6,
+      "sentiment_articles": 6,
+      "sentiment_days": 4,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": true,
+      "enough_for_strategy_eval": false
+    },
+    {
+      "ticker": "ASII",
+      "price_days": 87,
+      "news_articles": 5,
+      "sentiment_articles": 5,
+      "sentiment_days": 4,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": true,
+      "enough_for_strategy_eval": false
+    },
+    {
+      "ticker": "GOTO",
+      "price_days": 87,
+      "news_articles": 2,
+      "sentiment_articles": 2,
+      "sentiment_days": 2,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": false,
+      "enough_for_strategy_eval": false
+    },
+    {
+      "ticker": "INDF",
+      "price_days": 87,
+      "news_articles": 2,
+      "sentiment_articles": 2,
+      "sentiment_days": 2,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": false,
+      "enough_for_strategy_eval": false
+    },
+    {
+      "ticker": "ICBP",
+      "price_days": 87,
+      "news_articles": 1,
+      "sentiment_articles": 1,
+      "sentiment_days": 1,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": false,
+      "enough_for_strategy_eval": false
+    },
+    {
+      "ticker": "ADRO",
+      "price_days": 87,
+      "news_articles": 6,
+      "sentiment_articles": 6,
+      "sentiment_days": 5,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": true,
+      "enough_for_strategy_eval": true
+    },
+    {
+      "ticker": "UNVR",
+      "price_days": 87,
+      "news_articles": 1,
+      "sentiment_articles": 1,
+      "sentiment_days": 1,
+      "has_price_history": true,
+      "has_news": true,
+      "has_sentiment": true,
+      "enough_for_phase_a_eval": false,
+      "enough_for_strategy_eval": false
+    }
+  ],
+  "coverage_summary": {
+    "tickers_with_sufficient_price_history": 10,
+    "tickers_with_phase_a_level_news_coverage": 4,
+    "tickers_with_strategy_level_sentiment_coverage": 2,
+    "distinct_macro_sentiment_days_recent_dataset": 33,
+    "main_bottleneck": "stock-linked sentiment coverage remains too thin and uneven across the 10 core tickers"
+  },
+  "provider_findings": {
+    "ojk_backfill": "working via fallback/paginated listing even though the RSS endpoint returns 404",
+    "gnews": "mixed results; often returned 0 articles and also hit 429 rate limit",
+    "newsapi": "mostly empty results for low-coverage Indonesian issuers and later hit 429 rate limit",
+    "finnhub": "403 access denied for issuer news requests",
+    "gdelt": "rate-limited and timed out on some targeted recovery attempts",
+    "implication": "price recovery is reliable, macro news recovery is reliable, but issuer-news recovery is provider-limited and inconsistent"
+  },
+  "data_quality_findings": {
+    "all_articles_have_sentiment": true,
+    "all_articles_have_analyzed_at": true,
+    "all_articles_have_final_quality_score": true,
+    "observed_noise_examples": [
+      "adaro-rl added to PyPI",
+      "astra-code added to PyPI"
+    ],
+    "implication": "the issue is not missing scoring; the issue is sparse and noisy issuer-news retrieval"
+  },
+  "roadmap_reassessment": {
+    "phase_a_baseline": {
+      "assessment": "fair_to_evaluate_again",
+      "reason": "MySQL connectivity, OJK macro backfill, and daily price history have been restored; runtime artifacts now show closed_with_notes and runtime_ok"
+    },
+    "phase_b_item_5_volume_confirmation": {
+      "assessment": "still_primarily_strategy_design",
+      "reason": "this experiment depends mainly on price and volume, and those are now available across all 10 core tickers with 87 daily rows each"
+    },
+    "phase_b_item_6_multi_timeframe": {
+      "assessment": "mostly_strategy_design_with_some_sample_thinness",
+      "reason": "daily history is restored, so the experiment is no longer blocked by empty runtime data; however the horizon is still modest and weekly retention remains a design problem"
+    },
+    "phase_b_item_7_sentiment_momentum": {
+      "assessment": "partly_data_limited_but_still_high_risk_design",
+      "reason": "only 2 of 10 core tickers have at least 5 sentiment days, so any 3-day momentum gate remains highly fragile even after recovery"
+    },
+    "phase_b_item_8_adaptive_per_ticker": {
+      "assessment": "not_fairly_supported_yet_for_full_adaptive_runtime",
+      "reason": "per-ticker sentiment and event coverage remain too uneven for a robust adaptive search space, even though daily prices are restored"
+    }
+  },
+  "failure_classification": {
+    "failed_primarily_due_to_missing_or_insufficient_data": [
+      "fresh-migrate runtime state before recovery",
+      "sentiment momentum when evaluated as a per-ticker sentiment gate across all 10 core tickers",
+      "adaptive per-ticker search when it expects broader ticker-level sentiment/event support"
+    ],
+    "failed_primarily_due_to_signal_or_filter_design": [
+      "volume confirmation per candlestick",
+      "baseline v3 entry relaxation only",
+      "most of the baseline-v2/v4 trade-quality problem after price and macro data recovery"
+    ],
+    "not_fairly_decidable_yet_due_to_coverage_limits": [
+      "full ticker-wide sentiment gating comparisons",
+      "broad adaptive per-ticker model promotion"
+    ]
+  },
+  "bottom_line": {
+    "fair_reassessment_answer": "yes, fresh migrate did materially distort roadmap fairness because it removed all runtime and historical data, but after recovery the main remaining blocker is not empty runtime data anymore; it is sparse, uneven, and sometimes noisy issuer-news coverage combined with baseline trade-quality limits",
+    "most_pragmatic_next_action": "freeze this recovered dataset as the new minimum fair runtime baseline, do not reopen Phase C, do not reopen items 5-8 globally, and continue baseline redesign work with explicit awareness that price coverage is now sufficient but issuer sentiment coverage is still the limiting factor"
+  }
+}

@@ -9,30 +9,21 @@ class HybridSentimentAnalyzer implements SentimentAnalyzerInterface
         protected ?RuleBasedSentimentAnalyzer $ruleBasedAnalyzer = null
     ) {
         $this->ruleBasedAnalyzer ??= new RuleBasedSentimentAnalyzer();
-        $this->pythonAnalyzer ??= new PythonApiSentimentAnalyzer($this->ruleBasedAnalyzer);
+        $this->pythonAnalyzer ??= new PythonApiSentimentAnalyzer();
     }
 
     public function analyze(string $text, array $context = []): array
     {
-        $engine = function_exists('config') ? config('sentiment.engine', env('SENTIMENT_ENGINE', 'hybrid')) : env('SENTIMENT_ENGINE', 'hybrid');
-        $usePython = $engine !== 'rule_based';
-
-        $result = null;
-
-        if ($usePython) {
-            $result = $this->pythonAnalyzer->analyze($text, $context);
-            if (($result['method'] ?? null) !== 'python') {
-                // Marked as fallback because Python tidak memberikan hasil utama.
-                $result = $this->ruleBasedAnalyzer->analyze($text, $context);
-                $result['method'] = 'hybrid_fallback';
-            }
-        }
-
-        if (! $usePython || ! $result) {
+        $engine = function_exists('config') ? config('sentiment.engine', env('SENTIMENT_ENGINE', 'python')) : env('SENTIMENT_ENGINE', 'python');
+        if ($engine === 'rule_based') {
             $result = $this->ruleBasedAnalyzer->analyze($text, $context);
             $result['method'] = $result['method'] ?? 'rule_based';
+            $result['confidence'] = $result['confidence'] ?? $this->defaultConfidence($result['score'] ?? 0.0);
+
+            return $result;
         }
 
+        $result = $this->pythonAnalyzer->analyze($text, $context);
         $result['confidence'] = $result['confidence'] ?? $this->defaultConfidence($result['score'] ?? 0.0);
 
         return $result;

@@ -27,6 +27,7 @@
                                 <option value="positive" @selected(($filters['sentiment'] ?? '') === 'positive')>▲ Positif</option>
                                 <option value="neutral" @selected(($filters['sentiment'] ?? '') === 'neutral')>◆ Netral</option>
                                 <option value="negative" @selected(($filters['sentiment'] ?? '') === 'negative')>▼ Negatif</option>
+                                <option value="unavailable" @selected(($filters['sentiment'] ?? '') === 'unavailable')>• Unavailable</option>
                             </select>
 
                             <select name="quality" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
@@ -65,6 +66,7 @@
                             <select name="method" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
                                 <option value="">Metode Sentimen</option>
                                 <option value="python" @selected(($filters['method'] ?? '') === 'python')>Python NLP</option>
+                                <option value="python_unavailable" @selected(($filters['method'] ?? '') === 'python_unavailable')>Python Unavailable</option>
                                 <option value="rule_based" @selected(($filters['method'] ?? '') === 'rule_based')>Rule-based</option>
                                 <option value="hybrid_fallback" @selected(($filters['method'] ?? '') === 'hybrid_fallback')>Hybrid</option>
                             </select>
@@ -89,8 +91,13 @@
 
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
             @forelse($articles as $article)
+                @php
+                    $displaySentiment = ($article->sentiment_method ?? null) === 'python_unavailable'
+                        ? 'unavailable'
+                        : ($article->sentiment_label ?? 'neutral');
+                @endphp
                 <div class="border border-slate-800 rounded-xl p-4 bg-slate-900/50 hover:border-slate-600 transition border-l-4
-                    {{ ($article->sentiment_label === 'positive') ? 'border-l-green-500' : (($article->sentiment_label === 'negative') ? 'border-l-rose-500' : 'border-l-slate-600') }}">
+                    {{ ($displaySentiment === 'positive') ? 'border-l-green-500' : (($displaySentiment === 'negative') ? 'border-l-rose-500' : (($displaySentiment === 'unavailable') ? 'border-l-amber-400' : 'border-l-slate-600')) }}">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <p class="text-xs uppercase text-slate-400">{{ $article->stock?->code ?? 'GEN' }} • {{ $article->source?->name ?? 'Sumber' }}</p>
@@ -98,7 +105,7 @@
                                 <p class="text-[12px] text-slate-500 mt-1">{{ $article->published_at?->format('d M Y H:i') }}</p>
                             </div>
                             <div class="flex flex-col items-end gap-1">
-                                <x-sentiment-badge :label="$article->sentiment_label ?? 'neutral'" />
+                                <x-sentiment-badge :label="$displaySentiment" />
                                 <span class="px-2 py-1 rounded-full text-[11px] border border-slate-700 bg-slate-800/50 text-slate-100">
                                     {{ $article->quality_band ? ucfirst($article->quality_band) : 'Quality?' }}
                                 </span>
@@ -121,8 +128,8 @@
                     @endif
                     <p class="text-sm text-slate-300 mt-2">{{ \Illuminate\Support\Str::limit($article->summary ?? $article->content_snippet, 160) }}</p>
                     <div class="flex flex-wrap items-center justify-between mt-3 text-[12px] text-slate-400 gap-2">
-                        <span>Skor: {{ $article->sentiment_score ?? '-' }} | Conf: {{ $article->sentiment_confidence ?? '-' }}</span>
-                        <span class="px-2 py-1 rounded-full border border-slate-700 bg-slate-800/50">{{ $article->sentiment_method ?? 'rule_based' }}</span>
+                        <span>Skor: {{ ($article->sentiment_method ?? null) === 'python_unavailable' ? 'unavailable' : ($article->sentiment_score ?? '-') }} | Conf: {{ ($article->sentiment_method ?? null) === 'python_unavailable' ? '-' : ($article->sentiment_confidence ?? '-') }}</span>
+                        <span class="px-2 py-1 rounded-full border border-slate-700 bg-slate-800/50">{{ $article->sentiment_method ?? 'python_unavailable' }}</span>
                         <span class="px-2 py-1 rounded-full border border-emerald-700/60 bg-emerald-900/30 text-emerald-100">Relevansi: {{ $article->relevance_band ?? '-' }}</span>
                         <span class="px-2 py-1 rounded-full border border-indigo-700/60 bg-indigo-900/30 text-indigo-100">Q: {{ $article->final_quality_score ?? '-' }}</span>
                         <a href="{{ $article->source_url }}" target="_blank" class="text-sky-400 hover:underline">Buka artikel</a>

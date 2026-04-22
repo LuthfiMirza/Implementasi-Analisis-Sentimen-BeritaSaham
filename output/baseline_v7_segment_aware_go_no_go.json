@@ -1,0 +1,13 @@
+{
+  "best_candidate_id": "baseline_v3_ema20_trend_guard",
+  "tested_segment": "sentiment_segment=sentiment_poor",
+  "decision": "keep_experimental_for_segment_review",
+  "segment_support_ok": true,
+  "global_promotion_allowed": false,
+  "recommended_next_action": "keep_candidate_for_segment_review_only_on_sentiment_segment_sentiment_poor",
+  "experiment_stage": "baseline_v3",
+  "decision_notes": [
+    "Kandidat hanya didukung pada subset aman tertentu dan tetap tidak boleh dipromosikan global.",
+    "Guardrail global tetap berlaku sebagai gate promosi akhir."
+  ]
+}

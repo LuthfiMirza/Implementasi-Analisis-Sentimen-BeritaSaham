@@ -93,16 +93,30 @@ class GNewsFetcher implements NewsFetcherInterface
 
     protected function buildQueries(Stock $stock): array
     {
-        $aliases = collect($this->mapper->keywords($stock))->take(4);
+        $aliases = collect($this->mapper->searchAliases($stock, 5));
         $sectorTerms = collect($this->mapper->sectorKeywords($stock))->take(4);
+        $primaryAlias = (string) ($aliases->first() ?? $stock->code);
+        $secondaryAliases = $aliases->slice(1, 2)->values();
 
         $aliasGroup = $aliases->map(fn ($alias) => '"'.$alias.'"')->implode(' OR ');
-        $contextGroup = $sectorTerms->map(fn ($term) => '"'.$term.'"')->implode(' OR ');
+        $contextGroup = $sectorTerms
+            ->merge(['emiten', 'bei'])
+            ->unique()
+            ->map(fn ($term) => '"'.$term.'"')
+            ->implode(' OR ');
+        $tickerGroup = collect([
+            $stock->code,
+            'saham '.$stock->code,
+            'emiten '.$stock->code,
+        ])->unique()->map(fn ($term) => '"'.$term.'"')->implode(' OR ');
 
         return collect([
+            '"'.$primaryAlias.'"',
+            ...$secondaryAliases->map(fn ($alias) => '"'.$alias.'"')->all(),
+            $contextGroup ? '"'.$primaryAlias.'" AND ('.$contextGroup.')' : null,
             $contextGroup ? '('.$aliasGroup.') AND ('.$contextGroup.')' : null,
             $aliasGroup,
-            '"'.$stock->code.'"',
+            $contextGroup ? '('.$tickerGroup.') AND ('.$contextGroup.')' : null,
         ])->filter()->unique()->values()->all();
     }
 }

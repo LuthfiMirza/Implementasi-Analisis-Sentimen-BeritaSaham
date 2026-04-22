@@ -13,6 +13,26 @@ class RssLocalFetcherTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_default_feeds_are_expanded(): void
+    {
+        $fetcher = new class extends RssLocalFetcher
+        {
+            public function exposedFeeds(): array
+            {
+                return $this->feeds();
+            }
+        };
+
+        $feeds = $fetcher->exposedFeeds();
+
+        $this->assertContains('https://www.antaranews.com/rss/ekonomi-bisnis.xml', $feeds);
+        $this->assertContains('https://www.antaranews.com/rss/ekonomi-bursa.xml', $feeds);
+        $this->assertContains('https://www.kontan.co.id/feed', $feeds);
+        $this->assertContains('https://www.bisnis.com/rss', $feeds);
+        $this->assertContains('https://katadata.co.id/feed', $feeds);
+        $this->assertContains('https://investor.id/rss', $feeds);
+    }
+
     public function test_parses_valid_rss(): void
     {
         Log::shouldReceive('warning')->byDefault();

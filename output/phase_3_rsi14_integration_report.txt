@@ -1,0 +1,17 @@
+Phase 3 - RSI14 Integration
+===========================
+
+Layer 2 active policy:
+- Layer1 bullish AND return_20d > 0 AND close > ema50
+
+Layer 3 rule:
+- RSI14 >= 50 AND RSI14 <= 70
+
+Variant results:
+- layer1_only: signals=20854, trades=9941, retention=100.0, delta_win_rate=0.0, delta_avg_return=0.0, collapse=0, sample=low
+- layer1_plus_layer2_alt: signals=17704, trades=8507, retention=85.5895, delta_win_rate=0.3924, delta_avg_return=0.0455, collapse=0, sample=low
+- layer1_plus_layer2_alt_plus_layer3_rsi_50_70: signals=11954, trades=6815, retention=68.75, delta_win_rate=0.6145, delta_avg_return=0.0052, collapse=0, sample=low
+
+Decision:
+- layer_3_usable_as_integration_layer = True
+- reason = Layer 3 RSI14 50-70 improves at least one quality metric on top of Layer 2 alternative without collapsing coverage.

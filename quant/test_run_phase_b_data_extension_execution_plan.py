@@ -307,6 +307,12 @@ class RunPhaseBDataExtensionExecutionPlanTestCase(unittest.TestCase):
             self.assertIn("highest_priority_execution_target", payload)
             self.assertIn("minimum_progress_needed_before_recheck", payload)
             self.assertIn("recommended_next_action", payload)
+            self.assertIn("oos_window_threshold_semantics", payload)
+            self.assertEqual(3.0, payload["oos_window_threshold_semantics"]["methodology_minimum_windows"])
+            self.assertEqual(
+                6.0,
+                payload["oos_window_threshold_semantics"]["stretch_target_windows_by_batch"]["batch_2"],
+            )
             self.assertIsInstance(payload["recheck_readiness_gate_allowed"], bool)
             self.assertGreater(len(result["progress_tracker"]), 0)
 

@@ -12,7 +12,7 @@
     "output/phase_a_threshold_best_by_group.csv",
     "output/phase_a_threshold_best_by_ticker.csv"
   ],
-  "generated_at": "2026-04-18T13:08:52.850231+00:00",
+  "generated_at": "2026-04-19T13:41:37.340717+00:00",
   "strict_mode_decision_code": "strict_default_no",
   "baseline_status_reason": "Threshold/tuning decision artifacts sudah usable, tetapi closeout/support final belum lengkap.",
   "threshold_decision_confidence": "low",

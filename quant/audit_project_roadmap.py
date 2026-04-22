@@ -143,6 +143,9 @@ def _load_execution_context(output_dir: Path) -> Dict[str, Optional[Dict[str, ob
     artifact_map = {
         "phase_b_postmortem": "phase_b_postmortem.json",
         "phase_b_next_phase": "phase_b_go_no_go_next_phase.json",
+        "phase_b_final_closeout": "phase_b_final_closeout.json",
+        "project_after_phase_b_decision": "project_after_phase_b_decision.json",
+        "phase_b_retest_readiness_gate": "phase_b_retest_readiness_gate.json",
         "phase_b_v2_redesign_decision": "phase_b_v2_redesign_decision.json",
         "phase_b_v2_next_best_experiment": "phase_b_v2_next_best_experiment.json",
         "baseline_redesign": "baseline_redesign_go_no_go.json",
@@ -990,45 +993,33 @@ def build_phase_b_execution_plan(
     item_lookup = {int(item["item_number"]): item for item in roadmap_items}
     context = _load_execution_context(Path(output_dir)) if output_dir is not None else {}
     transition = context.get("transition") or {}
-    redesign_decision = context.get("phase_b_v2_redesign_decision") or {}
-    next_best_experiment = context.get("phase_b_v2_next_best_experiment") or {}
+    phase_b_closeout = context.get("phase_b_final_closeout") or {}
+    project_after_phase_b = context.get("project_after_phase_b_decision") or {}
+    readiness_gate = context.get("phase_b_retest_readiness_gate") or {}
 
     transition_mode = _safe_str(transition.get("phase_b_entry_mode"))
-    redesign_track = _safe_str(redesign_decision.get("recommended_redesign_track"))
-    selected_retry = _safe_str(next_best_experiment.get("selected_experiment_code"))
-    can_retry_after_redesign = bool(redesign_decision.get("can_retry_phase_b_after_redesign"))
-    can_start_immediately = bool(next_best_experiment.get("can_start_immediately_after_redesign"))
-    limited_retry_ready = bool(
-        transition_mode == "limited_experiment"
-        or (can_retry_after_redesign and can_start_immediately and bool(selected_retry))
+    redesign_track = _safe_str((context.get("phase_b_v2_redesign_decision") or {}).get("recommended_redesign_track"))
+    official_next_action = _safe_str(phase_b_closeout.get("recommended_primary_next_step")) or _safe_str(project_after_phase_b.get("recommended_primary_next_step"))
+    readiness_status = _safe_str(readiness_gate.get("final_decision")) or "belum_boleh_retest"
+    gate_status = "phase_b_closed_waiting_data_extension_and_framework_redesign"
+    gate_reason = (
+        "Per 21 April 2026, Phase B sudah ditutup tanpa kandidat. "
+        "Langkah berikutnya hanya data extension, baseline evaluation redesign, dan refresh readiness blocker audit."
     )
-
-    if final_status["ready_to_start_phase_b"]:
-        gate_status = "ready_to_execute"
-        gate_reason = final_status["ready_to_start_phase_b_reason"]
-    elif limited_retry_ready:
-        gate_status = "limited_retry_ready"
-        gate_reason = (
-            "Phase B global masih tertutup, tetapi retry terbatas baseline-only sudah siap "
-            "karena transisi mengizinkan limited_experiment dan redesign memilih baseline terlebih dulu."
-        )
-    else:
-        gate_status = "prepare_only"
-        gate_reason = final_status["ready_to_start_phase_b_reason"]
 
     execution_order = [
         {
             "priority": 1,
-            "step_code": "baseline_trade_design_redesign",
+            "step_code": "baseline_trade_design_redesign_audit",
             "item_number": 0,
-            "item_name": "Baseline trade-design redesign",
+            "item_name": "Baseline trade-design redesign audit",
             "current_status": "planned",
-            "goal": "Ulang baseline tanpa fitur baru untuk mencari hold period dan trade floor yang lebih usable sebelum membuka ulang eksperimen Phase B.",
-            "priority_reason": "Postmortem Phase B menempatkan trade design baseline sebagai failure mode utama, jadi retry harus dimulai dari fondasi entry/exit dan sample coverage.",
+            "goal": "Audit ulang baseline tanpa fitur baru untuk memperbaiki hold period, trade labeling, trade retention, dan floor sample sebagai fondasi redesign framework evaluasi.",
+            "priority_reason": "Postmortem Phase B menempatkan trade design baseline sebagai failure mode utama, jadi baseline harus diaudit ulang sebelum ada diskusi tentang retry strategi.",
             "likely_files": [
                 "quant/run_baseline_trade_design_redesign.py",
-                "quant/run_phase_b_v2_redesign_diagnostics.py",
                 "quant/test_run_baseline_trade_design_redesign.py",
+                "quant/run_phase_b_v2_redesign_diagnostics.py",
             ],
             "data_dependencies": [
                 "OHLCV harian yang sama dengan Phase A",
@@ -1036,7 +1027,7 @@ def build_phase_b_execution_plan(
             ],
             "risks": [
                 "Coverage bisa tetap terlalu kecil walau hold period dipersingkat.",
-                "Perbaikan score global bisa tampak membaik tetapi tetap belum cukup luas untuk retry global.",
+                "Perbaikan score global bisa tampak membaik tetapi tetap belum cukup usable untuk redesign framework.",
             ],
             "tests_needed": [
                 "Unit test redesign scorer dan selection logic",
@@ -1051,12 +1042,12 @@ def build_phase_b_execution_plan(
         },
         {
             "priority": 2,
-            "step_code": "baseline_v2_candidate_validation",
+            "step_code": "baseline_v2_candidate_validation_audit",
             "item_number": 0,
-            "item_name": "Baseline v2 candidate validation",
+            "item_name": "Baseline v2 candidate validation audit",
             "current_status": "planned",
-            "goal": "Validasi kandidat baseline v2 hasil redesign melawan baseline aktif dengan guardrail min trades dan min eligible tickers yang eksplisit.",
-            "priority_reason": "Retry Phase B tidak boleh dibuka hanya karena redesign terlihat membaik; kandidat baseline baru harus menunjukkan uplift yang cukup stabil.",
+            "goal": "Validasi kandidat redesign hanya untuk memastikan usability audit, bukan untuk promosi baseline operasional atau membuka retry.",
+            "priority_reason": "Data extension adalah prasyarat. Validation hanya boleh menjawab apakah kandidat redesign layak disimpan sebagai input framework redesign.",
             "likely_files": [
                 "quant/run_baseline_v2_candidate_validation.py",
                 "quant/run_baseline_revision_diagnostics.py",
@@ -1068,7 +1059,7 @@ def build_phase_b_execution_plan(
             ],
             "risks": [
                 "Candidate bisa improve pada score tetapi tetap gagal guardrail eligible ticker.",
-                "Performa per ticker bisa netral dan belum cukup untuk promosi atau retry global.",
+                "Candidate terlihat lebih baik pada subset kecil tetapi tetap tidak boleh dipromosikan ke baseline operasional.",
             ],
             "tests_needed": [
                 "Unit test validation delta vs active baseline",
@@ -1083,67 +1074,69 @@ def build_phase_b_execution_plan(
         },
         {
             "priority": 3,
-            "step_code": "baseline_v2_watchlist_validation",
+            "step_code": "phase_b_readiness_guardrail_hardening",
             "item_number": 0,
-            "item_name": "Baseline v2 watchlist validation and monitoring",
+            "item_name": "Readiness guardrail hardening",
             "current_status": "planned",
-            "goal": "Ukur apakah kandidat baseline v2 layak dipakai minimal untuk watchlist subset sambil menunggu stabilitas lintas horizon observasi.",
-            "priority_reason": "Artefak terbaru masih menempatkan kandidat sebagai watchlist-only experimental; subset perlu divalidasi dan dimonitor sebelum retry lanjutan.",
+            "goal": "Tambahkan blocker eksplisit untuk coverage, usable OOS window, overlap audit, signal sparsity, dan baseline redesign usability agar retry prematur terkunci.",
+            "priority_reason": "Artefak gate lama masih bisa menghasilkan status seolah retest siap, padahal keputusan resmi proyek sudah menutup track eksperimen strategi.",
             "likely_files": [
-                "quant/run_baseline_v2_watchlist_validation.py",
-                "quant/run_baseline_v2_watchlist_monitoring.py",
-                "quant/test_run_baseline_v2_watchlist_monitoring.py",
+                "quant/run_phase_b_retest_readiness_gate.py",
+                "quant/run_phase_b_distribution_and_oos_target_audit.py",
+                "quant/test_run_phase_b_retest_readiness_gate.py",
             ],
             "data_dependencies": [
-                "Candidate validation summary",
-                "Subset/watchlist definitions dari validation artifacts",
+                "output/phase_b_v2_overlap_audit.json",
+                "output/phase_b_v2_trade_design_audit.json",
+                "output/baseline_redesign_go_no_go.json",
+                "output/baseline_v2_validation_go_no_go.json",
             ],
             "risks": [
-                "Subset yang terlihat bagus bisa noise-only pada horizon pendek.",
-                "Coverage subset bisa belum cukup untuk promosi meski delta score positif.",
+                "Policy realignment lama bisa tetap menurunkan ambang terlalu agresif bila tidak dikunci ulang.",
+                "Gate yang tidak membaca audit overlap/sparsity akan terus membuka jalur retry terlalu dini.",
             ],
             "tests_needed": [
-                "Unit test subset stability classifier",
-                "Regression test monitoring decision promote/reject/keep experimental",
+                "Regression test readiness blocker baru",
+                "Smoke audit untuk memastikan final_decision tetap belum_boleh_retest",
             ],
             "expected_artifacts": [
-                "output/baseline_v2_watchlist_validation_summary.json",
-                "output/baseline_v2_watchlist_monitoring_summary.json",
+                "output/phase_b_retest_readiness_gate.json",
+                "output/phase_b_readiness_blocker_audit.json",
             ],
             "starter_available": True,
-            "starter_command": "python3 -m quant.run_baseline_v2_watchlist_monitoring --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --candidate-file output/baseline_v2_best_candidate.json --metadata-file data/ticker_metadata.csv --min-trades 5 --observation-windows 1 2 3 4 5",
+            "starter_command": "python3 -m quant.run_phase_b_retest_readiness_gate --data-dir data --output-dir output --metadata-file data/ticker_metadata.csv",
         },
         {
             "priority": 4,
-            "step_code": "phase_b_single_change_retry",
+            "step_code": "phase_b_data_extension_execution",
             "item_number": 0,
-            "item_name": "Phase B single-change retry",
-            "current_status": "planned" if limited_retry_ready else "blocked_until_redesign_complete",
-            "goal": "Jalankan satu retry terkecil setelah redesign dengan hold period dan trade floor hasil audit, tanpa sentiment atau adaptive search space.",
-            "priority_reason": "Roadmap redesign menetapkan satu rerun kecil sebagai langkah informasi tertinggi setelah baseline membaik; item 7 dan 8 tetap parkir sampai hasil retry ini usable.",
+            "item_name": "Phase B data extension execution",
+            "current_status": "planned",
+            "goal": "Jalankan perluasan data sebagai prasyarat resmi sebelum ada evaluasi readiness ulang apa pun.",
+            "priority_reason": "Keputusan final proyek menyatakan fokus berikutnya adalah collect more data + redesign evaluation framework, bukan strategi baru.",
             "likely_files": [
-                "quant/evaluate_phase_a_real_data.py",
-                "quant/run_phase_b_v2_redesign_diagnostics.py",
-                "quant/finalize_phase_b_postmortem.py",
+                "quant/run_phase_b_data_extension_execution_plan.py",
+                "quant/run_phase_b_data_extension_progress_update.py",
+                "quant/test_run_phase_b_data_extension_execution_plan.py",
             ],
             "data_dependencies": [
-                "Hold period terbaik dari redesign audit",
-                "Min trades realistis dari sample coverage audit",
+                "Ticker metadata yang diperbarui",
+                "Segmentation dan fairness audit terbaru",
             ],
             "risks": [
-                "Retry bisa tetap gagal jika uplift hanya muncul pada subset noise.",
-                "Membuka ulang item 7 atau item 8 terlalu cepat akan mengulang pola no_go yang sama.",
+                "History bertambah tetapi article-day dan OOS fairness tetap timpang.",
+                "Progress tanpa refresh metadata/segmentation bisa membuat audit salah membaca blocker aktif.",
             ],
             "tests_needed": [
-                "Smoke evaluation baseline hold=3 pada data real",
-                "Postmortem refresh untuk memastikan keputusan retry tercatat formal",
+                "Smoke plan generation",
+                "Regression test progress tracker dan recheck status",
             ],
             "expected_artifacts": [
-                "output/phase_b_v2_next_best_experiment.json",
-                "output/phase_b_postmortem.json",
+                "output/phase_b_data_extension_execution_plan.json",
+                "output/phase_b_data_extension_progress_update.json",
             ],
-            "starter_available": bool(limited_retry_ready),
-            "starter_command": "python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --metadata-file data/ticker_metadata.csv --hold-period 3" if limited_retry_ready else None,
+            "starter_available": True,
+            "starter_command": "python3 -m quant.run_phase_b_data_extension_execution_plan --data-dir data --output-dir output --metadata-file data/ticker_metadata.csv",
         },
         {
             "priority": 5,
@@ -1151,8 +1144,8 @@ def build_phase_b_execution_plan(
             "item_number": 5,
             "item_name": item_lookup[5]["item_name"],
             "current_status": item_lookup[5]["status"],
-            "goal": "Tetap parkir item 5-8 global sampai retry baseline-only menghasilkan retention dan coverage yang usable.",
-            "priority_reason": "Postmortem resmi menyatakan item 5-8 final no_go pada konfigurasi lama; roadmap baru hanya mengizinkan pembukaan ulang setelah fondasi baseline lulus audit redesign.",
+            "goal": "Tetap parkir item 5-8 global selama track data extension dan framework redesign berjalan.",
+            "priority_reason": "Postmortem resmi menyatakan item 5-8 final no_go pada konfigurasi lama dan tidak boleh diaktifkan ulang secara prematur.",
             "likely_files": [
                 "output/phase_b_postmortem.txt",
                 "output/phase_b_go_no_go_next_phase.json",
@@ -1178,24 +1171,19 @@ def build_phase_b_execution_plan(
         "generated_at": _now_iso(),
         "gate_status": gate_status,
         "gate_reason": gate_reason,
-        "retry_scope": (
-            "full_phase_b"
-            if gate_status == "ready_to_execute"
-            else "limited_baseline_only"
-            if gate_status == "limited_retry_ready"
-            else "prepare_only"
-        ),
+        "retry_scope": "none",
         "strategy_context": {
             "transition_mode": transition_mode or None,
             "recommended_redesign_track": redesign_track or None,
-            "selected_retry_experiment": selected_retry or None,
+            "official_next_action": official_next_action or None,
+            "readiness_gate_status": readiness_status,
         },
         "phase_a_guardrails": [
             "Jangan ubah default volume spike threshold tanpa artifact sweep real yang baru.",
             "Jangan ubah strict_mode_default tanpa tuning decision real yang eksplisit.",
             "Pertahankan macro_regulatory_signal sebagai context-only moderation sampai ada bukti directional lift yang konsisten.",
             "Semua fitur baru Fase B harus default-off sampai dibandingkan melawan baseline Phase A beku.",
-            "Jangan hidupkan lagi item 7 sentiment momentum atau item 8 adaptive sebelum retry baseline-only menunjukkan retention dan coverage yang usable.",
+            "Jangan hidupkan lagi item 7 sentiment momentum atau item 8 adaptive selama data extension dan redesign framework belum ditutup resmi.",
         ],
         "execution_order": execution_order,
     }
@@ -1307,6 +1295,8 @@ def _roadmap_txt(
             ("phase_b_status", "Phase B status"),
             ("phase_c_decision", "Phase C decision"),
             ("root_problem_class", "Root problem class"),
+            ("retest_readiness_status", "Retest readiness status"),
+            ("can_continue_strategy_experiments_now", "Can continue strategy experiments now"),
             ("baseline_redesign_status", "Baseline redesign status"),
             ("baseline_v3_signal_rule_status", "Baseline v3 signal rule status"),
             ("baseline_v3_signal_rule_best_rule", "Baseline v3 signal rule best rule"),
@@ -1342,6 +1332,9 @@ def _build_latest_execution_status(output_dir: Path) -> Dict[str, object]:
     transition = context.get("transition") or {}
     phase_b_postmortem = context.get("phase_b_postmortem") or {}
     phase_b_next_phase = context.get("phase_b_next_phase") or {}
+    phase_b_final_closeout = context.get("phase_b_final_closeout") or {}
+    project_after_phase_b = context.get("project_after_phase_b_decision") or {}
+    retest_gate = context.get("phase_b_retest_readiness_gate") or {}
     baseline_redesign = context.get("baseline_redesign") or {}
     baseline_v3_signal_rule = context.get("baseline_v3_signal_rule") or {}
     baseline_revision = context.get("baseline_revision") or {}
@@ -1357,9 +1350,20 @@ def _build_latest_execution_status(output_dir: Path) -> Dict[str, object]:
     )
 
     return {
-        "phase_b_status": _safe_str(phase_b_postmortem.get("phase_b_status") or transition.get("phase_b_status")),
-        "phase_c_decision": _safe_str(phase_b_next_phase.get("phase_c_decision")),
-        "root_problem_class": _safe_str(phase_b_next_phase.get("root_problem_class")),
+        "phase_b_status": _safe_str(
+            phase_b_final_closeout.get("phase_b_final_status")
+            or project_after_phase_b.get("phase_b_final_status")
+            or phase_b_postmortem.get("phase_b_status")
+            or transition.get("phase_b_status")
+        ),
+        "phase_c_decision": _safe_str(
+            project_after_phase_b.get("phase_c_decision")
+            or phase_b_next_phase.get("phase_c_decision")
+        ),
+        "root_problem_class": _safe_str(
+            project_after_phase_b.get("root_problem_class")
+            or phase_b_next_phase.get("root_problem_class")
+        ),
         "baseline_redesign_status": _safe_str(baseline_redesign.get("decision") or transition.get("baseline_redesign_status")),
         "baseline_v3_signal_rule_status": baseline_v3_status,
         "baseline_v3_signal_rule_best_rule": _safe_str(baseline_v3_signal_rule.get("best_rule")),
@@ -1370,8 +1374,16 @@ def _build_latest_execution_status(output_dir: Path) -> Dict[str, object]:
         "baseline_v2_subset_status": _safe_str(
             baseline_v2_subset.get("decision") or transition.get("baseline_v2_subset_status")
         ),
+        "retest_readiness_status": _safe_str(retest_gate.get("final_decision")),
+        "can_continue_strategy_experiments_now": str(
+            bool(project_after_phase_b.get("can_continue_strategy_experiments_now"))
+            if "can_continue_strategy_experiments_now" in project_after_phase_b
+            else bool(phase_b_final_closeout.get("can_continue_strategy_experiments_now"))
+        ).lower(),
         "current_track": _safe_str(
-            baseline_v3_track
+            project_after_phase_b.get("recommended_primary_next_step")
+            or phase_b_final_closeout.get("recommended_primary_next_step")
+            or baseline_v3_track
             or transition.get("baseline_v2_subset_next_action")
             or baseline_v2_subset.get("next_action")
             or transition.get("baseline_v2_validation_next_action")
@@ -1380,7 +1392,9 @@ def _build_latest_execution_status(output_dir: Path) -> Dict[str, object]:
             or baseline_revision.get("next_action")
         ),
         "recommended_next_action": _safe_str(
-            baseline_v3_track
+            phase_b_final_closeout.get("recommended_primary_next_step")
+            or project_after_phase_b.get("recommended_primary_next_step")
+            or baseline_v3_track
             or baseline_v2_subset.get("next_action")
             or baseline_v2_validation.get("recommended_next_action")
             or baseline_revision.get("next_action")
@@ -1635,7 +1649,9 @@ def audit_project_roadmap(
         "project_root": str(root),
         "phase_summary": phase_summary,
         "current_focus": (
-            "phase_b_execution"
+            "phase_b_closed_data_extension_and_framework_redesign"
+            if _safe_str((context := _load_execution_context(resolved_output_dir)).get("phase_b_final_closeout", {}).get("phase_b_final_status")).startswith("phase_b_closed")
+            else "phase_b_execution"
             if final_status["ready_to_start_phase_b"]
             else "phase_a_closeout_and_phase_b_preparation"
         ),

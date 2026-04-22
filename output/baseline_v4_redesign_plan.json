@@ -1,0 +1,87 @@
+{
+  "generated_at": "2026-04-19T12:46:48.324011+00:00",
+  "state_snapshot": {
+    "phase_a_closeout_status": "closed_with_notes",
+    "phase_a_runtime_status": "runtime_ok",
+    "current_project_mode": "baseline_v2_redesign_required",
+    "final_decision": "baseline_v2_no_go_redesign_again",
+    "phase_b_status": "phase_b_needs_redesign_before_continue",
+    "phase_c_decision": "phase_c_no_go_yet",
+    "baseline_v2_candidate_id": "baseline_v2_hold3_with_trend_guard",
+    "baseline_v2_validation_status": "invalid",
+    "baseline_v2_validation_next_action": "redesign_baseline_v2_again",
+    "baseline_v3_decision": "no_go",
+    "baseline_v3_best_rule": "baseline_v3_ema20_trend_guard",
+    "v3_reference_eligible_ticker_count": 1,
+    "v3_reference_total_trades_sum": 10,
+    "v3_reference_mean_average_return": 4.24329,
+    "v3_best_eligible_ticker_count": 8,
+    "v3_best_total_trades_sum": 56,
+    "v3_best_mean_average_return": -0.010139999999999727,
+    "v3_best_trade_retention_vs_baseline": 5.6,
+    "v3_best_coverage_gain_vs_old_rule": 7
+  },
+  "recommended_v4_direction": "candidate_a_fast_anchor_quality_gate",
+  "directions_to_avoid": [
+    "Jangan lanjutkan redesign dengan entry relaxation only.",
+    "Hindari volume-relaxed entry sebagai kandidat default.",
+    "Jangan hidupkan ulang item 5-8 sebagai eksperimen aktif untuk menyelamatkan baseline.",
+    "Jangan promosikan baseline v2 atau v3 sebelum ada validasi v4 yang lolos guardrail coverage dan quality."
+  ],
+  "why_v2_failed": "Baseline v2 gagal karena coverage dan sample masih terlalu kecil: eligible_ticker_count=1 dari minimum 3, total_trades_sum=10 dari minimum 15, validation_status=invalid, score=-12.4920. Candidate belum promotable walau sempat lebih baik relatif terhadap baseline aktif pada subset sempit.",
+  "why_v3_failed": "Baseline v3 gagal karena entry relaxation only membuka coverage tetapi merusak kualitas trade. Rule terbaik baseline_v3_ema20_trend_guard menaikkan eligible_ticker_count dari 1 ke 8, total_trades_sum dari 10 ke 56, trade_retention_vs_baseline=5.6000, coverage_gain_vs_old_rule=7, tetapi mean_average_return turun dari +4.24329 menjadi -0.01014. quality_preserved=False, jadi arah ini tidak layak diteruskan.",
+  "decision_summary": {
+    "primary_conclusion": "Jangan lanjutkan redesign dengan entry relaxation only.",
+    "secondary_conclusion": "Uji quality gate setelah fast trend anchor sebelum menambah pelonggaran entry baru.",
+    "third_conclusion": "Uji exit/hold redesign sebagai prioritas kedua bila quality gate tidak cukup.",
+    "default_rule_to_avoid": "volume_relaxed_entry_as_candidate_default"
+  },
+  "next_best_experiment": {
+    "recommended_v4_direction": "candidate_a_fast_anchor_quality_gate",
+    "experiment_id": "baseline_v4_quality_gate_guard",
+    "experiment_goal": "Uji apakah fast trend anchor tetap bisa menjaga coverage >=3 ticker eligible setelah ditambah quality gate ringan yang memangkas candle/trade lemah.",
+    "experiment_scope": "Bandingkan anchor EMA20 trend guard dengan 3-4 variasi quality gate ringan pada hold_period=3 dan min_trades=5, tanpa mengubah scoring engine atau baseline aktif.",
+    "do_not_change": [
+      "Jangan ubah baseline aktif.",
+      "Jangan ubah scoring engine.",
+      "Jangan hidupkan item Phase B 5-8 lagi.",
+      "Jangan jadikan candidate v4 sebagai default sebelum validasi terpisah."
+    ],
+    "expected_success_signal": "eligible_ticker_count >= 3, total_trades_sum tetap jauh di atas baseline reference, dan mean_average_return membaik material versus baseline_v3_ema20_trend_guard tanpa quality collapse.",
+    "expected_failure_signal": "coverage turun lagi ke <3 ticker atau mean_average_return tetap <= 0 sehingga quality tetap tidak preserved.",
+    "recommended_command_stub": "python3 -m quant.run_baseline_v4_quality_gate_experiment --output-dir output --hold-period 3 --min-trades 5 --scaffold-only"
+  },
+  "hypotheses": [
+    {
+      "hypothesis_id": "candidate_a_fast_anchor_quality_gate",
+      "redesign_focus": "Fast entry anchor + post-entry quality gate",
+      "target_problem": "EMA20 berhasil membuka coverage, tetapi quality trade runtuh karena anchor cepat memasukkan candle/trend lemah tanpa filter kualitas lanjutan.",
+      "expected_benefit": "Menjaga coverage dari fast trend anchor sambil memangkas trade noise lewat gate kualitas seperti candle strength, body-to-range ratio, volatility floor, dan price confirmation.",
+      "main_risk": "Gate kualitas terlalu ketat dan coverage kembali collapse ke <3 ticker eligible.",
+      "estimated_complexity": "medium",
+      "recommended_priority": "high",
+      "should_test_next": true
+    },
+    {
+      "hypothesis_id": "candidate_b_simple_entry_exit_hold_redesign",
+      "redesign_focus": "Keep entry simple, redesign exit/hold",
+      "target_problem": "Trade tambahan dari anchor cepat mungkin tidak semuanya buruk; sebagian bisa rusak karena hold_period=3 terlalu kaku dan exit tidak menangkap follow-through yang benar.",
+      "expected_benefit": "Meningkatkan average return tanpa mengorbankan coverage terlalu besar dengan menguji hold lebih adaptif, early exit, atau stop/target sederhana.",
+      "main_risk": "Jika kualitas entry memang buruk, perubahan exit hanya memindahkan noise tanpa memperbaiki edge.",
+      "estimated_complexity": "medium",
+      "recommended_priority": "medium_high",
+      "should_test_next": false
+    },
+    {
+      "hypothesis_id": "candidate_c_hybrid_conservative_anchor",
+      "redesign_focus": "Hybrid conservative anchor + light quality gate",
+      "target_problem": "EMA50 terlalu sempit, EMA20 terlalu longgar; dibutuhkan anchor tengah yang membuka coverage sedikit tanpa membiarkan semua trade lemah masuk.",
+      "expected_benefit": "Coverage bisa naik moderat lewat trend proxy yang lebih konservatif daripada EMA20 murni, ditambah satu quality gate ringan agar noise tidak meledak.",
+      "main_risk": "Berakhir di middle ground yang tidak cukup menambah coverage dan tidak cukup menjaga quality.",
+      "estimated_complexity": "medium",
+      "recommended_priority": "medium",
+      "should_test_next": false
+    }
+  ],
+  "warnings": []
+}

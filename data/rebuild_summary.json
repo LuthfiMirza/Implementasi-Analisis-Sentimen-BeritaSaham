@@ -1,0 +1,14 @@
+{
+  "series": [
+    {
+      "name": "IHSG",
+      "symbol": "^JKSE",
+      "status": "rebuilt",
+      "rows": 8774,
+      "date_start": "1990-04-06",
+      "date_end": "2026-04-22",
+      "issues": [],
+      "output_path": "data/IHSG.csv"
+    }
+  ]
+}

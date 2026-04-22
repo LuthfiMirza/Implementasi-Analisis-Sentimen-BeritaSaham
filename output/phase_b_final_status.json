@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-04-21T23:31:11.363075+00:00",
+  "phase_b_status": "phase_b_closed_with_learnings_no_candidate",
+  "reason": "Semua item final no_go dan akar masalah dominan menyentuh usability sinyal, retensi trade, dan sample coverage.",
+  "root_problem_class": "foundation_and_signal_usability",
+  "all_items_final": true,
+  "all_items_no_go": true,
+  "any_item_promoted": false,
+  "any_item_keep_experimental": false
+}

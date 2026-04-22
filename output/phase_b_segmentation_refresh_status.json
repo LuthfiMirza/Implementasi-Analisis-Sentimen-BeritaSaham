@@ -1,0 +1,114 @@
+{
+  "generated_at": "2026-04-22T02:51:16.996927+00:00",
+  "segmentation_refresh_attempted": true,
+  "segmentation_refresh_completed": true,
+  "segmentation_sync_before_refresh": true,
+  "segmentation_sync_after_refresh": true,
+  "changed_priority_tickers": [],
+  "before_refresh_alignment": [
+    {
+      "ticker": "BUMI",
+      "metadata_history_rows": 2683,
+      "segmentation_history_rows": 2683,
+      "metadata_article_days": 7,
+      "segmentation_article_days": 7,
+      "metadata_news_count_total": 24,
+      "segmentation_news_count_total": 24,
+      "aligned": true
+    },
+    {
+      "ticker": "BBCA",
+      "metadata_history_rows": 2647,
+      "segmentation_history_rows": 2647,
+      "metadata_article_days": 8,
+      "segmentation_article_days": 8,
+      "metadata_news_count_total": 22,
+      "segmentation_news_count_total": 22,
+      "aligned": true
+    },
+    {
+      "ticker": "ASII",
+      "metadata_history_rows": 2690,
+      "segmentation_history_rows": 2690,
+      "metadata_article_days": 6,
+      "segmentation_article_days": 6,
+      "metadata_news_count_total": 12,
+      "segmentation_news_count_total": 12,
+      "aligned": true
+    },
+    {
+      "ticker": "UNVR",
+      "metadata_history_rows": 2656,
+      "segmentation_history_rows": 2656,
+      "metadata_article_days": 7,
+      "segmentation_article_days": 7,
+      "metadata_news_count_total": 11,
+      "segmentation_news_count_total": 11,
+      "aligned": true
+    },
+    {
+      "ticker": "ICBP",
+      "metadata_history_rows": 2690,
+      "segmentation_history_rows": 2690,
+      "metadata_article_days": 8,
+      "segmentation_article_days": 8,
+      "metadata_news_count_total": 11,
+      "segmentation_news_count_total": 11,
+      "aligned": true
+    }
+  ],
+  "after_refresh_alignment": [
+    {
+      "ticker": "BUMI",
+      "metadata_history_rows": 2683,
+      "segmentation_history_rows": 2683,
+      "metadata_article_days": 7,
+      "segmentation_article_days": 7,
+      "metadata_news_count_total": 24,
+      "segmentation_news_count_total": 24,
+      "aligned": true
+    },
+    {
+      "ticker": "BBCA",
+      "metadata_history_rows": 2647,
+      "segmentation_history_rows": 2647,
+      "metadata_article_days": 8,
+      "segmentation_article_days": 8,
+      "metadata_news_count_total": 22,
+      "segmentation_news_count_total": 22,
+      "aligned": true
+    },
+    {
+      "ticker": "ASII",
+      "metadata_history_rows": 2690,
+      "segmentation_history_rows": 2690,
+      "metadata_article_days": 6,
+      "segmentation_article_days": 6,
+      "metadata_news_count_total": 12,
+      "segmentation_news_count_total": 12,
+      "aligned": true
+    },
+    {
+      "ticker": "UNVR",
+      "metadata_history_rows": 2656,
+      "segmentation_history_rows": 2656,
+      "metadata_article_days": 7,
+      "segmentation_article_days": 7,
+      "metadata_news_count_total": 11,
+      "segmentation_news_count_total": 11,
+      "aligned": true
+    },
+    {
+      "ticker": "ICBP",
+      "metadata_history_rows": 2690,
+      "segmentation_history_rows": 2690,
+      "metadata_article_days": 8,
+      "segmentation_article_days": 8,
+      "metadata_news_count_total": 11,
+      "segmentation_news_count_total": 11,
+      "aligned": true
+    }
+  ],
+  "recommended_next_action": "rerun_post_backfill_verification_after_segment_refresh",
+  "decisive_statement": "Segmentation refresh berhasil dan sekarang sinkron dengan snapshot terbaru."
+}

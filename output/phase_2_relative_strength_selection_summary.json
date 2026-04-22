@@ -1,0 +1,113 @@
+{
+  "phase": "phase_2_relative_strength_stock_selection",
+  "status": "completed",
+  "generated_at": "2026-04-22T07:29:41.709003+00:00",
+  "layer_1_frozen_definition": {
+    "market_regime": "ihsg_ema50 > ihsg_ema200",
+    "alignment_policy": "explicit_previous_trading_day_alignment"
+  },
+  "source_files": {
+    "stock_indicator_master_file": "data/indicator_master/stock_indicator_master.csv",
+    "ihsg_indicator_master_file": "data/indicator_master/IHSG_indicator_master.csv",
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "metadata_file": "data/ticker_metadata.csv"
+  },
+  "selection_variants_tested": [
+    {
+      "variant_id": "layer1_full_universe",
+      "variant_label": "Full universe after Layer 1",
+      "selection_mode": "full_after_layer1",
+      "top_pct": null
+    },
+    {
+      "variant_id": "top_25pct_return_20d",
+      "variant_label": "Top 25% by return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.25
+    },
+    {
+      "variant_id": "top_30pct_return_20d",
+      "variant_label": "Top 30% by return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.3
+    }
+  ],
+  "variant_results": [
+    {
+      "variant_id": "layer1_full_universe",
+      "variant_label": "Full universe after Layer 1",
+      "selection_mode": "full_after_layer1",
+      "top_pct": NaN,
+      "active_ticker_count_median": 40.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 51,
+      "active_ticker_count_mean": 30.4996,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 20854,
+      "total_trades": 9941,
+      "median_trade_retention": 100.0,
+      "avg_delta_win_rate": 0.0,
+      "avg_delta_average_return": 0.0,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "top_25pct_return_20d",
+      "variant_label": "Top 25% by return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.25,
+      "active_ticker_count_median": 10.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 13,
+      "active_ticker_count_mean": 7.8692,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 9537,
+      "total_trades": 4889,
+      "median_trade_retention": 50.4202,
+      "avg_delta_win_rate": -0.6731,
+      "avg_delta_average_return": 0.2682,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "top_30pct_return_20d",
+      "variant_label": "Top 30% by return_20d",
+      "selection_mode": "top_pct",
+      "top_pct": 0.3,
+      "active_ticker_count_median": 12.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 16,
+      "active_ticker_count_mean": 9.366,
+      "active_single_ticker_day_pct": 0.0,
+      "total_signals": 10970,
+      "total_trades": 5557,
+      "median_trade_retention": 57.5342,
+      "avg_delta_win_rate": -0.838,
+      "avg_delta_average_return": -0.0237,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    }
+  ],
+  "best_variant_decision": {
+    "status": "selected",
+    "selected_variant_id": "top_25pct_return_20d",
+    "selected_variant_label": "Top 25% by return_20d",
+    "reason": "Selected the RS cut with the best balance between quality delta improvement and retained trade sample."
+  },
+  "layer_2_usability": {
+    "layer_2_usable_as_prototype": true,
+    "reason": "RS layer improves at least one quality metric without collapsing coverage, so it is usable as a prototype."
+  },
+  "universe_size_assessment": {
+    "universe_now_too_small_for_final_validation": true,
+    "reason": "Current pilot universe hanya 7 ticker, jadi bahkan jika cut RS berikutnya membaik hasilnya tetap belum cukup untuk validasi final.",
+    "max_rankable_tickers_on_any_date": 51
+  },
+  "warnings": []
+}

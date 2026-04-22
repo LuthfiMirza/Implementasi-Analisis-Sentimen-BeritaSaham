@@ -226,6 +226,7 @@ class RunPhaseBRetestReadinessGateTestCase(unittest.TestCase):
                     "exit_hold_only_redesign",
                     "segment-only promotion for current candidate",
                 ],
+                "can_continue_strategy_experiments_now": False,
             },
         )
         if include_noncritical_artifacts:
@@ -234,8 +235,38 @@ class RunPhaseBRetestReadinessGateTestCase(unittest.TestCase):
                 {
                     "phase_b_final_status": "phase_b_closed_with_learnings_no_candidate",
                     "recommended_primary_next_step": "stop_and_collect_more_data_then_redesign_framework",
+                    "can_continue_strategy_experiments_now": False,
                 },
             )
+        _write_json(
+            output_dir / "baseline_redesign_go_no_go.json",
+            {
+                "decision": "usable_for_framework_redesign_only" if scenario == "pass" else "improved_but_keep_experimental",
+                "usable_for_framework_redesign": scenario == "pass",
+            },
+        )
+        _write_json(
+            output_dir / "baseline_v2_validation_go_no_go.json",
+            {
+                "decision": "candidate_usable_for_framework_redesign_only" if scenario == "pass" else "reject_candidate",
+            },
+        )
+        _write_json(
+            output_dir / "phase_b_v2_overlap_audit.json",
+            {
+                "overall_overlap_risk": "moderate" if scenario == "pass" else "high",
+                "overall_conclusion": "overlap audited",
+            },
+        )
+        _write_json(
+            output_dir / "phase_b_v2_trade_design_audit.json",
+            {
+                "hold_period_diagnostics": [{"hold_period": 3}],
+                "diagnosis_flags": {
+                    "baseline_needs_entry_exit_redesign": scenario != "pass",
+                },
+            },
+        )
         _write_json(
             output_dir / "baseline_v9_segment_oos_go_no_go.json",
             {
@@ -488,7 +519,7 @@ class RunPhaseBRetestReadinessGateTestCase(unittest.TestCase):
             self.assertEqual("FAIL", result["phase_b_retest_readiness_gate"]["oos_fairness_gate"])
             self.assertEqual("belum_boleh_retest", result["phase_b_retest_readiness_gate"]["final_decision"])
 
-    def test_all_mock_thresholds_pass_allows_retest(self) -> None:
+    def test_all_mock_thresholds_pass_still_keeps_strategy_retry_blocked_without_official_reopen(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_dir, output_dir, metadata_file = self._prepare_fixture(Path(tmp_dir), scenario="pass")
 
@@ -499,12 +530,12 @@ class RunPhaseBRetestReadinessGateTestCase(unittest.TestCase):
             self.assertEqual("PASS", payload["universe_coverage_gate"])
             self.assertEqual("PASS", payload["news_distribution_gate"])
             self.assertEqual("PASS", payload["oos_fairness_gate"])
-            self.assertEqual("PASS", payload["framework_governance_gate"])
+            self.assertEqual("FAIL", payload["framework_governance_gate"])
             self.assertEqual("PASS", payload["roadmap_discipline_gate"])
-            self.assertEqual("boleh_retest", payload["final_decision"])
+            self.assertEqual("belum_boleh_retest", payload["final_decision"])
+            self.assertTrue(payload["strategy_retry_still_blocked_by_official_closeout"])
             audit = result["phase_b_readiness_blocker_audit"]
-            self.assertEqual([], audit["active_blockers"])
-            self.assertEqual([], audit["blockers_closable_now"])
+            self.assertTrue(any(item["blocker_name"] == "framework_governance_gate::official_strategy_retry_reopened" for item in audit["active_blockers"]))
             self.assertFalse(payload["news_distribution_policy_realignment_applied"])
             recovery = result["phase_b_readiness_recovery_audit"]
             self.assertEqual(1.0, recovery["coverage_ready_status"]["coverage_ready_ticker_ratio"]["after"])

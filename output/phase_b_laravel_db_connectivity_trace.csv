@@ -1,0 +1,18 @@
+check_id,stage,status,expected_state,observed_state,evidence
+env_file,configuration,valid,DB env variables resolved for mysql,"connection=mysql, host=127.0.0.1, port=3306, database=sentimena_dashboard, username=root, socket=empty",Parsed from .env without reading password value.
+laravel_config_resolution,configuration,aligned,Resolved Laravel DB config matches .env,"resolved_host=127.0.0.1, resolved_port=3306, resolved_database=sentimena_dashboard, resolved_username=root, config_cache_exists=false","Resolved via Laravel bootstrap, not by raw file parsing."
+php_mysql_driver,runtime,available,pdo_mysql available,"pdo_mysql=true, mysqli=true",Derived from php extension probe.
+artisan_db_probe,database,working,Laravel bootstrap can open PDO connection,"{
+    ""ok"": true,
+    ""driver"": ""mysql""
+}","/usr/local/bin/php -r require ""vendor/autoload.php""; $app = require ""bootstrap/app.php""; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); try { DB::connection()->getPdo(); echo json_encode([""ok""=>true,""driver""=>config(""database.default"")], JSON_PRETTY_PRINT); } catch (Throwable $e) { echo json_encode([""ok""=>false,""class""=>get_class($e),""message""=>$e->getMessage()], JSON_PRETTY_PRINT); exit(1); }"
+priority_backfill_fetch,backfill,failed,stocks:fetch-history can access DB and begin backfill,"Illuminate\Database\QueryException 
+
+  SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `stocks` where `is_active` = 1)
+
+  at vendor/laravel/fr",/usr/local/bin/php artisan stocks:fetch-history --days=180
+priority_backfill_export,backfill,failed,phase-a:export-real-data can read DB and regenerate snapshot,"Illuminate\Database\QueryException 
+
+  SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `stocks` where `is_active` = 1 order by `code` asc)
+
+  ",/usr/local/bin/php artisan phase-a:export-real-data --data-dir=data --metadata-file=data/ticker_metadata.csv --include-sentiment-series

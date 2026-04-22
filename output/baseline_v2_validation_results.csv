@@ -1,0 +1,3 @@
+variant,candidate_id,entry_rule,hold_period,min_trades_threshold,profit_buffer_pct,ticker_count,eligible_ticker_count,positive_score_ticker_count,total_trades_sum,signal_count_sum,mean_score,mean_win_rate,mean_buffered_win_rate,mean_average_return,mean_max_drawdown,global_selection_score
+active_baseline,baseline_active_eval_aligned,close_gt_ema50_and_volume_spike_threshold,3,10,0.0,12,12,10,1231,2040,8.090716666666667,41.23333333333333,41.23516666666667,-0.05121666666666665,43.53341666666666,233.19071666666667
+baseline_v2_candidate,baseline_v2_hold3_with_trend_guard,close_gt_ema50_and_bullish_candle,3,10,0.0,12,12,5,2904,6077,-0.07445833333333325,40.785833333333336,40.78589166666667,-0.18624166666666667,60.678491666666666,377.3255416666667

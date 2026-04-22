@@ -1,0 +1,28 @@
+Phase 2.3 - Narrow Confirmation for Layer 2 Candidate
+=====================================================
+
+Candidate under confirmation:
+- top_25pct_return_20d
+
+Variants tested:
+- top_25pct_return_20d: Top 25% by return_20d
+  total_trades=4889, median_trade_retention=50.4202, avg_delta_win_rate=-0.6731, avg_delta_average_return=0.2682
+  active_ticker_count_median=10.0, sample_adequacy_risk=low, coverage_collapse=0
+- top_30pct_return_20d: Top 30% by return_20d
+  total_trades=5557, median_trade_retention=57.5342, avg_delta_win_rate=-0.838, avg_delta_average_return=-0.0237
+  active_ticker_count_median=12.0, sample_adequacy_risk=low, coverage_collapse=0
+- top_25pct_vol_adjusted_return_20d: Top 25% by return_20d / vol20
+  total_trades=4908, median_trade_retention=49.345, avg_delta_win_rate=-0.288, avg_delta_average_return=-0.0908
+  active_ticker_count_median=10.0, sample_adequacy_risk=low, coverage_collapse=0
+
+Stability diagnostics:
+- avg_delta_win_rate_range = 0.55
+- avg_delta_average_return_range = 0.359
+- median_trade_retention_range = 8.1892
+- total_trades_range = 668
+
+Decision:
+- best_variant = top_25pct_return_20d
+- freeze_layer_2_candidate = False
+- reason = Candidate is still too sensitive to nearby variants or the quality trade-off is not yet strong enough to freeze Layer 2 as a final candidate.
+- remaining_blocker = narrow_sensitivity_between_nearby_rs_cuts_and_quality_tradeoff_not_decisive_enough

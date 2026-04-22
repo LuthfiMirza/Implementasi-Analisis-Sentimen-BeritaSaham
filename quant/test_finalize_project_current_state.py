@@ -39,6 +39,27 @@ class FinalizeProjectCurrentStateTestCase(unittest.TestCase):
                     "phase_c_decision": "phase_c_no_go_yet",
                 },
             )
+            _write_json(
+                output_dir / "phase_b_final_closeout.json",
+                {
+                    "phase_b_final_status": "phase_b_closed_with_learnings_no_candidate",
+                    "recommended_primary_next_step": "stop_and_collect_more_data_then_redesign_framework",
+                    "can_continue_strategy_experiments_now": False,
+                },
+            )
+            _write_json(
+                output_dir / "project_after_phase_b_decision.json",
+                {
+                    "phase_b_final_status": "phase_b_closed_with_learnings_no_candidate",
+                    "phase_c_decision": "phase_c_no_go_yet",
+                    "recommended_primary_next_step": "stop_and_collect_more_data_then_redesign_framework",
+                    "can_continue_strategy_experiments_now": False,
+                },
+            )
+            _write_json(
+                output_dir / "phase_b_retest_readiness_gate.json",
+                {"final_decision": "belum_boleh_retest"},
+            )
             _write_json(output_dir / "phase_a_baseline_final.json", {"baseline_status": "provisional"})
             _write_json(
                 output_dir / "baseline_v2_go_no_go.json",
@@ -92,13 +113,15 @@ class FinalizeProjectCurrentStateTestCase(unittest.TestCase):
             required = [
                 output_dir / "project_current_state_summary.json",
                 output_dir / "project_current_state_summary.txt",
+                output_dir / "project_current_state.json",
+                output_dir / "project_current_state.txt",
                 output_dir / "project_freeze_status.json",
             ]
             for path in required:
                 self.assertTrue(path.exists(), f"Missing artifact: {path}")
 
             payload = json.loads((output_dir / "project_current_state_summary.json").read_text(encoding="utf-8"))
-            self.assertEqual("frozen_with_experimental_watchlist_monitoring", payload["project_state"])
+            self.assertEqual("frozen_waiting_data_extension_and_framework_redesign", payload["project_state"])
             self.assertTrue(payload["active_operational_baseline"]["use_for_operations"])
             self.assertFalse(payload["phase_b"]["retry_ready"])
             self.assertFalse(payload["phase_c"]["can_start"])

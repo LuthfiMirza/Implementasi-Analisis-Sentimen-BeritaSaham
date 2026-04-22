@@ -1,0 +1,9 @@
+{
+  "generated_at": "2026-04-22T00:46:43.288569+00:00",
+  "project_state": "frozen_waiting_data_extension_and_framework_redesign",
+  "active_operational_baseline": "phase_a_active_baseline",
+  "experimental_candidate": "baseline_v2_hold3_with_trend_guard",
+  "phase_b_retry_ready": false,
+  "phase_c_can_start": false,
+  "next_action": "stop_and_collect_more_data_then_redesign_framework"
+}

@@ -24,7 +24,8 @@
                         <span>Harga: {{ $quote['last'] ?? ($latestPrice?->close ? number_format($latestPrice->close, 2) : '-') }}</span>
                         <span class="{{ ($priceChange ?? 0) >=0 ? 'text-green-400' : 'text-rose-400' }}">Δ {{ $priceChange ? number_format($priceChange, 2) : '0.00' }}%</span>
                         <span>Sentimen rata-rata: {{ $analytics['average_sentiment'] }}</span>
-                        <span>Artikel: {{ $summary['total'] }}</span>
+                        <span>Artikel valid: {{ $summary['total'] }}</span>
+                        <span>Unavailable: {{ $summary['sentiment_unavailable_count'] ?? 0 }}</span>
                         @if($quote)
                             <span class="text-[11px] px-2 py-1 rounded-full border border-slate-700">{{ $quote['source'] ?? 'live' }} • {{ $quote['is_live'] ? 'Live' : 'Snapshot' }}</span>
                         @endif
@@ -48,7 +49,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3 mt-4">
                 <x-metric-card label="Sentimen Avg" :value="$analytics['average_sentiment']" hint="Rata-rata periode" />
                 <x-metric-card label="Weighted Sentiment" :value="$analytics['weighted_sentiment_stats']['weighted_sentiment_average'] ?? $analytics['weighted_sentiment']" hint="Bobot kualitas (relevance/source) + sumber/headline/recency" />
-                <x-metric-card label="Berita" :value="$analytics['news_volume']" hint="volume periode" />
+                <x-metric-card label="Berita" :value="$analytics['news_volume']" :hint="'valid • unavailable '.($analytics['sentiment_unavailable_count'] ?? 0)" />
                 <x-metric-card label="Cumulative Return" :value="is_null($analytics['cumulative_return']) ? 'N/A' : $analytics['cumulative_return'].'%'" />
                 <x-metric-card label="Volatilitas" :value="is_null($analytics['volatility']) ? 'N/A' : $analytics['volatility'].'%'" />
                 <x-metric-card label="Same-day Corr" :value="is_null($analytics['same_day_correlation']) ? 'N/A' : $analytics['same_day_correlation']" hint="Sentimen vs return" />

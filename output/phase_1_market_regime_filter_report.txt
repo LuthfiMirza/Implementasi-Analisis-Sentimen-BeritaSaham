@@ -1,0 +1,27 @@
+Phase 1 - Market Regime Filter
+===============================
+
+Definition:
+- bullish when ihsg_adj_close > ihsg_ema200
+- non-bullish skips new entries
+
+Regime day distribution:
+- bullish_days = 4423
+- non_bullish_days = 1919
+- bullish_day_pct = 69.7414
+
+Signals before vs after:
+- pre_filter_signals = 3151
+- post_filter_signals = 2707
+- skipped_signals = 444
+
+Trades before vs after:
+- pre_filter_total_trades = 1664
+- post_filter_total_trades = 1432
+- tickers_with_coverage_collapse = 0
+
+Quality delta:
+- avg_delta_win_rate = -1.4029
+- avg_delta_average_return = -0.1989
+
+Layer 1 usable: True

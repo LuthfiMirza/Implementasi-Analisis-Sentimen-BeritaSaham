@@ -1,0 +1,40 @@
+Baseline v2 Candidate Validation
+================================
+
+- Validation status: usable
+- Decision: keep_candidate_experimental
+- Candidate: baseline_v2_hold3_with_trend_guard
+- Candidate better than active baseline: True
+- Coverage improved: False
+- Eligible ticker count: 12
+- Min eligible tickers required: 3
+- Trade sample ok: True
+- No trade collapse: True
+- Score ok: True
+- Positive ticker count: 2
+- Can promote baseline v2: False
+- Can retry Phase B after validation: False
+- Usable for framework redesign only: False
+- Recommendation: Kandidat baseline v2 masih bersifat audit-only dan hanya boleh dipakai sebagai input redesign framework.
+- Recommended next action: hold_candidate_for_framework_redesign_only
+
+Active baseline summary:
+- eligible_ticker_count=12
+- total_trades_sum=1231
+- mean_score=+8.0907
+- mean_average_return=-0.0512
+
+Candidate summary:
+- eligible_ticker_count=12
+- total_trades_sum=2904
+- mean_score=-0.0745
+- mean_average_return=-0.1862
+
+Stability:
+- improve_ticker_count=2
+- neutral_ticker_count=2
+- worsen_ticker_count=8
+
+Decision notes:
+- Candidate mengungguli baseline aktif pada setting evaluasi yang sama.
+- Candidate hanya cocok untuk subset kecil ticker sehingga belum layak dipromosikan penuh.

@@ -1,0 +1,19 @@
+Phase 0B.3 - Indicator Master Table
+===================================
+
+Status: completed
+Stock output: data/indicator_master/stock_indicator_master.csv
+IHSG output: data/indicator_master/IHSG_indicator_master.csv
+Stock sources used: 51
+Stock rows: 263825
+IHSG rows: 8774
+
+Price policy:
+- official indicator basis = adj_close
+- regime / return / momentum / EMA = adj_close
+- raw OHLC for ATR / exit = not official yet
+
+Layer readiness:
+- Layer 1 regime ready = True
+- Layer 5 ATR/exit ready = False
+- Layer 5 blocker = raw_ohlc_corporate_action_policy_not_frozen; back_adjusted_ohlc_or_split_aware_policy_required

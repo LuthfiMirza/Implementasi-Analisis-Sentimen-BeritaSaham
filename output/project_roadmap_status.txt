@@ -1,32 +1,546 @@
 Project Roadmap Status
 ======================
 
-- generated_at=2026-04-21T14:18:10.519806+00:00
-- current_focus=phase_b_retest_closeout
+Generated at: 2026-04-22
+Current focus: layer5_shorter_time_stop_validation_complete_provisional_update_next
 
-Phase summary:
-- phase_a: done=4, partial=0, not_started=0, total=4
-- phase_b: done=0, partial=4, not_started=0, total=4
-- phase_c: done=0, partial=1, not_started=3, total=4
+Official project state:
+- Phase A: closed_with_notes
+- Phase B: phase_b_closed_with_learnings_no_candidate
+- Phase C: phase_c_no_go_yet
+- Retest readiness: belum_boleh_retest
+- Active track: stop_and_rebuild_foundation
+- Recommended next action: prepare_provisional_layer5_time_stop_update
+  Note: Validation shorter time stop sudah selesai. Varian `12 hari` mengalahkan control `15 hari` pada holdout average return (`0.0261` vs `-0.4595`), holdout profit factor (`0.9932` vs `0.8420`), holdout max drawdown (`28.5468` vs `34.4658`), dan tetap memperbaiki OOS. Karena itu Layer 5 sekarang layak direvisi provisional ke time stop lebih pendek, tanpa membuka ATR multiplier, Layer 4, atau scope entry/regime lagi.
 
-Latest execution status:
-- phase_b_status=phase_b_closed_with_learnings_no_candidate
-- phase_c_decision=phase_c_no_go_yet
-- current_track=phase_b_retest_executed_formal_closeout_published
-- recommended_next_action=stop_and_collect_more_data_then_redesign_framework
-- retest_readiness_status=boleh_retest
-- retest_readiness_snapshot_published=True
-- strategy_retest_status=executed
-- strategy_retest_result=no_go_even_for_segment
-- strategy_retest_candidate=baseline_v3_ema20_trend_guard
-- strategy_retest_primary_segment=sentiment_segment=sentiment_poor
-- official_primary_segment_tickers=ADRO, ASII, BBCA, BUMI, UNVR
-- can_continue_strategy_experiments_now=False
+Core decision:
+- Produk dashboard, data pipeline berita, dan baseline operasional minimum sudah ada.
+- Jalur strategi Phase B gagal sebagai strategi, bukan karena coding belum selesai.
+- Eksperimen item 5-8 tetap stop.
+- Phase C tetap tertutup.
+- Arah baru proyek adalah foundation rebuild, bukan retest strategi lama.
 
-Retest execution summary:
-- status=executed
-- readiness_gate_decision=boleh_retest
-- official_result=no_go_even_for_segment
-- phase_b_final_status=phase_b_closed_with_learnings_no_candidate
-- phase_c_decision=phase_c_no_go_yet
-- recommended_next_action=stop_and_collect_more_data_then_redesign_framework
+Current strategy architecture status:
+- Layer 1 Market Regime Filter: 100%
+  Status: frozen_final_candidate
+  Note: kandidat resmi Layer 1 tetap IHSG EMA50 > EMA200 dengan policy explicit previous-trading-day alignment. Pass holdout regime sensitivity sempit sudah menguji slope filter, buffer 0.5%, dan EMA200 slope up; varian terbaik memperbaiki holdout (`avg_return_per_trade -0.1735` vs `-0.4595`, `profit_factor 0.9304` vs `0.8420`) tetapi belum cukup tegas untuk revisi provisional, jadi current regime dipertahankan.
+- Layer 2 Alternative Eligibility Filter: 75%
+  Status: integration_frozen_candidate_not_final_validation
+  Note: jalur Relative Strength sudah ditutup formal. `close > ema50` explicit sudah terbukti redundant/non-binding pada jalur signal saat ini, dan `return_20d > 0` sekarang dibuang dari stack inti secara provisional. Core stack aktif rebuild saat ini menjadi `Phase 1 base signal generation + Layer 1 market regime`, tanpa liquidity gate aktif; keputusan ini belum freeze final permanen karena holdout masih lemah.
+- Layer 3 Entry Signal: 82%
+  Status: optional_integration_layer
+  Note: integrasi `RSI14 >= 50 AND RSI14 <= 70` di atas Layer 1 + Layer 2 alternatif sudah berjalan end-to-end; layer ini menaikkan delta win rate tetapi menurunkan delta average return, sehingga diperlakukan sebagai toggle opsional saat walk-forward, bukan default-active policy.
+- Layer 4 Position Sizing: 70%
+  Status: usable_as_integration_layer
+  Note: fixed fractional sizing `2% risk per trade` dengan `10% max position cap` sudah diimplementasikan pada first pass. Evaluasi portfolio-level masih memakai sequential portfolio compounding dan akan difinalkan saat walk-forward.
+- Layer 5 Exit Management: 25%
+  Status: usable_as_experimental_integration_layer
+  Note: ATR trailing stop pertama sudah diimplementasikan dengan `ATR14 * 2.5` dan time stop 15 hari. Policy ATR masih temporary-not-final karena basis raw OHLC baru akan dibekukan saat walk-forward. Validation shorter time stop menunjukkan `12 hari` sebagai kandidat terbaik versus control `15 hari`, sehingga arah resmi berikutnya adalah provisional Layer 5 update ke time stop lebih pendek sambil menjaga ATR multiplier tetap `2.5`.
+
+Data status summary:
+- Sudah ada:
+  - OHLCV rebuild bersih berbasis yfinance di data/stocks/*.csv untuk target 50 ticker frozen hasil Phase 2.2, ditambah 1 source legacy yang masih dipakai indikator sehingga total stock source aktif saat ini = 51
+  - IHSG historis bersih di data/IHSG.csv untuk regime filter berbasis EMA200
+  - Master indicator bersih di data/indicator_master/*.csv dengan basis adj_close resmi untuk regime / return / momentum / EMA
+  - Volume harian
+  - Sentimen berita harian ter-align ke trade date
+  - Metadata saham dasar di data/ticker_metadata.csv
+  - Universe segmentation di output/baseline_v6_universe_segmentation.csv
+  - Fundamental statis via seeder
+- Bisa di-generate dari OHLCV saat ini:
+  - EMA20, EMA50, EMA200
+  - ATR14
+  - RSI14
+  - Return 20 hari / momentum score
+  - Volume MA20
+- Belum ada / belum terkonfirmasi:
+  - Back-adjusted OHLC penuh untuk ATR / stop / candle logic
+  - Policy corporate-action final untuk OHLC raw pada exit logic
+  - Delisted / survivorship-free universe
+  - Market cap riil operasional
+  - Fee broker dan slippage di backtest utama
+  - Position sizing portfolio
+
+Critical blockers before new strategy build:
+1. Framework redesign
+   - Status: phase_0a_patched
+   - Batch/progress/completion sekarang memakai methodology-aligned minimum usable OOS windows, bukan lagi target stretch legacy sebagai blocker operasional.
+   - Stretch target 4/6/8 tetap dicatat sebagai target redesign non-blocking, bukan syarat batch completion atau recheck operasional.
+   - Universe split ticker panjang vs post-IPO belum dijadikan policy aktif; keputusan default yang dipakai sekarang adalah framework alignment tanpa solusi ad hoc khusus GOTO.
+2. Adjusted price audit
+   - Status Phase 0B.1/0B.2: clean raw daily dataset + adj_close/dividends/splits sudah tersedia untuk saham dan IHSG.
+   - Policy resmi sementara: regime / return / momentum memakai adj_close; ATR / stop / candle logic tetap tertahan sampai policy OHLC split-aware dibekukan.
+3. IHSG historical data
+   - Status: selesai di data/IHSG.csv dan sudah lolos validasi no weekend rows, no duplicate dates, ascending dates, dan history cukup untuk EMA200.
+4. Universe definition
+   - Target operasional mendekati 30 ticker sudah tercapai dan berhasil direbuild, jadi blocker freeze/fetch massal lama sudah lewat.
+   - Phase 2.2 target 50 sudah tercapai dan berhasil direrun.
+   - Universe expansion tidak lagi menjadi next action langsung.
+  - Keputusan resmi sekarang sudah final untuk scope Layer 2 saat ini: `top_25pct_return_20d` tetap prototype-usable terbaik, tetapi dikunci `not_frozen_yet` setelah Phase 2.6 karena dispersion kualitas antar-slice masih terlalu lebar untuk freeze final.
+  - Jalur Layer 2 Relative Strength ditutup formal; tidak ada iterasi RS tambahan tanpa alasan metodologis baru yang kuat.
+  - Planning Layer 2 alternatif memilih opsi prioritas pertama: non-cross-sectional filter dengan absolute momentum threshold dan light liquidity gate sebagai next experiment paling defensible.
+  - Eksperimen alternatif pertama selesai: varian tanpa liquidity gate eksplisit menjadi kandidat terbaik dengan `avg_delta_average_return = 0.0455`, `avg_delta_win_rate = 0.3924`, tanpa coverage collapse, sehingga usable sebagai prototype.
+  - Threshold liquidity gate paling defensible dari set sempit yang diuji adalah `>= 5B IDR`, tetapi gate eksplisit yang diuji masih merusak kualitas versus varian tanpa gate.
+  - Confirmation pass sempit untuk arsitektur alternatif selesai: `alt_filter_no_liquidity_gate` tetap terbaik pada full period, `>= 2.5B IDR` dan `>= 5B IDR` tidak mengalahkannya, dan freeze final alternatif tetap `False` karena kemenangan slice baru `3/6`.
+  - Closeout Layer 2 alternatif sekarang sinkron: `integration_frozen_candidate = true`, `final_validation_frozen = false`, `active_policy = alt_filter_no_liquidity_gate`, dan `liquidity_gate_policy = backlog_only`.
+  - Phase 3 integrasi RSI14 selesai pada jalur rebuild: varian `Layer 1 + Layer 2 alternatif + Layer 3 RSI 50-70` menghasilkan `6815` trades, retention `68.75`, `avg_delta_win_rate = 0.6145`, `avg_delta_average_return = 0.0052`, tanpa coverage collapse, dan keputusan resmi runner adalah `layer_3_usable_as_integration_layer = true`.
+  - Closeout Layer 3 sekarang sinkron: `layer_3_status = optional_integration_layer`, `layer_3_frozen = false`, `layer_3_default_active = false`, dan Layer 3 dipakai sebagai toggle saat walk-forward, bukan policy default.
+  - Phase 5 ATR trailing stop selesai pada jalur rebuild: baseline fixed hold 5 hari menghasilkan `8507` trades dengan `avg_return_per_trade = 0.5776`, sedangkan ATR trailing stop tanpa Layer 3 menghasilkan `5941` trades dengan `avg_return_per_trade = 1.0854`, `avg_holding_period_actual = 11.2976`, `avg_max_drawdown_per_trade = 4.8938`, tanpa coverage collapse.
+  - Varian ATR trailing stop dengan Layer 3 toggle juga tetap usable (`5118` trades, `avg_return_per_trade = 0.9807`), tetapi tidak mengalahkan ATR trailing stop tanpa Layer 3 pada average return per trade.
+  - Keputusan resmi Layer 5 first pass: `atr_trailing_better_than_fixed_hold = true` dan `layer_5_usable_as_integration_layer = true`.
+  - Phase 4 position sizing selesai pada jalur rebuild: fixed fractional `2% risk per trade` dan `10% max position cap` sudah berjalan di atas ATR trailing stop. Varian sized tanpa Layer 3 menghasilkan `5941` trades, `portfolio_return_pct = 43609.3665`, `portfolio_max_drawdown_pct = 44.1235`, `avg_position_size_pct = 9.9855`, dan `cap_hit_rate_pct = 99.1752`.
+  - Varian sized dengan Layer 3 toggle juga usable (`5118` trades, `portfolio_return_pct = 11552.2358`, `portfolio_max_drawdown_pct = 42.748`, `avg_position_size_pct = 9.9877`), tetapi tidak mengalahkan sized tanpa Layer 3 pada portfolio return.
+  - Keputusan resmi Layer 4 first pass: `layer_4_usable_as_integration_layer = true`.
+5. Backtest realism
+   - Tambahkan biaya transaksi dan slippage minimum.
+
+Formal rebuild roadmap:
+
+Phase 0A - Evaluation Framework Redesign
+- Goal:
+  - Menutup konflik framework lama sebelum strategi baru dibangun.
+- Must finish:
+  - Definisi minimum usable OOS windows yang realistis dan selaras dengan methodology aktif.
+  - Definisi cohort/universe untuk ticker panjang vs ticker post-IPO.
+  - Definisi status batch: priority_targets_closed vs operationally_complete vs checkpoint_material_reached.
+- Exit criteria:
+  - Tidak ada lagi konflik artifact semantics.
+  - Readiness gate, progress tracker, dan completion check memakai definisi yang konsisten.
+- Current status:
+  - Done secara framework semantics.
+  - Hasil patch: methodology_minimum_windows dipisah dari stretch_target_windows, batch operational completion tidak lagi diblok target legacy 6 windows, dan retest tetap ditahan oleh framework_governance_gate.
+
+Phase 0B - Data Audit and Repair
+- Goal:
+  - Pastikan semua input strategi valid sebelum entry/exit baru dibangun.
+- Must finish:
+  - Bekukan hasil OHLCV rebuild bersih dan policy adjusted basis.
+  - Tambahkan data IHSG historis.
+  - Putuskan universe final.
+  - Dokumentasikan data coverage dan batasan survivorship.
+  - Tambahkan fee/slippage assumptions ke backtest.
+- Exit criteria:
+  - Data audit tertulis.
+  - Dataset IHSG tersedia.
+  - Universe dan asumsi biaya dibekukan.
+- Current status:
+  - Phase 0B.2 complete.
+  - Dataset bersih universe target 50 ticker sudah direbuild ke data/stocks/*.csv via yfinance dengan validasi no weekend rows, no duplicate dates, ascending dates, dan no mixed-frequency contamination.
+  - Dataset IHSG sudah tersedia di data/IHSG.csv via yfinance ^JKSE dan siap untuk EMA200 regime filter dari sisi kualitas data.
+  - Phase 0B.3 selesai: master indicator sudah direbuild ulang di data/indicator_master dengan policy adj_close resmi untuk regime / return / momentum, memakai 51 stock source aktif dan menghasilkan 263825 stock rows serta 8774 IHSG rows.
+  - Phase 1 selesai sebagai implementasi awal market regime filter.
+  - Phase 1.1 refinement selesai: kandidat terbaik adalah IHSG EMA50 > EMA200.
+  - Phase 1.2 narrow confirmation selesai: policy explicit previous-trading-day alignment dipilih sebagai policy resmi Layer 1 karena identik dengan carry-forward previous available regime pada kualitas, coverage, dan total trades.
+  - Layer 1 sekarang resmi frozen dan siap dipakai sebagai fondasi untuk masuk Phase 2.
+  - Phase 2 rerun selesai pada target 50: `top_25pct_return_20d` menjadi kandidat terbaik dengan `avg_delta_average_return = 0.2682`, retention 50.4202, tanpa coverage collapse, dan keputusan resmi naik ke `layer_2_usable_as_prototype = True`.
+  - Phase 2.1 redesign rerun selesai pada target 50: top 40%, top 50%, above-median, dan vol-adjusted return_20d sudah diuji; varian terbaik tetap `top_40pct_return_20d`, tetapi keputusan formal masih `universe_too_small_for_relative_strength_validation`.
+  - Phase 2.3 narrow confirmation selesai pada target 50: `top_25pct_return_20d` tetap kandidat terbaik terhadap `top_30pct_return_20d` dan `top_25pct_vol_adjusted_return_20d`, tetapi freeze final ditahan karena `avg_delta_average_return_range = 0.359` masih menunjukkan sensitivitas sempit yang belum cukup nyaman untuk keputusan freeze final.
+  - Phase 2.4 narrow robustness selesai pada target 50: `top_25pct_return_20d` tetap prototype-usable secara full period (`avg_delta_average_return = 0.2682`), tetapi belum lolos freeze final karena hanya menang 3 dari 6 slice robustness, `candidate_avg_delta_average_return_range = 1.1379`, dan blocker resmi bergeser ke `candidate_advantage_is_concentrated_in_too_few_time_or_regime_slices`.
+  - Phase 2.5 boundary cut refinement selesai pada target 50: cut `22.5%, 25%, 27.5%, 30%` berbasis `return_20d` sudah diuji pada slice yang sama, `top_25pct_return_20d` tetap terpilih sebagai kandidat terbaik, tetapi freeze final tetap `False` karena boundary refinement belum memecahkan blocker `no_boundary_cut_yet_breaks_slice_concentration_blocker`.
+  - Phase 2.6 micro confirmation final pass selesai pada target 50: policy mikro `explicit deterministic tie handling + ceil cut` terpilih sebagai bentuk paling defensible dari `top_25pct_return_20d`, winner count naik menjadi `4/6`, tetapi freeze final tetap `False` dan `lock_not_frozen_yet = True` karena `candidate_avg_delta_average_return_range = 1.1379` masih terlalu lebar.
+  - Closeout Layer 2 Relative Strength selesai: artifact ringkas sudah dibuat untuk menutup track ini secara formal dan memindahkan pembahasan berikutnya ke backlog opsi arsitektur Layer 2 alternatif.
+  - Planning Layer 2 alternatif selesai: opsi terbaik yang dipilih untuk next experiment adalah non-cross-sectional filter berbasis `return_20d > 0`, `close > ema50`, dan light liquidity gate sederhana tanpa ranking top-x%.
+  - Eksperimen Layer 2 alternatif pertama selesai: `alt_filter_no_liquidity_gate` menjadi varian terbaik (`8507` trades, retention `85.5895`, `avg_delta_win_rate = 0.3924`, `avg_delta_average_return = 0.0455`), dan `alt_filter_liquidity_gate_5b` menjadi liquidity gate eksplisit terbaik meskipun masih quality-negative.
+  - Hasil awal alternatif ini usable sebagai prototype, tetapi belum jelas lebih stabil daripada jalur RS yang ditutup karena range antar-threshold masih material (`avg_delta_average_return_range = 0.4237`).
+  - Confirmation pass alternatif menunjukkan `alt_filter_no_liquidity_gate` tetap quality-positive di semua slice yang diuji, tetapi belum menang cukup konsisten terhadap comparator liquidity gate (`slice_win_count = 3/6`) untuk freeze final.
+  - Phase Universe Expansion awal selesai: target 30 ticker sudah dibekukan dan direbuild penuh.
+  - Freeze execution 30 ticker sudah final: tepat 30 ticker `frozen` di source-of-truth berhasil direbuild seluruhnya, tanpa ticker pending.
+  - Phase 2.2 planning selesai: successor scaffold ke 50 ticker sudah dibuat di `data/universe/layer2_expansion_phase_2_2_target_candidates.csv`, policy di `data/universe/layer2_expansion_phase_2_2_policy.json`, dan shortlist prioritas di `output/phase_2_2_universe_manual_review_priority.csv`.
+  - Target 50 berhasil dieksekusi. Universe expansion tidak lagi menjadi next action langsung.
+  - Layer 2 sekarang punya kandidat prototype yang usable, tetapi Phase 2.6 menutup loop evaluasi sempit ini dengan keputusan final `best prototype candidate locked not_frozen_yet`, bukan freeze final.
+
+Phase 1 - Layer 1 Market Regime Filter
+- Goal:
+  - Implementasi gate IHSG > EMA200.
+- Deliverables:
+  - Fungsi is_market_bullish(date).
+  - Report proporsi hari bullish vs non-bullish.
+  - Backtest pembanding sebelum vs sesudah regime gate.
+- Current status:
+  - Implemented dan direfine di jalur rebuild.
+  - Summary hasil awal baseline current IHSG > EMA200:
+    - bullish_day_pct = 71.6533
+    - pre_filter_signals = 3151
+    - post_filter_signals = 2707
+    - tickers_with_coverage_collapse = 0
+    - avg_delta_win_rate = -1.4029
+    - avg_delta_average_return = -0.1989
+  - Summary hasil refinement terbaik IHSG EMA50 > EMA200:
+    - bullish_day_pct = 71.3813
+    - pre_filter_signals = 3151
+    - post_filter_signals = 2602
+    - tickers_with_coverage_collapse = 0
+    - avg_delta_win_rate = -0.0957
+    - avg_delta_average_return = 0.0898
+  - Summary hasil narrow confirmation policy resmi explicit previous-trading-day alignment:
+    - bullish_day_pct = 72.9423
+    - pre_filter_signals = 3151
+    - post_filter_signals = 2603
+    - tickers_with_coverage_collapse = 0
+    - avg_delta_win_rate = -0.0957
+    - avg_delta_average_return = 0.0898
+  - Decision:
+    - usable sebagai fondasi Layer 1
+    - kandidat final resmi: IHSG EMA50 > EMA200
+    - policy alignment resmi: explicit previous-trading-day alignment
+    - Layer 1 dibekukan karena policy alignment wajar tidak mengubah kualitas inti atau coverage
+
+Phase 2 - Layer 2 Relative Strength Stock Selection
+- Goal:
+  - Pilih saham terkuat berdasarkan momentum 20 hari.
+- Deliverables:
+  - Ranking momentum harian.
+  - Dynamic active universe per date.
+  - Report top 25-30% vs full universe.
+- Note:
+  - Jika universe tetap 12 ticker, fase ini hanya pilot dan belum cukup kuat untuk validasi final.
+- Current status:
+  - Implemented awal di jalur rebuild dengan score `return_20d` berbasis `adj_close`.
+  - Baseline pembanding Layer 1 full universe setelah rebuild terbaru:
+    - total_signals = 13005
+    - total_trades = 6352
+  - Hasil top 25%:
+    - total_signals = 5863
+    - total_trades = 3105
+    - median_trade_retention = 49.4382
+    - avg_delta_win_rate = -1.6029
+    - avg_delta_average_return = -0.1372
+  - Hasil top 30%:
+    - total_signals = 6581
+    - total_trades = 3460
+    - median_trade_retention = 55.1913
+    - avg_delta_win_rate = -1.621
+    - avg_delta_average_return = -0.137
+  - Hasil redesign top 40%:
+    - total_signals = 8097
+    - total_trades = 4198
+    - median_trade_retention = 67.4157
+    - avg_delta_win_rate = -1.3981
+    - avg_delta_average_return = -0.1231
+  - Hasil redesign top 50%:
+    - total_signals = 9480
+    - total_trades = 4850
+    - median_trade_retention = 77.5281
+    - avg_delta_win_rate = -0.9616
+    - avg_delta_average_return = -0.1175
+  - Hasil redesign above-median:
+    - total_signals = 9254
+    - total_trades = 4747
+    - median_trade_retention = 76.3636
+    - avg_delta_win_rate = -0.7719
+    - avg_delta_average_return = -0.0976
+  - Hasil redesign top 50% vol-adjusted:
+    - total_signals = 9458
+    - total_trades = 4861
+    - median_trade_retention = 76.7123
+    - avg_delta_win_rate = -1.0342
+    - avg_delta_average_return = -0.1131
+  - Decision:
+    - redesign terbaik saat ini adalah `above_median_return_20d` karena paling sedikit merusak kualitas sambil menjaga sample
+    - tetapi tidak ada varian yang quality-positive atau non-inferior terhadap Layer 1 full universe
+    - keputusan formal Phase 2.1 tetap `universe_too_small_for_relative_strength_validation`
+    - jangan lanjut ke Layer 3 sebelum universe diperluas atau basis validasi RS diperbaiki
+
+Phase Universe Expansion - Layer 2 Blocker Removal
+- Goal:
+  - Menyiapkan universe yang layak untuk validasi Relative Strength.
+- Deliverables:
+  - Target universe size dan policy freeze yang defensible.
+  - Inclusion criteria minimum.
+  - Candidate file + fetch scaffold yang tidak bisa mass-fetch sebelum freeze.
+- Current status:
+  - Scaffold 30 ticker selesai dan sudah diuji.
+  - Freeze final 30 ticker selesai dan sudah diuji.
+  - Phase 2.2 planning selesai dan target 50 selesai dieksekusi.
+  - Policy rekomendasi baru: custom 50 ticker liquid long-history manual freeze.
+  - Checkpoint minimum 45 ticker: completed.
+  - Target ideal 50 ticker: completed.
+  - Candidate scaffold lama ada di `data/universe/layer2_expansion_target_candidates.csv`.
+  - Successor scaffold ada di `data/universe/layer2_expansion_phase_2_2_target_candidates.csv`.
+  - Governance fetch aman: `quant.rebuild_yfinance_ohlcv` sekarang bisa baca `--universe-file`, tetapi hanya akan mengeksekusi row dengan `freeze_status` `frozen` atau `approved`.
+  - Ticker frozen yang sudah sukses direbuild: `BBCA, BBRI, BMRI, BBNI, BBTN, TLKM, EXCL, ISAT, PGAS, ASII, UNTR, ADRO, PTBA, ITMG, MEDC, ANTM, INCO, INDF, ICBP, MYOR, KLBF, UNVR, CPIN, JPFA, SMGR, INTP, JSMR, AKRA, TPIA, ACES`.
+  - Tambahan kandidat Phase 2.2 yang belum dibekukan berjumlah 0 ticker.
+  - Shortlist checkpoint 45 yang sudah dibekukan: `AMRT, HMSP, BSDE, TBIG, AALI, GGRM, PWON, CTRA, MNCN, SCMA, BRPT, AUTO, ERAA, INDY, MIKA`.
+  - Backup target 50 yang sudah dibekukan dan direbuild: `LSIP, MAPI, RALS, ESSA, SILO`.
+  - Target 50 berhasil dicapai; Phase 2 menunjukkan universe aktif maksimum 51 dan Layer 2 usable sebagai prototype.
+  - Phase 2.3 mengonfirmasi `top_25pct_return_20d` tetap terbaik, tetapi belum cukup stabil untuk freeze final karena sensitivitas antar varian dekat masih material.
+  - Phase 2.4 mengonfirmasi kandidat itu tetap terbaik di full period, tetapi belum cukup robust untuk freeze final karena kemenangan slice masih 3/6 dan distribusi kualitas belum merata.
+  - Phase 2.5 mengonfirmasi boundary cut 22.5%-30% tidak menghasilkan alternatif yang lebih robust; `top_25pct_return_20d` tetap terbaik di full period, tetapi winner count antar-slice sekarang masih 2/6 terhadap boundary comparator terdekat.
+  - Phase 2.6 mengonfirmasi iterasi mikro terakhir juga tidak cukup untuk freeze final; kandidat terbaik tetap `top_25pct_return_20d` dengan explicit deterministic tie handling, tetapi status resmi dikunci `not_frozen_yet`.
+- Decision:
+  - Jangan buka ulang iterasi Relative Strength.
+  - Layer 2 alternatif sudah cukup kuat untuk integrasi, tetapi belum final-validation frozen.
+  - Layer 3 RSI14 50-70 usable sebagai integration layer, tetapi belum otomatis membuka Layer 5.
+  - Next action resmi adalah confirmation pass sempit untuk Layer 3 sebelum exit logic dibuka.
+
+Phase 3 - Layer 3 Entry Signal Upgrade
+- Goal:
+  - Gabungkan rule entry yang sudah matang dengan Layer 1 frozen dan Layer 2 alternatif yang sudah dibekukan untuk integrasi.
+- Entry target:
+  - market regime bullish
+  - return_20d > 0
+  - close > ema50
+  - RSI14 antara 50 dan 70
+- Exit criteria:
+  - Trade retention tidak collapse.
+  - Sample trade masih cukup untuk evaluasi.
+ - Current status:
+  - implemented_end_to_end_on_rebuild_track
+  - Layer 1 only:
+    - total_signals = 20854
+    - total_trades = 9941
+    - median_trade_retention = 100.0
+    - avg_delta_win_rate = 0.0
+    - avg_delta_average_return = 0.0
+  - Layer 1 + Layer 2 alternatif:
+    - total_signals = 17704
+    - total_trades = 8507
+    - median_trade_retention = 85.5895
+    - avg_delta_win_rate = 0.3924
+    - avg_delta_average_return = 0.0455
+  - Layer 1 + Layer 2 alternatif + Layer 3 RSI 50-70:
+    - total_signals = 11954
+    - total_trades = 6815
+    - median_trade_retention = 68.75
+    - avg_delta_win_rate = 0.6145
+    - avg_delta_average_return = 0.0052
+  - Decision:
+    - usable sebagai integration layer
+    - optional layer, bukan default-active policy
+    - next action yang sudah selesai: implement Layer 5 first pass
+
+Phase 4 - Layer 5 Exit Management Upgrade
+- Goal:
+  - Ganti fixed hold period menjadi ATR trailing stop + time stop.
+- Deliverables:
+  - stop_loss = entry - ATR14 * multiplier
+  - trailing stop harian yang hanya naik
+  - backup time stop 15 hari
+  - pembanding terhadap fixed hold 3/5/7 hari
+ - Current status:
+  - first_experimental_integration_pass_completed
+  - ATR basis policy untuk pass ini:
+    - raw OHLC from rebuild dataset
+    - ATR14 simple rolling mean of true range
+    - final ATR policy frozen later at walk-forward
+  - Baseline fixed hold 5 hari:
+    - total_trades = 8507
+    - avg_return_per_trade = 0.5776
+    - avg_win_rate = 46.3148
+    - avg_holding_period_actual = 5.0
+    - max_drawdown_per_trade = 3.9238
+  - ATR trailing stop tanpa Layer 3:
+    - total_trades = 5941
+    - avg_return_per_trade = 1.0854
+    - avg_win_rate = 44.3023
+    - avg_holding_period_actual = 11.2976
+    - max_drawdown_per_trade = 4.8938
+  - ATR trailing stop dengan Layer 3 toggle:
+    - total_trades = 5118
+    - avg_return_per_trade = 0.9807
+    - avg_win_rate = 44.4705
+    - avg_holding_period_actual = 11.4228
+    - max_drawdown_per_trade = 4.7908
+  - Decision:
+    - ATR trailing stop beats fixed hold 5 days on average return per trade
+    - Layer 5 usable as experimental integration layer
+    - no additional Layer 5 confirmation pass before Layer 4
+
+Phase 5 - Layer 4 Position Sizing
+- Goal:
+  - Fixed fractional risk sizing.
+- Deliverables:
+  - 2% risk per trade
+  - max 10% portfolio cap per position
+  - sizing engine konsisten dengan stop loss
+ - Current status:
+  - first_pass_completed
+  - policy:
+    - risk_per_trade = 2%
+    - max_position_cap = 10%
+    - initial_capital = 100,000,000 IDR notional
+  - Unsized ATR baseline:
+    - total_trades = 5941
+    - avg_return_per_trade = 1.0854
+    - portfolio_return_pct = reference_only_not_realistic_for_final_use
+  - Sized ATR tanpa Layer 3:
+    - total_trades = 5941
+    - portfolio_return_pct = 43609.3665
+    - portfolio_max_drawdown_pct = 44.1235
+    - avg_position_size_pct = 9.9855
+    - cap_hit_rate_pct = 99.1752
+  - Sized ATR dengan Layer 3 toggle:
+    - total_trades = 5118
+    - portfolio_return_pct = 11552.2358
+    - portfolio_max_drawdown_pct = 42.748
+    - avg_position_size_pct = 9.9877
+    - cap_hit_rate_pct = 99.2771
+  - Decision:
+    - Layer 4 usable as integration layer
+    - next action = begin walk-forward validation
+
+Phase 6 - Walk-Forward Validation
+- Goal:
+  - Validasi bahwa strategi tidak overfit.
+- Official split:
+  - 2019-2021 in-sample
+  - 2022-2023 out-of-sample
+  - 2024-2025 final holdout
+- Minimum targets:
+  - Sharpe > 1.2
+  - Max drawdown < 20%
+  - Profit factor > 1.5
+  - Win rate > 45%
+  - Total trade > 200
+  - OOS degradation < 30%
+- Current status:
+  - first pass completed
+  - stack baseline resmi yang diuji = Layer 1 + Layer 2 alternatif + Layer 5 ATR trailing stop + Layer 4 sizing
+  - Layer 3 diuji hanya sebagai toggle opsional
+  - hasil tanpa Layer 3:
+    - in-sample = 671 trades, win rate 40.6855, avg return 0.6134, max drawdown 28.6825, profit factor 1.1723, sample low
+    - out-of-sample = 439 trades, win rate 38.2688, avg return -0.0909, max drawdown 31.6175, profit factor 0.9629, sample moderate
+    - final holdout = 461 trades, win rate 38.6117, avg return -0.4867, max drawdown 29.0187, profit factor 0.8416, sample moderate
+    - OOS degradation vs in-sample = 114.819
+  - hasil dengan Layer 3 toggle:
+    - in-sample = 596 trades, win rate 40.7718, avg return 0.4745, max drawdown 26.4210, profit factor 1.1316, sample moderate
+    - out-of-sample = 390 trades, win rate 37.9487, avg return -0.2735, max drawdown 29.2625, profit factor 0.9160, sample moderate
+    - final holdout = 418 trades, win rate 39.7129, avg return -0.3166, max drawdown 28.9891, profit factor 0.8898, sample moderate
+    - OOS degradation vs in-sample = 157.6396
+  - official decision:
+    - without_layer3_more_stable = true
+    - layer_3 stays optional_on_only
+    - paper_trading_candidate_track = not_ready
+    - failed gates = win rate, profit factor, max drawdown, OOS degradation, Sharpe not yet evaluated in this first pass
+
+Phase 7 - Paper Trading
+- Goal:
+  - Jalankan strategi di pasar nyata tanpa modal sungguhan sebelum live deployment.
+- Minimum duration:
+  - 2 bulan
+
+What stays frozen now:
+- Baseline aktif Phase A
+- Status resmi Phase A/B/C
+- Stop keputusan untuk item 5-8
+- Candidate watchlist/global promotion tetap dilarang
+- Readiness gate tetap tidak boleh dibuka
+
+Codex Terminal execution checklist:
+
+Step 1 - Freeze framework decisions
+- Status:
+  - selesai untuk Phase 0A
+- Keputusan yang sudah dibekukan:
+  - methodology-aligned minimum usable OOS windows adalah source of truth operasional
+  - stretch target windows tetap non-blocking
+  - definisi operational completion sudah dipisah dari strategy retry permission
+- Do not:
+  - buka ulang item 5-8
+  - buka Phase C
+
+Step 2 - Audit adjusted OHLCV
+- Cek lompatan harga besar yang diduga corporate action.
+- Putuskan:
+  - clean raw + adj_close dataset sudah tersedia di data/stocks
+  - final adjusted-price policy untuk backtest belum final
+
+Step 3 - Add IHSG historical dataset
+- Source candidate:
+  - Yahoo Finance ^JKSE
+  - sumber IDX lain yang konsisten
+- Target:
+  - minimal 5 tahun history
+  - siap dipakai untuk EMA200
+
+Step 4 - Build master indicator table
+- Generate:
+  - EMA20/50/200
+  - RSI14
+  - volume_ma20
+  - return_20d
+- Output:
+  - selesai di data/indicator_master/stock_indicator_master.csv
+  - selesai di data/indicator_master/IHSG_indicator_master.csv
+
+Step 5 - Add backtest realism
+- Tambahkan:
+  - fee broker
+  - slippage minimum
+
+Step 6 - Implement Layer 1
+- Build IHSG > EMA200 gate
+- Backtest ulang baseline existing dengan regime filter
+- Bandingkan refinement varian:
+  - IHSG > EMA200
+  - IHSG > EMA200 AND EMA200 slope up
+  - IHSG > EMA200 * 1.01
+  - IHSG EMA50 > EMA200
+  - soft risk-off near EMA200
+- Status saat ini:
+  - kandidat terbaik = IHSG EMA50 > EMA200
+  - policy resmi = explicit previous-trading-day alignment
+  - Layer 1 final = frozen
+
+Step 7 - Implement Layer 2
+- Build ranking momentum 20 hari
+- Pilih top 25-30% ticker per date
+- Status saat ini:
+  - implementasi awal dan redesign selesai
+  - pada target 50 ticker, `top_25pct_return_20d` sudah usable sebagai prototype
+  - tetapi Phase 2.3 masih menahan freeze final karena sensitivitas antar varian dekat belum cukup tenang
+  - jangan lanjut ke Layer 3 dulu
+
+Step 7A - Expand Universe
+- Hold target 50 universe as frozen validation basis
+- Rebuild clean OHLCV untuk ticker tambahan
+- Regenerate indicator master
+- Baru rerun Layer 2 validation
+
+Step 8 - Upgrade Layer 3
+- Tambahkan RSI 50-70
+- Gabungkan regime + RS ke entry pipeline
+- Status saat ini:
+  - Layer 3 RSI14 50-70 sudah diintegrasikan di atas Layer 1 + Layer 2 alternatif
+  - usable sebagai integration layer
+  - optional toggle, bukan default-active policy
+  - closeout sudah sinkron; jangan balik ke refinement Layer 3 sekarang
+
+Step 9 - Upgrade Layer 5
+- Tambahkan ATR trailing stop + time stop
+- Status saat ini:
+  - selesai first experimental integration pass
+  - ATR multiplier dibekukan di 2.5 untuk pass ini
+  - time stop 15 hari aktif
+  - jangan lakukan confirmation pass tambahan Layer 5 sebelum membuka Layer 4
+
+Step 10 - Implement Layer 4
+- Build position sizing 2% risk, 10% cap
+- Status saat ini:
+  - selesai first pass
+  - gunakan Layer 3 sebagai optional toggle, bukan default
+  - jangan lakukan confirmation pass tambahan Layer 4 sebelum masuk walk-forward
+
+Step 11 - Walk-forward validation
+- Status saat ini:
+  - first pass selesai
+  - closeout formal selesai di `output/walk_forward_validation_closeout.json` dan `output/walk_forward_validation_closeout.txt`
+  - stack rebuild belum lolos gate minimum untuk lanjut ke candidate track
+  - Layer 3 tetap optional dan tidak naik menjadi default
+  - jangan masuk paper trading dulu
+
+Immediate next actions:
+1. Bekukan `output/holdout_resilience_plan.json` sebagai source of truth resmi untuk diagnosis residual failure pada updated core stack.
+2. Catat formal bahwa residual failure dominan saat ini adalah `regime_sensitivity`, bukan alasan yang cukup kuat dulu untuk membuka redesign exit, sizing, atau Layer 3.
+3. Buka planning refinement berikutnya hanya untuk Layer 1 holdout regime sensitivity di atas updated provisional core stack.
+4. Tetap gunakan core stack resmi terbaru: `Phase 1 base signal generation + Layer 1 market regime`, tanpa `return_20d > 0`, dengan Layer 3 optional off-by-default.
+5. Jangan masuk paper trading dulu dan tetap pertahankan retest tertutup.
+6. Jangan sentuh Layer 4/5 dulu.
+7. Jangan buka redesign paralel lain sebelum planning Layer 1 holdout regime sensitivity selesai.
+
+Forbidden actions until Phase 0A and 0B close:
+- Jangan retest strategi Phase B lama.
+- Jangan buka item 5-8 lagi.
+- Jangan mulai Phase C.
+- Jangan promote candidate watchlist/global.
+- Jangan menganggap backtest lama cukup valid sebelum adjusted price dan IHSG gate tersedia.

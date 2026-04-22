@@ -1,0 +1,50 @@
+Layer 5 Drawdown Control Plan
+=============================
+
+Current official reading:
+- Updated core stack tetap aktif.
+- Layer 1 current regime tetap dipertahankan.
+- Layer 3 tetap optional off-by-default.
+- Layer 4 tetap unchanged.
+- Paper trading tetap tertutup.
+- Retest tetap tertutup.
+
+Kenapa residual weakness sekarang lebih cocok dibaca sebagai Layer 5:
+- Entry simplification sebelumnya sudah memperbaiki OOS tanpa menyentuh Layer 5.
+- Layer 1 regime sensitivity pass tidak cukup tegas untuk revisi provisional, sehingga residual weakness tidak lagi paling defensible dijelaskan oleh Layer 1.
+- Core stack aktif masih gagal di holdout dengan avg_return_per_trade = -0.4595, profit_factor = 0.8420, dan max_drawdown_pct = 34.4658.
+- Phase 5 integration sebelumnya menunjukkan ATR trailing stop memang menaikkan avg_return_per_trade versus fixed hold (1.0854 vs 0.5776), tetapi juga menaikkan avg_holding_period_actual (11.2976 vs 5.0) dan avg_max_drawdown_per_trade (4.8938 vs 3.9238).
+
+Audit failure mode Layer 5:
+- trailing stop terlalu longgar: plausible, tetapi belum dipilih sebagai target pertama.
+- time stop terlalu lama: paling kuat. 15 hari masih memberi ruang trade buruk bertahan terlalu lama.
+- trailing rule terlalu lambat mengunci harga: plausible sebagai hipotesis sekunder.
+
+Opsi redesign yang dibandingkan:
+- Shorter time stop, ATR14 x 2.5 tetap.
+- Tighter ATR multiplier.
+- Faster trailing price lock.
+- Hybrid tighter ATR + shorter time stop.
+
+Target resmi yang dipilih:
+- `layer5_drawdown_control_via_shorter_time_stop`
+
+Kenapa target ini dipilih:
+- Perubahan paling sempit.
+- Langsung menyerang pola holding period yang terlalu panjang relatif terhadap kebutuhan loss containment.
+- Menjaga attribution clarity karena ATR multiplier, Layer 4, dan entry stack tetap sama.
+
+Kenapa opsi lain belum dipilih:
+- Tighter ATR multiplier lebih invasif terhadap stop-distance utama.
+- Faster trailing lock menambah kompleksitas rule baru terlalu dini.
+- Hybrid change melanggar disiplin single-scope.
+
+Langkah yang dilarang atau prematur:
+- buka paper trading
+- buka retest
+- sentuh Layer 4 sizing
+- buka ulang entry redesign
+- ubah ATR multiplier dan time stop sekaligus
+
+Official next action:
+- implement_layer5_shorter_time_stop_validation

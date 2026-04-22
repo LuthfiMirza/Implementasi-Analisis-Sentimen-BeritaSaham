@@ -1,0 +1,57 @@
+Core Stack Update Closeout
+=========================
+
+Generated at: 2026-04-22
+
+Current official decision:
+- Core stack rebuild sudah diperbarui secara formal.
+- `return_20d > 0` sekarang berstatus `provisionally_dropped_from_core_stack`.
+- Status ini belum final permanent freeze.
+- Layer 3 tetap optional off-by-default.
+- Layer 4 tetap unchanged.
+- Layer 5 tetap unchanged.
+- Paper trading tetap tertutup.
+- Retest tetap tertutup.
+
+Core stack transition:
+- Previous core stack:
+  - Phase 1 base signal generation
+  - Layer 1 market regime
+  - return_20d > 0
+  - Layer 3 optional off-by-default
+  - Layer 5 unchanged
+  - Layer 4 unchanged
+- Updated core stack:
+  - Phase 1 base signal generation
+  - Layer 1 market regime
+  - tanpa return_20d > 0
+  - Layer 3 optional off-by-default
+  - Layer 5 unchanged
+  - Layer 4 unchanged
+
+Why this change was made:
+- Siklus simplifikasi entry kedua menunjukkan OOS yang lebih tahan pada candidate `Phase 1 + Layer 1 only`.
+- Improvement OOS yang benar-benar terlihat:
+  - total trades naik dari 439 ke 487
+  - avg return per trade naik dari -0.0909 ke 0.1342
+  - profit factor naik dari 0.9629 ke 1.0270
+  - max drawdown OOS turun tipis dari 31.6175 ke 31.2179
+  - OOS degradation turun dari 114.819 ke 69.0498
+
+Why this is still only provisional:
+- Final holdout tetap negatif:
+  - control = -0.4867
+  - updated core stack = -0.4595
+- Max drawdown final holdout masih tinggi:
+  - updated core stack = 34.4658
+- Win rate masih rendah di kisaran 38-40%
+- Jadi stack baru membaik di OOS, tetapi belum cukup kuat untuk paper trading
+
+Residual failure that matters most now:
+- selected target = holdout_resilience
+- reason:
+  - setelah OOS membaik, gap terbesar yang tersisa sekarang adalah ketahanan di final holdout
+  - fokus berikutnya harus tetap sempit dan tidak membuka redesign exit / sizing / Layer 3
+
+Official next action:
+- Open holdout resilience planning on the updated provisional core stack.

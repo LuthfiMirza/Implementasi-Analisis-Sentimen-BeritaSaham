@@ -1,0 +1,14 @@
+step_id,stage,owner,owner_file,is_primary_path,status,evidence
+fetch_history_command,fetch,FetchStockHistoryCommand,app/Console/Commands/FetchStockHistoryCommand.php,True,extended_range_supported,Fetch command supports 6mo/1y/2y/max backfill windows.
+scheduled_history_fetch,orchestration,routes_console_schedule,routes/console.php,True,daily_refresh_only,All scheduled fetch-history jobs use --days=1 and do not establish a bulk backfill path.
+update_snapshots_command,fetch,UpdateStockSnapshotsCommand,app/Console/Commands/UpdateStockSnapshotsCommand.php,False,demo_snapshot_only,Command generates simple daily demo snapshots and is not the bulk history extension path.
+export_phase_a_real_data,export,ExportPhaseARealDataCommand,app/Console/Commands/ExportPhaseARealDataCommand.php,True,working_export_path,Export command rewrites data/*.csv and ticker_metadata.csv from stock_prices.
+metadata_refresh,metadata,phase-a:export-real-data,app/Console/Commands/ExportPhaseARealDataCommand.php,True,working,Metadata refresh stayed synchronized with exported snapshot.
+segmentation_refresh,segmentation,run_baseline_v6_guardrail_review,quant/run_baseline_v6_guardrail_review.py,False,working,Segmentation refresh is aligned with metadata/current CSV snapshot.
+snapshot_progress,ingest,phase_b_data_extension_progress_update,quant/run_phase_b_data_extension_progress_update.py,True,not_advanced,No material snapshot advance detected after ingest.
+priority_ticker::BUMI,snapshot,BUMI,BUMI.csv,True,snapshot_static,rows=57 date_end=2026-04-17 article_days=2 article_total=2
+priority_ticker::INDF,snapshot,INDF,INDF.csv,True,snapshot_static,rows=57 date_end=2026-04-17 article_days=2 article_total=2
+priority_ticker::UNVR,snapshot,UNVR,UNVR.csv,True,snapshot_static,rows=57 date_end=2026-04-17 article_days=0 article_total=0
+priority_ticker::ICBP,snapshot,ICBP,ICBP.csv,True,snapshot_static,rows=57 date_end=2026-04-17 article_days=1 article_total=1
+priority_ticker::BBCA,snapshot,BBCA,BBCA.csv,True,snapshot_static,rows=57 date_end=2026-04-17 article_days=1 article_total=1
+priority_ticker::GOTO,snapshot,GOTO,GOTO.csv,True,snapshot_static,rows=57 date_end=2026-04-17 article_days=2 article_total=2

@@ -1,0 +1,154 @@
+variant_id,variant_label,ticker,entry_signals,total_trades,avg_return_per_trade,avg_win_rate,avg_holding_period_actual,max_drawdown_per_trade,coverage_collapsed
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),AALI,418,142,-0.1888,40.1408,10.5211,4.8891,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),ACES,315,102,-0.875,36.2745,12.0294,5.2206,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),ADRO,304,104,0.8922,46.1538,11.3846,5.6224,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),AKRA,267,105,0.325,42.8571,11.6762,5.6965,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),AMRT,289,103,0.8275,43.6893,10.6796,5.8733,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),ANTM,329,101,1.5726,44.5545,10.9604,5.503,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),ASII,370,141,1.1535,46.0993,11.0426,3.9341,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),AUTO,463,147,1.0072,43.5374,11.2925,4.391,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),BBCA,355,143,0.6742,52.4476,11.7972,3.4419,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),BBNI,396,132,0.8398,48.4848,11.5076,3.8819,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),BBRI,357,134,0.2029,48.5075,11.5299,4.1083,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),BBTN,265,89,-0.2972,40.4494,11.5056,4.8728,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),BMRI,374,137,1.2556,51.8248,11.9562,3.9363,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),BRPT,369,118,5.4962,40.678,9.5932,5.8423,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),BSDE,294,93,0.534,39.7849,11.5699,5.2424,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),CPIN,338,117,1.5819,40.1709,10.8718,4.9995,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),CTRA,467,147,1.4453,40.8163,11.1429,5.6057,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),ERAA,211,71,1.0398,40.8451,11.1268,6.3642,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),ESSA,244,73,1.8148,39.726,11.3151,6.8728,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),EXCL,343,118,0.0864,41.5254,10.7712,5.1085,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),GGRM,341,126,0.1814,37.3016,10.2778,3.8787,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),GOTO,41,14,-1.633,28.5714,11.5,8.7411,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),HMSP,434,145,0.3972,46.8966,10.7379,4.8286,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),ICBP,434,145,1.3528,47.5862,11.8345,4.3317,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),INCO,375,118,1.226,44.9153,10.9237,5.2573,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),INDF,396,132,1.183,46.2121,12.1894,4.3277,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),INDY,313,93,2.7415,43.0108,11.4086,6.5942,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),INTP,404,145,0.6691,39.3103,11.2207,4.705,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),ISAT,349,122,1.334,49.1803,11.7623,4.5559,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),ITMG,297,105,1.3456,39.0476,11.3143,4.4135,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),JPFA,470,140,1.3876,45.7143,10.6857,6.6673,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),JSMR,280,99,-0.1783,41.4141,12.0505,4.3322,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),KLBF,390,130,0.891,43.8462,11.8,4.0269,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),LSIP,448,146,1.1752,47.2603,10.9863,4.9457,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),MAPI,384,125,0.4906,48.0,11.592,5.8816,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),MEDC,479,148,2.4906,44.5946,10.973,5.4131,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),MIKA,86,29,2.2447,68.9655,12.931,4.306,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),MNCN,259,94,-0.8554,30.8511,10.6383,7.3812,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),MYOR,475,158,2.1453,45.5696,11.5949,4.1857,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),PGAS,413,131,1.8977,48.0916,12.1679,4.2953,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),PTBA,483,149,1.8997,44.9664,11.8792,4.7949,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),PWON,361,114,1.5381,45.614,11.307,4.5414,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),RALS,348,107,0.7391,43.9252,11.1589,4.9033,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),SCMA,435,138,1.4668,39.8551,11.0725,5.3622,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),SILO,219,67,2.0349,44.7761,11.3881,5.0025,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),SMGR,328,116,0.2018,45.6897,11.5517,4.6757,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),TBIG,228,71,1.6981,46.4789,12.9437,4.844,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),TLKM,307,124,-0.2458,45.1613,10.7661,3.6683,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),TPIA,307,82,5.2766,54.878,11.6707,5.1505,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),UNTR,443,155,0.8849,49.0323,11.5613,4.91,False
+atr_trailing_stop_no_layer3_unsized,ATR trailing stop without Layer 3 (unsized baseline),UNVR,409,156,-0.2945,39.1026,10.3846,4.128,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,AALI,418,142,-0.1888,40.1408,10.5211,4.8891,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,ACES,315,102,-0.875,36.2745,12.0294,5.2206,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,ADRO,304,104,0.8922,46.1538,11.3846,5.6224,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,AKRA,267,105,0.325,42.8571,11.6762,5.6965,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,AMRT,289,103,0.8275,43.6893,10.6796,5.8733,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,ANTM,329,101,1.5726,44.5545,10.9604,5.503,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,ASII,370,141,1.1535,46.0993,11.0426,3.9341,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,AUTO,463,147,1.0072,43.5374,11.2925,4.391,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,BBCA,355,143,0.6742,52.4476,11.7972,3.4419,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,BBNI,396,132,0.8398,48.4848,11.5076,3.8819,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,BBRI,357,134,0.2029,48.5075,11.5299,4.1083,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,BBTN,265,89,-0.2972,40.4494,11.5056,4.8728,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,BMRI,374,137,1.2556,51.8248,11.9562,3.9363,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,BRPT,369,118,5.4962,40.678,9.5932,5.8423,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,BSDE,294,93,0.534,39.7849,11.5699,5.2424,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,CPIN,338,117,1.5819,40.1709,10.8718,4.9995,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,CTRA,467,147,1.4453,40.8163,11.1429,5.6057,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,ERAA,211,71,1.0398,40.8451,11.1268,6.3642,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,ESSA,244,73,1.8148,39.726,11.3151,6.8728,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,EXCL,343,118,0.0864,41.5254,10.7712,5.1085,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,GGRM,341,126,0.1814,37.3016,10.2778,3.8787,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,GOTO,41,14,-1.633,28.5714,11.5,8.7411,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,HMSP,434,145,0.3972,46.8966,10.7379,4.8286,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,ICBP,434,145,1.3528,47.5862,11.8345,4.3317,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,INCO,375,118,1.226,44.9153,10.9237,5.2573,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,INDF,396,132,1.183,46.2121,12.1894,4.3277,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,INDY,313,93,2.7415,43.0108,11.4086,6.5942,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,INTP,404,145,0.6691,39.3103,11.2207,4.705,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,ISAT,349,122,1.334,49.1803,11.7623,4.5559,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,ITMG,297,105,1.3456,39.0476,11.3143,4.4135,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,JPFA,470,140,1.3876,45.7143,10.6857,6.6673,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,JSMR,280,99,-0.1783,41.4141,12.0505,4.3322,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,KLBF,390,130,0.891,43.8462,11.8,4.0269,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,LSIP,448,146,1.1752,47.2603,10.9863,4.9457,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,MAPI,384,125,0.4906,48.0,11.592,5.8816,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,MEDC,479,148,2.4906,44.5946,10.973,5.4131,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,MIKA,86,29,2.2447,68.9655,12.931,4.306,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,MNCN,259,94,-0.8554,30.8511,10.6383,7.3812,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,MYOR,475,158,2.1453,45.5696,11.5949,4.1857,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,PGAS,413,131,1.8977,48.0916,12.1679,4.2953,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,PTBA,483,149,1.8997,44.9664,11.8792,4.7949,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,PWON,361,114,1.5381,45.614,11.307,4.5414,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,RALS,348,107,0.7391,43.9252,11.1589,4.9033,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,SCMA,435,138,1.4668,39.8551,11.0725,5.3622,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,SILO,219,67,2.0349,44.7761,11.3881,5.0025,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,SMGR,328,116,0.2018,45.6897,11.5517,4.6757,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,TBIG,228,71,1.6981,46.4789,12.9437,4.844,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,TLKM,307,124,-0.2458,45.1613,10.7661,3.6683,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,TPIA,307,82,5.2766,54.878,11.6707,5.1505,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,UNTR,443,155,0.8849,49.0323,11.5613,4.91,False
+atr_trailing_stop_no_layer3_sized,ATR trailing stop without Layer 3 + fixed fractional sizing,UNVR,409,156,-0.2945,39.1026,10.3846,4.128,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,AALI,274,122,0.1534,39.3443,10.4836,4.6743,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,ACES,223,89,-1.0462,34.8315,11.809,5.6317,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,ADRO,208,95,0.895,45.2632,11.1158,5.499,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,AKRA,169,80,-0.3231,45.0,11.5875,5.6818,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,AMRT,196,87,1.6349,49.4253,10.8621,5.1654,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,ANTM,217,81,2.204,45.679,11.642,5.415,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,ASII,272,131,1.1665,45.0382,11.1374,3.7797,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,AUTO,305,118,1.0577,44.0678,11.5254,3.8277,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,BBCA,263,124,0.6336,54.0323,11.9758,3.3948,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,BBNI,263,113,1.1639,50.4425,11.6726,3.6636,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,BBRI,247,114,0.0725,49.1228,11.5351,3.9862,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,BBTN,187,77,0.1353,41.5584,11.7273,4.6956,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,BMRI,261,116,1.5625,54.3103,12.3362,3.8759,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,BRPT,209,97,3.7144,37.1134,9.8247,6.0242,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,BSDE,214,88,0.3347,38.6364,11.3523,5.1561,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,CPIN,222,101,1.7857,41.5842,10.9802,4.6412,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,CTRA,335,131,1.8155,42.7481,11.5038,5.4733,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,ERAA,141,64,0.1831,42.1875,10.7344,6.4555,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,ESSA,160,58,2.4863,41.3793,11.6034,6.844,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,EXCL,259,108,0.3043,42.5926,10.9167,5.103,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,GGRM,236,110,0.0056,38.1818,10.2727,3.6138,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,GOTO,33,13,-1.0108,30.7692,11.6923,8.6656,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,HMSP,256,114,0.3032,46.4912,10.9386,4.4354,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,ICBP,300,130,1.6492,49.2308,11.8538,4.1188,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,INCO,248,101,1.2359,45.5446,10.9604,5.4017,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,INDF,257,119,1.1074,46.2185,12.084,4.26,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,INDY,197,79,2.5593,43.038,11.3165,6.3669,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,INTP,286,125,1.2785,44.0,11.504,4.6101,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,ISAT,251,109,1.1431,49.5413,11.8624,4.7642,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,ITMG,185,91,0.96,38.4615,11.3187,4.3402,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,JPFA,303,119,1.0319,42.8571,10.8487,5.9211,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,JSMR,204,87,-0.3447,39.0805,11.8506,4.3337,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,KLBF,261,115,0.7743,46.087,11.9565,4.0253,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,LSIP,295,128,0.7415,46.0938,11.1641,5.0751,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,MAPI,280,108,-0.4349,48.1481,11.4167,6.0504,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,MEDC,303,129,2.0324,44.186,11.2093,5.6431,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,MIKA,61,26,1.7218,65.3846,12.3846,4.3522,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,MNCN,163,77,-0.8386,32.4675,11.0519,7.1175,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,MYOR,311,135,2.3465,46.6667,11.5778,4.1069,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,PGAS,290,114,1.3729,46.4912,12.2281,4.3783,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,PTBA,306,127,1.5,40.1575,11.8346,4.7168,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,PWON,222,96,0.4811,42.7083,11.7188,4.9531,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,RALS,266,98,1.045,42.8571,11.6327,4.8535,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,SCMA,289,112,0.7924,40.1786,11.2679,5.3455,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,SILO,161,55,2.8109,49.0909,11.9091,4.584,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,SMGR,253,107,0.1909,44.8598,11.729,4.4665,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,TBIG,155,66,0.9004,40.9091,12.9545,4.8495,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,TLKM,227,108,0.2226,48.1481,11.2315,3.4946,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,TPIA,132,55,2.4953,41.8182,11.4909,5.4062,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,UNTR,292,133,1.5241,51.8797,11.6466,4.6162,False
+atr_trailing_stop_with_layer3_toggle_sized,ATR trailing stop with Layer 3 toggle + fixed fractional sizing,UNVR,306,138,-0.0678,40.5797,10.7826,4.1665,False

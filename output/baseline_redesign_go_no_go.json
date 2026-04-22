@@ -1,0 +1,19 @@
+{
+  "decision": "usable_for_framework_redesign_only",
+  "best_global_hold_period": 3,
+  "best_global_min_trades": 10,
+  "best_trade_label": "t_plus_3",
+  "baseline_trade_design_improved": true,
+  "can_retry_phase_b_after_this": false,
+  "phase_b_retry_blocked_until_data_extension": true,
+  "min_eligible_ticker_floor": 5,
+  "trade_retention_vs_current_pct": 117.0152,
+  "trade_retention_floor_pct": 85.0,
+  "usable_for_framework_redesign": true,
+  "recommended_next_experiment": "refresh_framework_redesign_scope_after_data_extension",
+  "next_action": "hold_redesign_candidate_as_framework_input_only",
+  "decision_notes": [
+    "Config terbaik global meningkatkan usability dibanding desain evaluasi baseline saat ini.",
+    "Hasil redesign ini hanya boleh dipakai sebagai input framework redesign; retry Phase B tetap diblokir sampai data extension selesai."
+  ]
+}

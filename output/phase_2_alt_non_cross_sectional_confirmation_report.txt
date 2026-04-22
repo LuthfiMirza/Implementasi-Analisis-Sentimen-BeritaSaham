@@ -1,0 +1,22 @@
+Phase 2 Alternative - Narrow Confirmation
+=========================================
+
+Variants tested:
+- alt_filter_no_liquidity_gate: threshold=none, full_trades=8507, full_retention=85.5895, full_delta_win_rate=0.3924, full_delta_avg_return=0.0455, sample=low, slice_wins=3, dispersion=0.2154
+- alt_filter_liquidity_gate_2_5b: threshold=>= 2.5B IDR, full_trades=7353, full_retention=80.4878, full_delta_win_rate=-0.1837, full_delta_avg_return=-0.0665, sample=low, slice_wins=0, dispersion=0.1872
+- alt_filter_liquidity_gate_5b: threshold=>= 5B IDR, full_trades=6903, full_retention=75.6098, full_delta_win_rate=-0.8931, full_delta_avg_return=-0.0261, sample=low, slice_wins=3, dispersion=1.4795
+
+Per-slice winners:
+- full_period: winner=alt_filter_no_liquidity_gate
+- regime_high_strength: winner=alt_filter_no_liquidity_gate
+- regime_low_strength: winner=alt_filter_liquidity_gate_5b
+- regime_mid_strength: winner=alt_filter_no_liquidity_gate
+- time_early: winner=alt_filter_liquidity_gate_5b
+- time_late: winner=alt_filter_liquidity_gate_5b
+- time_mid: winner=alt_filter_no_liquidity_gate
+
+Decision:
+- best_variant = alt_filter_no_liquidity_gate
+- freeze_layer_2_alternative_candidate = False
+- reason = Alternative Layer 2 candidate is still not robust enough to freeze after the narrow confirmation pass.
+- remaining_blocker = alt_candidate_advantage_not_consistent_enough_across_time_and_regime_slices

@@ -1,0 +1,9 @@
+Baseline v4 Quality Gate Experiment Scaffold
+============================================
+
+- experiment_id=baseline_v4_quality_gate_guard
+- scaffold_only=False
+- hold_period=3
+- min_trades_threshold=5
+
+Candidate matrix prepared for real-data experiment execution.

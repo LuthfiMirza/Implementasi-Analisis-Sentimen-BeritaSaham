@@ -1,0 +1,21 @@
+check_id,stage,status,expected_state,observed_state,evidence
+xampp_status,service,running,XAMPP MySQL running,"Version: XAMPP for Linux 8.2.4-0
+Apache is not running.
+MySQL is not running.
+ProFTPD is running.
+cat: /Applications/XAMPP/xamppfiles/var/mysql/macs-MacBook-Pro.local.pid: Permission denied
+rm: /Applications/XAMPP/xamppfiles/var/mysql/macs-",/Applications/XAMPP/xamppfiles/xampp status
+port_3306,service,listening,Port 3306 has a listening MySQL process,mysqld is alive,lsof -nP -iTCP:3306 -sTCP:LISTEN
+database_presence,database,present,sentimena_dashboard exists,sentimena_dashboard,/Applications/XAMPP/xamppfiles/bin/mysql -h 127.0.0.1 -P 3306 -u root -N -e SHOW DATABASES LIKE 'sentimena_dashboard';
+laravel_db_probe,laravel,working,Laravel artisan can run DB query,"{
+    ""ok"": true
+}","/usr/local/bin/php -r require ""vendor/autoload.php""; $app = require ""bootstrap/app.php""; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); try { DB::select(""select 1 as ok""); echo json_encode([""ok""=>true], JSON_PRETTY_PRINT); } catch (Throwable $e) { echo json_encode([""ok""=>false,""class""=>get_class($e),""message""=>$e->getMessage()], JSON_PRETTY_PRINT); exit(1); }"
+dashboard_probe,http,ready,Dashboard responds without DB runtime failure,"HTTP/1.1 302 Found
+Host: 127.0.0.1:8000
+Connection: close
+X-Powered-By: PHP/8.5.5
+Cache-Control: no-cache, private
+Date: Wed, 22 Apr 2026 01:50:15 GMT
+Location: http://127.0.0.1:8000/login
+Content-Type: text/html; charset=utf-8
+Set-Cookie: ",curl -I -sS http://127.0.0.1:8000/dashboard

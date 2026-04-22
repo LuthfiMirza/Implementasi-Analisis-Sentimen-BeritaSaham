@@ -27,6 +27,7 @@ class SentimentPriceAnalyticsService
         $orderedPrices = $prices->sortBy('price_date')->values();
         $referencePoint = $this->resolveReferenceDate($referenceDate, $orderedPrices);
         $articlesInPeriod = $this->articlesInPeriod($articles, $periodDays, $referencePoint);
+        $availableArticles = $articlesInPeriod->filter(fn ($article) => $this->isSentimentAvailable($article))->values();
         $macroSignal = $this->macroRegulatorySignalService->evaluate(
             $articlesInPeriod,
             $periodDays,
@@ -34,19 +35,19 @@ class SentimentPriceAnalyticsService
             $macroRegulatorySignal
         );
         $returns = $this->dailyReturns($orderedPrices);
-        $perDateSentiment = $this->sentimentByDate($articlesInPeriod, $stock, $periodDays, $referencePoint);
+        $perDateSentiment = $this->sentimentByDate($availableArticles, $stock, $periodDays, $referencePoint);
 
-        $averageSentiment = round((float) ($articlesInPeriod->avg('sentiment_score') ?? 0), 3);
+        $averageSentiment = round((float) ($availableArticles->avg('sentiment_score') ?? 0), 3);
         $counts = [
-            'positive' => $articlesInPeriod->where('sentiment_label', 'positive')->count(),
-            'neutral' => $articlesInPeriod->where('sentiment_label', 'neutral')->count(),
-            'negative' => $articlesInPeriod->where('sentiment_label', 'negative')->count(),
+            'positive' => $availableArticles->where('sentiment_label', 'positive')->count(),
+            'neutral' => $availableArticles->where('sentiment_label', 'neutral')->count(),
+            'negative' => $availableArticles->where('sentiment_label', 'negative')->count(),
         ];
         $dominance = $this->dominantSentiment($counts);
 
-        $weightedSentiment = $this->weightedSentiment($articlesInPeriod, $stock, $periodDays, $referencePoint);
-        $weightedStats = $this->weightedSentimentStats($articlesInPeriod, $stock, $periodDays, $referencePoint);
-        $newsVolume = $articlesInPeriod->count();
+        $weightedSentiment = $this->weightedSentiment($availableArticles, $stock, $periodDays, $referencePoint);
+        $weightedStats = $this->weightedSentimentStats($availableArticles, $stock, $periodDays, $referencePoint);
+        $newsVolume = $availableArticles->count();
         $dailyReturn = $this->latestReturn($returns);
         $cumulativeReturn = $this->cumulativeReturn($orderedPrices);
         $volatility = $this->volatility($returns);
@@ -70,6 +71,8 @@ class SentimentPriceAnalyticsService
             'sentiment_dominance' => $dominance,
             'counts' => $counts,
             'news_volume' => $newsVolume,
+            'sentiment_available_count' => $availableArticles->count(),
+            'sentiment_unavailable_count' => max(0, $articlesInPeriod->count() - $availableArticles->count()),
             'daily_return' => $dailyReturn,
             'cumulative_return' => $cumulativeReturn,
             'volatility' => $volatility,
@@ -266,6 +269,11 @@ class SentimentPriceAnalyticsService
             })
             ->sortBy('published_at')
             ->values();
+    }
+
+    protected function isSentimentAvailable($article): bool
+    {
+        return ($article->sentiment_method ?? null) !== 'python_unavailable';
     }
 
     protected function dailyReturns(Collection $prices): array
@@ -520,6 +528,9 @@ class SentimentPriceAnalyticsService
 
     protected function dominantSentiment(array $counts): string
     {
+        if (array_sum($counts) === 0) {
+            return 'unavailable';
+        }
         arsort($counts);
         return key($counts) ?: 'neutral';
     }

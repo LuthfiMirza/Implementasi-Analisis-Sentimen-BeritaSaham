@@ -1,0 +1,36 @@
+Baseline Next Experiment Plan
+=============================
+
+- recommended_primary_direction=revisit_eligibility_and_sample_guardrails
+- recommended_secondary_direction_1=revisit_ticker_universe_segmentation
+- recommended_secondary_direction_2=revisit_fast_anchor_with_better_quality_gate
+- suggested_experiment_id=baseline_v6_guardrail_review
+- suggested_command_stub=python3 -m quant.finalize_baseline_root_cause_postmortem --output-dir output
+
+Why this is next:
+- v3 sudah membuktikan coverage bisa naik bila entry dilonggarkan, v4 membuktikan kualitas bisa dipertahankan pada fast anchor yang diberi quality gate, dan v5 membuktikan exit/hold bukan penyelesai utama. Jadi langkah paling rasional berikutnya adalah meninjau ulang guardrail eligibility/sample yang mungkin terlalu kaku terhadap universe dan coverage event saat ini.
+
+What to stop:
+- item5
+- item6
+- item7
+- item8
+- entry_relaxation_only
+- volume_relaxed_entry
+- exit_hold_only_redesign
+
+What not to change:
+- Jangan ubah baseline aktif.
+- Jangan lanjut ke Phase C.
+- Jangan hidupkan lagi item 5-8.
+- Jangan mulai eksperimen strategi baru sebelum root cause guardrail ditutup.
+
+Success criteria:
+- Definisi eligibility baru harus menjelaskan mengapa v4 quality-preserved tetap gagal no_go walau return sudah positif kuat.
+- Review harus menghasilkan guardrail coverage/sample yang tetap ketat tetapi tidak menghukum kandidat yang jelas lebih baik dari v3.
+- Arah baru tidak boleh menghidupkan lagi item 5-8, tidak boleh lanjut ke Phase C, dan tidak boleh mengubah baseline aktif.
+
+Failure criteria:
+- Rencana berikutnya kembali jatuh ke trial-and-error filter teknikal baru tanpa menjawab mismatch guardrail.
+- Perubahan yang diusulkan tetap bergantung pada entry relaxation only atau exit/hold only sebagai jawaban utama.
+- Eksperimen berikutnya membutuhkan aktivasi ulang item 5-8 atau mendorong Phase C lebih awal.

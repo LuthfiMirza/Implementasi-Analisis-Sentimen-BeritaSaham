@@ -1,0 +1,64 @@
+Phase 2 Layer 2 Alternative Architecture Plan
+==============================================
+
+Source of truth:
+- output/phase_2_layer_2_relative_strength_closeout.json
+- output/phase_2_layer_2_relative_strength_closeout.txt
+- output/project_roadmap_status.txt
+
+Opsi yang dibandingkan:
+1. Non-cross-sectional filter
+2. Alternative stock selection logic
+3. Regime-conditioned selection
+4. Liquidity or fundamental gating
+
+Ringkasan per opsi:
+- Non-cross-sectional filter
+  Kelebihan: paling langsung menjawab kegagalan RS cross-sectional, lebih sederhana, lebih testable, dan memakai data yang sudah ada.
+  Risiko: bisa terlalu longgar bila threshold rendah, sehingga perlu liquidity gate yang disiplin.
+- Alternative stock selection logic
+  Kelebihan: masih dekat dengan jalur lama.
+  Risiko: masih satu keluarga masalah dengan RS cross-sectional, sehingga terlalu mudah mengulang blocker slice instability.
+- Regime-conditioned selection
+  Kelebihan: bisa menangkap perilaku saham berbeda antar regime.
+  Risiko: menambah branching desain terlalu cepat dan memperbesar fragmentasi sample.
+- Liquidity or fundamental gating
+  Kelebihan: bagus sebagai hygiene/guardrail.
+  Risiko: bukan arsitektur Layer 2 yang cukup lengkap jika berdiri sendiri.
+
+Opsi yang dipilih:
+- Non-cross-sectional filter
+- Bentuk yang direkomendasikan: absolute momentum threshold with light liquidity gate
+
+Alasan pemilihan:
+- Paling cocok setelah kegagalan RS karena memutus dependensi pada ranking silang antar saham.
+- Selaras dengan blocker final RS yang berasal dari dispersion antar-slice.
+- Memakai indikator yang sudah tersedia dan tidak butuh redesign besar data.
+
+Bentuk rule awal yang diusulkan:
+- Layer 1 bullish tetap wajib.
+- return_20d > 0
+- close > ema50
+- lulus liquidity gate minimum sederhana
+- gaya seleksi: boolean eligibility filter, bukan ranking top x% universe
+
+Rekomendasi liquidity gate awal:
+- Gunakan 20-day average traded value sederhana: close * volume_ma20 >= threshold minimum nominal yang dibekukan eksplisit saat implementasi.
+
+Artifact/perubahan minimum untuk mulai implementasi:
+- artifact planning saat ini:
+  - output/phase_2_layer_2_alternative_architecture_plan.json
+  - output/phase_2_layer_2_alternative_architecture_plan.txt
+- file code minimum saat implementasi nanti:
+  - quant/run_phase_2_alt_non_cross_sectional_filter.py
+  - quant/test_run_phase_2_alt_non_cross_sectional_filter.py
+- output minimum saat implementasi nanti:
+  - output/phase_2_alt_non_cross_sectional_filter_summary.json
+  - output/phase_2_alt_non_cross_sectional_filter_report.txt
+
+Risiko utama:
+- Threshold absolut bisa terlalu longgar atau terlalu ketat.
+- Liquidity gate harus dibekukan eksplisit agar tidak menjadi moving target evaluasi.
+
+Official next action:
+- Implement the first Layer 2 alternative experiment as a non-cross-sectional absolute momentum threshold with light liquidity gate.

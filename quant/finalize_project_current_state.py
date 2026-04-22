@@ -51,6 +51,9 @@ def _load_context(output_dir: Path) -> Dict[str, object]:
     artifact_map = {
         "roadmap_status": "project_roadmap_status.json",
         "phase_b_next_phase": "phase_b_go_no_go_next_phase.json",
+        "phase_b_final_closeout": "phase_b_final_closeout.json",
+        "project_after_phase_b_decision": "project_after_phase_b_decision.json",
+        "phase_b_retest_readiness_gate": "phase_b_retest_readiness_gate.json",
         "baseline_file": "phase_a_baseline_final.json",
         "transition": "phase_a_to_phase_b_transition.json",
         "baseline_revision": "baseline_v2_go_no_go.json",
@@ -75,6 +78,9 @@ def build_current_state_payload(output_dir: Path) -> Dict[str, object]:
     roadmap = dict(context.get("roadmap_status") or {})
     roadmap_latest = dict(roadmap.get("latest_execution_status") or {})
     phase_b_next = dict(context.get("phase_b_next_phase") or {})
+    phase_b_closeout = dict(context.get("phase_b_final_closeout") or {})
+    project_after_phase_b = dict(context.get("project_after_phase_b_decision") or {})
+    readiness_gate = dict(context.get("phase_b_retest_readiness_gate") or {})
     transition = dict(context.get("transition") or {})
     baseline_revision = dict(context.get("baseline_revision") or {})
     validation = dict(context.get("baseline_v2_validation") or {})
@@ -95,27 +101,53 @@ def build_current_state_payload(output_dir: Path) -> Dict[str, object]:
 
     active_baseline_status = "phase_a_active_baseline"
     project_closeout_status = _safe_str(dict(roadmap.get("phase_a_final_status") or {}).get("status")) or "unknown"
-    phase_b_status = _safe_str(phase_b_next.get("phase_b_status")) or _safe_str(roadmap_latest.get("phase_b_status"))
-    phase_c_decision = _safe_str(phase_b_next.get("phase_c_decision")) or _safe_str(roadmap_latest.get("phase_c_decision"))
-
-    recommended_tickers = dedupe(
-        [
-            *_list_strings(monitoring.get("recommended_tickers")),
-            *_list_strings(watchlist.get("recommended_tickers")),
-            *_list_strings(subset.get("recommended_tickers")),
-        ]
+    phase_b_status = (
+        _safe_str(phase_b_closeout.get("phase_b_final_status"))
+        or _safe_str(project_after_phase_b.get("phase_b_final_status"))
+        or _safe_str(phase_b_next.get("phase_b_status"))
+        or _safe_str(roadmap_latest.get("phase_b_status"))
     )
-    recommended_groups = dedupe(
-        [
-            *_list_strings(monitoring.get("recommended_groups")),
-            *_list_strings(watchlist.get("recommended_groups")),
-            *_list_strings(subset.get("recommended_groups")),
-        ]
+    phase_c_decision = (
+        _safe_str(project_after_phase_b.get("phase_c_decision"))
+        or _safe_str(phase_b_next.get("phase_c_decision"))
+        or _safe_str(roadmap_latest.get("phase_c_decision"))
+    )
+    recommended_next_action = (
+        _safe_str(phase_b_closeout.get("recommended_primary_next_step"))
+        or _safe_str(project_after_phase_b.get("recommended_primary_next_step"))
+        or _safe_str(project_after_phase_b.get("recommended_next_action"))
+        or _safe_str(phase_b_next.get("recommended_next_action"))
+        or "stop_and_collect_more_data_then_redesign_framework"
+    )
+    readiness_status = _safe_str(readiness_gate.get("final_decision")) or "belum_boleh_retest"
+
+    redesign_only_candidate = _safe_str(validation.get("decision")) == "candidate_usable_for_framework_redesign_only"
+    recommended_tickers = (
+        dedupe(
+            [
+                *_list_strings(monitoring.get("recommended_tickers")),
+                *_list_strings(watchlist.get("recommended_tickers")),
+                *_list_strings(subset.get("recommended_tickers")),
+            ]
+        )
+        if redesign_only_candidate
+        else []
+    )
+    recommended_groups = (
+        dedupe(
+            [
+                *_list_strings(monitoring.get("recommended_groups")),
+                *_list_strings(watchlist.get("recommended_groups")),
+                *_list_strings(subset.get("recommended_groups")),
+            ]
+        )
+        if redesign_only_candidate
+        else []
     )
 
     payload = {
         "generated_at": _now_iso(),
-        "project_state": "frozen_with_experimental_watchlist_monitoring",
+        "project_state": "frozen_waiting_data_extension_and_framework_redesign",
         "roadmap_alignment_status": "aligned_to_project_roadmap_status",
         "active_operational_baseline": {
             "baseline_id": active_baseline_status,
@@ -125,32 +157,34 @@ def build_current_state_payload(output_dir: Path) -> Dict[str, object]:
         },
         "experimental_baseline_candidate": {
             "candidate_id": candidate_id,
-            "status": _safe_str(monitoring.get("decision")) or _safe_str(watchlist.get("decision")) or "keep_candidate_experimental",
-            "scope": "watchlist_only",
+            "status": _safe_str(validation.get("decision")) or _safe_str(monitoring.get("decision")) or _safe_str(watchlist.get("decision")) or "keep_candidate_experimental",
+            "scope": "framework_redesign_input_only",
             "promote_globally": False,
             "recommended_tickers": recommended_tickers,
             "recommended_groups": recommended_groups,
         },
         "phase_b": {
-            "status": phase_b_status or "phase_b_needs_redesign_before_continue",
+            "status": phase_b_status or "phase_b_closed_with_learnings_no_candidate",
             "retry_ready": False,
             "retry_scope_allowed": "none",
-            "reason": "Phase B retry tetap ditutup sampai candidate eksperimental terbukti stabil atau ditolak total.",
+            "readiness_gate_status": readiness_status,
+            "next_action": recommended_next_action,
+            "reason": "Phase B retry tetap ditutup sampai data extension selesai, framework evaluasi diredesign, dan keputusan resmi baru diterbitkan.",
         },
         "phase_c": {
             "decision": phase_c_decision or "phase_c_no_go_yet",
             "can_start": False,
-            "reason": "Phase C tetap no-go selama Phase B belum punya baseline/subset yang stabil.",
+            "reason": "Phase C tetap no-go karena Phase B sudah ditutup tanpa kandidat strategi yang usable.",
         },
-        "watchlist_monitoring": {
-            "status": _safe_str(monitoring.get("decision")) or "keep_candidate_experimental",
-            "still_experimental": bool(monitoring.get("still_experimental", True)),
-            "stable_subset_found": bool(monitoring.get("stable_subset_found", False)),
-            "can_promote_for_subset": bool(monitoring.get("can_promote_for_subset", False)),
-            "can_reject_candidate": bool(monitoring.get("can_reject_candidate", False)),
-            "best_subset_id": _safe_str(monitoring.get("best_subset_id")),
-            "best_subset_label": _safe_str(monitoring.get("best_subset_label")),
-            "next_action": _safe_str(monitoring.get("next_action")) or "keep_candidate_experimental_for_watchlist_subset",
+        "framework_redesign_status": {
+            "baseline_redesign_status": _safe_str(baseline_revision.get("decision")),
+            "candidate_validation_status": _safe_str(validation.get("decision")),
+            "baseline_candidate_usable_for_redesign_only": bool(
+                validation.get("decision") == "candidate_usable_for_framework_redesign_only"
+                or validation.get("usable_for_framework_redesign_only")
+            ),
+            "data_extension_required_before_any_retry": True,
+            "next_action": recommended_next_action,
         },
         "project_closeout_status": {
             "formal_closeout_status": project_closeout_status,
@@ -159,21 +193,22 @@ def build_current_state_payload(output_dir: Path) -> Dict[str, object]:
         },
         "allowed_actions": [
             "Gunakan baseline aktif Phase A untuk operasional.",
-            "Simpan baseline v2 sebagai kandidat eksperimental watchlist-only.",
-            "Lanjutkan watchlist monitoring berkala saat data baru masuk.",
-            "Refresh current-state summary setelah monitoring diperbarui.",
+            "Lanjutkan data extension dan refresh audit coverage/OOS secara berkala.",
+            "Gunakan hasil redesign baseline hanya sebagai input redesign framework evaluasi.",
+            "Refresh current-state summary setelah closeout/readiness artifacts diperbarui.",
         ],
         "forbidden_actions": [
             "Jangan retry item 5-8 secara global.",
             "Jangan promote baseline v2 menjadi baseline operasional global.",
+            "Jangan promote candidate watchlist-only menjadi baseline operasional.",
             "Jangan mulai Phase C.",
-            "Jangan menambah fitur baru sebelum status candidate berubah.",
+            "Jangan hidupkan adaptive search space lagi.",
         ],
         "next_decision_gate": {
-            "gate_id": "watchlist_monitoring_extended_horizon",
-            "promote_condition": "Subset menjadi stabil lintas horizon observasi dan noise risk turun.",
-            "reject_condition": "Keunggulan watchlist hilang konsisten pada observasi tambahan.",
-            "default_until_then": "keep_candidate_experimental_for_watchlist_subset",
+            "gate_id": "data_extension_and_framework_redesign_completion",
+            "promote_condition": "Coverage data, OOS window, overlap audit, signal sparsity audit, dan baseline redesign usability sudah ditutup secara resmi.",
+            "reject_condition": "Framework redesign membuktikan candidate redesign tetap tidak usable setelah data extension material.",
+            "default_until_then": "keep_phase_b_closed_and_continue_data_extension",
         },
         "warnings": list(context.get("warnings") or []),
     }
@@ -191,7 +226,7 @@ def build_current_state_text(payload: Dict[str, object]) -> str:
     candidate = dict(payload.get("experimental_baseline_candidate") or {})
     phase_b = dict(payload.get("phase_b") or {})
     phase_c = dict(payload.get("phase_c") or {})
-    monitoring = dict(payload.get("watchlist_monitoring") or {})
+    redesign = dict(payload.get("framework_redesign_status") or {})
     closeout = dict(payload.get("project_closeout_status") or {})
 
     lines = [
@@ -216,15 +251,17 @@ def build_current_state_text(payload: Dict[str, object]) -> str:
         "Phase gates:",
         f"- phase_b_status={phase_b.get('status')}",
         f"- phase_b_retry_ready={phase_b.get('retry_ready')}",
+        f"- phase_b_readiness_gate_status={phase_b.get('readiness_gate_status')}",
+        f"- phase_b_next_action={phase_b.get('next_action')}",
         f"- phase_c_decision={phase_c.get('decision')}",
         f"- phase_c_can_start={phase_c.get('can_start')}",
         "",
-        "Watchlist monitoring:",
-        f"- status={monitoring.get('status')}",
-        f"- stable_subset_found={monitoring.get('stable_subset_found')}",
-        f"- can_promote_for_subset={monitoring.get('can_promote_for_subset')}",
-        f"- can_reject_candidate={monitoring.get('can_reject_candidate')}",
-        f"- next_action={monitoring.get('next_action')}",
+        "Framework redesign status:",
+        f"- baseline_redesign_status={redesign.get('baseline_redesign_status')}",
+        f"- candidate_validation_status={redesign.get('candidate_validation_status')}",
+        f"- baseline_candidate_usable_for_redesign_only={redesign.get('baseline_candidate_usable_for_redesign_only')}",
+        f"- data_extension_required_before_any_retry={redesign.get('data_extension_required_before_any_retry')}",
+        f"- next_action={redesign.get('next_action')}",
         "",
         "Project closeout status:",
         f"- formal_closeout_status={closeout.get('formal_closeout_status')}",
@@ -257,9 +294,9 @@ def update_transition_artifact(output_dir: Path, payload: Dict[str, object]) -> 
     if transition_payload is None:
         return {"updated": False, "path": str(transition_path), "warnings": warnings}
 
-    monitoring = dict(payload.get("watchlist_monitoring") or {})
+    phase_b = dict(payload.get("phase_b") or {})
     transition_payload["project_current_state_status"] = payload.get("project_state")
-    transition_payload["project_current_state_next_action"] = monitoring.get("next_action")
+    transition_payload["project_current_state_next_action"] = phase_b.get("next_action")
     transition_payload["project_operational_baseline"] = dict(payload.get("active_operational_baseline") or {}).get("baseline_id")
     transition_payload["project_experimental_candidate"] = dict(payload.get("experimental_baseline_candidate") or {}).get("candidate_id")
     transition_payload["project_phase_b_retry_status"] = "not_ready"
@@ -272,7 +309,7 @@ def update_transition_artifact(output_dir: Path, payload: Dict[str, object]) -> 
         "",
         "Project Current State Update:",
         f"- project_current_state_status: {payload.get('project_state')}",
-        f"- project_current_state_next_action: {monitoring.get('next_action')}",
+        f"- project_current_state_next_action: {phase_b.get('next_action')}",
         f"- project_operational_baseline: {dict(payload.get('active_operational_baseline') or {}).get('baseline_id')}",
         f"- project_experimental_candidate: {dict(payload.get('experimental_baseline_candidate') or {}).get('candidate_id')}",
         "- project_phase_b_retry_status: not_ready",
@@ -291,10 +328,14 @@ def finalize_project_current_state(output_dir: Path) -> Dict[str, object]:
 
     summary_json_path = output_dir / "project_current_state_summary.json"
     summary_txt_path = output_dir / "project_current_state_summary.txt"
+    current_state_json_path = output_dir / "project_current_state.json"
+    current_state_txt_path = output_dir / "project_current_state.txt"
     freeze_json_path = output_dir / "project_freeze_status.json"
 
     _write_json(summary_json_path, payload)
     _write_text(summary_txt_path, summary_text.splitlines())
+    _write_json(current_state_json_path, payload)
+    _write_text(current_state_txt_path, summary_text.splitlines())
     _write_json(
         freeze_json_path,
         {
@@ -304,7 +345,7 @@ def finalize_project_current_state(output_dir: Path) -> Dict[str, object]:
             "experimental_candidate": dict(payload.get("experimental_baseline_candidate") or {}).get("candidate_id"),
             "phase_b_retry_ready": False,
             "phase_c_can_start": False,
-            "next_action": dict(payload.get("watchlist_monitoring") or {}).get("next_action"),
+            "next_action": dict(payload.get("phase_b") or {}).get("next_action"),
         },
     )
     transition_update = update_transition_artifact(output_dir=output_dir, payload=payload)
@@ -316,6 +357,8 @@ def finalize_project_current_state(output_dir: Path) -> Dict[str, object]:
         "artifacts": {
             "project_current_state_summary_json": str(summary_json_path),
             "project_current_state_summary_txt": str(summary_txt_path),
+            "project_current_state_json": str(current_state_json_path),
+            "project_current_state_txt": str(current_state_txt_path),
             "project_freeze_status_json": str(freeze_json_path),
         },
     }
@@ -332,7 +375,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     result = finalize_project_current_state(output_dir=Path(args.output_dir))
     payload = result["payload"]
     print(f"Project state: {payload['project_state']}")
-    print(f"Next action: {dict(payload.get('watchlist_monitoring') or {}).get('next_action')}")
+    print(f"Next action: {dict(payload.get('phase_b') or {}).get('next_action')}")
     return 0
 
 

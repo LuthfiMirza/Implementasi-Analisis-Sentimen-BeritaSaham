@@ -1,0 +1,44 @@
+Phase 2.4 - Narrow Robustness / Freeze Decision Pass
+====================================================
+
+Candidate under robustness pass:
+- top_25pct_return_20d
+
+Slice results:
+- full_period: Full period (all_dates, 2000-06-06..2026-04-22, dates=6437)
+  top_25pct_return_20d: trades=4889, retention=50.4202, delta_win_rate=-0.6731, delta_avg_return=0.2682, sample=low
+  top_30pct_return_20d: trades=5557, retention=57.5342, delta_win_rate=-0.838, delta_avg_return=-0.0237, sample=low
+  top_25pct_vol_adjusted_return_20d: trades=4908, retention=49.345, delta_win_rate=-0.288, delta_avg_return=-0.0908, sample=low
+- regime_high_strength: Regime High Strength (regime_strength, 2002-02-01..2026-01-27, dates=1542)
+  top_25pct_return_20d: trades=1538, retention=40.708, delta_win_rate=0.6929, delta_avg_return=0.7288, sample=high
+  top_30pct_return_20d: trades=1800, retention=48.8095, delta_win_rate=0.3925, delta_avg_return=0.9792, sample=low
+  top_25pct_vol_adjusted_return_20d: trades=1547, retention=42.6966, delta_win_rate=0.3827, delta_avg_return=0.3149, sample=high
+- regime_low_strength: Regime Low Strength (regime_strength, 2001-08-01..2026-03-26, dates=1542)
+  top_25pct_return_20d: trades=1571, retention=59.5238, delta_win_rate=-0.1849, delta_avg_return=1.1343, sample=low
+  top_30pct_return_20d: trades=1742, retention=65.3061, delta_win_rate=0.9143, delta_avg_return=0.1174, sample=low
+  top_25pct_vol_adjusted_return_20d: trades=1566, retention=59.1837, delta_win_rate=0.518, delta_avg_return=0.0515, sample=low
+- regime_mid_strength: Regime Mid Strength (regime_strength, 2001-07-24..2026-02-23, dates=1542)
+  top_25pct_return_20d: trades=1919, retention=50.6024, delta_win_rate=-0.2565, delta_avg_return=0.088, sample=low
+  top_30pct_return_20d: trades=2157, retention=56.6667, delta_win_rate=-0.752, delta_avg_return=0.1841, sample=low
+  top_25pct_vol_adjusted_return_20d: trades=1926, retention=51.2195, delta_win_rate=-0.5984, delta_avg_return=0.1082, sample=low
+- time_early: Time Early (time, 2000-06-06..2008-10-30, dates=2146)
+  top_25pct_return_20d: trades=1097, retention=42.2018, delta_win_rate=-0.91, delta_avg_return=0.1309, sample=high
+  top_30pct_return_20d: trades=1266, retention=50.0, delta_win_rate=-1.6033, delta_avg_return=0.1549, sample=high
+  top_25pct_vol_adjusted_return_20d: trades=1109, retention=41.8605, delta_win_rate=-0.903, delta_avg_return=-0.002, sample=high
+- time_late: Time Late (time, 2017-08-01..2026-04-22, dates=2145)
+  top_25pct_return_20d: trades=1831, retention=55.7143, delta_win_rate=-1.8745, delta_avg_return=0.4955, sample=low
+  top_30pct_return_20d: trades=2037, retention=62.5, delta_win_rate=-1.0418, delta_avg_return=-0.0544, sample=low
+  top_25pct_vol_adjusted_return_20d: trades=1818, retention=56.1404, delta_win_rate=-0.8129, delta_avg_return=-0.0689, sample=low
+- time_mid: Time Mid (time, 2008-10-31..2017-07-31, dates=2146)
+  top_25pct_return_20d: trades=1957, retention=47.8364, delta_win_rate=-0.1226, delta_avg_return=-0.0036, sample=low
+  top_30pct_return_20d: trades=2248, retention=53.0173, delta_win_rate=-0.7232, delta_avg_return=-0.0258, sample=low
+  top_25pct_vol_adjusted_return_20d: trades=1977, retention=45.3891, delta_win_rate=-1.1456, delta_avg_return=-0.1247, sample=low
+
+Decision:
+- freeze_layer_2_candidate = False
+- reason = Candidate is still not robust enough across time/regime slices to freeze Layer 2 as a final candidate.
+- candidate_slice_win_count = 3
+- candidate_positive_return_slice_count = 5
+- candidate_negative_return_slice_count = 1
+- candidate_avg_delta_average_return_range = 1.1379
+- remaining_blocker = candidate_advantage_is_concentrated_in_too_few_time_or_regime_slices

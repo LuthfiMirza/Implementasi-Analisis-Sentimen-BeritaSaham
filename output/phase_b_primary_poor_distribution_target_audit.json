@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-04-22T02:49:35.576367+00:00",
+  "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+  "source_of_truth_field": "primary_segment",
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "dominant_ticker": "BUMI",
+  "rows": [
+    {
+      "ticker": "BUMI",
+      "included_in_official_primary_poor": true,
+      "article_count_total_current": 24.0,
+      "article_days_current": 7,
+      "news_density_pct_current": 0.2609,
+      "article_share_current": 0.2697,
+      "dominant_or_undercov_status": "dominant"
+    },
+    {
+      "ticker": "BBCA",
+      "included_in_official_primary_poor": true,
+      "article_count_total_current": 22.0,
+      "article_days_current": 8,
+      "news_density_pct_current": 0.30223,
+      "article_share_current": 0.2472,
+      "dominant_or_undercov_status": "mid"
+    },
+    {
+      "ticker": "ASII",
+      "included_in_official_primary_poor": true,
+      "article_count_total_current": 12.0,
+      "article_days_current": 6,
+      "news_density_pct_current": 0.22305,
+      "article_share_current": 0.1348,
+      "dominant_or_undercov_status": "mid"
+    },
+    {
+      "ticker": "ICBP",
+      "included_in_official_primary_poor": true,
+      "article_count_total_current": 11.0,
+      "article_days_current": 8,
+      "news_density_pct_current": 0.2974,
+      "article_share_current": 0.1236,
+      "dominant_or_undercov_status": "under_covered"
+    },
+    {
+      "ticker": "UNVR",
+      "included_in_official_primary_poor": true,
+      "article_count_total_current": 11.0,
+      "article_days_current": 7,
+      "news_density_pct_current": 0.26355,
+      "article_share_current": 0.1236,
+      "dominant_or_undercov_status": "under_covered"
+    },
+    {
+      "ticker": "INDF",
+      "included_in_official_primary_poor": true,
+      "article_count_total_current": 9.0,
+      "article_days_current": 8,
+      "news_density_pct_current": 0.29729,
+      "article_share_current": 0.1011,
+      "dominant_or_undercov_status": "under_covered"
+    }
+  ]
+}

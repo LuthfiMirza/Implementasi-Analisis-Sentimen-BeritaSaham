@@ -268,6 +268,9 @@ def run_phase_b_distribution_and_oos_target_audit(
         "median_article_days_threshold_for_sentiment_split": median_article_days_threshold,
         "boundary_candidates_for_primary_expansion": [row["ticker"] for row in boundary_candidates],
         "targeted_tickers": targeted_tickers,
+        "framework_blockers_active": sorted(
+            [name for name in active_blockers if name.startswith("framework_governance_gate::")]
+        ),
     }
 
     payload = {
@@ -308,8 +311,8 @@ def run_phase_b_distribution_and_oos_target_audit(
         "rows": rows,
         "active_gate_blockers": sorted(active_blockers),
         "recommended_next_move": (
-            "Naikkan article-day pada boundary tickers ber-trade tinggi agar median sentiment split bisa naik ke 8 sambil menambah coverage pada under-covered primary tickers; "
-            "namun median_news_density_pct gate tetap jauh di bawah target 5.0 sehingga readiness kemungkinan besar masih gagal tanpa ekspansi article-day jauh lebih besar."
+            "Naikkan article-day pada boundary tickers ber-trade tinggi dan under-covered primary tickers untuk memperbaiki distribusi resmi. "
+            "Namun audit ini tidak cukup untuk membuka retry sendiri; blocker framework seperti overlap audit, signal sparsity-flatness, dan usability baseline redesign tetap harus lolos."
         ),
     }
     _write_json(output_dir / AUDIT_OUTPUT, payload)

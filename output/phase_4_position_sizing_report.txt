@@ -1,0 +1,19 @@
+Phase 4 - Position Sizing
+==========================
+
+Position sizing policy:
+- risk_per_trade = 2% portfolio
+- max_position = 10% portfolio
+- initial_capital = 100,000,000 IDR notional
+
+Variant results:
+- atr_trailing_stop_no_layer3_unsized: trades=5941, portfolio_return=1.8416648582801834e+17, portfolio_max_dd=99.9912, avg_return=1.0854, avg_win_rate=44.3023, avg_holding=11.2976, avg_position_size_pct=100.0, cap_hit_rate=0.0, sample=low
+- atr_trailing_stop_no_layer3_sized: trades=5941, portfolio_return=43609.3665, portfolio_max_dd=44.1235, avg_return=1.0854, avg_win_rate=44.3023, avg_holding=11.2976, avg_position_size_pct=9.9855, cap_hit_rate=99.1752, sample=low
+- atr_trailing_stop_with_layer3_toggle_sized: trades=5118, portfolio_return=11552.2358, portfolio_max_dd=42.748, avg_return=0.9807, avg_win_rate=44.4705, avg_holding=11.4228, avg_position_size_pct=9.9877, cap_hit_rate=99.2771, sample=low
+
+Decision:
+- layer_4_usable_as_integration_layer = True
+- reason = Layer 4 first pass completed; next action is walk-forward preparation with sizing active.
+
+Official next action:
+- Open walk-forward validation next with Layer 3 kept optional and ATR policy still frozen later at walk-forward.

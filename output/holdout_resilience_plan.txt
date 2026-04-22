@@ -1,0 +1,57 @@
+Holdout Resilience Plan
+======================
+
+Generated at: 2026-04-22
+
+Current official context:
+- Updated core stack is now:
+  - Phase 1 base signal generation
+  - Layer 1 market regime
+  - without return_20d > 0
+  - Layer 3 optional off-by-default
+  - Layer 4 unchanged
+  - Layer 5 unchanged
+- Paper trading remains closed.
+- Retest remains closed.
+
+Why holdout still failed even though OOS improved:
+- OOS improved materially after the core stack update:
+  - avg return per trade moved from -0.0909 to 0.1342
+  - profit factor moved from 0.9629 to 1.0270
+  - OOS degradation fell from 114.819 to 69.0498
+- But final holdout still failed:
+  - avg return per trade remained negative at -0.4595
+  - profit factor remained weak at 0.8420
+  - max drawdown worsened to 34.4658
+- Win rate stayed almost flat between OOS and holdout:
+  - OOS = 38.3984
+  - holdout = 38.3721
+- This means the residual problem is not just hit-rate weakness; the stack appears to behave worse in the later holdout regime/context.
+
+Dominant holdout failure mode:
+- selected mode = regime_sensitivity
+- why:
+  - the updated core stack already fixed part of the OOS instability without touching Layer 5 or Layer 4
+  - the same stack now behaves differently between OOS and final holdout
+  - drawdown and payoff quality worsen in holdout while win rate is nearly unchanged
+
+Redesign options compared:
+1. Layer 1 regime sensitivity refinement
+   - selected
+2. Re-open Layer 5 exit/hold behaviour
+   - not selected now
+3. Re-open Layer 4 drawdown control / sizing overlay
+   - not selected now
+4. Continue deeper entry reshaping immediately
+   - not selected now
+
+Why the selected target is most defensible:
+- It is the narrowest target that directly addresses the OOS-versus-holdout divergence.
+- It preserves current discipline by not touching Layer 3, Layer 4, or Layer 5 yet.
+- It is more defensible than exit or drawdown redesign right now because the main remaining weakness looks window-specific, not yet clearly generic to the exit/sizing layers.
+
+Official next redesign target:
+- holdout_resilience_via_layer1_regime_sensitivity
+
+Official next action:
+- Open Layer 1 holdout regime-sensitivity planning on top of the updated provisional core stack.

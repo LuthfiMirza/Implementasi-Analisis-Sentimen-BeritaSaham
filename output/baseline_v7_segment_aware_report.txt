@@ -1,0 +1,25 @@
+Baseline v7 Segment-Aware Experiment
+====================================
+
+- Decision: keep_experimental_for_segment_review
+- Best candidate: baseline_v3_ema20_trend_guard
+- Tested segment: sentiment_segment=sentiment_poor
+- Segment support ok: True
+- Global promotion allowed: False
+- Recommended next action: keep_candidate_for_segment_review_only_on_sentiment_segment_sentiment_poor
+
+Safe segments tested:
+- volatility_segment=mixed_volatility
+- sentiment_segment=sentiment_poor
+- liquidity_segment=thin_sparse
+- news_segment=mid_news
+
+Candidate outcomes:
+- baseline_v2_hold3_with_trend_guard: supported_segment_count=0, best_segment=volatility_segment=mixed_volatility, best_decision=no_go
+- baseline_v3_ema20_trend_guard: supported_segment_count=4, best_segment=sentiment_segment=sentiment_poor, best_decision=keep_experimental_for_segment_review
+- baseline_v4_quality_gate_guard: supported_segment_count=0, best_segment=liquidity_segment=thin_sparse, best_decision=no_go
+- baseline_v5_hold4_extension: supported_segment_count=0, best_segment=liquidity_segment=thin_sparse, best_decision=no_go
+
+Decision notes:
+- Kandidat hanya didukung pada subset aman tertentu dan tetap tidak boleh dipromosikan global.
+- Guardrail global tetap berlaku sebagai gate promosi akhir.

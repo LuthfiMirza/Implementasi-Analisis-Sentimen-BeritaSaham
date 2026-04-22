@@ -1,0 +1,37 @@
+{
+  "date": "2026-04-19",
+  "root_cause": "mixed_seed_and_real_price_rows_in_overlay_series",
+  "fix_summary": {
+    "price_series_service_normalized": true,
+    "export_phase_a_real_data_normalized": true,
+    "seed_rows_ignored_when_real_exists": true,
+    "same_day_priority": [
+      "source_null_real",
+      "other_non_seed",
+      "seed"
+    ]
+  },
+  "verification": {
+    "tests_passed": [
+      "PriceSeriesServiceTest",
+      "ExportPhaseARealDataCommandTest"
+    ],
+    "runtime_series": {
+      "DEWA": {
+        "rows": 57,
+        "date_start": "2026-01-19",
+        "date_end": "2026-04-17",
+        "first_close": 755.0,
+        "last_close": 550.0
+      },
+      "BUMI": {
+        "rows": 57,
+        "date_start": "2026-01-19",
+        "date_end": "2026-04-17",
+        "first_close": 412.0,
+        "last_close": 248.0
+      }
+    }
+  },
+  "expected_result": "overlay_uses_real_price_series_for_dewa_and_bumi"
+}

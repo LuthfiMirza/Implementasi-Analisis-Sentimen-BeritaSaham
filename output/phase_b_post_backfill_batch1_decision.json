@@ -1,0 +1,125 @@
+{
+  "generated_at": "2026-04-22T02:51:17.122160+00:00",
+  "evaluated_batch_id": "batch_1",
+  "current_progress_batch": "batch_3",
+  "batch_1_status": "batch_1_operationally_complete_and_checkpoint_material_reached",
+  "batch_1_officially_started": true,
+  "batch_1_priority_targets_closed": true,
+  "batch_1_operationally_complete": true,
+  "ready_for_batch_2": true,
+  "batch_1_completed": true,
+  "checkpoint_material_reached": true,
+  "recheck_readiness_gate_allowed": true,
+  "oos_window_threshold_semantics": {
+    "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+    "source_of_truth_field": "methodology_aligned_thresholds.history_gate::usable_oos_windows_per_ticker",
+    "methodology_minimum_windows": 3.0,
+    "stretch_target_windows_by_batch": {
+      "batch_1": 4.0,
+      "batch_2": 6.0,
+      "batch_3": 8.0
+    },
+    "legacy_default_windows": 6.0,
+    "operational_batch_completion_uses": "methodology_minimum_windows",
+    "strategy_retry_allowed_uses": "phase_b_retest_readiness_gate final_decision + framework_governance_gate, not legacy stretch target windows",
+    "reason": "Batch/progress framework harus mengikuti threshold metodologi resmi yang sudah aktif di readiness gate. Stretch target 4/6/8 tetap dicatat sebagai aspirasi non-blocking agar tidak lagi bercampur dengan definisi operasional batch completion."
+  },
+  "remaining_blockers": [],
+  "recommended_next_action": "rerun_phase_b_retest_readiness_gate_with_refreshed_post_backfill_inputs",
+  "decisive_statement": "Checkpoint material sudah tercapai sehingga readiness gate sekarang boleh dijalankan ulang.",
+  "batch_id": "batch_1",
+  "batch_acceptance_status": "rejected",
+  "history_extension_progress_ok": true,
+  "primary_article_day_recovery_progress_ok": true,
+  "metadata_segmentation_update_ok": true,
+  "priority_ticker_verification": [
+    {
+      "ticker": "BUMI",
+      "history_rows_delta": 0,
+      "usable_oos_windows_delta": 213,
+      "article_days_delta": 0,
+      "news_count_total_delta": 0,
+      "history_rows_current": 2683,
+      "usable_oos_windows_current": 221,
+      "article_days_current": 7,
+      "news_count_total_current": 24,
+      "is_primary_segment": true,
+      "ingest_status": "rejected"
+    },
+    {
+      "ticker": "BBCA",
+      "history_rows_delta": 0,
+      "usable_oos_windows_delta": 210,
+      "article_days_delta": 0,
+      "news_count_total_delta": 0,
+      "history_rows_current": 2647,
+      "usable_oos_windows_current": 218,
+      "article_days_current": 8,
+      "news_count_total_current": 22,
+      "is_primary_segment": true,
+      "ingest_status": "rejected"
+    },
+    {
+      "ticker": "ASII",
+      "history_rows_delta": 0,
+      "usable_oos_windows_delta": 214,
+      "article_days_delta": 0,
+      "news_count_total_delta": 0,
+      "history_rows_current": 2690,
+      "usable_oos_windows_current": 222,
+      "article_days_current": 6,
+      "news_count_total_current": 12,
+      "is_primary_segment": true,
+      "ingest_status": "rejected"
+    },
+    {
+      "ticker": "UNVR",
+      "history_rows_delta": 0,
+      "usable_oos_windows_delta": 211,
+      "article_days_delta": 0,
+      "news_count_total_delta": 0,
+      "history_rows_current": 2656,
+      "usable_oos_windows_current": 219,
+      "article_days_current": 7,
+      "news_count_total_current": 11,
+      "is_primary_segment": true,
+      "ingest_status": "rejected"
+    },
+    {
+      "ticker": "ICBP",
+      "history_rows_delta": 0,
+      "usable_oos_windows_delta": 214,
+      "article_days_delta": 0,
+      "news_count_total_delta": 0,
+      "history_rows_current": 2690,
+      "usable_oos_windows_current": 222,
+      "article_days_current": 8,
+      "news_count_total_current": 11,
+      "is_primary_segment": true,
+      "ingest_status": "rejected"
+    }
+  ],
+  "primary_segment_summary": {
+    "primary_tickers_audited": [
+      "BUMI",
+      "BBCA",
+      "ASII",
+      "UNVR",
+      "ICBP"
+    ],
+    "article_days_current": {
+      "BUMI": 7,
+      "BBCA": 8,
+      "ASII": 6,
+      "UNVR": 7,
+      "ICBP": 8
+    },
+    "news_count_total_current": {
+      "BUMI": 24,
+      "BBCA": 22,
+      "ASII": 12,
+      "UNVR": 11,
+      "ICBP": 11
+    }
+  }
+}

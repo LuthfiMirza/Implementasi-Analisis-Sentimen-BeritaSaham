@@ -163,6 +163,7 @@
                             <x-metric-card class="metric-panel" label="Sentimen Positif" :value="$sentiment_summary['positive_pct'].'%'" :hint="'Artikel: '.$sentiment_summary['positive']" />
                             <x-metric-card class="metric-panel" label="Sentimen Netral" :value="$sentiment_summary['neutral_pct'].'%'" :hint="'Artikel: '.$sentiment_summary['neutral']" />
                             <x-metric-card class="metric-panel" label="Sentimen Negatif" :value="$sentiment_summary['negative_pct'].'%'" :hint="'Artikel: '.$sentiment_summary['negative']" />
+                            <x-metric-card class="metric-panel" label="Sentimen Unavailable" :value="$sentiment_summary['sentiment_unavailable_count']" :hint="'Tidak dihitung ke distribusi'" />
                         </div>
 
                         <x-panel padding="p-5" class="panel-frame panel-frame-lg">

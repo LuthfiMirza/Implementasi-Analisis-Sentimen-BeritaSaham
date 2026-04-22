@@ -1,0 +1,73 @@
+{
+    "generated_at": "2026-04-19T13:41:37+00:00",
+    "runtime_status": "runtime_ok",
+    "ojk_article_count": 43,
+    "ojk_backfill_status": "ready",
+    "macro_runtime_status": "ready",
+    "mysql_connectivity": {
+        "ok": true,
+        "status": "ok",
+        "connection_name": "mysql",
+        "driver": "mysql",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "database": "sentimena_dashboard",
+        "error": null,
+        "next_action": "none"
+    },
+    "ojk_runtime_check": {
+        "available": true,
+        "ready": true,
+        "check_status": "ready",
+        "blocker_reason": null,
+        "article_count": 43,
+        "neutral_article_count": 43,
+        "neutral_only": true,
+        "oldest_published_at": "2026-01-02",
+        "newest_published_at": "2026-04-19",
+        "min_article_count_required": 5,
+        "min_history_days_required": 30,
+        "error": null,
+        "next_action": "none"
+    },
+    "macro_regulatory_runtime_check": {
+        "feature_flag_enabled": true,
+        "ready": true,
+        "check_status": "ready",
+        "blocker_reason": null,
+        "signal": {
+            "enabled": true,
+            "active": true,
+            "reference_date": "2026-04-19",
+            "period_days": 30,
+            "article_count": 9,
+            "neutral_article_count": 9,
+            "neutral_share": 1,
+            "article_share": 1,
+            "average_quality": 0.622,
+            "recent_3d_count": 0,
+            "recent_7d_count": 3,
+            "attention_regime": "regulatory_overhang",
+            "caution_flag": true,
+            "context_score": 0.962,
+            "macro_policy_attention_score": 0.962,
+            "confidence_multiplier": 0.731,
+            "score_multiplier": 0.827,
+            "threshold_tightening_factor": 1.115,
+            "directional_bias": 0,
+            "headline_sample": [
+                "Siaran Pers: Roadmap Pasar Derivatif dan Pasar Modal Berkelanjutan 2026-2030 Perkuat Pendalaman Pasar Serta Pendanaan dan Investasi Berkelanjutan",
+                "Siaran Pers: OJK Dukung Akselerasi Program 3 Juta Rumah Melalui Sinergi dan Penguatan Kebijakan SLIK",
+                "Siaran Pers: Dorong Pembiayaan Pembangunan, OJK Perkuat Regulasi Tata Kelola dan Pengawasan Industri Perasuransian, Penjaminan dan Dana Pensiun, PPDP Regulatory Dissemination Day 2026"
+            ],
+            "narrative": "Regulatory regulatory_overhang: 9 artikel OJK makro (9 netral) pada 30 hari terakhir. Confidence directional dimoderasi, bukan diarahkan ulang."
+        },
+        "neutral_only_handled": true,
+        "error": null,
+        "next_action": "none"
+    },
+    "closeout_status": "closed_with_notes",
+    "blocker_reason": null,
+    "blocker_reasons": [],
+    "next_action": "none"
+}

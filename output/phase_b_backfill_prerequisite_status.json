@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-04-22T01:51:11.604600+00:00",
+  "db_connectivity_restored": true,
+  "backfill_prerequisite_ready": true,
+  "required_before_backfill": [
+    "Laravel artisan must complete a direct DB probe without connection error",
+    "stocks:fetch-history must be able to read active stocks from the database",
+    "phase-a:export-real-data must be able to read stock_prices and rewrite data/*.csv"
+  ],
+  "recommended_next_action": "rerun_priority_backfill_execution_now_that_db_prerequisite_is_ready"
+}

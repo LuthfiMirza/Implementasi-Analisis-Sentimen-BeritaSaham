@@ -70,4 +70,22 @@ class NewsApiFetcherTest extends TestCase
 
         $this->assertEmpty($articles);
     }
+
+    public function test_newsapi_queries_prioritize_exact_issuer_aliases_for_icbp(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'ICBP', 'company_name' => 'Indofood CBP Sukses Makmur Tbk']);
+        $fetcher = new class extends NewsApiFetcher
+        {
+            public function exposedBuildQueries(Stock $stock): array
+            {
+                return $this->buildQueries($stock);
+            }
+        };
+
+        $queries = $fetcher->exposedBuildQueries($stock);
+
+        $this->assertContains('"Indofood CBP Sukses Makmur"', $queries);
+        $this->assertTrue(collect($queries)->contains(fn ($query) => str_contains($query, '"PT Indofood CBP Sukses Makmur Tbk"')));
+        $this->assertTrue(collect($queries)->contains(fn ($query) => str_contains($query, '"saham ICBP"')));
+    }
 }

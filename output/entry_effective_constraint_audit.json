@@ -1,0 +1,114 @@
+{
+  "artifact": "entry_effective_constraint_audit",
+  "generated_at": "2026-04-22",
+  "source_of_truth": {
+    "entry_simplification_validation_summary": "output/targeted_entry_simplification_validation_summary.json",
+    "entry_simplification_validation_closeout": "output/targeted_entry_simplification_validation_closeout.json",
+    "entry_simplification_validation_report": "output/targeted_entry_simplification_validation_report.txt",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "current_official_context": {
+    "dominant_failure_class": "oos_instability",
+    "candidate_more_oos_resilient_than_control": false,
+    "close_above_ema50_status": "not_yet_keep_under_review",
+    "layer_3_status": "optional_off_by_default",
+    "layer_4_status": "unchanged",
+    "layer_5_status": "unchanged",
+    "paper_trading_allowed": false,
+    "retest_allowed": false
+  },
+  "why_control_and_candidate_were_identical": {
+    "primary_cause": "implicit_upstream_overlap_with_signal_generation",
+    "validation_path_status": "candidate_path_was_separated_correctly",
+    "evidence": [
+      "phase_1_signal_base count = 26216",
+      "phase_1_signal_layer1 count = 20854",
+      "phase_1_signal_layer1 AND return_20d > 0 count = 17704",
+      "phase_1_signal_layer1 AND return_20d > 0 AND close > ema50 count = 17704",
+      "Rows where phase_1_signal_layer1 AND return_20d > 0 but close <= ema50 = 0"
+    ],
+    "explanation": "The candidate runner did separate `close > ema50`, but the explicit Layer 2 constraint never became binding because upstream Phase 1 signal generation already requires `adj_close > ema50` in the baseline signal path. On the executed signal path, dropping `close > ema50` changed nothing."
+  },
+  "effective_constraint_audit": {
+    "stack_under_audit": "current control stack with Layer 3 off, Layer 5 active, Layer 4 active",
+    "rules": [
+      {
+        "rule_id": "phase1_base_signal_generation",
+        "classification": "effective_upstream_constraint",
+        "role": "entry_generation",
+        "evidence": "Phase 1 base signal generation contributes the first usable signal set and already includes `adj_close > ema50` plus volume threshold gating.",
+        "effect_on_entries": "binding"
+      },
+      {
+        "rule_id": "layer1_market_regime",
+        "classification": "effective_constraint",
+        "role": "eligibility_gate",
+        "evidence": "phase_1_signal_base -> phase_1_signal_layer1 reduced from 26216 to 20854 rows, removing 5362 rows.",
+        "effect_on_entries": "binding"
+      },
+      {
+        "rule_id": "return_20d_positive",
+        "classification": "effective_constraint",
+        "role": "layer2_simplification_gate",
+        "evidence": "phase_1_signal_layer1 -> phase_1_signal_layer1 AND return_20d > 0 reduced from 20854 to 17704 rows, removing 3150 rows.",
+        "effect_on_entries": "binding"
+      },
+      {
+        "rule_id": "close_above_ema50_explicit",
+        "classification": "redundant_non_binding_constraint",
+        "role": "layer2_explicit_confirmation",
+        "evidence": "phase_1_signal_layer1 AND return_20d > 0 remained 17704 after adding `close > ema50`, removing 0 rows.",
+        "effect_on_entries": "non_binding"
+      },
+      {
+        "rule_id": "layer5_atr_trailing_stop",
+        "classification": "downstream_non_entry_constraint",
+        "role": "exit_management",
+        "evidence": "Affects trade exits and realized returns, not entry eligibility counts.",
+        "effect_on_entries": "non_binding_for_entry"
+      },
+      {
+        "rule_id": "layer4_position_sizing",
+        "classification": "downstream_non_entry_constraint",
+        "role": "portfolio_sizing",
+        "evidence": "Affects position size and portfolio path, not entry eligibility counts.",
+        "effect_on_entries": "non_binding_for_entry"
+      }
+    ],
+    "summary": {
+      "truly_binding_entry_constraints_now": [
+        "phase1_base_signal_generation",
+        "layer1_market_regime",
+        "return_20d_positive"
+      ],
+      "redundant_or_non_binding_now": [
+        "close_above_ema50_explicit",
+        "layer5_atr_trailing_stop",
+        "layer4_position_sizing"
+      ]
+    }
+  },
+  "selected_next_simplification_cycle": {
+    "scope_id": "entry_simplification_remove_return20d_positive_keep_phase1_plus_layer1",
+    "selection_status": "official_next_cycle_priority",
+    "candidate_entry_definition": [
+      "Keep existing Phase 1 base signal generation unchanged",
+      "Keep Layer 1 market regime unchanged",
+      "Remove explicit Layer 2 `return_20d > 0` gate for the next cycle",
+      "Keep Layer 3 optional and off-by-default",
+      "Keep Layer 4 unchanged",
+      "Keep Layer 5 unchanged"
+    ],
+    "short_label": "phase1_plus_layer1_only_vs_current_control",
+    "why_selected": [
+      "It is the next narrow simplification that will definitely change the behavior of the stack.",
+      "The audit shows `return_20d > 0` is the remaining explicit Layer 2 rule that still removes entries.",
+      "It stays inside entry simplification and does not reopen exit, sizing, or Layer 3 design.",
+      "It directly tests whether the active OOS instability is caused by over-filtering from the remaining binding Layer 2 gate."
+    ]
+  },
+  "official_next_action": {
+    "action": "implement_and_test_phase1_plus_layer1_only_vs_current_control",
+    "note": "The second entry simplification cycle should compare the current control against a candidate that removes `return_20d > 0` while keeping the upstream Phase 1 signal path and Layer 1 regime intact."
+  }
+}

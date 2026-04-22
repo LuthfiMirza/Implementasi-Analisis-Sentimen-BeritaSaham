@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-04-19T02:09:03.110065+00:00",
+  "current_hold_period": 5,
+  "ticker_count": 10,
+  "coverage_target_ticker_count": 5,
+  "baseline_min_trades_floor": 8,
+  "coverage_by_min_trades": {
+    "5": {
+      "eligible_ticker_count": 0,
+      "auto_unusable_ticker_count": 10
+    },
+    "8": {
+      "eligible_ticker_count": 0,
+      "auto_unusable_ticker_count": 10
+    },
+    "10": {
+      "eligible_ticker_count": 0,
+      "auto_unusable_ticker_count": 10
+    }
+  },
+  "recommended_realistic_min_trades": 5,
+  "current_floor_is_too_strict": true,
+  "current_zero_trade_ticker_count": 6,
+  "warnings": []
+}

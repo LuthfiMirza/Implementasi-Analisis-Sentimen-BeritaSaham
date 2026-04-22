@@ -1,0 +1,25 @@
+Baseline v2 Redesign Report
+===========================
+
+- redesign_decision=usable_for_framework_redesign_only
+- can_retry_phase_b_after_this=False
+- best_hold_period=3
+- best_min_trades=10
+- best_global_selection_score=+213.5758
+
+Selected candidate:
+- candidate_id=baseline_v2_hold3_with_trend_guard
+- entry_rule=close_gt_ema50_and_bullish_candle
+- hold_period=3
+- min_trades=10
+- score=+213.5758
+- eligible_ticker_count=12
+- average_return=-0.0512
+- win_rate=+41.2333
+- max_drawdown=+43.5334
+- why_selected=Config redesign terbaik memakai hold_period=3, min_trades=10, eligible_ticker_count=12, total_trades_sum=1231, mean_score=+30.4758, global_selection_score=+213.5758.
+- why_not_selected_if_weak=none
+
+Decision notes:
+- Config terbaik global meningkatkan usability dibanding desain evaluasi baseline saat ini.
+- Hasil redesign ini hanya boleh dipakai sebagai input framework redesign; retry Phase B tetap diblokir sampai data extension selesai.

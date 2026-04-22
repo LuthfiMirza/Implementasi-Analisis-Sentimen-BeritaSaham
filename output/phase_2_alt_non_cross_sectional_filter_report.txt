@@ -1,0 +1,23 @@
+Phase 2 Alternative - Non-Cross-Sectional Filter
+================================================
+
+Rule:
+- Layer 1 bullish required
+- return_20d > 0
+- close > ema50
+- boolean eligibility filter, not top-x ranking
+- liquidity gate formula: close * volume_ma20 >= threshold
+
+Variant results:
+- layer1_full_universe: threshold=none, signals=20854, trades=9941, retention=100.0, delta_win_rate=0.0, delta_avg_return=0.0, collapse=0, sample=low
+- alt_filter_no_liquidity_gate: threshold=none, signals=17704, trades=8507, retention=85.5895, delta_win_rate=0.3924, delta_avg_return=0.0455, collapse=0, sample=low
+- alt_filter_liquidity_gate_5b: threshold=>= 5B IDR, signals=13941, trades=6903, retention=75.6098, delta_win_rate=-0.8931, delta_avg_return=-0.0261, collapse=0, sample=low
+- alt_filter_liquidity_gate_10b: threshold=>= 10B IDR, signals=12439, trades=6244, retention=67.4797, delta_win_rate=-0.7808, delta_avg_return=-0.1939, collapse=0, sample=low
+- alt_filter_liquidity_gate_25b: threshold=>= 25B IDR, signals=9127, trades=4683, retention=43.1193, delta_win_rate=-1.7545, delta_avg_return=-0.3782, collapse=0, sample=low
+
+Decisions:
+- best_variant = alt_filter_no_liquidity_gate
+- best_liquidity_gate_variant = alt_filter_liquidity_gate_5b
+- layer_2_alternative_usable_as_prototype = True
+- stability_vs_closed_rs = False
+- stability_reason = Alternative Layer 2 has not yet shown clearly narrower first-pass sensitivity than the closed RS track.

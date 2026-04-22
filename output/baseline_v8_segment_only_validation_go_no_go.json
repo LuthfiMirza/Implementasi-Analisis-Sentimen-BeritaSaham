@@ -1,0 +1,24 @@
+{
+  "candidate_id": "baseline_v3_ema20_trend_guard",
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "supporting_segments": [
+    "volatility_segment=mixed_volatility",
+    "liquidity_segment=thin_sparse",
+    "news_segment=mid_news"
+  ],
+  "decision": "promote_to_segment_only_validation",
+  "segment_stability_ok": true,
+  "global_promotion_allowed": false,
+  "recommended_next_action": "promote_candidate_to_segment_only_validation_on_primary_segment_without_global_promotion",
+  "supporting_segments_checked": [
+    "volatility_segment=mixed_volatility",
+    "liquidity_segment=thin_sparse",
+    "news_segment=mid_news"
+  ],
+  "supporting_segments_failed": [],
+  "primary_segment_support_ok": true,
+  "decision_notes": [
+    "Primary segment lolos dan seluruh supporting safe segments konsisten.",
+    "Kandidat layak naik ke validasi khusus subset, tetapi tetap dilarang untuk promosi global."
+  ]
+}

@@ -1,0 +1,27 @@
+Phase 5 - ATR Trailing Stop
+============================
+
+Layer 2 active policy:
+- Layer1 bullish AND return_20d > 0 AND close > ema50
+
+Layer 3 status:
+- optional_integration_layer
+- default_active = false
+
+ATR basis policy for this pass:
+- raw OHLC from rebuild dataset
+- ATR14 = simple rolling mean of true range
+- final ATR policy frozen later at walk-forward
+
+Variant results:
+- baseline_fixed_hold_5d: trades=8507, avg_return=0.5776, avg_win_rate=46.3148, avg_holding_period=5.0, avg_max_drawdown_per_trade=3.9238, collapse=0, sample=low
+- atr_trailing_stop_no_layer3: trades=5941, avg_return=1.0854, avg_win_rate=44.3023, avg_holding_period=11.2976, avg_max_drawdown_per_trade=4.8938, collapse=0, sample=low
+- atr_trailing_stop_with_layer3_toggle: trades=5118, avg_return=0.9807, avg_win_rate=44.4705, avg_holding_period=11.4228, avg_max_drawdown_per_trade=4.7908, collapse=0, sample=low
+
+Decision:
+- atr_trailing_better_than_fixed_hold = True
+- layer_5_usable_as_integration_layer = True
+- reason = ATR trailing stop beats fixed hold 5 days on average return per trade.
+
+Official next action:
+- Open Layer 4 sizing next. Do not run an extra confirmation pass for Layer 5 before touching Layer 4.

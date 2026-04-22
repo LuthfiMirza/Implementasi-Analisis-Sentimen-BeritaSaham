@@ -510,7 +510,7 @@ def _decide_phase_b_status(
         status = "phase_b_closed_failed"
         reason = "Semua item gagal tetapi artifact final terlalu banyak gap untuk menarik learning yang cukup kuat."
     elif all_no_go and root_problem_class == "foundation_and_signal_usability":
-        status = "phase_b_needs_redesign_before_continue"
+        status = "phase_b_closed_with_learnings_no_candidate"
         reason = "Semua item final no_go dan akar masalah dominan menyentuh usability sinyal, retensi trade, dan sample coverage."
     elif all_no_go or any_promoted:
         status = "phase_b_closed_with_learnings"
@@ -535,31 +535,13 @@ def _decide_phase_c(
     transition_payload: Optional[Dict[str, object]],
     items: List[Dict[str, object]],
 ) -> Dict[str, object]:
-    transition_mode = str(safe_dict(transition_payload).get("phase_b_entry_mode", "")).strip()
-    transition_allowed = bool(safe_dict(transition_payload).get("phase_b_entry_allowed"))
     must_fix = _build_must_fix_before_phase_c(items)
-
-    if phase_b_status in {"phase_b_keep_experimental", "phase_b_needs_redesign_before_continue", "phase_b_closed_failed"}:
-        decision = "phase_c_no_go_yet"
-        recommended_next_action = "return_to_baseline_data_evaluation_redesign"
-        can_continue = False
-    elif root_problem_class == "non_additive_feature_filters" and transition_allowed and transition_mode in {
-        "limited_experiment",
-        "full_start",
-    }:
-        decision = "phase_c_go_with_notes"
-        recommended_next_action = "close_phase_b_and_continue_phase_c_with_notes"
-        can_continue = True
-        must_fix = must_fix[:2]
-    elif transition_allowed and transition_mode == "full_start":
-        decision = "phase_c_go"
-        recommended_next_action = "continue_to_phase_c"
-        can_continue = True
-        must_fix = []
-    else:
-        decision = "phase_c_no_go_yet"
-        recommended_next_action = "return_to_baseline_data_evaluation_redesign"
-        can_continue = False
+    _ = phase_b_status
+    _ = root_problem_class
+    _ = transition_payload
+    decision = "phase_c_no_go_yet"
+    recommended_next_action = "stop_and_collect_more_data_then_redesign_framework"
+    can_continue = False
 
     return {
         "phase_c_decision": decision,
@@ -582,6 +564,11 @@ def _build_phase_b_summary(
         return (
             f"Fase B ditutup tanpa promosi baseline ({summary}); pola gagal didominasi {root_problem_class}, "
             "sehingga redesign minimum dibutuhkan sebelum lanjut."
+        )
+    if phase_b_status == "phase_b_closed_with_learnings_no_candidate":
+        return (
+            f"Fase B ditutup tanpa promosi baseline ({summary}); pola gagal didominasi {root_problem_class}, "
+            "dan langkah resmi berikutnya adalah collect more data plus redesign framework evaluasi."
         )
     if phase_b_status == "phase_b_closed_with_learnings":
         return (

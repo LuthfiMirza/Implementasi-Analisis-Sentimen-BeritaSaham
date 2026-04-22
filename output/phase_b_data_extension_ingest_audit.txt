@@ -1,0 +1,14 @@
+Phase B Data Extension Ingest Audit
+- batch_id=batch_3
+- ingest_audit_ready=True
+- batch_acceptance_status=rejected
+- article_day_recovery_progress_ok=True
+- history_extension_progress_ok=True
+- metadata_segmentation_update_ok=True
+- recommended_next_action=reject_current_batch_ingest_until_history_extension_and_primary_article_day_recovery_show_usable_progress
+
+- accepted_tickers=-
+- rejected_tickers=BUMI, BBCA, ASII, UNVR, ICBP
+- tickers_with_warnings=-
+
+- decisive_statement=Progress update hanya boleh dihitung dari ingest yang lolos audit kualitas.

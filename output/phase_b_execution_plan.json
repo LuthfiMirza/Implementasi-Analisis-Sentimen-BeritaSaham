@@ -1,131 +1,177 @@
 {
-  "generated_at": "2026-04-17T02:00:17.660987+00:00",
-  "gate_status": "prepare_only",
-  "gate_reason": "Jangan masuk ke Fase B penuh sebelum baseline freeze real dan closeout runtime tervalidasi.",
+  "generated_at": "2026-04-22T00:46:39.747759+00:00",
+  "gate_status": "phase_b_closed_waiting_data_extension_and_framework_redesign",
+  "gate_reason": "Per 21 April 2026, Phase B sudah ditutup tanpa kandidat. Langkah berikutnya hanya data extension, baseline evaluation redesign, dan refresh readiness blocker audit.",
+  "retry_scope": "none",
+  "strategy_context": {
+    "transition_mode": "limited_experiment",
+    "recommended_redesign_track": "baseline_trade_design_first",
+    "official_next_action": "stop_and_collect_more_data_then_redesign_framework",
+    "readiness_gate_status": "belum_boleh_retest"
+  },
   "phase_a_guardrails": [
     "Jangan ubah default volume spike threshold tanpa artifact sweep real yang baru.",
     "Jangan ubah strict_mode_default tanpa tuning decision real yang eksplisit.",
     "Pertahankan macro_regulatory_signal sebagai context-only moderation sampai ada bukti directional lift yang konsisten.",
-    "Semua fitur baru Fase B harus default-off sampai dibandingkan melawan baseline Phase A beku."
+    "Semua fitur baru Fase B harus default-off sampai dibandingkan melawan baseline Phase A beku.",
+    "Jangan hidupkan lagi item 7 sentiment momentum atau item 8 adaptive selama data extension dan redesign framework belum ditutup resmi."
   ],
   "execution_order": [
     {
       "priority": 1,
-      "item_number": 5,
-      "item_name": "Volume confirmation per candlestick",
-      "current_status": "partial",
-      "goal": "Tambahkan filter candle bullish + volume confirmation sebagai eksperimen yang transparan dan default-off.",
-      "priority_reason": "Ini quick win Fase B yang paling dekat dengan engine quant Phase A dan paling murah untuk diuji terhadap baseline beku.",
+      "step_code": "baseline_trade_design_redesign_audit",
+      "item_number": 0,
+      "item_name": "Baseline trade-design redesign audit",
+      "current_status": "planned",
+      "goal": "Audit ulang baseline tanpa fitur baru untuk memperbaiki hold period, trade labeling, trade retention, dan floor sample sebagai fondasi redesign framework evaluasi.",
+      "priority_reason": "Postmortem Phase B menempatkan trade design baseline sebagai failure mode utama, jadi baseline harus diaudit ulang sebelum ada diskusi tentang retry strategi.",
       "likely_files": [
-        "quant/phase_a.py",
-        "quant/evaluate_phase_a_real_data.py",
-        "quant/test_phase_a.py"
+        "quant/run_baseline_trade_design_redesign.py",
+        "quant/test_run_baseline_trade_design_redesign.py",
+        "quant/run_phase_b_v2_redesign_diagnostics.py"
       ],
       "data_dependencies": [
         "OHLCV harian yang sama dengan Phase A",
         "Baseline Phase A beku sebagai control arm"
       ],
       "risks": [
-        "Trade count bisa turun terlalu tajam jika confirmation terlalu ketat.",
-        "Mudah terlihat bagus hanya karena sample trade mengecil."
+        "Coverage bisa tetap terlalu kecil walau hold period dipersingkat.",
+        "Perbaikan score global bisa tampak membaik tetapi tetap belum cukup usable untuk redesign framework."
       ],
       "tests_needed": [
-        "Unit test rule candle confirmation aktif vs nonaktif",
-        "Smoke evaluation dengan flag experimental aktif"
+        "Unit test redesign scorer dan selection logic",
+        "Smoke run redesign di data real yang sama dengan baseline aktif"
       ],
       "expected_artifacts": [
-        "Evaluator summary dengan phase_b_candle_confirmation_enabled=true",
-        "Perbandingan hasil vs baseline Phase A beku"
+        "output/baseline_redesign_go_no_go.json",
+        "output/baseline_redesign_global_summary.json"
       ],
       "starter_available": true,
-      "starter_command": "python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --require-candle-volume-confirmation --candle-volume-confirmation-threshold 1.0"
+      "starter_command": "python3 -m quant.run_baseline_trade_design_redesign --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --metadata-file data/ticker_metadata.csv --hold-period-options 3 5 7 --min-trades-options 5 8 10"
     },
     {
       "priority": 2,
-      "item_number": 6,
-      "item_name": "Multi-timeframe (weekly trend sebelum entry daily)",
-      "current_status": "partial",
-      "goal": "Tambahkan weekly trend gate di atas entry daily tanpa mengganggu logika Phase A yang sudah stabil.",
-      "priority_reason": "Multi-timeframe paling berguna setelah candle confirmation tersedia, karena weekly trend berperan sebagai gate yang lebih struktural.",
+      "step_code": "baseline_v2_candidate_validation_audit",
+      "item_number": 0,
+      "item_name": "Baseline v2 candidate validation audit",
+      "current_status": "planned",
+      "goal": "Validasi kandidat redesign hanya untuk memastikan usability audit, bukan untuk promosi baseline operasional atau membuka retry.",
+      "priority_reason": "Data extension adalah prasyarat. Validation hanya boleh menjawab apakah kandidat redesign layak disimpan sebagai input framework redesign.",
       "likely_files": [
-        "app/Services/Stocks/PriceSeriesService.php",
-        "app/Services/Analytics/BacktestService.php",
-        "quant/phase_a.py",
-        "tests/Unit/BacktestServiceTest.php"
+        "quant/run_baseline_v2_candidate_validation.py",
+        "quant/run_baseline_revision_diagnostics.py",
+        "quant/test_run_baseline_v2_candidate_validation.py"
       ],
       "data_dependencies": [
-        "Series harga interval 1w atau resampling dari 1d",
-        "Definisi weekly trend sederhana yang konsisten"
+        "Baseline redesign candidate JSON",
+        "Metadata ticker/group yang sama dengan evaluasi baseline"
       ],
       "risks": [
-        "Kompleksitas data meningkat jika belum ada 1w yang bersih.",
-        "Gate weekly bisa menurunkan coverage terlalu besar jika definisinya terlalu kaku."
+        "Candidate bisa improve pada score tetapi tetap gagal guardrail eligible ticker.",
+        "Candidate terlihat lebih baik pada subset kecil tetapi tetap tidak boleh dipromosikan ke baseline operasional."
       ],
       "tests_needed": [
-        "Unit test weekly trend classifier",
-        "Backtest regression untuk memastikan default harian tetap utuh saat weekly gate dimatikan"
+        "Unit test validation delta vs active baseline",
+        "Regression test decision guardrail min_eligible_tickers"
       ],
       "expected_artifacts": [
-        "Report perbandingan daily-only vs weekly-gated entry"
-      ]
+        "output/baseline_v2_go_no_go.json",
+        "output/baseline_v2_validation_summary.json"
+      ],
+      "starter_available": true,
+      "starter_command": "python3 -m quant.run_baseline_v2_candidate_validation --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --candidate-file output/baseline_v2_best_candidate.json --metadata-file data/ticker_metadata.csv --min-trades 5 --min-eligible-tickers 3"
     },
     {
       "priority": 3,
-      "item_number": 7,
-      "item_name": "Sentiment momentum (tren 3 hari terakhir)",
-      "current_status": "partial",
-      "goal": "Tambahkan signal momentum sentimen 3 hari yang bisa dipakai sebagai overlay, bukan pengganti core signal.",
-      "priority_reason": "Fondasi seri sentimen harian sudah ada; setelah price-side confirmation lebih rapi, momentum sentimen menjadi enhancer yang logis.",
+      "step_code": "phase_b_readiness_guardrail_hardening",
+      "item_number": 0,
+      "item_name": "Readiness guardrail hardening",
+      "current_status": "planned",
+      "goal": "Tambahkan blocker eksplisit untuk coverage, usable OOS window, overlap audit, signal sparsity, dan baseline redesign usability agar retry prematur terkunci.",
+      "priority_reason": "Artefak gate lama masih bisa menghasilkan status seolah retest siap, padahal keputusan resmi proyek sudah menutup track eksperimen strategi.",
       "likely_files": [
-        "app/Services/Analytics/SentimentPriceAnalyticsService.php",
-        "app/Services/Analytics/DecisionSupportService.php",
-        "app/Services/Analytics/BacktestService.php",
-        "tests/Feature/EvaluationReportTest.php"
+        "quant/run_phase_b_retest_readiness_gate.py",
+        "quant/run_phase_b_distribution_and_oos_target_audit.py",
+        "quant/test_run_phase_b_retest_readiness_gate.py"
       ],
       "data_dependencies": [
-        "per_date_sentiment yang sudah dihitung analytics service",
-        "Definisi rolling 3-day sentiment momentum"
+        "output/phase_b_v2_overlap_audit.json",
+        "output/phase_b_v2_trade_design_audit.json",
+        "output/baseline_redesign_go_no_go.json",
+        "output/baseline_v2_validation_go_no_go.json"
       ],
       "risks": [
-        "Noise sentimen harian bisa lebih tinggi daripada sinyal harga.",
-        "Momentum mudah double-count dengan weighted sentiment jika tidak dipisah jelas."
+        "Policy realignment lama bisa tetap menurunkan ambang terlalu agresif bila tidak dikunci ulang.",
+        "Gate yang tidak membaca audit overlap/sparsity akan terus membuka jalur retry terlalu dini."
       ],
       "tests_needed": [
-        "Unit test 3-day momentum classification",
-        "Evaluation/backtest assertion bahwa feature bisa dimatikan tanpa regresi output lama"
+        "Regression test readiness blocker baru",
+        "Smoke audit untuk memastikan final_decision tetap belum_boleh_retest"
       ],
       "expected_artifacts": [
-        "Field sentiment_momentum_3d di evaluation/backtest report"
-      ]
+        "output/phase_b_retest_readiness_gate.json",
+        "output/phase_b_readiness_blocker_audit.json"
+      ],
+      "starter_available": true,
+      "starter_command": "python3 -m quant.run_phase_b_retest_readiness_gate --data-dir data --output-dir output --metadata-file data/ticker_metadata.csv"
     },
     {
       "priority": 4,
-      "item_number": 8,
-      "item_name": "Backtest per saham / model adaptif per ticker",
-      "current_status": "partial",
-      "goal": "Naikkan tooling per ticker/group dari riset menjadi adaptive refinement yang disiplin dan sample-aware.",
-      "priority_reason": "Adaptive refinement paling aman dikerjakan setelah tiga enhancer sebelumnya punya bukti yang bersih terhadap baseline Phase A.",
+      "step_code": "phase_b_data_extension_execution",
+      "item_number": 0,
+      "item_name": "Phase B data extension execution",
+      "current_status": "planned",
+      "goal": "Jalankan perluasan data sebagai prasyarat resmi sebelum ada evaluasi readiness ulang apa pun.",
+      "priority_reason": "Keputusan final proyek menyatakan fokus berikutnya adalah collect more data + redesign evaluation framework, bukan strategi baru.",
       "likely_files": [
-        "quant/run_phase_a_threshold_sweep.py",
-        "quant/freeze_phase_a_baseline.py",
-        "quant/phase_a_baseline.py",
-        "config/phase_a_baseline.json"
+        "quant/run_phase_b_data_extension_execution_plan.py",
+        "quant/run_phase_b_data_extension_progress_update.py",
+        "quant/test_run_phase_b_data_extension_execution_plan.py"
       ],
       "data_dependencies": [
-        "Threshold sweep real dengan sample memadai",
-        "Metadata ticker/group yang lengkap",
-        "Baseline Phase A beku sebagai control arm"
+        "Ticker metadata yang diperbarui",
+        "Segmentation dan fairness audit terbaru"
       ],
       "risks": [
-        "Overfitting per ticker jika sample trade terlalu sedikit.",
-        "Adaptive override sulit dipelihara jika grup/ticker bergeser terlalu sering."
+        "History bertambah tetapi article-day dan OOS fairness tetap timpang.",
+        "Progress tanpa refresh metadata/segmentation bisa membuat audit salah membaca blocker aktif."
       ],
       "tests_needed": [
-        "Unit test resolver override per group/ticker",
-        "Regression test bahwa fallback global baseline tetap aman"
+        "Smoke plan generation",
+        "Regression test progress tracker dan recheck status"
       ],
       "expected_artifacts": [
-        "Refined baseline freeze dengan override yang benar-benar evidence-based"
+        "output/phase_b_data_extension_execution_plan.json",
+        "output/phase_b_data_extension_progress_update.json"
+      ],
+      "starter_available": true,
+      "starter_command": "python3 -m quant.run_phase_b_data_extension_execution_plan --data-dir data --output-dir output --metadata-file data/ticker_metadata.csv"
+    },
+    {
+      "priority": 5,
+      "step_code": "phase_b_items_5_to_8_parking_rule",
+      "item_number": 5,
+      "item_name": "Volume confirmation per candlestick",
+      "current_status": "partial",
+      "goal": "Tetap parkir item 5-8 global selama track data extension dan framework redesign berjalan.",
+      "priority_reason": "Postmortem resmi menyatakan item 5-8 final no_go pada konfigurasi lama dan tidak boleh diaktifkan ulang secara prematur.",
+      "likely_files": [
+        "output/phase_b_postmortem.txt",
+        "output/phase_b_go_no_go_next_phase.json",
+        "output/project_current_state_summary.txt"
+      ],
+      "data_dependencies": [
+        "Postmortem Phase B final",
+        "Current state summary yang masih freeze"
+      ],
+      "risks": [
+        "Membuka ulang item 5-8 secara global terlalu dini akan menghabiskan sample tanpa edge baru."
+      ],
+      "tests_needed": [
+        "Tidak ada test code baru; ini guardrail keputusan eksekusi."
+      ],
+      "expected_artifacts": [
+        "Phase B artifacts tetap konsisten dengan status freeze saat ini"
       ]
     }
   ]

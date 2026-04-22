@@ -1,0 +1,34 @@
+Targeted Entry Simplification Validation Closeout
+=================================================
+
+Generated at: 2026-04-22
+
+Current official decision:
+- Candidate validation selesai.
+- Candidate baru tidak mengalahkan control di OOS.
+- `close > ema50` belum resmi dibuang dari stack inti.
+- Paper trading tetap tertutup.
+- Retest tetap tertutup.
+
+Comparison snapshot:
+- Full period:
+  - control = 5941 trades, win rate 44.3023, avg return 1.0854, max drawdown 44.1235, profit factor 1.0974, sample low
+  - candidate = 5941 trades, win rate 44.3023, avg return 1.0854, max drawdown 44.1235, profit factor 1.0974, sample low
+- Out-of-sample:
+  - control = 439 trades, win rate 38.2688, avg return -0.0909, max drawdown 31.6175, profit factor 0.9629, sample moderate
+  - candidate = 439 trades, win rate 38.2688, avg return -0.0909, max drawdown 31.6175, profit factor 0.9629, sample moderate
+- Final holdout:
+  - control = 461 trades, win rate 38.6117, avg return -0.4867, max drawdown 29.0187, profit factor 0.8416, sample moderate
+  - candidate = 461 trades, win rate 38.6117, avg return -0.4867, max drawdown 29.0187, profit factor 0.8416, sample moderate
+- OOS degradation:
+  - control = 114.819
+  - candidate = 114.819
+
+Interpretation:
+- Removing `close > ema50` produced no observable change versus the current control.
+- Pada stack evaluasi saat ini, candidate baru bersifat operasional identik dengan control.
+- Karena tidak ada perubahan metrik maupun trade count, tidak ada dasar kuat untuk menyatakan bahwa `close > ema50` sudah resmi removable dari stack inti.
+- Ini berarti masalah entry lebih dalam daripada satu tweak dual-confirmation ini.
+
+Official next action:
+- Open the next narrow entry simplification cycle.

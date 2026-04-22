@@ -1,0 +1,15 @@
+Phase B v2 Redesign Decision
+============================
+
+- Generated at: 2026-04-19T02:09:03.110065+00:00
+- Primary failure mode: baseline needs entry/exit redesign
+- Recommended redesign track: baseline_trade_design_first
+- Can retry Phase B after redesign: True
+- Next experiment after redesign: retry_baseline_with_hold_period_labeling_redesign
+
+Minimum required changes:
+- Rekalibrasi hold period baseline ke opsi dengan coverage terbaik dari audit.
+- Turunkan ketergantungan pada trade floor saat coverage riil belum memadai.
+- Review ulang aturan entry baseline agar trade retention tidak collapse terhadap baseline lama.
+- Gunakan sentiment hanya setelah audit sparsity/flatness menunjukkan sinyal harian cukup berubah.
+- Perlebar dan bersihkan adaptive search space setelah baseline stabil, bukan bersamaan.

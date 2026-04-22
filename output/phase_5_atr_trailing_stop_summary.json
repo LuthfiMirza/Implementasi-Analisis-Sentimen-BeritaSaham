@@ -1,0 +1,101 @@
+{
+  "phase": "phase_5_atr_trailing_stop",
+  "status": "completed",
+  "generated_at": "2026-04-22T12:14:41.936069+00:00",
+  "source_files": {
+    "stock_indicator_master_file": "data/indicator_master/stock_indicator_master.csv",
+    "ihsg_indicator_master_file": "data/indicator_master/IHSG_indicator_master.csv",
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "metadata_file": "data/ticker_metadata.csv"
+  },
+  "layer_3_context": {
+    "layer_3_status": "optional_integration_layer",
+    "layer_3_default_active": false,
+    "layer_3_toggle_rule": "RSI14 >= 50 AND RSI14 <= 70"
+  },
+  "atr_price_basis_policy": {
+    "status": "temporary_not_final",
+    "policy_label": "raw_ohlc_from_rebuild_dataset",
+    "atr_definition": "ATR14 simple rolling mean of true range from raw high/low/close.",
+    "note": "Policy ATR final will be frozen at walk-forward, not in this integration pass."
+  },
+  "layer_5_status": "experimental_integration_layer",
+  "layer_5_final_validation_frozen": false,
+  "variant_results": [
+    {
+      "variant_id": "baseline_fixed_hold_5d",
+      "variant_label": "Baseline fixed hold 5 days",
+      "layer_3_active": false,
+      "exit_policy": "fixed_hold_5d",
+      "atr_multiplier": NaN,
+      "time_stop_days": NaN,
+      "active_ticker_count_median": 17.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 49,
+      "active_ticker_count_mean": 15.7628,
+      "active_single_ticker_day_pct": 0.668,
+      "total_signals": 17704,
+      "total_trades": 8507,
+      "avg_return_per_trade": 0.5776,
+      "avg_win_rate": 46.3148,
+      "avg_holding_period_actual": 5.0,
+      "max_drawdown_per_trade": 3.9238,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "atr_trailing_stop_no_layer3",
+      "variant_label": "ATR trailing stop without Layer 3",
+      "layer_3_active": false,
+      "exit_policy": "atr_trailing_stop",
+      "atr_multiplier": 2.5,
+      "time_stop_days": 15.0,
+      "active_ticker_count_median": 17.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 49,
+      "active_ticker_count_mean": 15.7628,
+      "active_single_ticker_day_pct": 0.668,
+      "total_signals": 17704,
+      "total_trades": 5941,
+      "avg_return_per_trade": 1.0854,
+      "avg_win_rate": 44.3023,
+      "avg_holding_period_actual": 11.2976,
+      "max_drawdown_per_trade": 4.8938,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    },
+    {
+      "variant_id": "atr_trailing_stop_with_layer3_toggle",
+      "variant_label": "ATR trailing stop with Layer 3 toggle",
+      "layer_3_active": true,
+      "exit_policy": "atr_trailing_stop",
+      "atr_multiplier": 2.5,
+      "time_stop_days": 15.0,
+      "active_ticker_count_median": 12.0,
+      "active_ticker_count_min": 0,
+      "active_ticker_count_max": 40,
+      "active_ticker_count_mean": 11.5563,
+      "active_single_ticker_day_pct": 1.103,
+      "total_signals": 11954,
+      "total_trades": 5118,
+      "avg_return_per_trade": 0.9807,
+      "avg_win_rate": 44.4705,
+      "avg_holding_period_actual": 11.4228,
+      "max_drawdown_per_trade": 4.7908,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": [],
+      "sample_adequacy_risk": "low",
+      "sample_adequacy_reason": "Sample cukup untuk prototype dan tidak menunjukkan penyempitan berlebihan."
+    }
+  ],
+  "integration_decision": {
+    "atr_trailing_better_than_fixed_hold": true,
+    "layer_5_usable_as_integration_layer": true,
+    "reason": "ATR trailing stop beats fixed hold 5 days on average return per trade."
+  },
+  "warnings": []
+}

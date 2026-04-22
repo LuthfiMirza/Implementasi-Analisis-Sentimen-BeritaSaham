@@ -503,8 +503,9 @@ def run_phase_b_unvr_icbp_article_root_cause(
     batch_1_helpful_progress_detected = False
     batch_1_status = _safe_str(batch_after_push.get("batch_1_status"))
     if batch_1_status in {
-        "batch_1_complete_but_checkpoint_not_material",
-        "batch_1_complete_and_checkpoint_material_reached",
+        "batch_1_priority_targets_closed_but_progress_gate_pending",
+        "batch_1_operationally_complete_but_checkpoint_not_material",
+        "batch_1_operationally_complete_and_checkpoint_material_reached",
     }:
         batch_1_helpful_progress_detected = True
     if _safe_float(batch_after_push.get("primary_segment_total_articles")) > 11.0 or _safe_float(batch_after_push.get("primary_segment_article_days_median")) > 2.0:

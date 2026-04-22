@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-04-22T01:51:40.688158+00:00",
+  "backfill_execution_attempted": true,
+  "priority_tickers_processed": [
+    "ADRO",
+    "BUMI",
+    "BBCA",
+    "ASII",
+    "UNVR"
+  ],
+  "fetch_command": {
+    "command": "/usr/local/bin/php artisan stocks:fetch-history --days=180",
+    "returncode": 0,
+    "stdout": "BBCA: fetched 118 days, saved 118 rows\nBBRI: fetched 118 days, saved 118 rows\nBMRI: fetched 118 days, saved 118 rows\nTLKM: fetched 118 days, saved 118 rows\nASII: fetched 118 days, saved 118 rows\nGOTO: fetched 118 days, saved 118 rows\nINDF: fetched 118 days, saved 118 rows\nICBP: fetched 118 days, saved 118 rows\nADRO: fetched 118 days, saved 118 rows\nUNVR: fetched 118 days, saved 118 rows\nBUMI: fetched 118 days, saved 118 rows\nDEWA: fetched 118 days, saved 118 rows\n",
+    "stderr": "",
+    "combined_output": "BBCA: fetched 118 days, saved 118 rows\nBBRI: fetched 118 days, saved 118 rows\nBMRI: fetched 118 days, saved 118 rows\nTLKM: fetched 118 days, saved 118 rows\nASII: fetched 118 days, saved 118 rows\nGOTO: fetched 118 days, saved 118 rows\nINDF: fetched 118 days, saved 118 rows\nICBP: fetched 118 days, saved 118 rows\nADRO: fetched 118 days, saved 118 rows\nUNVR: fetched 118 days, saved 118 rows\nBUMI: fetched 118 days, saved 118 rows\nDEWA: fetched 118 days, saved 118 rows",
+    "succeeded": true
+  },
+  "export_command": {
+    "command": "/usr/local/bin/php artisan phase-a:export-real-data --data-dir=data --metadata-file=data/ticker_metadata.csv --include-sentiment-series",
+    "returncode": 0,
+    "stdout": "Exported ADRO to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/ADRO.csv (2459 rows).\nExported ASII to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/ASII.csv (2459 rows).\nExported BBCA to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/BBCA.csv (2460 rows).\nExported BBRI to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/BBRI.csv (2460 rows).\nExported BMRI to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/BMRI.csv (2460 rows).\nExported BUMI to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/BUMI.csv (2460 rows).\nExported DEWA to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/DEWA.csv (2460 rows).\nExported GOTO to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/GOTO.csv (960 rows).\nExported ICBP to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/ICBP.csv (2459 rows).\nExported INDF to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/INDF.csv (2460 rows).\nExported TLKM to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/TLKM.csv (2459 rows).\nExported UNVR to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/UNVR.csv (2460 rows).\nExported 12 ticker CSV files.\nSkipped 0 tickers below minimum rows.\nMetadata: /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/ticker_metadata.csv\n",
+    "stderr": "",
+    "combined_output": "Exported ADRO to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/ADRO.csv (2459 rows).\nExported ASII to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/ASII.csv (2459 rows).\nExported BBCA to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/BBCA.csv (2460 rows).\nExported BBRI to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/BBRI.csv (2460 rows).\nExported BMRI to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/BMRI.csv (2460 rows).\nExported BUMI to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/BUMI.csv (2460 rows).\nExported DEWA to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/DEWA.csv (2460 rows).\nExported GOTO to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/GOTO.csv (960 rows).\nExported ICBP to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/ICBP.csv (2459 rows).\nExported INDF to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/INDF.csv (2460 rows).\nExported TLKM to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/TLKM.csv (2459 rows).\nExported UNVR to /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/UNVR.csv (2460 rows).\nExported 12 ticker CSV files.\nSkipped 0 tickers below minimum rows.\nMetadata: /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/data/ticker_metadata.csv",
+    "succeeded": true
+  },
+  "row_advance_detected": false,
+  "date_end_advanced": false,
+  "usable_oos_windows_advanced": false,
+  "primary_article_day_recovery_advanced": false,
+  "batch_1_status": "batch_1_complete_ready_for_batch_2",
+  "batch_1_officially_started": false,
+  "batch_1_material_progress_detected": false,
+  "recommended_next_action": "freeze_batch_1_snapshot_and_prepare_batch_2_extension_without_reopening_strategy_track",
+  "source_of_truth_root_cause": {
+    "root_cause_class": "mixed_root_cause",
+    "highest_blocking_step": "fetch_update_snapshot_stage"
+  },
+  "limitations": []
+}

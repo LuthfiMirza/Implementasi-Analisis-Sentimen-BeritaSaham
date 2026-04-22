@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-04-22T02:51:17.065589+00:00",
+  "batch_id": "batch_3",
+  "ingest_audit_ready": true,
+  "batch_acceptance_status": "rejected",
+  "accepted_tickers": [],
+  "rejected_tickers": [
+    "BUMI",
+    "BBCA",
+    "ASII",
+    "UNVR",
+    "ICBP"
+  ],
+  "tickers_with_warnings": [],
+  "article_day_recovery_progress_ok": true,
+  "history_extension_progress_ok": true,
+  "metadata_segmentation_update_ok": true,
+  "recommended_next_action": "reject_current_batch_ingest_until_history_extension_and_primary_article_day_recovery_show_usable_progress",
+  "priority_tickers_audited": [
+    "BUMI",
+    "BBCA",
+    "ASII",
+    "UNVR",
+    "ICBP"
+  ],
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "safe_segments": [],
+  "artifact_availability": {
+    "phase_b_data_extension_execution_plan": true,
+    "phase_b_data_extension_progress_update": true,
+    "phase_b_recheck_trigger": true,
+    "phase_b_recheck_readiness_status": true,
+    "phase_b_retest_readiness_gate": true
+  },
+  "limitations": [],
+  "decisive_statement": "Progress update hanya boleh dihitung dari ingest yang lolos audit kualitas."
+}

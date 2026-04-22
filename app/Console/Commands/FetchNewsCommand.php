@@ -12,6 +12,8 @@ use Illuminate\Console\Command;
 #[Description('Ambil berita terbaru untuk semua saham aktif atau 1 saham')]
 class FetchNewsCommand extends Command
 {
+    protected const FETCH_RESULT_JSON_PREFIX = 'FETCH_RESULT_JSON:';
+
     /**
      * Execute the console command.
      */
@@ -76,7 +78,26 @@ class FetchNewsCommand extends Command
                 $aggregate['kept_entity_sum'] = ($aggregate['kept_entity_sum'] ?? 0) + ($stats['kept_entity_sum'] ?? 0);
                 $aggregate['kept_market_sum'] = ($aggregate['kept_market_sum'] ?? 0) + ($stats['kept_market_sum'] ?? 0);
 
-                $this->info("{$stock->code}: raw {$stats['raw']}, saved {$stats['saved']}, updated {$stats['updated']}, dropped (rel/lang/qual/dup) {$stats['dropped_relevance']}/{$stats['dropped_language']}/{$stats['dropped_quality']}/{$stats['skipped_dedup']}, waktu {$duration}s");
+                $this->info("{$stock->code}: raw {$stats['raw']}, saved {$stats['saved']}, updated {$stats['updated']}, dropped (rel/lang/qual/excl/dup) {$stats['dropped_relevance']}/{$stats['dropped_language']}/{$stats['dropped_quality']}/{$stats['dropped_exclusion']}/{$stats['skipped_dedup']}, waktu {$duration}s");
+                if ($this->option('debug')) {
+                    $this->line(self::FETCH_RESULT_JSON_PREFIX.json_encode([
+                        'ticker' => $stock->code,
+                        'provider' => $provider,
+                        'raw' => (int) ($stats['raw'] ?? 0),
+                        'saved' => (int) ($stats['saved'] ?? 0),
+                        'updated' => (int) ($stats['updated'] ?? 0),
+                        'dropped_relevance' => (int) ($stats['dropped_relevance'] ?? 0),
+                        'dropped_quality' => (int) ($stats['dropped_quality'] ?? 0),
+                        'dropped_exclusion' => (int) ($stats['dropped_exclusion'] ?? 0),
+                        'skipped_dedup' => (int) ($stats['skipped_dedup'] ?? 0),
+                        'failed' => (int) ($stats['failed'] ?? 0),
+                        'dropped_samples' => $stats['dropped_samples'] ?? [
+                            'relevance' => [],
+                            'quality' => [],
+                            'exclusion' => [],
+                        ],
+                    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                }
                 if ($this->option('debug')) {
                     $avgKeep = ($stats['kept_score_count'] ?? 0) > 0 ? round($stats['kept_score_sum'] / $stats['kept_score_count'], 3) : '-';
                     $avgDrop = ($stats['drop_score_count'] ?? 0) > 0 ? round($stats['drop_score_sum'] / $stats['drop_score_count'], 3) : '-';
@@ -86,13 +107,32 @@ class FetchNewsCommand extends Command
                     $avgEntDrop = ($stats['dropped_relevance'] ?? 0) > 0 ? round(($stats['drop_entity_sum'] ?? 0) / $stats['dropped_relevance'], 3) : '-';
                     $avgMktDrop = ($stats['dropped_relevance'] ?? 0) > 0 ? round(($stats['drop_market_sum'] ?? 0) / $stats['dropped_relevance'], 3) : '-';
                     $this->line("  dropped (relevance) avg rel/entity/market: {$avgRelDrop}/{$avgEntDrop}/{$avgMktDrop}");
-                    if (!empty($stats['dropped_samples'])) {
+                    if (!empty(array_filter($stats['dropped_samples'] ?? []))) {
                         $this->line('  sample dropped: '.json_encode($stats['dropped_samples']));
                     }
                 }
             } catch (\Throwable $e) {
                 $errors++;
                 $this->error("Gagal fetch {$stock->code}: ".$e->getMessage());
+                if ($this->option('debug')) {
+                    $this->line(self::FETCH_RESULT_JSON_PREFIX.json_encode([
+                        'ticker' => $stock->code,
+                        'provider' => $provider,
+                        'raw' => 0,
+                        'saved' => 0,
+                        'updated' => 0,
+                        'dropped_relevance' => 0,
+                        'dropped_quality' => 0,
+                        'dropped_exclusion' => 0,
+                        'skipped_dedup' => 0,
+                        'failed' => 1,
+                        'dropped_samples' => [
+                            'relevance' => [],
+                            'quality' => [],
+                            'exclusion' => [],
+                        ],
+                    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                }
                 \Log::error('news:fetch error', ['stock' => $stock->code, 'error' => $e->getMessage()]);
                 continue;
             }

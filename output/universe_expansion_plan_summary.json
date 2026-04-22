@@ -1,0 +1,132 @@
+{
+  "phase": "universe_expansion_for_layer_2",
+  "status": "completed_scaffold_only",
+  "source_files": {
+    "metadata_file": "data/ticker_metadata.csv",
+    "rebuild_metadata_file": "data/stocks/ticker_metadata.csv",
+    "phase_2_summary_file": "output/phase_2_relative_strength_selection_summary.json",
+    "phase_2_1_summary_file": "output/phase_2_1_relative_strength_redesign_summary.json",
+    "candidate_file": "data/universe/layer2_expansion_target_candidates.csv"
+  },
+  "current_universe_audit": {
+    "current_metadata_ticker_count": 12,
+    "current_clean_rebuild_count": 7,
+    "current_rankable_max_tickers_on_any_date": 7,
+    "current_active_ticker_count_median_after_layer_1": 6.0,
+    "current_sector_count_from_metadata": 7,
+    "current_sector_list": [
+      "energi",
+      "konsumsi",
+      "otomotif",
+      "perbankan",
+      "pertambangan",
+      "teknologi",
+      "telekomunikasi"
+    ],
+    "reason_layer_2_blocked": "Current rankable breadth is too small for defensible relative-strength selection validation."
+  },
+  "target_universe_decision": {
+    "recommended_universe_policy": "custom_30_liquid_long_history_manual_freeze",
+    "recommended_target_size": 30,
+    "minimum_defensible_size": 24,
+    "implied_selection_counts": {
+      "current_max_rankable_top_30pct": 2,
+      "current_max_rankable_top_40pct": 3,
+      "current_max_rankable_top_50pct": 4,
+      "minimum_defensible_top_30pct": 7,
+      "minimum_defensible_top_40pct": 10,
+      "minimum_defensible_top_50pct": 12,
+      "recommended_target_top_30pct": 9,
+      "recommended_target_top_40pct": 12,
+      "recommended_target_top_50pct": 15
+    }
+  },
+  "inclusion_criteria": {
+    "history_minimum_daily_rows": 1250,
+    "minimum_median_daily_turnover_idr_after_rebuild": 50000000000,
+    "listing_status": "active_common_stock_on_idx_only",
+    "data_cleanliness_checks": [
+      "no_weekend_rows",
+      "no_duplicate_dates",
+      "ascending_dates",
+      "no_mixed_frequency_contamination",
+      "no_missing_core_prices"
+    ],
+    "sector_diversification": {
+      "minimum_sector_groups": 6,
+      "maximum_names_per_sector_group": 8
+    }
+  },
+  "repo_metadata_assessment": {
+    "enough_for_current_pilot_audit": true,
+    "enough_for_expanded_universe_freeze_without_external_or_manual_list": false,
+    "reason": "Repo hanya punya metadata operasional untuk 12 ticker lama dan rebuild bersih untuk 7 ticker, tanpa market-wide listing-status/liquidity master untuk memilih tambahan 18-23 ticker secara otomatis.",
+    "current_metadata_ticker_count": 12,
+    "current_clean_rebuild_count": 7
+  },
+  "candidate_file_summary": {
+    "candidate_count": 30,
+    "candidate_sector_group_count": 8,
+    "candidate_sector_groups": [
+      "consumer",
+      "energy",
+      "finance",
+      "healthcare",
+      "industrial",
+      "infrastructure",
+      "materials",
+      "telco"
+    ],
+    "repo_available_candidate_count": 9,
+    "repo_available_candidates": [
+      "BBCA",
+      "BBRI",
+      "BMRI",
+      "TLKM",
+      "ASII",
+      "ADRO",
+      "INDF",
+      "ICBP",
+      "UNVR"
+    ],
+    "already_clean_candidate_count": 6,
+    "already_clean_candidates": [
+      "BBCA",
+      "BBRI",
+      "BMRI",
+      "TLKM",
+      "ASII",
+      "UNVR"
+    ],
+    "frozen_candidate_count": 0
+  },
+  "recommendation": {
+    "recommended_universe_policy": "custom_30_liquid_long_history_manual_freeze",
+    "recommended_target_size": 30,
+    "minimum_defensible_size": 24,
+    "why_not_idx30_or_lq45_direct_only": "Repo tidak menyimpan snapshot membership index yang siap dipakai sebagai source of truth, jadi index hanya dipakai sebagai referensi gaya likuiditas, bukan daftar final otomatis.",
+    "why_30_is_picked": "Pada target 30 ticker, cut RS 30-50% akan memilih sekitar 9-15 nama per date, jauh lebih sehat daripada universe saat ini yang praktis hanya menyisakan 2-3 nama."
+  },
+  "next_commands": [
+    {
+      "step": "freeze_universe_file",
+      "command": "Edit data/universe/layer2_expansion_target_candidates.csv lalu ubah freeze_status kandidat final menjadi frozen."
+    },
+    {
+      "step": "rebuild_expanded_ohlcv",
+      "command": "python3 -m quant.rebuild_yfinance_ohlcv --universe-file data/universe/layer2_expansion_target_candidates.csv --output-dir data/stocks"
+    },
+    {
+      "step": "rebuild_indicator_master",
+      "command": "python3 -m quant.build_indicator_master_table --stocks-dir data/stocks --ihsg-file data/IHSG.csv --output-dir data/indicator_master --artifact-dir output"
+    },
+    {
+      "step": "rerun_phase_2",
+      "command": "python3 -m quant.run_phase_2_relative_strength_stock_selection"
+    },
+    {
+      "step": "rerun_phase_2_1",
+      "command": "python3 -m quant.run_phase_2_1_relative_strength_redesign"
+    }
+  ]
+}

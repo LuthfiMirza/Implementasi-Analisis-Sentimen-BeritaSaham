@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-04-19T02:45:48.321836+00:00",
+  "guardrails": {
+    "min_trades": 5,
+    "min_subset_tickers": 2
+  },
+  "seed_context": {
+    "improve_tickers": [
+      "BMRI",
+      "GOTO"
+    ],
+    "worsen_tickers": []
+  },
+  "subset_count": 3,
+  "best_subset": {
+    "subset_id": "seed_improve_tickers",
+    "subset_type": "seed",
+    "subset_label": "seed_improve_tickers",
+    "subset_source": "baseline_v2_validation_summary",
+    "group_field": null,
+    "group_value": null,
+    "tickers": "BMRI|GOTO",
+    "ticker_count": 2,
+    "active_total_trades": 1,
+    "candidate_total_trades": 3,
+    "delta_total_trades": 2,
+    "active_win_rate_mean": 0.0,
+    "candidate_win_rate_mean": 50.0,
+    "delta_win_rate_mean": 50.0,
+    "active_average_return_mean": -3.2998,
+    "candidate_average_return_mean": 26.00665,
+    "delta_average_return_mean": 29.30645,
+    "active_max_drawdown_mean": 0.0,
+    "candidate_max_drawdown_mean": 3.2998,
+    "delta_max_drawdown_mean": 3.2998,
+    "active_eligible_ticker_count": 0,
+    "candidate_eligible_ticker_count": 0,
+    "coverage_improved": false,
+    "improve_ticker_count": 2,
+    "neutral_ticker_count": 0,
+    "worsen_ticker_count": 0,
+    "active_score_mean": -38.4995,
+    "candidate_score_mean": 53.281749999999995,
+    "delta_score_mean": 91.78125,
+    "active_selection_score": -38.3995,
+    "candidate_selection_score": 56.5817,
+    "delta_selection_score": 94.9812,
+    "subset_stable": false,
+    "candidate_better_than_active": true,
+    "noise_risk": true,
+    "can_promote_for_subset": false,
+    "can_retry_phase_b_for_subset": false
+  },
+  "supported_subset_count": 2,
+  "promotable_subset_count": 0,
+  "retry_ready_subset_count": 0,
+  "decision": {
+    "decision": "keep_candidate_experimental",
+    "candidate_id": "baseline_v2_hold3_with_trend_guard",
+    "subset_supported": true,
+    "recommended_tickers": [
+      "BMRI",
+      "GOTO",
+      "BBCA",
+      "BBRI"
+    ],
+    "recommended_groups": [
+      "sector:perbankan"
+    ],
+    "can_promote_for_subset": false,
+    "can_retry_phase_b_for_subset": false,
+    "next_action": "keep_candidate_experimental_for_watchlist_subset",
+    "best_subset_id": "seed_improve_tickers",
+    "best_subset_label": "seed_improve_tickers",
+    "best_subset_tickers": [
+      "BMRI",
+      "GOTO"
+    ],
+    "decision_notes": [
+      "Subset candidate menunjukkan perbaikan pada subset tertentu.",
+      "Guardrail subset belum terpenuhi sehingga candidate belum boleh dipromosikan untuk subset.",
+      "Subset terbaik masih terindikasi noise karena trade/coverage belum cukup."
+    ]
+  },
+  "warnings": []
+}

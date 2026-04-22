@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-04-22T01:51:11.604591+00:00",
+  "local_fix_applied": false,
+  "config_issue_fixable_from_repo": false,
+  "driver_issue_fixable_from_repo": false,
+  "service_issue_external": false,
+  "verification": {
+    "artisan_env_command_ok": true,
+    "config_probe_ok": true,
+    "artisan_db_probe_ok": true
+  },
+  "recommended_next_action": "rerun_priority_backfill_execution_now_that_db_prerequisite_is_ready"
+}

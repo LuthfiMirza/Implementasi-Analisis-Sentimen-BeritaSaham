@@ -1,0 +1,49 @@
+Phase 2.2 - Relative Strength Validation Basis Expansion
+========================================================
+
+Current validated frozen universe = 50 ticker
+Current max rankable breadth from Phase 2/2.1 = 51 ticker
+
+Recommended target policy = custom_50_liquid_long_history_manual_freeze
+Recommended target size = 50
+Minimum defensible checkpoint = 45
+Safe shortlist for next freeze = completed
+
+Why 45:
+- 45 ticker adalah checkpoint minimum baru yang cukup masuk akal untuk mengurangi over-concentration RS dibanding current max rankable 31.
+- Target 45 memberi bucket kasar top30=13-14, top40=18, top50=22-23.
+
+Why 50:
+- 50 ticker adalah target ideal karena memberi bucket kasar top30=15, top40=20, top50=25.
+- Itu memberi ruang lebih baik untuk membedakan apakah blocker tetap universe-size atau sudah pindah ke desain rule RS.
+
+Additional candidate scaffold:
+- Candidate file = data/universe/layer2_expansion_phase_2_2_target_candidates.csv
+- Current inherited frozen count = 45
+- New pending candidate count = 5
+- Safe shortlist count = executed
+- Backup extension count = 5
+
+Safe shortlist to reach 45:
+- AMRT, HMSP, BSDE, TBIG, AALI, GGRM, PWON, CTRA, MNCN, SCMA, BRPT, AUTO, ERAA, INDY, MIKA
+
+Backup names to reach ideal 50:
+- LSIP, MAPI, RALS, ESSA, SILO
+
+Current checkpoint status:
+- Checkpoint 45 sudah dibekukan dan berhasil direbuild.
+- Target 50 sekarang juga sudah dibekukan dan berhasil direbuild.
+- Phase 2 rerun sekarang `layer_2_usable_as_prototype = True` dengan kandidat terbaik `top_25pct_return_20d`.
+- Phase 2.1 formal masih `formal_decision = universe_too_small_for_relative_strength_validation`.
+- Root cause resmi belum bergeser penuh ke desain rule RS, tetapi universe expansion sudah mencapai target ideal dan Layer 2 kini punya status prototype-usable.
+
+Governance:
+- Jangan redesign formula RS dulu.
+- Jangan lanjut ke Layer 3, retest, atau ATR/exit logic.
+- Next action resmi adalah menahan universe expansion, menandai Layer 2 sebagai prototype-usable candidate, dan melakukan keputusan formal apakah evidence saat ini cukup untuk confirmation pass berikutnya tanpa membuka Layer 3 dulu.
+
+Latest commands executed at target 50:
+- python3 -m quant.rebuild_yfinance_ohlcv --universe-file data/universe/layer2_expansion_phase_2_2_target_candidates.csv --output-dir data/stocks
+- python3 -m quant.build_indicator_master_table --stocks-dir data/stocks --ihsg-file data/IHSG.csv --output-dir data/indicator_master --artifact-dir output
+- python3 -m quant.run_phase_2_relative_strength_stock_selection
+- python3 -m quant.run_phase_2_1_relative_strength_redesign

@@ -1,0 +1,133 @@
+{
+  "generated_at": "2026-04-19T17:03:31.966041+00:00",
+  "roadmap_snapshot": {
+    "phase_a_status": "closed_with_notes",
+    "phase_b_status": "phase_b_needs_redesign_before_continue",
+    "phase_c_decision": "phase_c_no_go_yet",
+    "current_track": "redesign_baseline_v2_again"
+  },
+  "artifact_gaps": [],
+  "warnings": [],
+  "baseline_stage_root_causes": [
+    {
+      "stage_id": "baseline_v2",
+      "decision": "baseline_v2_no_go_redesign_again",
+      "status": "invalid",
+      "primary_root_cause": "coverage_too_low",
+      "supporting_root_causes": [
+        "sample_size_too_small",
+        "entry_too_strict",
+        "eligibility_gate_misaligned"
+      ],
+      "reasoning": "Baseline v2 gagal dengan eligible_ticker_count=1 vs minimum 3 dan total_trades_sum=10 vs minimum 15; ini menunjukkan baseline terlalu sempit untuk coverage dan sample yang dibutuhkan.",
+      "key_metrics": {
+        "eligible_ticker_count": 1,
+        "required_eligible_ticker_count": 3,
+        "total_trades_sum": 10,
+        "required_total_trades_sum": 15
+      },
+      "artifact_gaps": []
+    },
+    {
+      "stage_id": "baseline_v3",
+      "decision": "no_go",
+      "status": "baseline_v3_ema20_trend_guard",
+      "primary_root_cause": "entry_too_loose_low_quality",
+      "supporting_root_causes": [
+        "objective_function_mismatch",
+        "ticker_universe_mismatch"
+      ],
+      "reasoning": "Baseline v3 menaikkan coverage dari 1 ke 8 dan trade dari 10 ke 56, tetapi mean_average_return turun dari 4.24329 ke -0.010139999999999727; jadi pelonggaran entry membuka coverage sambil merusak kualitas.",
+      "key_metrics": {
+        "best_rule": "baseline_v3_ema20_trend_guard",
+        "eligible_ticker_count": 8,
+        "reference_eligible_ticker_count": 1,
+        "total_trades_sum": 56,
+        "reference_total_trades_sum": 10,
+        "mean_average_return": -0.010139999999999727,
+        "reference_mean_average_return": 4.24329
+      },
+      "artifact_gaps": []
+    },
+    {
+      "stage_id": "baseline_v4",
+      "decision": "no_go",
+      "status": "baseline_v4_quality_gate_guard",
+      "primary_root_cause": "coverage_too_low",
+      "supporting_root_causes": [
+        "quality_gate_not_stable",
+        "eligibility_gate_misaligned",
+        "sample_size_too_small"
+      ],
+      "reasoning": "Baseline v4 sudah menunjukkan kualitas yang preserved dan mean_average_return=7.41434, tetapi berhenti di eligible_ticker_count=2 dan total_trades_sum=34, jadi masalah utama bergeser dari kualitas entry ke coverage yang tidak cukup untuk lolos guardrail.",
+      "key_metrics": {
+        "best_candidate": "baseline_v4_quality_gate_guard",
+        "eligible_ticker_count": 2,
+        "total_trades_sum": 34,
+        "mean_average_return": 7.41434,
+        "quality_preserved": true
+      },
+      "artifact_gaps": []
+    },
+    {
+      "stage_id": "baseline_v5",
+      "decision": "no_go",
+      "status": "baseline_v5_hold4_extension",
+      "primary_root_cause": "exit_hold_not_primary_problem",
+      "supporting_root_causes": [
+        "coverage_too_low",
+        "sample_size_too_small",
+        "eligibility_gate_misaligned"
+      ],
+      "reasoning": "Baseline v5 memperbaiki mean_average_return relatif terhadap anchor v4 sebesar 1.7379999999999998, tetapi tetap berakhir dengan eligible_ticker_count=0, trade_retention_vs_v4_anchor=0.7778, dan quality_preserved=false; jadi redesign exit/hold bukan solusi utama tunggal.",
+      "key_metrics": {
+        "best_candidate": "baseline_v5_hold4_extension",
+        "eligible_ticker_count": 0,
+        "total_trades_sum": 21,
+        "mean_average_return": -0.33547499999999997,
+        "mean_average_return_delta_vs_v4_anchor": 1.7379999999999998,
+        "trade_retention_vs_v4_anchor": 0.7778,
+        "quality_preserved": false,
+        "supports_exit_hold_hypothesis": false
+      },
+      "artifact_gaps": []
+    }
+  ],
+  "current_primary_bottleneck": {
+    "data": "not_primary",
+    "eligibility_rule": "primary",
+    "scoring_objective": "secondary",
+    "anchor_concept": "not_primary",
+    "universe_ticker": "secondary"
+  },
+  "key_findings": [
+    "Masalah utama bukan lagi entry relaxation, karena v3 sudah membuktikan coverage naik tetapi kualitas trade runtuh.",
+    "Masalah utama bukan exit/hold sebagai solusi tunggal, karena v5 tidak memulihkan eligibility maupun quality walau average return relatif membaik dari anchor v4.",
+    "Arah fast anchor plus quality gate terbukti lebih benar daripada entry relaxation only, karena v4 sempat menjaga quality, tetapi coverage-nya masih belum cukup stabil untuk lolos guardrail.",
+    "Bottleneck paling mungkin sekarang ada pada guardrail eligibility/sample dan kecocokan universe ticker, bukan pada anchor concept sebagai ide dasar.",
+    "Arah paling masuk akal berikutnya adalah review guardrail eligibility/sample atau segmentasi universe, bukan menambah filter teknikal baru."
+  ],
+  "what_has_been_proven_not_to_work": [
+    "entry_relaxation_only",
+    "exit_hold_only_redesign",
+    "reactivating_phase_b_items_5_to_8"
+  ],
+  "what_to_stop": [
+    "item5",
+    "item6",
+    "item7",
+    "item8",
+    "entry_relaxation_only",
+    "volume_relaxed_entry",
+    "exit_hold_only_redesign"
+  ],
+  "what_is_still_explorable": [
+    "fast_anchor_plus_quality_gate",
+    "eligibility_gate_review",
+    "universe_segmentation",
+    "sample_sufficiency_redesign"
+  ],
+  "recommended_primary_direction": "revisit_eligibility_and_sample_guardrails",
+  "recommended_secondary_direction_1": "revisit_ticker_universe_segmentation",
+  "recommended_secondary_direction_2": "revisit_fast_anchor_with_better_quality_gate"
+}

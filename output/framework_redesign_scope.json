@@ -1,0 +1,80 @@
+{
+  "evaluation_framework_redesign_required": true,
+  "redesign_reason": "Framework evaluasi saat ini belum bisa menjamin fairness OOS karena history terlalu pendek, distribusi news terlalu tipis, dan sample trade v9 hanya 11 pada primary segment.",
+  "highest_priority_gap": "combined_history_length_and_distribution_gap",
+  "what_must_stay_fixed": [
+    "baseline aktif",
+    "logika entry/exit aktif",
+    "guardrail global promosi akhir tetap fixed",
+    "Phase A = closed_with_notes",
+    "Phase B = phase_b_closed_with_learnings_no_candidate",
+    "Phase C = phase_c_no_go_yet",
+    "global_promotion_allowed = false",
+    "eligible_for_analysis tetap berbasis minimum trade floor 5",
+    "Jangan ubah baseline aktif.",
+    "Jangan lanjut ke Phase C.",
+    "Jangan hidupkan lagi item 5-8.",
+    "Jangan mulai eksperimen strategi baru sebelum root cause guardrail ditutup."
+  ],
+  "what_must_not_be_reopened": [
+    "item5",
+    "item6",
+    "item7",
+    "item8",
+    "entry_relaxation_only",
+    "volume_relaxed_entry",
+    "exit_hold_only_redesign",
+    "segment-only promotion for current candidate",
+    "global promotion",
+    "Phase C continuation"
+  ],
+  "what_must_be_redefined": [
+    "minimum_data_sufficiency gate sebelum strategy test dibuka lagi",
+    "fair OOS validation definition dan jumlah window minimum",
+    "alignment antara label sentiment dan return horizon",
+    "trigger universe reconstruction setelah data extension",
+    "struktur pelaporan per ticker, per segment, dan per fold yang wajib lulus sebelum interpretasi hasil"
+  ],
+  "recommended_validation_structure": {
+    "pre_validation_gate": [
+      "Audit history rows per ticker wajib lulus sebelum kandidat apa pun diuji.",
+      "Audit coverage news dan density wajib lulus atau label horizon harus diubah lebih dulu.",
+      "Dokumen guardrail evaluasi harus dibekukan sebelum retest dimulai."
+    ],
+    "candidate_evaluation_flow": [
+      "Kandidat tetap harus frozen; tidak boleh tuning ulang memakai hasil OOS.",
+      "Laporan wajib memisahkan kelayakan data, hasil in-sample, dan hasil OOS.",
+      "Keputusan retest diblok jika data sufficiency gate gagal."
+    ]
+  },
+  "recommended_oos_structure": {
+    "minimum_history_rows_per_ticker": 120,
+    "minimum_usable_oos_windows": 6,
+    "minimum_segment_ticker_count": 6,
+    "minimum_total_oos_trades_for_stability": 20,
+    "no_global_promotion_under_phase_b_closeout": true,
+    "notes": [
+      "OOS harus dijalankan pada kandidat yang dibekukan, bukan pada rule yang sedang dituning.",
+      "Fairness OOS baru boleh diinterpretasi jika jumlah window dan coverage segment memenuhi gate minimum."
+    ]
+  },
+  "recommended_segment_policy": {
+    "segment_aware_evaluation_still_required_after_data_extension": true,
+    "segment_policy_reason": "Primary subset terakhir tetap sentiment_segment=sentiment_poor dan universe heterogen belum boleh diasumsikan homogen sebelum reconstruction diulang.",
+    "supporting_segments_only_for_robustness_check": true,
+    "global_promotion_allowed": false
+  },
+  "recommended_preconditions_before_any_new_strategy_test": [
+    "Setiap ticker dalam universe retest memiliki minimal 120 daily rows.",
+    "Konfigurasi OOS yang dipakai menghasilkan minimal 6 usable windows per ticker.",
+    "Jika daily sentiment label tetap dipakai, median aligned news density universe harus minimal 10.0% dan median article days minimal 5.",
+    "Jika target density tidak bisa dicapai, label horizon dan return horizon harus didefinisikan ulang lebih dulu.",
+    "Universe reconstruction dan segment policy harus dihitung ulang setelah data extension selesai.",
+    "Phase C tetap tertutup dan eksperimen strategi baru tetap dilarang sampai semua prasyarat ini lulus."
+  ],
+  "roadmap_guardrail_snapshot": {
+    "phase_a_status": "closed_with_notes",
+    "phase_b_status": "phase_b_closed_with_learnings_no_candidate",
+    "phase_c_status": "phase_c_no_go_yet"
+  }
+}

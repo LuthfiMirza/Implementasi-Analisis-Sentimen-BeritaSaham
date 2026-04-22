@@ -1,0 +1,61 @@
+{
+  "phase": "universe_expansion_for_layer_2",
+  "status": "partially_frozen_pending_manual_completion",
+  "policy_id": "custom_30_liquid_long_history_manual_freeze",
+  "recommended_target_size": 30,
+  "minimum_defensible_size": 24,
+  "selection_policy": {
+    "policy_type": "custom_manual_universe",
+    "benchmark_reference_only": [
+      "IDX30_style_liquidity",
+      "LQ45_style_liquidity"
+    ],
+    "reason": "Repo tidak punya market-wide metadata yang cukup untuk membekukan expanded universe secara otomatis, jadi policy paling defensible adalah custom 30 ticker liquid long-history yang dibekukan manual dulu."
+  },
+  "inclusion_criteria": {
+    "history_minimum_daily_rows": 1250,
+    "history_reason": "Sekitar 5 tahun daily bars cukup untuk regime + momentum validation awal dan mengurangi distorsi IPO baru.",
+    "listing_status": "active_common_stock_on_idx_only",
+    "liquidity_rule_after_rebuild": {
+      "metric": "median_daily_traded_value_last_252_sessions",
+      "threshold_idr": 50000000000,
+      "fallback_metric": "median_volume_last_252_sessions_if_value_unavailable"
+    },
+    "data_cleanliness_rule": [
+      "no_weekend_rows",
+      "no_duplicate_dates",
+      "ascending_dates",
+      "no_mixed_frequency_contamination",
+      "no_missing_core_prices"
+    ],
+    "sector_diversification": {
+      "minimum_sector_groups": 6,
+      "maximum_names_per_sector_group": 8
+    }
+  },
+  "known_exclusions_for_now": [
+    {
+      "ticker": "GOTO",
+      "reason": "History masih terlalu pendek untuk universe long-history Layer 2 validation."
+    },
+    {
+      "ticker": "DEWA",
+      "reason": "Likuiditas median pada data repo saat ini terlalu tipis untuk anchor expanded universe."
+    }
+  ],
+  "governance": {
+    "freeze_required_before_fetch": true,
+    "freeze_status_values_allowed_for_fetch": [
+      "frozen",
+      "approved"
+    ]
+  },
+  "execution_status": {
+    "frozen_from_scaffold_count": 9,
+    "pending_manual_confirmation_count": 21,
+    "slots_missing_to_target_30": 21,
+    "ready_for_mass_rebuild_now": false,
+    "reason": "Source-of-truth file is now freeze-ready, but mass rebuild must wait until remaining pending rows are manually confirmed and frozen."
+  },
+  "candidate_file": "data/universe/layer2_expansion_target_candidates.csv"
+}

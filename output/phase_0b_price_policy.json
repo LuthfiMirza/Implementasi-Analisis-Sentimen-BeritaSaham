@@ -1,0 +1,18 @@
+{
+  "phase": "phase_0b_price_policy",
+  "status": "provisional_frozen_for_indicator_build",
+  "official_policy": {
+    "regime_filter_series": "adj_close",
+    "return_series": "adj_close",
+    "momentum_series": "adj_close",
+    "ema_series": "adj_close",
+    "raw_ohlc_for_atr_stoploss_candles": "not_official_for_new_backtests_yet"
+  },
+  "why": [
+    "clean stock and IHSG rebuild now include adj_close plus dividends and splits",
+    "adj_close is the safest temporary basis for regime, return, and momentum under unresolved corporate-action policy",
+    "ATR, stop-loss, and candle logic still depend on OHLC treatment across splits and need explicit split-aware policy or full back-adjusted OHLC"
+  ],
+  "next_required_phase": "phase_0b_3_indicator_master_table",
+  "followup_for_exit_logic": "decide_between_full_back_adjusted_ohlc_or_explicit_split_aware_raw_ohlc_policy_before_atr_and_exit_research"
+}

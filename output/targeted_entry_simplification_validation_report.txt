@@ -1,0 +1,19 @@
+Targeted Entry Simplification Validation
+=======================================
+
+Full-period integration comparison:
+- control: trades=5941, win_rate=44.3023, avg_return=1.0854, max_drawdown=44.1235, profit_factor=1.0974, sample=low
+- candidate: trades=5941, win_rate=44.3023, avg_return=1.0854, max_drawdown=44.1235, profit_factor=1.0974, sample=low
+
+Walk-forward comparison:
+- control OOS: trades=439, win_rate=38.2688, avg_return=-0.0909, max_drawdown=31.6175, profit_factor=0.9629, sample=moderate
+- candidate OOS: trades=439, win_rate=38.2688, avg_return=-0.0909, max_drawdown=31.6175, profit_factor=0.9629, sample=moderate
+- control holdout: trades=461, win_rate=38.6117, avg_return=-0.4867, max_drawdown=29.0187, profit_factor=0.8416, sample=moderate
+- candidate holdout: trades=461, win_rate=38.6117, avg_return=-0.4867, max_drawdown=29.0187, profit_factor=0.8416, sample=moderate
+- control oos_degradation = 114.819
+- candidate oos_degradation = 114.819
+
+Decision:
+- candidate_more_oos_resilient_than_control = False
+- close_above_ema50_drop_decision = not_yet_keep_under_review
+- reason = Candidate baru belum cukup tegas mengalahkan control di OOS/holdout, sehingga `close > ema50` belum resmi dibuang dari stack inti.

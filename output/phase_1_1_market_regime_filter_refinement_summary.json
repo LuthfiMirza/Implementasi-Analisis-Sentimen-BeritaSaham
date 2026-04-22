@@ -1,0 +1,198 @@
+{
+  "phase": "phase_1_1_market_regime_filter_refinement",
+  "status": "completed",
+  "generated_at": "2026-04-22T06:05:49.451221+00:00",
+  "source_files": {
+    "stock_indicator_master_file": "data/indicator_master/stock_indicator_master.csv",
+    "ihsg_indicator_master_file": "data/indicator_master/IHSG_indicator_master.csv",
+    "baseline_config": "output/phase_a_baseline_final.json",
+    "metadata_file": "data/ticker_metadata.csv"
+  },
+  "ihsg_alignment": {
+    "missing_rows": 652,
+    "missing_dates": 153,
+    "missing_date_handling": "treated_as_non_bullish_for_variant_gate"
+  },
+  "variants_tested": [
+    {
+      "variant_id": "price_above_ema200",
+      "variant_label": "Baseline current",
+      "definition": "ihsg_adj_close > ihsg_ema200",
+      "mode": "hard_gate"
+    },
+    {
+      "variant_id": "price_above_ema200_and_slope_up",
+      "variant_label": "Price above EMA200 and EMA200 slope up",
+      "definition": "ihsg_adj_close > ihsg_ema200 AND ihsg_ema200 > prev_ihsg_ema200",
+      "mode": "hard_gate"
+    },
+    {
+      "variant_id": "price_above_ema200_buffer_1pct",
+      "variant_label": "Price above EMA200 by 1%",
+      "definition": "ihsg_adj_close > ihsg_ema200 * 1.01",
+      "mode": "hard_gate"
+    },
+    {
+      "variant_id": "ema50_above_ema200",
+      "variant_label": "EMA50 above EMA200",
+      "definition": "ihsg_ema50 > ihsg_ema200",
+      "mode": "hard_gate"
+    },
+    {
+      "variant_id": "soft_risk_off_near_ema200",
+      "variant_label": "Soft risk-off near EMA200",
+      "definition": "ihsg_adj_close > ihsg_ema200 OR (ihsg_adj_close > ihsg_ema200 * 0.99 AND ihsg_ema200 > prev_ihsg_ema200)",
+      "mode": "soft_risk_off"
+    }
+  ],
+  "variant_results": [
+    {
+      "variant_id": "price_above_ema200",
+      "variant_label": "Baseline current",
+      "definition": "ihsg_adj_close > ihsg_ema200",
+      "mode": "hard_gate",
+      "bullish_day_pct": 69.7414,
+      "pre_filter_signals": 3151,
+      "post_filter_signals": 2707,
+      "skipped_signals": 444,
+      "pre_filter_total_trades": 1664,
+      "post_filter_total_trades": 1432,
+      "trade_retention_pct_median": 86.4583,
+      "avg_delta_win_rate": -1.4029,
+      "avg_delta_average_return": -0.1989,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": []
+    },
+    {
+      "variant_id": "price_above_ema200_and_slope_up",
+      "variant_label": "Price above EMA200 and EMA200 slope up",
+      "definition": "ihsg_adj_close > ihsg_ema200 AND ihsg_ema200 > prev_ihsg_ema200",
+      "mode": "hard_gate",
+      "bullish_day_pct": 69.7414,
+      "pre_filter_signals": 3151,
+      "post_filter_signals": 2707,
+      "skipped_signals": 444,
+      "pre_filter_total_trades": 1664,
+      "post_filter_total_trades": 1432,
+      "trade_retention_pct_median": 86.4583,
+      "avg_delta_win_rate": -1.4029,
+      "avg_delta_average_return": -0.1989,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": []
+    },
+    {
+      "variant_id": "price_above_ema200_buffer_1pct",
+      "variant_label": "Price above EMA200 by 1%",
+      "definition": "ihsg_adj_close > ihsg_ema200 * 1.01",
+      "mode": "hard_gate",
+      "bullish_day_pct": 66.036,
+      "pre_filter_signals": 3151,
+      "post_filter_signals": 2616,
+      "skipped_signals": 535,
+      "pre_filter_total_trades": 1664,
+      "post_filter_total_trades": 1376,
+      "trade_retention_pct_median": 82.6389,
+      "avg_delta_win_rate": -0.7614,
+      "avg_delta_average_return": -0.1364,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": []
+    },
+    {
+      "variant_id": "ema50_above_ema200",
+      "variant_label": "EMA50 above EMA200",
+      "definition": "ihsg_ema50 > ihsg_ema200",
+      "mode": "hard_gate",
+      "bullish_day_pct": 71.3813,
+      "pre_filter_signals": 3151,
+      "post_filter_signals": 2602,
+      "skipped_signals": 549,
+      "pre_filter_total_trades": 1664,
+      "post_filter_total_trades": 1356,
+      "trade_retention_pct_median": 81.7857,
+      "avg_delta_win_rate": -0.0957,
+      "avg_delta_average_return": 0.0898,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": []
+    },
+    {
+      "variant_id": "soft_risk_off_near_ema200",
+      "variant_label": "Soft risk-off near EMA200",
+      "definition": "ihsg_adj_close > ihsg_ema200 OR (ihsg_adj_close > ihsg_ema200 * 0.99 AND ihsg_ema200 > prev_ihsg_ema200)",
+      "mode": "soft_risk_off",
+      "bullish_day_pct": 69.7414,
+      "pre_filter_signals": 3151,
+      "post_filter_signals": 2707,
+      "skipped_signals": 444,
+      "pre_filter_total_trades": 1664,
+      "post_filter_total_trades": 1432,
+      "trade_retention_pct_median": 86.4583,
+      "avg_delta_win_rate": -1.4029,
+      "avg_delta_average_return": -0.1989,
+      "tickers_with_coverage_collapse": 0,
+      "coverage_collapse_tickers": []
+    }
+  ],
+  "current_variant_audit": {
+    "reason_hypothesis": "Current hard gate is not quality-positive when it either removes trades that still have acceptable return profile or leaves too many weak trades during broad bullish states.",
+    "worst_delta_average_return_tickers": [
+      {
+        "ticker": "GOTO",
+        "delta_average_return": -1.0767,
+        "delta_win_rate": -3.69,
+        "trade_retention_pct": 67.7419
+      },
+      {
+        "ticker": "ASII",
+        "delta_average_return": -0.3443,
+        "delta_win_rate": -2.98,
+        "trade_retention_pct": 84.0678
+      },
+      {
+        "ticker": "BBRI",
+        "delta_average_return": -0.0422,
+        "delta_win_rate": -0.16,
+        "trade_retention_pct": 90.2344
+      }
+    ],
+    "best_delta_average_return_tickers": [
+      {
+        "ticker": "BMRI",
+        "delta_average_return": 0.0754,
+        "delta_win_rate": 0.12,
+        "trade_retention_pct": 88.5714
+      },
+      {
+        "ticker": "TLKM",
+        "delta_average_return": 0.0398,
+        "delta_win_rate": -1.23,
+        "trade_retention_pct": 81.9328
+      },
+      {
+        "ticker": "BBCA",
+        "delta_average_return": -0.0203,
+        "delta_win_rate": -1.75,
+        "trade_retention_pct": 86.9565
+      }
+    ],
+    "skipped_trade_profile_aggregate": {
+      "trade_count": 267,
+      "win_rate": 55.806,
+      "average_return": 0.737
+    },
+    "allowed_trade_profile_aggregate": {
+      "trade_count": 1432,
+      "win_rate": 47.9745,
+      "average_return": 0.2566
+    }
+  },
+  "final_candidate_decision": {
+    "status": "candidate_selected",
+    "reason": "Selected the strongest variant among healthy-coverage candidates that are not worse than the current baseline on the two official quality delta metrics.",
+    "selected_variant_id": "ema50_above_ema200",
+    "selected_variant_label": "EMA50 above EMA200",
+    "freeze_layer_1": false
+  },
+  "warnings": [
+    "IHSG alignment missing on 153 unique stock dates (652 rows). Missing regime inputs are treated as non-bullish."
+  ]
+}

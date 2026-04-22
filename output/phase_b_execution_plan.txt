@@ -1,26 +1,33 @@
 Phase B Execution Plan
 ======================
 
-- Gate status: prepare_only
-- Gate reason: Jangan masuk ke Fase B penuh sebelum baseline freeze real dan closeout runtime tervalidasi.
+- Gate status: phase_b_closed_waiting_data_extension_and_framework_redesign
+- Gate reason: Per 21 April 2026, Phase B sudah ditutup tanpa kandidat. Langkah berikutnya hanya data extension, baseline evaluation redesign, dan refresh readiness blocker audit.
 
 Phase A guardrails:
 - Jangan ubah default volume spike threshold tanpa artifact sweep real yang baru.
 - Jangan ubah strict_mode_default tanpa tuning decision real yang eksplisit.
 - Pertahankan macro_regulatory_signal sebagai context-only moderation sampai ada bukti directional lift yang konsisten.
 - Semua fitur baru Fase B harus default-off sampai dibandingkan melawan baseline Phase A beku.
+- Jangan hidupkan lagi item 7 sentiment momentum atau item 8 adaptive selama data extension dan redesign framework belum ditutup resmi.
 
 Execution order:
-- P1 Item 5 Volume confirmation per candlestick [partial]
-  Goal: Tambahkan filter candle bullish + volume confirmation sebagai eksperimen yang transparan dan default-off.
-  Why now: Ini quick win Fase B yang paling dekat dengan engine quant Phase A dan paling murah untuk diuji terhadap baseline beku.
-  Starter command: python3 -m quant.evaluate_phase_a_real_data --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --require-candle-volume-confirmation --candle-volume-confirmation-threshold 1.0
-- P2 Item 6 Multi-timeframe (weekly trend sebelum entry daily) [partial]
-  Goal: Tambahkan weekly trend gate di atas entry daily tanpa mengganggu logika Phase A yang sudah stabil.
-  Why now: Multi-timeframe paling berguna setelah candle confirmation tersedia, karena weekly trend berperan sebagai gate yang lebih struktural.
-- P3 Item 7 Sentiment momentum (tren 3 hari terakhir) [partial]
-  Goal: Tambahkan signal momentum sentimen 3 hari yang bisa dipakai sebagai overlay, bukan pengganti core signal.
-  Why now: Fondasi seri sentimen harian sudah ada; setelah price-side confirmation lebih rapi, momentum sentimen menjadi enhancer yang logis.
-- P4 Item 8 Backtest per saham / model adaptif per ticker [partial]
-  Goal: Naikkan tooling per ticker/group dari riset menjadi adaptive refinement yang disiplin dan sample-aware.
-  Why now: Adaptive refinement paling aman dikerjakan setelah tiga enhancer sebelumnya punya bukti yang bersih terhadap baseline Phase A.
+- P1 Item 0 Baseline trade-design redesign audit [planned]
+  Goal: Audit ulang baseline tanpa fitur baru untuk memperbaiki hold period, trade labeling, trade retention, dan floor sample sebagai fondasi redesign framework evaluasi.
+  Why now: Postmortem Phase B menempatkan trade design baseline sebagai failure mode utama, jadi baseline harus diaudit ulang sebelum ada diskusi tentang retry strategi.
+  Starter command: python3 -m quant.run_baseline_trade_design_redesign --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --metadata-file data/ticker_metadata.csv --hold-period-options 3 5 7 --min-trades-options 5 8 10
+- P2 Item 0 Baseline v2 candidate validation audit [planned]
+  Goal: Validasi kandidat redesign hanya untuk memastikan usability audit, bukan untuk promosi baseline operasional atau membuka retry.
+  Why now: Data extension adalah prasyarat. Validation hanya boleh menjawab apakah kandidat redesign layak disimpan sebagai input framework redesign.
+  Starter command: python3 -m quant.run_baseline_v2_candidate_validation --data-dir data --output-dir output --baseline-config output/phase_a_baseline_final.json --candidate-file output/baseline_v2_best_candidate.json --metadata-file data/ticker_metadata.csv --min-trades 5 --min-eligible-tickers 3
+- P3 Item 0 Readiness guardrail hardening [planned]
+  Goal: Tambahkan blocker eksplisit untuk coverage, usable OOS window, overlap audit, signal sparsity, dan baseline redesign usability agar retry prematur terkunci.
+  Why now: Artefak gate lama masih bisa menghasilkan status seolah retest siap, padahal keputusan resmi proyek sudah menutup track eksperimen strategi.
+  Starter command: python3 -m quant.run_phase_b_retest_readiness_gate --data-dir data --output-dir output --metadata-file data/ticker_metadata.csv
+- P4 Item 0 Phase B data extension execution [planned]
+  Goal: Jalankan perluasan data sebagai prasyarat resmi sebelum ada evaluasi readiness ulang apa pun.
+  Why now: Keputusan final proyek menyatakan fokus berikutnya adalah collect more data + redesign evaluation framework, bukan strategi baru.
+  Starter command: python3 -m quant.run_phase_b_data_extension_execution_plan --data-dir data --output-dir output --metadata-file data/ticker_metadata.csv
+- P5 Item 5 Volume confirmation per candlestick [partial]
+  Goal: Tetap parkir item 5-8 global selama track data extension dan framework redesign berjalan.
+  Why now: Postmortem resmi menyatakan item 5-8 final no_go pada konfigurasi lama dan tidak boleh diaktifkan ulang secara prematur.

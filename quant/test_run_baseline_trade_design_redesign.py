@@ -125,6 +125,7 @@ class RunBaselineTradeDesignRedesignTestCase(unittest.TestCase):
             self.assertIn("baseline_redesign_status", transition)
             self.assertIn("baseline_redesign_next_action", transition)
             self.assertIn("phase_b_retry_readiness", transition)
+            self.assertIn("baseline_redesign_trade_label", transition)
 
 
 if __name__ == "__main__":

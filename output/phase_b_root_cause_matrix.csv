@@ -1,0 +1,5 @@
+item_id,decision,experiment_status,primary_root_cause,supporting_root_causes,reasoning,artifact_gaps
+item5,no_go,failed,over_filtering,baseline_mismatch|insufficient_trade_sample|feature_not_additive,"Item 5 menambah filter konfirmasi tetapi kualitas agregat tetap negatif, sementara threshold efektif bertabrakan dengan baseline dan dukungan trade tetap tipis.",
+item6,no_go,completed,trade_retention_too_low,insufficient_trade_sample|feature_not_additive|over_filtering,"Item 6 hanya mempertahankan sekitar 25.00% trade rata-rata, terlalu rendah untuk promosi.",
+item7,no_go,completed,signal_collapse,sentiment_data_weak_or_non_informative|trade_retention_too_low|feature_not_additive,Item 7 membuat trade candidate kolaps ke 0 pada ticker comparable walau readiness runnable.,
+item8,no_go,failed,adaptive_config_not_usable,insufficient_trade_sample|feature_not_additive|signal_collapse,"Item 8 menguji adaptive search space, tetapi tidak menghasilkan satu pun konfigurasi ticker yang usable.",

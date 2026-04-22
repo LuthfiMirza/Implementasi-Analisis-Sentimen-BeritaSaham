@@ -1,0 +1,69 @@
+Phase B Data Extension Audit
+- current_data_sufficiency_status=insufficient_for_fair_strategy_retest
+- strategy_retest_allowed_now=False
+- highest_priority_data_gap=combined_history_length_and_distribution_gap
+- minimum_data_extension_required=history_rows_per_ticker>=120, usable_oos_windows>=6, median_news_density_pct_if_daily_label_kept>=10.0
+- decisive_statement=Data saat ini belum cukup untuk strategy retest; prioritas utama adalah memperpanjang history dan meratakan coverage sample. Framework evaluasi perlu di-redesign sebelum eksperimen baru karena fairness OOS belum bisa dijamin. Strategy retest tetap dilarang sampai syarat minimum coverage dan OOS window terpenuhi.
+
+History assessment:
+{
+  "status": "sufficient",
+  "methodology_reference": {
+    "warmup_bars": 21,
+    "fold_size_bars": 313,
+    "fold_count_seen_in_v9": 3
+  },
+  "minimum_history_rows_required": 120,
+  "minimum_usable_oos_windows_required": 6,
+  "current_min_history_rows": 960,
+  "current_median_history_rows": 2460,
+  "current_max_history_rows": 2460,
+  "current_min_usable_oos_windows": 3,
+  "current_median_usable_oos_windows": 7,
+  "fair_oos_possible_now": false,
+  "additional_rows_needed_per_ticker_from_current_minimum": 0
+}
+
+Universe coverage assessment:
+{
+  "status": "insufficient",
+  "total_tickers": 12,
+  "primary_segment": "sentiment_segment=sentiment_poor",
+  "primary_segment_ticker_count": 5,
+  "primary_segment_active_ticker_count": 5,
+  "coverage_evenness": "too_thin_for_subset_retest",
+  "comment": "Universe history length is uniform, but the tested subset stays too small once OOS activity is considered."
+}
+
+News distribution assessment:
+{
+  "status": "insufficient",
+  "median_news_density_pct": 0.3252,
+  "mean_news_density_pct": 0.356,
+  "median_news_article_days": 8,
+  "min_news_article_days": 5,
+  "primary_segment_news_density_pct": 0.2521,
+  "primary_segment_article_count_total": 71,
+  "primary_segment_ticker_count": 5,
+  "highest_priority_issue": "sparse_and_uneven_aligned_news_distribution"
+}
+
+OOS feasibility assessment:
+{
+  "status": "insufficient",
+  "primary_total_trades_sum": 1434,
+  "primary_active_ticker_count": 5,
+  "primary_trade_weighted_average_return": -0.0423,
+  "primary_mean_average_return_active": -0.0047,
+  "supporting_segments_failed": [
+    "volatility_segment=mixed_volatility",
+    "liquidity_segment=thin_sparse",
+    "news_segment=mid_news",
+    "liquidity_segment=liquid_active",
+    "volatility_segment=higher_volatility",
+    "sentiment_segment=sentiment_rich"
+  ],
+  "tested_segment_count": 7,
+  "fold_count_seen_in_v9": 3,
+  "fair_strategy_retest_possible_now": false
+}

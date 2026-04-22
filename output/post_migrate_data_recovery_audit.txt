@@ -1,0 +1,99 @@
+Post-Migrate Data Recovery Audit
+================================
+
+Generated at: 2026-04-19 20:45:00 WIB
+
+1. Summary
+- Fresh migrate had effectively wiped the working MySQL runtime data: stocks=0, stock_prices=0, news_articles=0, news_sources=0, trades=0, user_watchlists=0, fetch_logs=0.
+- Minimum recovery was successful for the data layers that matter most to a fair roadmap check:
+  prices restored, OJK macro news restored, article scoring normalized, Phase A runtime artifacts refreshed.
+- After recovery, the main blocker is no longer empty runtime data. The main blocker is uneven issuer-news and sentiment coverage per ticker.
+
+2. Recovery Actions That Worked
+- `php artisan migrate --seed --force`
+  Restored 10 core stocks, demo news, seed price rows, sources, and watchlists.
+- `php artisan stocks:fetch-history --days=180`
+  Restored price history so each core ticker now has 87 daily rows.
+- `php artisan news:fetch-ojk --backfill --from=2026-01-01 --to=2026-04-19 --output-dir=output --debug`
+  Backfill succeeded. Raw 37, saved 28, updated 9. Final OJK article count: 43.
+- `php artisan news:rescore-quality --days=180 --force`
+  Rescore selesai. Total 79, updated 36, skipped 43, failed 0.
+- `php artisan news:rescore-sentiment`
+  Total 79, changed 7. Final mix: negative 3, neutral 69, positive 7.
+- `php artisan phase-a:export-real-data --data-dir=data --metadata-file=data/ticker_metadata.csv --include-sentiment-series`
+  Exported 10 ticker CSV files with 87 rows each.
+- `php artisan phase-a:closeout --output-dir=output --skip-tests`
+  Phase A closeout refreshed successfully: `closed_with_notes`, `runtime_ok`, OJK backfill `ready`.
+
+3. Recovery Attempts That Did Not Materially Help
+- Targeted issuer-news fetch for `ICBP`, `UNVR`, `GOTO`, and `INDF` did not lift coverage in a meaningful way.
+- Log evidence shows the blocker is mostly external/provider-side, not local plumbing:
+  GNews often returned 0 articles and also hit 429.
+  NewsAPI often returned 0 articles and later hit 429.
+  Finnhub returned 403.
+  GDELT timed out or hit 429.
+  OJK RSS endpoint returned 404, but the repo fallback/paginated path still succeeded.
+
+4. Final Dataset Snapshot
+- stocks=10
+- stock_prices=870
+- news_articles=79
+- macro_articles=43
+- stock_linked_articles=36
+- news_sources=7
+- trades=0
+- user_watchlists=5
+- fetch_logs=5
+
+Phase A runtime status after recovery:
+- phase_a_closeout_status=`closed_with_notes`
+- runtime_status=`runtime_ok`
+- ojk_backfill_status=`ready`
+- ojk_article_count=43
+
+5. Core Ticker Coverage
+- BBCA: price_days=87, news_articles=3, sentiment_days=2, enough_for_eval=no
+- BBRI: price_days=87, news_articles=7, sentiment_days=5, enough_for_eval=yes
+- BMRI: price_days=87, news_articles=3, sentiment_days=3, enough_for_eval=no
+- TLKM: price_days=87, news_articles=6, sentiment_days=4, enough_for_eval=partial
+- ASII: price_days=87, news_articles=5, sentiment_days=4, enough_for_eval=partial
+- GOTO: price_days=87, news_articles=2, sentiment_days=2, enough_for_eval=no
+- INDF: price_days=87, news_articles=2, sentiment_days=2, enough_for_eval=no
+- ICBP: price_days=87, news_articles=1, sentiment_days=1, enough_for_eval=no
+- ADRO: price_days=87, news_articles=6, sentiment_days=5, enough_for_eval=yes
+- UNVR: price_days=87, news_articles=1, sentiment_days=1, enough_for_eval=no
+
+Coverage summary:
+- 10/10 tickers now have enough price history for technical evaluation.
+- 4/10 tickers have Phase-A-level news coverage.
+- 2/10 tickers have strategy-level sentiment coverage.
+- The biggest remaining bottleneck is stock-linked sentiment coverage, not price coverage.
+
+6. What This Changes for Roadmap Fairness
+- Before recovery, roadmap reruns would have been unfair because runtime data was empty.
+- After recovery, Phase A runtime can be judged fairly again.
+- Item 5 volume confirmation is no longer meaningfully blocked by missing data. If it still fails, that is mostly a filter-design problem.
+- Item 6 multi-timeframe is no longer blocked by zero price data, but the sample horizon is still modest. Its failure is now mostly a strategy/retention problem, not a runtime-data wipe problem.
+- Item 7 sentiment momentum is still data-fragile even after recovery. Only 2 tickers have at least 5 sentiment days, so this gate remains under-supported.
+- Item 8 adaptive per ticker is still under-supported because ticker-level news/sentiment coverage is too uneven to justify a broad adaptive search space.
+
+7. Firm Classification
+Failed mainly because data was missing or still insufficient:
+- Fresh-migrate runtime state before recovery
+- Sentiment-momentum style ticker gating
+- Full adaptive-per-ticker promotion
+
+Failed mainly because of signal/filter design:
+- Volume confirmation per candlestick
+- Entry-relaxation-only redesign (v3)
+- Most of the remaining baseline trade-quality issue after price and macro recovery
+
+Still not fairly decidable because coverage is too thin:
+- Broad per-ticker sentiment gating comparisons
+- Broad adaptive per-ticker model selection
+
+8. Bottom Line
+- Fresh migrate did materially distort roadmap fairness because it removed the runtime and historical dataset.
+- That specific runtime problem has now been repaired well enough for a fairer assessment.
+- The dominant remaining bottleneck is sparse and noisy issuer-news coverage, not missing prices and not missing OJK macro data.
+- The most pragmatic next action is to keep the recovered dataset as the minimum fair runtime baseline, keep Phase C closed, do not reopen items 5-8 globally, and continue baseline redesign with explicit awareness that issuer-news coverage is still the weakest link.

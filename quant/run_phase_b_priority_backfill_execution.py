@@ -36,7 +36,8 @@ BATCH_1_STATUSES = {
     "batch_1_not_started_snapshot_still_static",
     "batch_1_started_but_not_material_yet",
     "batch_1_material_progress_detected",
-    "batch_1_complete_ready_for_batch_2",
+    "batch_1_priority_targets_closed_but_progress_gate_pending",
+    "batch_1_operationally_complete_ready_for_batch_2",
 }
 ROW_ADVANCE_COLUMNS = [
     "ticker",
@@ -333,7 +334,7 @@ def _batch_1_status(
     refreshed_go_no_go: Dict[str, object],
     fetch_result: Dict[str, object],
     export_result: Dict[str, object],
-) -> Tuple[str, bool, bool, bool, bool, bool]:
+) -> Tuple[str, bool, bool, bool, bool, bool, bool, bool, str]:
     row_advance_detected = any(_safe_bool(row.get("non_duplicate_row_advance_detected")) for row in row_rows)
     date_end_advanced = any(_safe_bool(row.get("date_end_advanced")) for row in row_rows)
     per_ticker_windows_advanced = any(_safe_int(row.get("usable_oos_windows_delta")) > 0 for row in row_rows)
@@ -356,15 +357,19 @@ def _batch_1_status(
 
     usable_oos_windows_advanced = usable_windows_delta > 0 or per_ticker_windows_advanced
     primary_article_day_recovery_advanced = article_day_delta > 0 or per_ticker_article_day_advanced
-    batch_1_complete = _safe_bool(refreshed_go_no_go.get("batch_1_closure_progress_valid")) or (
+    batch_1_priority_targets_closed = _safe_bool(refreshed_go_no_go.get("batch_1_closure_progress_valid"))
+    highest_completed_batch = _safe_str(refreshed_progress.get("highest_completed_batch"))
+    batch_1_operationally_complete = highest_completed_batch in {"batch_1", "batch_2", "batch_3"} or (
         _safe_bool(refreshed_progress.get("current_batch_completed"))
         and _safe_str(refreshed_progress.get("current_batch")) == "batch_1"
     )
     batch_1_officially_started = row_advance_detected or date_end_advanced or history_min_delta > 0
     batch_1_material_progress_detected = bool(history_min_delta > 0 and primary_article_day_recovery_advanced)
 
-    if batch_1_complete:
-        status = "batch_1_complete_ready_for_batch_2"
+    if batch_1_operationally_complete:
+        status = "batch_1_operationally_complete_ready_for_batch_2"
+    elif batch_1_priority_targets_closed:
+        status = "batch_1_priority_targets_closed_but_progress_gate_pending"
     elif batch_1_material_progress_detected:
         status = "batch_1_material_progress_detected"
     elif batch_1_officially_started:
@@ -381,8 +386,10 @@ def _batch_1_status(
         recommended_next_action = "inspect_fetch_history_command_failure_then_retry_priority_backfill"
     elif not _safe_bool(export_result.get("succeeded")):
         recommended_next_action = "inspect_phase_a_export_failure_then_rerun_snapshot_export_before_progress_refresh"
-    elif batch_1_complete:
+    elif batch_1_operationally_complete:
         recommended_next_action = "freeze_batch_1_snapshot_and_prepare_batch_2_extension_without_reopening_strategy_track"
+    elif batch_1_priority_targets_closed:
+        recommended_next_action = "reconcile_progress_gate_semantics_before_advancing_batch_2"
     elif batch_1_material_progress_detected:
         recommended_next_action = "continue_priority_backfill_until_batch_1_targets_close_and_do_not_rerun_readiness_gate_yet"
     elif batch_1_officially_started:
@@ -398,6 +405,8 @@ def _batch_1_status(
         primary_article_day_recovery_advanced,
         batch_1_officially_started,
         batch_1_material_progress_detected,
+        batch_1_priority_targets_closed,
+        batch_1_operationally_complete,
         recommended_next_action,
     )
 
@@ -485,6 +494,8 @@ def run_phase_b_priority_backfill_execution(
         primary_article_day_recovery_advanced,
         batch_1_officially_started,
         batch_1_material_progress_detected,
+        batch_1_priority_targets_closed,
+        batch_1_operationally_complete,
         recommended_next_action,
     ) = _batch_1_status(
         row_rows=row_rows,
@@ -507,6 +518,9 @@ def run_phase_b_priority_backfill_execution(
         "batch_1_status": batch_1_status,
         "batch_1_officially_started": batch_1_officially_started,
         "batch_1_material_progress_detected": batch_1_material_progress_detected,
+        "batch_1_priority_targets_closed": batch_1_priority_targets_closed,
+        "batch_1_operationally_complete": batch_1_operationally_complete,
+        "ready_for_batch_2": batch_1_operationally_complete,
         "recommended_next_action": recommended_next_action,
         "source_of_truth_root_cause": {
             "root_cause_class": _safe_str(pipeline_root_cause.get("root_cause_class")),
@@ -526,6 +540,9 @@ def run_phase_b_priority_backfill_execution(
         "batch_1_status": batch_1_status,
         "batch_1_officially_started": batch_1_officially_started,
         "batch_1_material_progress_detected": batch_1_material_progress_detected,
+        "batch_1_priority_targets_closed": batch_1_priority_targets_closed,
+        "batch_1_operationally_complete": batch_1_operationally_complete,
+        "ready_for_batch_2": batch_1_operationally_complete,
         "recommended_next_action": recommended_next_action,
     }
 
@@ -569,6 +586,8 @@ def run_phase_b_priority_backfill_execution(
         lines.append("Row advance terdeteksi pada sebagian ticker prioritas, tetapi belum cukup untuk checkpoint material.")
     elif batch_1_status == "batch_1_material_progress_detected":
         lines.append("Batch-1 resmi mulai bergerak karena history minimum dan article-day primary sudah naik dari baseline.")
+    elif batch_1_status == "batch_1_priority_targets_closed_but_progress_gate_pending":
+        lines.append("Target prioritas batch-1 sudah tertutup, tetapi progress artifact resmi belum mengizinkan advance ke batch-2.")
     else:
         lines.append("Batch-1 selesai dan siap ditutup untuk lanjut ke batch-2 tanpa membuka gate retest.")
     if not _safe_bool(fetch_result.get("succeeded")):

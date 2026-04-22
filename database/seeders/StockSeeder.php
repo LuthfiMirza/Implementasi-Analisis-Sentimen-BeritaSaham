@@ -27,6 +27,8 @@ class StockSeeder extends Seeder
             ['code' => 'INDF', 'company_name' => 'Indofood Sukses Makmur Tbk', 'sector' => 'Konsumsi', 'base_price' => 6500, 'aliases' => ['Indofood']],
             ['code' => 'ICBP', 'company_name' => 'Indofood CBP Sukses Makmur Tbk', 'sector' => 'Konsumsi', 'base_price' => 9700, 'aliases' => ['ICBP']],
             ['code' => 'ADRO', 'company_name' => 'Adaro Energy Indonesia Tbk', 'sector' => 'Energi', 'base_price' => 3100, 'aliases' => ['Adaro']],
+            ['code' => 'BUMI', 'company_name' => 'Bumi Resources Tbk', 'sector' => 'Pertambangan', 'base_price' => 135, 'aliases' => ['Bumi Resources']],
+            ['code' => 'DEWA', 'company_name' => 'Darma Henwa Tbk', 'sector' => 'Pertambangan', 'base_price' => 72, 'aliases' => ['Darma Henwa']],
             ['code' => 'UNVR', 'company_name' => 'Unilever Indonesia Tbk', 'sector' => 'Konsumsi', 'base_price' => 4700, 'aliases' => ['Unilever']],
         ];
 

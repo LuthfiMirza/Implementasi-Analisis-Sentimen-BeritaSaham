@@ -20,6 +20,9 @@ return [
     ],
     'source_weights' => [
         'ojk_rss' => 1.1,
+        'idx_disclosure' => 1.1,
+        'business_site_search' => 1.0,
+        'google_news_rss' => 0.95,
         'rss_local' => 1.0,
         'newsapi' => 0.95,
         'gnews' => 0.9,
@@ -27,14 +30,30 @@ return [
         'gdelt' => 0.7,
         'mock' => 0.5,
     ],
-    'multi_providers' => ['rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
-    'source_priority' => ['rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
+    'multi_providers' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
+    'source_priority' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
     'macro_global_providers' => ['ojk_rss'],
+    'google_news_rss' => [
+        'base_url' => env('NEWS_GOOGLE_RSS_BASE_URL', 'https://news.google.com/rss/search'),
+        'hl' => env('NEWS_GOOGLE_RSS_HL', 'id'),
+        'gl' => env('NEWS_GOOGLE_RSS_GL', 'ID'),
+        'ceid' => env('NEWS_GOOGLE_RSS_CEID', 'ID:id'),
+        'timeout' => env('NEWS_GOOGLE_RSS_TIMEOUT', 8),
+        'user_agent' => env('NEWS_GOOGLE_RSS_USER_AGENT', env('NEWS_RSS_USER_AGENT', 'SentimenaBot/1.0 (+https://sentimena.app)')),
+    ],
+    'idx_disclosure' => [
+        'calendar_url' => env('NEWS_IDX_DISCLOSURE_CALENDAR_URL', 'https://www.idx.id/en/listed-companies/listed-company-calendar/'),
+        'timeout' => env('NEWS_IDX_DISCLOSURE_TIMEOUT', 8),
+        'user_agent' => env('NEWS_IDX_DISCLOSURE_USER_AGENT', env('NEWS_RSS_USER_AGENT', 'SentimenaBot/1.0 (+https://sentimena.app)')),
+    ],
+    'business_site_search' => [
+        'timeout' => env('NEWS_BUSINESS_SITE_SEARCH_TIMEOUT', 8),
+        'user_agent' => env('NEWS_BUSINESS_SITE_SEARCH_USER_AGENT', env('NEWS_RSS_USER_AGENT', 'SentimenaBot/1.0 (+https://sentimena.app)')),
+    ],
 
     // Optional preferensi per saham: jika di-set, urutan provider akan mengikuti mapping ini ketika mode multi.
     'preferred_providers' => [
-        // 'ASII' => ['newsapi', 'rss_local', 'gnews'],
-        // 'ADRO' => ['newsapi', 'gnews', 'rss_local'],
-        // 'GOTO' => ['newsapi', 'gnews', 'rss_local'],
+        'UNVR' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
+        'ICBP' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
     ],
 ];

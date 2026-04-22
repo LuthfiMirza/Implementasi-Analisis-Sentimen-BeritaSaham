@@ -1,7 +1,7 @@
 Phase C Backlog
 ===============
 
-- Phase A gate status: blocked
+- Phase A gate status: closed_with_notes
 - Start now: False
 - Reason: Fase C sebaiknya baru disentuh setelah Fase B selesai atau minimal closed_with_notes dengan baseline yang stabil.
 

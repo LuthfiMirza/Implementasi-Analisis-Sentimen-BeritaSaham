@@ -70,4 +70,22 @@ class GNewsFetcherTest extends TestCase
 
         $this->assertEmpty($articles);
     }
+
+    public function test_gnews_queries_prioritize_exact_issuer_aliases_for_unvr(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'UNVR', 'company_name' => 'Unilever Indonesia Tbk']);
+        $fetcher = new class extends GNewsFetcher
+        {
+            public function exposedBuildQueries(Stock $stock): array
+            {
+                return $this->buildQueries($stock);
+            }
+        };
+
+        $queries = $fetcher->exposedBuildQueries($stock);
+
+        $this->assertContains('"Unilever Indonesia"', $queries);
+        $this->assertTrue(collect($queries)->contains(fn ($query) => str_contains($query, '"PT Unilever Indonesia Tbk"')));
+        $this->assertTrue(collect($queries)->contains(fn ($query) => str_contains($query, '"saham UNVR"')));
+    }
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-21T14:06:38.363079+00:00",
+  "generated_at": "2026-04-22T02:49:35.580596+00:00",
   "policy_realignment_applied": true,
   "policy_path": "hybrid_gate_realignment_without_oos_redesign_plus_news_distribution_density_realignment",
   "source_policy_audit_artifact": "output/phase_b_oos_policy_alignment_audit.json",
@@ -29,12 +29,41 @@
     }
   ],
   "blockers_removed_by_policy_conflict_resolution": [
-    "history_gate::additional_bars_from_v9_baseline actual=0 target>=63",
-    "history_gate::usable_oos_windows_per_ticker actual=3 target>=6",
-    "news_distribution_gate::median_news_density_pct actual=0.3252 target>=5.0"
+    "history_gate::usable_oos_windows_per_ticker actual=3 target>=6"
   ],
-  "blockers_still_active_after_policy_realignment": [],
-  "readiness_status_after_policy_realignment": "boleh_retest",
-  "strategy_retest_allowed_after_policy_realignment": true,
+  "blockers_still_active_after_policy_realignment": [
+    {
+      "blocker_name": "news_distribution_gate::median_news_density_pct",
+      "actual_value": 0.3204,
+      "target_value": 0.3252,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::baseline_filter_overlap_risk_acceptable",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::signal_sparsity_flatness_audit_passed",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::baseline_validation_candidate_usable",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    },
+    {
+      "blocker_name": "framework_governance_gate::official_strategy_retry_reopened",
+      "actual_value": 0,
+      "target_value": 1,
+      "operator": ">="
+    }
+  ],
+  "readiness_status_after_policy_realignment": "belum_boleh_retest",
+  "strategy_retest_allowed_after_policy_realignment": false,
   "roadmap_update_allowed_after_policy_realignment": false
 }

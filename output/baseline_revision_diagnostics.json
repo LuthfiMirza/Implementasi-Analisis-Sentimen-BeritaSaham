@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-04-19T02:27:34.860237+00:00",
+  "current_baseline_context": {
+    "default_volume_spike_threshold": 1.5,
+    "strict_mode_default": false,
+    "adaptive_threshold_enabled": false,
+    "min_trades_floor": 8,
+    "baseline_status": "provisional"
+  },
+  "audit": {
+    "entry_rule": {
+      "current_rule": "close_gt_ema50_and_volume_spike_threshold",
+      "overlap_with_volume_spike_ema50": "high",
+      "current_total_trades_sum": 8.0,
+      "simplified_entry_total_trades_sum": 17.0,
+      "current_mean_average_return": -1.6179999999999999,
+      "simplified_entry_mean_average_return": -1.04529,
+      "diagnosis": "current_entry_too_tight"
+    },
+    "exit_hold_logic": {
+      "current_hold_period": 5,
+      "redesign_best_hold_period": 3,
+      "diagnosis": "hold_period_3_is_preferred"
+    },
+    "labeling_success_criteria": {
+      "current_profit_buffer_pct": 0.0,
+      "buffer_candidate_profit_buffer_pct": 0.25,
+      "raw_win_rate_mean": 2.0,
+      "buffered_win_rate_mean": 2.0,
+      "raw_vs_buffered_gap": 0.0,
+      "diagnosis": "success_label_not_main_blocker"
+    },
+    "coverage_usability": {
+      "current_zero_trade_ticker_count": 6,
+      "current_weak_trade_ticker_count": 9,
+      "current_eligible_ticker_count": 1,
+      "trend_guard_eligible_ticker_count": 1,
+      "simplified_entry_eligible_ticker_count": 2,
+      "diagnosis": "baseline_coverage_insufficient"
+    }
+  },
+  "recommended_revision_axes": [
+    "Kurangi ketergantungan entry pada volume spike sebagai syarat wajib.",
+    "Tetapkan hold period default 3 sebagai kandidat baseline v2 utama.",
+    "Pilih entry yang lebih sederhana tetapi tetap menjaga trend sebagai syarat esensial."
+  ],
+  "context_artifacts_available": {
+    "phase_b_postmortem": true,
+    "phase_b_redesign_decision": true,
+    "baseline_redesign_go_no_go": true
+  },
+  "warnings": []
+}

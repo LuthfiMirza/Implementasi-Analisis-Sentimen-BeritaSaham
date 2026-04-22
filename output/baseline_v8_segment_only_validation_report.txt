@@ -1,0 +1,18 @@
+Baseline v8 Segment-Only Validation
+===================================
+
+- Candidate: baseline_v3_ema20_trend_guard
+- Primary segment: sentiment_segment=sentiment_poor
+- Supporting segments: volatility_segment=mixed_volatility, liquidity_segment=thin_sparse, news_segment=mid_news
+- Decision: promote_to_segment_only_validation
+- Segment stability ok: True
+- Global promotion allowed: False
+- Recommended next action: promote_candidate_to_segment_only_validation_on_primary_segment_without_global_promotion
+
+Supporting check summary:
+- passed=volatility_segment=mixed_volatility, liquidity_segment=thin_sparse, news_segment=mid_news
+- failed=-
+
+Decision notes:
+- Primary segment lolos dan seluruh supporting safe segments konsisten.
+- Kandidat layak naik ke validasi khusus subset, tetapi tetap dilarang untuk promosi global.

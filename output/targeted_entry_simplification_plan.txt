@@ -1,0 +1,76 @@
+Targeted Entry Simplification Plan
+==================================
+
+Generated at: 2026-04-22
+
+Current official context:
+- WFT first pass already closed as failed for paper-trading candidate track.
+- Dominant failure class = `oos_instability`.
+- Paper trading remains closed.
+- Retest remains closed.
+- Layer 3 stays `optional toggle only`.
+- Layer 4 and Layer 5 are not to be redesigned in this cycle.
+- Only one redesign scope is allowed now: `entry_simplification`.
+
+Current entry stack audit:
+- Current active stack:
+  - Layer 1 = IHSG EMA50 > EMA200 with explicit previous-trading-day alignment
+  - Layer 2 alternative = return_20d > 0
+  - Layer 2 alternative = close > ema50
+  - Layer 3 = optional only, not default-active
+- Most likely entry problem:
+  - current Layer 2 alternative contains two correlated stock-level trend confirmations on top of an already active market regime filter
+  - this likely cleaned in-sample selection but increased late-trend / over-confirmed entries and hurt OOS robustness
+
+Simplification options compared:
+1. Control current dual gate
+   - rule = Layer 1 + return_20d > 0 AND close > ema50
+   - role = keep as control only
+2. Momentum positive only
+   - rule = Layer 1 + return_20d > 0
+   - role = selected candidate
+3. Close above EMA50 only
+   - rule = Layer 1 + close > ema50
+   - role = secondary candidate, but less preferred
+4. Layer 1 only
+   - rule = Layer 1 only
+   - role = diagnostic floor, not the main redesign target
+
+Selected redesign scope:
+- selected scope = drop `close > ema50`, keep `return_20d > 0`
+- candidate next rule:
+  - Layer 1 active
+  - return_20d > 0 active
+  - close > ema50 removed temporarily
+  - Layer 3 remains optional and off by default
+  - Layer 4 unchanged
+  - Layer 5 unchanged
+
+Rules retained:
+- IHSG EMA50 > EMA200 with explicit previous-trading-day alignment
+- return_20d > 0
+- no liquidity gate as active policy
+
+Rules dropped temporarily:
+- close > ema50
+
+Why this is the most defensible next step:
+- It is the narrowest simplification of the current active entry stack.
+- It preserves the core absolute momentum idea from the active Layer 2 alternative.
+- It removes the extra stock-level confirmation most likely to overlap with Layer 1 and create OOS fragility.
+- It is directly testable against the current control without touching Layer 3, Layer 4, or Layer 5.
+
+Why this is more defensible than exit redesign now:
+- WFT closeout already points first to `oos_instability` with strong `entry_design` contribution.
+- ATR trailing stop had previously beaten fixed hold in the integration pass, so exit is not the cleanest first target to revisit.
+- The preferred WFT stack already had Layer 3 off, so the next narrow diagnostic move is entry simplification, not exit rework.
+
+Forbidden or premature now:
+- Do not open paper trading.
+- Do not open retest.
+- Do not redesign Layer 4 or Layer 5 now.
+- Do not reactivate Layer 3 as default-active.
+- Do not run multiple redesign scopes at once.
+
+Official next action:
+- Implement and test `Layer 1 + return_20d > 0 only` as the single targeted entry simplification candidate against the current control.

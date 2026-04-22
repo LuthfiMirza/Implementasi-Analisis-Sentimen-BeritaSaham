@@ -1,0 +1,22 @@
+row_type,subject_id,metric_name,current_snapshot,batch_1_target,batch_1_status,batch_2_target,batch_2_status,batch_3_target,batch_3_status,blocking_note
+global_metric,global,min_history_bars_per_ticker,1171.0,78.0,done,99.0,done,120.0,done,History minimum adalah blocker tertinggi dan harus ditutup di seluruh universe.
+global_metric,global,additional_bars_from_v9_baseline,211.0,21.0,done,42.0,done,63.0,done,Tambahan bar dihitung relatif terhadap minimum rows yang dipakai summary baseline v9 terbaru.
+global_metric,global,usable_oos_windows_per_ticker,3.0,3.0,done,3.0,done,3.0,done,"Usable OOS windows operasional mengikuti methodology-aligned threshold pada readiness gate. Stretch target legacy tetap dicatat terpisah: batch_1=4.0, batch_2=6.0, batch_3=8.0."
+global_metric,global,coverage_ready_ticker_ratio,1.0,0.0,done,0.0,done,1.0,done,Coverage-ready ratio praktis baru akan bergerak penuh saat history gate tertutup di seluruh ticker.
+global_metric,primary_segment,primary_segment_total_articles,89.0,13.0,done,14.0,done,18.0,done,Target interim dibuat untuk mengecek apakah article supply primary segment mulai bergerak material.
+global_metric,primary_segment,primary_segment_article_days_median,7.5,3.0,done,3.0,done,4.0,done,Median article days primary harus naik sebelum retest gate diulang.
+global_metric,derived_oos,total_oos_trades_primary_segment,1434.0,13.0,done,15.0,done,18.0,done,Ini metric turunan; nilainya harus diukur ulang setelah batch data baru masuk.
+global_metric,derived_oos,no_single_fold_trade_share,0.372,0.6,done,0.55,done,0.5,done,Konsentrasi fold hanya bisa dievaluasi ulang setelah OOS rerun pada data yang sudah diperpanjang.
+ticker,ASII,ticker_execution_status,history=2690|article_days=6|primary=True,history>=78|article_days>=3,done,history>=99|article_days>=3,done,history>=120|article_days>=4,done,
+ticker,BBCA,ticker_execution_status,history=2647|article_days=8|primary=True,history>=78|article_days>=3,done,history>=99|article_days>=3,done,history>=120|article_days>=4,done,
+ticker,BUMI,ticker_execution_status,history=2683|article_days=7|primary=True,history>=78|article_days>=3,done,history>=99|article_days>=3,done,history>=120|article_days>=4,done,
+ticker,ICBP,ticker_execution_status,history=2690|article_days=8|primary=True,history>=78|article_days>=3,done,history>=99|article_days>=3,done,history>=120|article_days>=4,done,
+ticker,INDF,ticker_execution_status,history=2691|article_days=8|primary=True,history>=78|article_days>=3,done,history>=99|article_days>=3,done,history>=120|article_days>=4,done,
+ticker,UNVR,ticker_execution_status,history=2656|article_days=7|primary=True,history>=78|article_days>=3,done,history>=99|article_days>=3,done,history>=120|article_days>=4,done,
+ticker,ADRO,ticker_execution_status,history=2597|article_days=9|primary=False,history>=78,done,history>=99,done,history>=120,done,
+ticker,BBRI,ticker_execution_status,history=2654|article_days=9|primary=False,history>=78,done,history>=99,done,history>=120,done,
+ticker,BMRI,ticker_execution_status,history=2658|article_days=9|primary=False,history>=78,done,history>=99,done,history>=120,done,
+ticker,DEWA,ticker_execution_status,history=2608|article_days=9|primary=False,history>=78,done,history>=99,done,history>=120,done,
+ticker,GOTO,ticker_execution_status,history=1171|article_days=9|primary=False,history>=78,done,history>=99,done,history>=120,done,
+ticker,TLKM,ticker_execution_status,history=2643|article_days=11|primary=False,history>=78,done,history>=99,done,history>=120,done,
+segment,sentiment_segment=sentiment_poor,segment_execution_status,history_min=2647|articles=89|article_days_median=7.5,history>=78|articles>=13|article_days_median>=3.0,done,history>=99|articles>=14|article_days_median>=3.0,done,history>=120|articles>=18|article_days_median>=4.0,done,

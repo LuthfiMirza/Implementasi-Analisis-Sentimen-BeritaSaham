@@ -1,0 +1,52 @@
+{
+  "generated_at": "2026-04-19T13:55:50.739232+00:00",
+  "experiment_id": "baseline_v4_quality_gate_guard_v2",
+  "scaffold_only": false,
+  "objective": "Iterate the v4 quality-gate approach once more with only slightly looser post-entry filters to try lifting coverage from 2 to >=3 eligible tickers without collapsing quality.",
+  "candidate_matrix": [
+    {
+      "candidate_id": "baseline_v4_quality_gate_v2_body_relaxed",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "body_strength_floor_relaxed",
+      "gate_summary": "Relax body and close strength slightly while keeping a meaningful range floor.",
+      "min_body_to_range_ratio": 0.5,
+      "min_close_vs_open_pct": 0.25,
+      "min_range_pct": 0.75,
+      "min_close_vs_anchor_pct": 0.0,
+      "hold_period": 3,
+      "min_trades_threshold": 5,
+      "status": "scaffold_only"
+    },
+    {
+      "candidate_id": "baseline_v4_quality_gate_v2_anchor_micro_confirm",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "body_strength_relaxed_plus_micro_anchor_confirm",
+      "gate_summary": "Allow a softer candle body but keep a small distance above EMA20 to avoid weak closes.",
+      "min_body_to_range_ratio": 0.48,
+      "min_close_vs_open_pct": 0.22,
+      "min_range_pct": 0.7,
+      "min_close_vs_anchor_pct": 0.02,
+      "hold_period": 3,
+      "min_trades_threshold": 5,
+      "status": "scaffold_only"
+    },
+    {
+      "candidate_id": "baseline_v4_quality_gate_v2_coverage_push",
+      "entry_anchor_rule": "close_gt_ema20_and_bullish_candle",
+      "quality_gate_id": "coverage_push_with_guardrails",
+      "gate_summary": "Push for one more eligible ticker by relaxing body/range modestly without dropping the bullish-candle anchor.",
+      "min_body_to_range_ratio": 0.47,
+      "min_close_vs_open_pct": 0.18,
+      "min_range_pct": 0.65,
+      "min_close_vs_anchor_pct": 0.0,
+      "hold_period": 3,
+      "min_trades_threshold": 5,
+      "status": "scaffold_only"
+    }
+  ],
+  "execution_notes": [
+    "Tetap gunakan fast anchor EMA20 + bullish candle.",
+    "Jangan kembali ke entry relaxation only.",
+    "Bandingkan terhadap baseline reference dan baseline_v3_ema20_trend_guard."
+  ]
+}

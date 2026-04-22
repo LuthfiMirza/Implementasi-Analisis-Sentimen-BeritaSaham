@@ -1,0 +1,1223 @@
+{
+  "generated_at": "2026-04-22T01:57:37.894079+00:00",
+  "priority_tickers_checked": [
+    "ASII",
+    "BUMI",
+    "UNVR",
+    "ADRO",
+    "BBCA",
+    "INDF",
+    "TLKM",
+    "DEWA"
+  ],
+  "providers_attempted": [
+    "google_news_rss",
+    "idx_disclosure",
+    "business_site_search",
+    "gnews",
+    "rss_local",
+    "newsapi",
+    "finnhub",
+    "gdelt"
+  ],
+  "rows": [
+    {
+      "ticker": "ASII",
+      "provider": "google_news_rss",
+      "raw_count": 10,
+      "saved_count": 1,
+      "updated_count": 3,
+      "dropped_relevance": 2,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [
+        {
+          "title": "IHSG diproyeksikan turun, analis jagokan saham ASII, BBCA, ERAA - MSN",
+          "provider": "google_news_rss",
+          "reason": "relevance_below_threshold",
+          "relevance": 0.304,
+          "entity": 0.48,
+          "market": 0.34,
+          "issuer_specificity": "direct",
+          "direct_keyword_hits": [
+            "ASII"
+          ],
+          "competing_keyword_hits": {
+            "BBCA": [
+              "BBCA",
+              "BCA"
+            ]
+          }
+        },
+        {
+          "title": "IHSG Diproyeksikan Turun, Analis Jagokan Saham ASII, BBCA, ERAA - Katadata.co.id",
+          "provider": "google_news_rss",
+          "reason": "relevance_below_threshold",
+          "relevance": 0.304,
+          "entity": 0.48,
+          "market": 0.34,
+          "issuer_specificity": "direct",
+          "direct_keyword_hits": [
+            "ASII"
+          ],
+          "competing_keyword_hits": {
+            "BBCA": [
+              "BBCA",
+              "BCA"
+            ]
+          }
+        }
+      ],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ASII",
+      "provider": "idx_disclosure",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ASII",
+      "provider": "business_site_search",
+      "raw_count": 8,
+      "saved_count": 0,
+      "updated_count": 2,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ASII",
+      "provider": "gnews",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ASII",
+      "provider": "rss_local",
+      "raw_count": 3,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ASII",
+      "provider": "newsapi",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ASII",
+      "provider": "finnhub",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ASII",
+      "provider": "gdelt",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 1,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BUMI",
+      "provider": "google_news_rss",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 5,
+      "dropped_relevance": 2,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [
+        {
+          "title": "Asing Net Sell Rp 2,7 T Pekan Ini, Lepas Saham BBCA hingga BUMI - Katadata.co.id",
+          "provider": "google_news_rss",
+          "reason": "relevance_below_threshold",
+          "relevance": 0.266,
+          "entity": 0.48,
+          "market": 0.16,
+          "issuer_specificity": "direct",
+          "direct_keyword_hits": [
+            "BUMI"
+          ],
+          "competing_keyword_hits": {
+            "BBCA": [
+              "BBCA",
+              "saham BBCA",
+              "BCA"
+            ]
+          }
+        },
+        {
+          "title": "Seberapa Besar Peluang Pemegang Saham BUMI Nikmati Guyuran Dividen 2026 - Bisnis Indonesia Premium",
+          "provider": "google_news_rss",
+          "reason": "relevance_below_threshold",
+          "relevance": 0.304,
+          "entity": 0.48,
+          "market": 0.34,
+          "issuer_specificity": "direct",
+          "direct_keyword_hits": [
+            "BUMI"
+          ],
+          "competing_keyword_hits": {
+            "MEGA": [
+              "MEGA"
+            ]
+          }
+        }
+      ],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BUMI",
+      "provider": "idx_disclosure",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BUMI",
+      "provider": "business_site_search",
+      "raw_count": 5,
+      "saved_count": 0,
+      "updated_count": 3,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BUMI",
+      "provider": "gnews",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BUMI",
+      "provider": "rss_local",
+      "raw_count": 10,
+      "saved_count": 2,
+      "updated_count": 2,
+      "dropped_relevance": 2,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [
+        {
+          "title": "Media Asing Sorot Temuan Sumur Gas Raksasa RI, Katakan Ini",
+          "provider": "rss_local",
+          "reason": "relevance_below_threshold",
+          "relevance": 0,
+          "entity": 0,
+          "market": 0,
+          "issuer_specificity": "none",
+          "direct_keyword_hits": [],
+          "competing_keyword_hits": []
+        },
+        {
+          "title": "Wapres Gibran ke Yahukimo usai Insiden Penembakan, Cek MBG Hingga RS",
+          "provider": "rss_local",
+          "reason": "relevance_below_threshold",
+          "relevance": 0,
+          "entity": 0,
+          "market": 0,
+          "issuer_specificity": "none",
+          "direct_keyword_hits": [],
+          "competing_keyword_hits": []
+        }
+      ],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BUMI",
+      "provider": "newsapi",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BUMI",
+      "provider": "finnhub",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BUMI",
+      "provider": "gdelt",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 1,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "UNVR",
+      "provider": "google_news_rss",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 4,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 1,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": [
+        {
+          "title": "Lowongan Kerja Unilever Indonesia Dibuka Maret 2026 - Kompas.tv",
+          "provider": "google_news_rss",
+          "reason": "matched_exclusion_keyword",
+          "detail": "lowongan",
+          "source_domain": "news.google.com"
+        }
+      ]
+    },
+    {
+      "ticker": "UNVR",
+      "provider": "idx_disclosure",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "UNVR",
+      "provider": "business_site_search",
+      "raw_count": 5,
+      "saved_count": 0,
+      "updated_count": 4,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "UNVR",
+      "provider": "gnews",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "UNVR",
+      "provider": "rss_local",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "UNVR",
+      "provider": "newsapi",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "UNVR",
+      "provider": "finnhub",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "UNVR",
+      "provider": "gdelt",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 1,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ADRO",
+      "provider": "google_news_rss",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 3,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ADRO",
+      "provider": "idx_disclosure",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ADRO",
+      "provider": "business_site_search",
+      "raw_count": 6,
+      "saved_count": 0,
+      "updated_count": 5,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ADRO",
+      "provider": "gnews",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ADRO",
+      "provider": "rss_local",
+      "raw_count": 5,
+      "saved_count": 0,
+      "updated_count": 2,
+      "dropped_relevance": 1,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [
+        {
+          "title": "RUPST Alamtri sepakati dividen tunai 99,9 persen dari laba bersih 2025",
+          "provider": "rss_local",
+          "reason": "relevance_below_threshold",
+          "relevance": 0.12,
+          "entity": 0.1,
+          "market": 0.4,
+          "issuer_specificity": "direct",
+          "direct_keyword_hits": [
+            "ADRO"
+          ],
+          "competing_keyword_hits": {
+            "MEGA": [
+              "MEGA"
+            ]
+          }
+        }
+      ],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ADRO",
+      "provider": "newsapi",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ADRO",
+      "provider": "finnhub",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "ADRO",
+      "provider": "gdelt",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 1,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BBCA",
+      "provider": "google_news_rss",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 7,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BBCA",
+      "provider": "idx_disclosure",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BBCA",
+      "provider": "business_site_search",
+      "raw_count": 5,
+      "saved_count": 0,
+      "updated_count": 2,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BBCA",
+      "provider": "gnews",
+      "raw_count": 1,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 1,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": [
+        {
+          "title": "BCA Buka Program Genera-Z Berbakti 2026, Mahasiswa Bisa Dapat Bantuan Dana!",
+          "provider": "gnews",
+          "reason": "matched_exclusion_keyword",
+          "detail": "gratis",
+          "source_domain": "www.detik.com"
+        }
+      ]
+    },
+    {
+      "ticker": "BBCA",
+      "provider": "rss_local",
+      "raw_count": 5,
+      "saved_count": 0,
+      "updated_count": 3,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 1,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": [
+        {
+          "title": "Saham BBCA Lagi Diskon Besar di 2026, Ini Prediksi Analis",
+          "provider": "rss_local",
+          "reason": "matched_exclusion_keyword",
+          "detail": "diskon",
+          "source_domain": "finance.detik.com"
+        }
+      ]
+    },
+    {
+      "ticker": "BBCA",
+      "provider": "newsapi",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BBCA",
+      "provider": "finnhub",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "BBCA",
+      "provider": "gdelt",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 1,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "INDF",
+      "provider": "google_news_rss",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 5,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 2,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": [
+        {
+          "title": "Lowongan Kerja Indofood April 2026 Terbaru, SMA hingga S1 Bisa Daftar Online - kontan.co.id",
+          "provider": "google_news_rss",
+          "reason": "matched_exclusion_keyword",
+          "detail": "lowongan",
+          "source_domain": "news.google.com"
+        },
+        {
+          "title": "Lowongan Kerja Indofood Dibuka April 2026, Cek Kualifikasinya - Kompas.tv",
+          "provider": "google_news_rss",
+          "reason": "matched_exclusion_keyword",
+          "detail": "lowongan",
+          "source_domain": "news.google.com"
+        }
+      ]
+    },
+    {
+      "ticker": "INDF",
+      "provider": "idx_disclosure",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "INDF",
+      "provider": "business_site_search",
+      "raw_count": 1,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 1,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [
+        {
+          "title": "Gejolak Harga Bahan Baku Bayangi Laba Indofood CBP Sukses Makmur (ICBP) di 2026",
+          "provider": "business_site_search",
+          "reason": "relevance_below_threshold",
+          "relevance": 0.28,
+          "entity": 0.48,
+          "market": 0.16,
+          "issuer_specificity": "direct",
+          "direct_keyword_hits": [
+            "Indofood"
+          ],
+          "competing_keyword_hits": {
+            "ICBP": [
+              "ICBP",
+              "Indofood CBP Sukses Makmur",
+              "Indofood CBP"
+            ]
+          }
+        }
+      ],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "INDF",
+      "provider": "gnews",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "INDF",
+      "provider": "rss_local",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "INDF",
+      "provider": "newsapi",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "INDF",
+      "provider": "finnhub",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "INDF",
+      "provider": "gdelt",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 1,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "TLKM",
+      "provider": "google_news_rss",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 6,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "TLKM",
+      "provider": "idx_disclosure",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "TLKM",
+      "provider": "business_site_search",
+      "raw_count": 5,
+      "saved_count": 0,
+      "updated_count": 2,
+      "dropped_relevance": 1,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [
+        {
+          "title": "NeutraDC Perkenalkan Solusi AI Terbaru",
+          "provider": "business_site_search",
+          "reason": "relevance_below_threshold",
+          "relevance": 0.18,
+          "entity": 0.22,
+          "market": 0,
+          "issuer_specificity": "direct",
+          "direct_keyword_hits": [
+            "Telkom"
+          ],
+          "competing_keyword_hits": []
+        }
+      ],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "TLKM",
+      "provider": "gnews",
+      "raw_count": 1,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "TLKM",
+      "provider": "rss_local",
+      "raw_count": 8,
+      "saved_count": 0,
+      "updated_count": 6,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 1,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": [
+        {
+          "title": "Telkomsel Ajak Mahasiswa Jawab Kebutuhan Talenta AI di IndonesiaNEXT",
+          "provider": "rss_local",
+          "reason": "matched_exclusion_keyword",
+          "detail": "program csr",
+          "source_domain": "www.cnbcindonesia.com"
+        }
+      ]
+    },
+    {
+      "ticker": "TLKM",
+      "provider": "newsapi",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "TLKM",
+      "provider": "finnhub",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "TLKM",
+      "provider": "gdelt",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 1,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "DEWA",
+      "provider": "google_news_rss",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 4,
+      "dropped_relevance": 1,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [
+        {
+          "title": "Saham BUMI dan DEWA Melejit, Sudah Dekati Target: Masih Bisa Naik? - Herald ID",
+          "provider": "google_news_rss",
+          "reason": "relevance_below_threshold",
+          "relevance": 0.266,
+          "entity": 0.48,
+          "market": 0.16,
+          "issuer_specificity": "direct",
+          "direct_keyword_hits": [
+            "DEWA"
+          ],
+          "competing_keyword_hits": {
+            "BUMI": [
+              "BUMI"
+            ]
+          }
+        }
+      ],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "DEWA",
+      "provider": "idx_disclosure",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "DEWA",
+      "provider": "business_site_search",
+      "raw_count": 5,
+      "saved_count": 0,
+      "updated_count": 1,
+      "dropped_relevance": 1,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [
+        {
+          "title": "Gelar Private Placement, Darma Henwa Terbitkan 2,18 Miliar Saham",
+          "provider": "business_site_search",
+          "reason": "relevance_below_threshold",
+          "relevance": 0.28,
+          "entity": 0.48,
+          "market": 0.16,
+          "issuer_specificity": "direct",
+          "direct_keyword_hits": [
+            "Darma Henwa"
+          ],
+          "competing_keyword_hits": {
+            "MEGA": [
+              "MEGA"
+            ]
+          }
+        }
+      ],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "DEWA",
+      "provider": "gnews",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 10,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": [
+        {
+          "title": "Remember November Kasih Panggung Besar Buat Musisi Autisme The Lanang Band dan Poco Band",
+          "provider": "gnews",
+          "reason": "matched_exclusion_keyword",
+          "detail": "dewa 19",
+          "source_domain": "www.detik.com"
+        },
+        {
+          "title": "Fadly Alberto Hengga Minta Maaf Usai Layangkan Tendangan Kungfu",
+          "provider": "gnews",
+          "reason": "matched_exclusion_keyword",
+          "detail": "dewa united",
+          "source_domain": "www.detik.com"
+        },
+        {
+          "title": "Fakta-fakta Tendangan Kungfu Alberto Hengga ke Pemain Dewa United U-20",
+          "provider": "gnews",
+          "reason": "matched_exclusion_keyword",
+          "detail": "dewa united",
+          "source_domain": "www.detik.com"
+        }
+      ]
+    },
+    {
+      "ticker": "DEWA",
+      "provider": "rss_local",
+      "raw_count": 10,
+      "saved_count": 0,
+      "updated_count": 4,
+      "dropped_relevance": 2,
+      "dropped_quality": 3,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [
+        {
+          "title": "Purbaya Siap Hantam Eksportir Ilegal, Jumlahnya Tidak Terkendali",
+          "provider": "rss_local",
+          "reason": "relevance_below_threshold",
+          "relevance": 0,
+          "entity": 0,
+          "market": 0,
+          "issuer_specificity": "none",
+          "direct_keyword_hits": [],
+          "competing_keyword_hits": []
+        },
+        {
+          "title": "Purbaya Ungkap Tak Ada Instruksi Bayar Iuran BoP dari Prabowo",
+          "provider": "rss_local",
+          "reason": "relevance_below_threshold",
+          "relevance": 0,
+          "entity": 0,
+          "market": 0,
+          "issuer_specificity": "none",
+          "direct_keyword_hits": [],
+          "competing_keyword_hits": []
+        }
+      ],
+      "quality_samples": [
+        {
+          "title": "Purbaya: Aturan baru tidak ubah total pajak kendaraan listrik",
+          "provider": "rss_local",
+          "reason": "quality_below_threshold",
+          "final_quality": 0.25,
+          "relevance": 0.18,
+          "issuer_specificity": "direct"
+        },
+        {
+          "title": "Purbaya buka peluang China terbitkan obligasi di Indonesia",
+          "provider": "rss_local",
+          "reason": "quality_below_threshold",
+          "final_quality": 0.298,
+          "relevance": 0.22,
+          "issuer_specificity": "direct"
+        },
+        {
+          "title": "Purbaya: Presiden tak pernah instruksi siapkan APBN untuk iuran BoP",
+          "provider": "rss_local",
+          "reason": "quality_below_threshold",
+          "final_quality": 0.25,
+          "relevance": 0.18,
+          "issuer_specificity": "direct"
+        }
+      ],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "DEWA",
+      "provider": "newsapi",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "DEWA",
+      "provider": "finnhub",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 0,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    },
+    {
+      "ticker": "DEWA",
+      "provider": "gdelt",
+      "raw_count": 0,
+      "saved_count": 0,
+      "updated_count": 0,
+      "dropped_relevance": 0,
+      "dropped_quality": 0,
+      "dropped_exclusion": 0,
+      "failed": 1,
+      "relevance_samples": [],
+      "quality_samples": [],
+      "exclusion_samples": []
+    }
+  ]
+}

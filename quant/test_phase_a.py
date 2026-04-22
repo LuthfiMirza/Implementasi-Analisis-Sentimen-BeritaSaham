@@ -5,6 +5,7 @@ import unittest
 import pandas as pd
 
 from quant.phase_a import (
+    apply_market_regime_gate,
     add_sentiment_momentum_features,
     add_trend_features,
     add_candlestick_volume_confirmation_features,
@@ -231,6 +232,25 @@ class PhaseATestCase(unittest.TestCase):
         ]
 
         self.assertGreaterEqual(loose_trades, tight_trades)
+
+    def test_apply_market_regime_gate_skips_entries_when_regime_is_non_bullish(self) -> None:
+        frame = self.df.copy()
+        frame["candidate_signal"] = False
+        frame.loc[78, "candidate_signal"] = True
+        frame.loc[79, "candidate_signal"] = True
+        frame["market_regime_bullish"] = True
+        frame.loc[79, "market_regime_bullish"] = False
+
+        gated = apply_market_regime_gate(
+            frame,
+            signal_column="candidate_signal",
+            regime_column="market_regime_bullish",
+            gated_signal_column="candidate_signal_gated",
+        )
+
+        self.assertTrue(bool(gated.loc[78, "candidate_signal_gated"]))
+        self.assertFalse(bool(gated.loc[79, "candidate_signal_gated"]))
+        self.assertTrue(bool(gated.loc[79, "market_regime_entry_skipped"]))
 
 
 if __name__ == "__main__":

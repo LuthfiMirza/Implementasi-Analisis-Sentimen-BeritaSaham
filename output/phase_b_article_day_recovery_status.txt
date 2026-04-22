@@ -1,0 +1,7 @@
+Phase B Article-Day Recovery Status
+- primary_segment_total_articles=80.0
+- primary_segment_article_days_median=7.0
+- article_target_met=True
+- article_days_target_met=True
+- decisive_statement=Primary segment article-day recovery sudah memenuhi target minimum batch-1.
+- recommended_next_action=article_day_targets_closed_waiting_for_segmentation_sync_or_batch_decision_refresh

@@ -1,0 +1,14 @@
+Phase B v2 Overlap Audit
+========================
+
+- Generated at: 2026-04-19T02:09:03.110065+00:00
+- Baseline threshold: 1.5
+- Baseline strict mode: False
+- Overall overlap risk: high
+- Conclusion: Baseline aktif sudah menyerap sebagian besar variasi threshold sederhana; eksperimen item 5 dan item 8 terutama terlihat redundant atau terlalu sempit.
+
+Item findings:
+- item5 overlap=high
+- item6 overlap=low
+- item7 overlap=low
+- item8 overlap=high

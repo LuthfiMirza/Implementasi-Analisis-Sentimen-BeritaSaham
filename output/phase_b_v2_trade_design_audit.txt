@@ -1,0 +1,13 @@
+Phase B v2 Trade Design Audit
+=============================
+
+- Generated at: 2026-04-19T02:09:03.110065+00:00
+- Current hold period: 5
+- Baseline min trades floor: 8
+- Best hold for coverage: 3
+- Conclusion: Desain trade baseline masih terlalu ketat terhadap data yang tersedia; redesign entry/exit dan/atau labeling perlu didahulukan.
+
+Hold diagnostics:
+- hold=3 | trades_sum=8.0 | retention=5.97 | eligible@floor=0
+- hold=5 | trades_sum=6.0 | retention=6.25 | eligible@floor=0
+- hold=7 | trades_sum=6.0 | retention=8.0 | eligible@floor=0

@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-04-19T02:09:03.110065+00:00",
+  "primary_failure_mode": "baseline needs entry/exit redesign",
+  "secondary_failure_modes": [
+    "sentiment feature not informative enough yet",
+    "adaptive search space too narrow or redundant"
+  ],
+  "recommended_redesign_track": "baseline_trade_design_first",
+  "can_retry_phase_b_after_redesign": true,
+  "minimum_required_changes": [
+    "Rekalibrasi hold period baseline ke opsi dengan coverage terbaik dari audit.",
+    "Turunkan ketergantungan pada trade floor saat coverage riil belum memadai.",
+    "Review ulang aturan entry baseline agar trade retention tidak collapse terhadap baseline lama.",
+    "Gunakan sentiment hanya setelah audit sparsity/flatness menunjukkan sinyal harian cukup berubah.",
+    "Perlebar dan bersihkan adaptive search space setelah baseline stabil, bukan bersamaan."
+  ],
+  "next_experiment_after_redesign": "retry_baseline_with_hold_period_labeling_redesign",
+  "supporting_signals": {
+    "overall_overlap_risk": "high",
+    "current_floor_is_too_strict": true,
+    "recommended_realistic_min_trades": 5,
+    "sentiment_verdict": "sentiment_feature_not_informative_enough_yet"
+  }
+}

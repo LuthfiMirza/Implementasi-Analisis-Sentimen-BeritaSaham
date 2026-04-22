@@ -313,11 +313,12 @@ class FinalizePhaseBPostmortemTestCase(unittest.TestCase):
             result = finalize_phase_b_postmortem(output_dir=output_dir)
 
             final_status = json.loads(result["final_status_path"].read_text(encoding="utf-8"))
-            self.assertEqual("phase_b_needs_redesign_before_continue", final_status["phase_b_status"])
+            self.assertEqual("phase_b_closed_with_learnings_no_candidate", final_status["phase_b_status"])
 
             next_phase = json.loads(result["next_phase_path"].read_text(encoding="utf-8"))
             self.assertEqual("phase_c_no_go_yet", next_phase["phase_c_decision"])
             self.assertFalse(bool(next_phase["can_continue_to_phase_c"]))
+            self.assertEqual("stop_and_collect_more_data_then_redesign_framework", next_phase["recommended_next_action"])
 
             self.assertIsNotNone(result["redesign_paths"])
             self.assertTrue((output_dir / "phase_b_v2_redesign_plan.json").exists())
@@ -332,8 +333,8 @@ class FinalizePhaseBPostmortemTestCase(unittest.TestCase):
                 (output_dir / "phase_a_to_phase_b_transition.json").read_text(encoding="utf-8")
             )
             self.assertEqual("limited_experiment", transition["phase_b_entry_mode"])
-            self.assertEqual("phase_b_needs_redesign_before_continue", transition["phase_b_status"])
-            self.assertIn("redesign", transition["next_phase_recommendation"])
+            self.assertEqual("phase_b_closed_with_learnings_no_candidate", transition["phase_b_status"])
+            self.assertIn("collect_more_data", transition["next_phase_recommendation"])
 
 
 if __name__ == "__main__":

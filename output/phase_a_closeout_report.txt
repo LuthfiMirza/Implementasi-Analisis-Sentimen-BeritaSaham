@@ -2,55 +2,62 @@ Phase A Closeout Report
 ======================
 
 Final status:
-- Status: blocked
-- Reason: Close-out diblokir oleh kegagalan verifikasi inti atau inspeksi runtime.
+- Status: closed_with_notes
+- Reason: Phase A bisa dianggap selesai operasional, tetapi masih ada catatan non-blocking.
+- Runtime status: runtime_ok
+- OJK article count: 43
+- OJK backfill status: ready
+- Macro runtime status: ready
+- Blocker reason: none
+- Next action: none
 
 Baseline:
 - Available: yes
 - Source: /Applications/XAMPP/xamppfiles/htdocs/Implementasi AnalisisSentimenBerita/laravel-app/output/phase_a_baseline_final.json
-- Baseline status: draft
+- Baseline status: provisional
 - Readiness status: partially_ready
-- Default threshold: 2
+- Default threshold: 1.5
 - Strict mode default: false
 - Adaptive threshold enabled: false
 - Group override count: 0
 
+MySQL connectivity:
+- Status: ok
+- Connection name: mysql
+- Driver: mysql
+- Host: 127.0.0.1
+- Port: 3306
+- Database: sentimena_dashboard
+- Error: none
+
 OJK backfill:
-- Ready: no
-- Available: no
-- Article count: 0
-- Neutral article count: 0
-- Neutral only: no
-- Oldest published_at: n/a
-- Newest published_at: n/a
-- Error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)
+- Ready: yes
+- Available: yes
+- Check status: ready
+- Article count: 43
+- Neutral article count: 43
+- Neutral only: yes
+- Oldest published_at: 2026-01-02
+- Newest published_at: 2026-04-19
+- Blocker reason: none
+- Error: none
 
 Macro regulatory signal:
 - Feature flag enabled: yes
-- Ready: no
-- Neutral-only handled: no
-- Attention regime: unavailable
-- Confidence multiplier: n/a
-- Narrative: Macro regulatory signal tidak bisa dievaluasi karena akses database gagal.
-- Error: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)
+- Ready: yes
+- Check status: ready
+- Neutral-only handled: yes
+- Attention regime: regulatory_overhang
+- Confidence multiplier: 0.731
+- Narrative: Regulatory regulatory_overhang: 9 artikel OJK makro (9 netral) pada 30 hari terakhir. Confidence directional dimoderasi, bukan diarahkan ulang.
+- Blocker reason: none
+- Error: none
 
 Core tests:
 - Python: skipped
 - PHP: skipped
 
-Blocking items:
-- Gagal membaca backfill historis OJK: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select count(*) as aggregate from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null)
-- Macro regulatory signal tidak bisa dievaluasi: SQLSTATE[HY000] [2002] Operation not permitted (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: sentimena_dashboard, SQL: select * from `news_articles` where `stock_id` is null and `source_provider` = ojk_rss and `published_at` is not null and `published_at` >= 2026-03-18 01:33:26 order by `published_at` asc)
-- Baseline Phase A masih draft dan belum layak dijadikan baseline operasional.
-- Strict mode belum final karena masih subset-only atau belum terdefinisi.
-
 Notes:
+- Baseline Phase A masih provisional.
+- Artikel OJK historis masih neutral-only, sehingga sistem bergantung pada moderation layer, bukan arah sentimen langsung.
 - Test suite inti tidak dijalankan pada closeout ini.
-
-Baseline warnings:
-- Threshold decision JSON not found: output/phase_a_threshold_decision.json.
-- Tuning decision JSON not found: output/phase_a_tuning_decision.json.
-- Threshold best-by-group CSV not found: output/phase_a_threshold_best_by_group.csv.
-- Threshold best-by-ticker CSV not found: output/phase_a_threshold_best_by_ticker.csv.
-- Threshold sweep decision not available. default_volume_spike_threshold falls back to 2.0.
-- Tuning decision not available. strict_mode_default falls back to false.

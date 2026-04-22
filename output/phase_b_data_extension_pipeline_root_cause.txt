@@ -1,0 +1,12 @@
+Root cause class: mixed_root_cause
+Pipeline bug confirmed: true
+Config misalignment confirmed: true
+Source data extended confirmed: false
+Snapshot advanced confirmed: false
+Metadata refresh working: true
+Segmentation refresh working: true
+Highest blocking step: fetch_update_snapshot_stage
+Recommended next action: rerun_bulk_history_fetch_with_extended_days_then_export_phase_a_real_data_then_refresh_segmentation_and_repeat_ingest_audit
+Local fetch-history range fix is present; next ingest still needs a real snapshot extension before progress can count.
+Metadata and segmentation are synchronized, so the blocker sits before export/segmentation.
+Scheduled fetch jobs are daily refresh only and do not replace a deliberate bulk history extension run.

@@ -1,0 +1,37 @@
+Universe Expansion Plan
+=======================
+
+Current metadata universe = 12 ticker
+Current clean rebuild universe = 7 ticker
+Current max rankable breadth from Phase 2 = 7 ticker
+Current median active breadth after Layer 1 = 6.0
+
+Recommended target policy = custom_30_liquid_long_history_manual_freeze
+Recommended target size = 30
+Minimum defensible size = 24
+Target 30 implies RS buckets around top30=9, top40=12, top50=15
+
+Inclusion criteria:
+- history_minimum_daily_rows = 1250
+- minimum_median_daily_turnover_idr_after_rebuild = 50000000000
+- listing_status = active_common_stock_on_idx_only
+- data_cleanliness = no_weekend/no_duplicate/ascending/no_mixed_frequency/no_missing_core_prices
+- sector_diversification = minimum 6 groups, maximum 8 names per group
+
+Repo metadata assessment:
+- enough_for_current_pilot_audit = True
+- enough_for_expanded_universe_freeze_without_external_or_manual_list = False
+- reason = Repo hanya punya metadata operasional untuk 12 ticker lama dan rebuild bersih untuk 7 ticker, tanpa market-wide listing-status/liquidity master untuk memilih tambahan 18-23 ticker secara otomatis.
+
+Candidate file = data/universe/layer2_expansion_target_candidates.csv
+- candidate_count = 30
+- repo_available_candidate_count = 9
+- already_clean_candidate_count = 6
+- frozen_candidate_count = 0
+
+Next commands after freeze:
+- freeze_universe_file: Edit data/universe/layer2_expansion_target_candidates.csv lalu ubah freeze_status kandidat final menjadi frozen.
+- rebuild_expanded_ohlcv: python3 -m quant.rebuild_yfinance_ohlcv --universe-file data/universe/layer2_expansion_target_candidates.csv --output-dir data/stocks
+- rebuild_indicator_master: python3 -m quant.build_indicator_master_table --stocks-dir data/stocks --ihsg-file data/IHSG.csv --output-dir data/indicator_master --artifact-dir output
+- rerun_phase_2: python3 -m quant.run_phase_2_relative_strength_stock_selection
+- rerun_phase_2_1: python3 -m quant.run_phase_2_1_relative_strength_redesign

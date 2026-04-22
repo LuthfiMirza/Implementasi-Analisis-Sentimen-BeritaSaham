@@ -41,11 +41,12 @@ class AnalyzeSentimentCommand extends Command
                     'sentiment_label' => $result['label'],
                     'sentiment_score' => $result['score'],
                     'sentiment_confidence' => $result['confidence'] ?? null,
-                    'sentiment_method' => $result['method'] ?? 'rule_based',
+                    'sentiment_method' => $result['method'] ?? 'python_unavailable',
                     'sentiment_meta' => [
                         'matched_positive_terms' => $result['matched_positive_terms'] ?? [],
                         'matched_negative_terms' => $result['matched_negative_terms'] ?? [],
                         'reason_summary' => $result['reason_summary'] ?? null,
+                        'python_status' => $result['python_status'] ?? null,
                     ],
                     'analyzed_at' => now(),
                 ]);

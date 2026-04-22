@@ -1,0 +1,15 @@
+{
+  "phase_b_status": "phase_b_closed_with_learnings_no_candidate",
+  "phase_c_decision": "phase_c_no_go_yet",
+  "root_problem_class": "foundation_and_signal_usability",
+  "recommended_next_action": "stop_and_collect_more_data_then_redesign_framework",
+  "can_continue_to_phase_c": false,
+  "must_fix_before_phase_c": [
+    "Audit overlap baseline versus filter tambahan agar eksperimen baru tidak collapse ke aturan yang sudah aktif.",
+    "Review entry/exit baseline, hold period, dan trade labeling karena filter tambahan menurunkan retensi trade terlalu agresif.",
+    "Audit sample size per ticker dan definisikan ulang coverage minimum yang realistis sebelum eksperimen berikutnya.",
+    "Audit distribusi sentiment series, article count, dan relevansi timing sentiment terhadap entry trade.",
+    "Sederhanakan search space adaptive dan pastikan success criteria usable sebelum adaptive diuji lagi."
+  ],
+  "generated_at": "2026-04-21T23:31:11.363075+00:00"
+}

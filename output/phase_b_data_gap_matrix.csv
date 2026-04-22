@@ -1,0 +1,20 @@
+row_type,subject,ticker,tested_segment,segment_role,history_rows,usable_oos_windows,news_count_total,news_article_days,news_density,candidate_total_trades,candidate_signal_count,candidate_trade_sample_sign,oos_support_strength,data_gap_severity,primary_gap_reason,limitations
+ticker,ADRO,ADRO,sentiment_segment=sentiment_poor,primary,2459,7,15,7,0.2847,307,637,negative,weak_negative_support,high,news_distribution_gap,
+ticker,ASII,ASII,sentiment_segment=sentiment_poor,primary,2459,7,9,5,0.2033,293,610,negative,weak_negative_support,high,news_distribution_gap,
+ticker,BBCA,BBCA,sentiment_segment=sentiment_poor,primary,2460,7,17,7,0.2846,341,723,negative,weak_negative_support,high,news_distribution_gap,
+ticker,BBRI,BBRI,,,2460,7,14,9,0.3659,,,not_in_primary_segment,not_in_primary_segment,high,news_distribution_gap,Ticker not part of the v9 primary segment.
+ticker,BMRI,BMRI,,,2460,7,36,9,0.3659,,,not_in_primary_segment,not_in_primary_segment,high,news_distribution_gap,Ticker not part of the v9 primary segment.
+ticker,BUMI,BUMI,sentiment_segment=sentiment_poor,primary,2460,7,20,6,0.2439,215,416,positive,weak_positive_support,high,news_distribution_gap,
+ticker,DEWA,DEWA,,,2460,7,11,8,0.3252,,,not_in_primary_segment,not_in_primary_segment,high,news_distribution_gap,Ticker not part of the v9 primary segment.
+ticker,GOTO,GOTO,,,960,3,15,9,0.9375,,,not_in_primary_segment,not_in_primary_segment,high,combined_history_and_distribution_gap,Ticker not part of the v9 primary segment.
+ticker,ICBP,ICBP,,,2459,7,12,9,0.366,,,not_in_primary_segment,not_in_primary_segment,high,news_distribution_gap,Ticker not part of the v9 primary segment.
+ticker,INDF,INDF,,,2460,7,9,8,0.3252,,,not_in_primary_segment,not_in_primary_segment,high,news_distribution_gap,Ticker not part of the v9 primary segment.
+ticker,TLKM,TLKM,,,2459,7,17,8,0.3253,,,not_in_primary_segment,not_in_primary_segment,high,news_distribution_gap,Ticker not part of the v9 primary segment.
+ticker,UNVR,UNVR,sentiment_segment=sentiment_poor,primary,2460,7,10,6,0.2439,278,568,negative,weak_negative_support,high,news_distribution_gap,
+segment,sentiment_segment=sentiment_poor,,sentiment_segment=sentiment_poor,primary,2459,7,71,31,0.2521,1434,2954,negative,mixed_oos_support,critical,combined_history_distribution_and_oos_sample_gap,
+segment,volatility_segment=mixed_volatility,,volatility_segment=mixed_volatility,supporting,2459,7,69,29,0.2948,1221,2531,negative,mixed_oos_support,critical,combined_history_distribution_and_oos_sample_gap,
+segment,liquidity_segment=thin_sparse,,liquidity_segment=thin_sparse,supporting,2459,7,66,43,0.2914,1630,3336,negative,mixed_oos_support,high,segment_news_distribution_gap,
+segment,news_segment=mid_news,,news_segment=mid_news,supporting,960,3,56,34,0.4885,1033,2119,negative,mixed_oos_support,critical,combined_history_distribution_and_oos_sample_gap,
+segment,liquidity_segment=liquid_active,,liquidity_segment=liquid_active,supporting,960,3,119,48,0.4205,1592,3290,negative,mixed_oos_support,high,combined_history_and_distribution_gap,
+segment,volatility_segment=higher_volatility,,volatility_segment=higher_volatility,supporting,960,3,61,30,0.4478,751,1491,positive,failed_oos,critical,combined_history_distribution_and_oos_sample_gap,
+segment,sentiment_segment=sentiment_rich,,sentiment_segment=sentiment_rich,supporting,960,3,114,60,0.4301,1788,3672,negative,mixed_oos_support,high,combined_history_and_distribution_gap,

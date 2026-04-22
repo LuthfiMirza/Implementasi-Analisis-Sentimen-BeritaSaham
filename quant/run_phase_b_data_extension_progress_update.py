@@ -238,7 +238,7 @@ def _batch_targets(execution_plan: Dict[str, object]) -> Dict[str, Dict[str, obj
         batch_id = _safe_str(batch.get("batch_id"))
         if not batch_id:
             continue
-        targets[batch_id] = safe_dict(batch.get("targets"))
+        targets[batch_id] = safe_dict(batch.get("operational_targets")) or safe_dict(batch.get("targets"))
     return targets
 
 
@@ -285,6 +285,8 @@ def _resolve_batch_state(batch_targets: Dict[str, Dict[str, object]], tracker_lo
 
     if not completed_batches:
         next_batch_ready_to_start = True
+    elif all_completed:
+        next_batch_ready_to_start = False
     elif current_batch in {"batch_2", "batch_3"}:
         previous_batch = f"batch_{int(current_batch.split('_')[1]) - 1}"
         next_batch_ready_to_start = previous_batch in completed_batches
@@ -299,6 +301,17 @@ def _resolve_batch_state(batch_targets: Dict[str, Dict[str, object]], tracker_lo
         "next_batch_id": next_batch_id,
         "next_batch_ready_to_start": next_batch_ready_to_start,
     }
+
+
+def _batch_operational_completion(batch_state: Dict[str, object], batch_id: str) -> bool:
+    completed_batches = {
+        _safe_str(item)
+        for item in list(batch_state.get("completed_batches") or [])
+        if _safe_str(item)
+    }
+    if batch_id in completed_batches:
+        return True
+    return _safe_str(batch_state.get("current_batch")) == batch_id and _safe_bool(batch_state.get("current_batch_completed"))
 
 
 def _checkpoint_material_reached(
@@ -456,6 +469,7 @@ def _build_global_matrix_rows(refreshed_rows: Sequence[Dict[str, object]]) -> Li
 
 
 def _build_text_output(payload: Dict[str, object]) -> List[str]:
+    window_semantics = safe_dict(payload.get("oos_window_threshold_semantics"))
     return [
         "Phase B Data Extension Progress Update",
         f"- current_batch={payload.get('current_batch')}",
@@ -463,6 +477,7 @@ def _build_text_output(payload: Dict[str, object]) -> List[str]:
         f"- next_batch_ready_to_start={payload.get('next_batch_ready_to_start')}",
         f"- checkpoint_material_reached={payload.get('checkpoint_material_reached')}",
         f"- recheck_readiness_gate_allowed={payload.get('recheck_readiness_gate_allowed')}",
+        f"- methodology_minimum_windows={window_semantics.get('methodology_minimum_windows')}",
         f"- recommended_next_action={payload.get('recommended_next_action')}",
         f"- decisive_statement={payload.get('decisive_statement')}",
         "",
@@ -488,6 +503,7 @@ def run_phase_b_data_extension_progress_update(
         raise PhaseBDataExtensionProgressUpdateCliError(
             f"Required execution plan not found or invalid: {Path(output_dir) / 'phase_b_data_extension_execution_plan.json'}"
         )
+    window_semantics = safe_dict(execution_plan.get("oos_window_threshold_semantics"))
 
     metadata_df, metadata_warnings = _load_metadata_or_prices(data_dir=data_dir, metadata_file=metadata_file)
     segmentation_df, segmentation_warnings = _load_segmentation(output_dir=output_dir)
@@ -512,6 +528,7 @@ def run_phase_b_data_extension_progress_update(
         artifacts=execution_artifacts,
         v9_results=v9_results,
         primary_segment=primary_segment,
+        window_semantics=window_semantics,
     )
 
     baseline_tracker_path = Path(safe_dict(plan_artifacts.get("phase_b_data_extension_progress_tracker")).get("path") or Path(output_dir) / "phase_b_data_extension_progress_tracker.csv")
@@ -531,24 +548,37 @@ def run_phase_b_data_extension_progress_update(
         minimum_progress=minimum_progress,
     )
     recheck_allowed = checkpoint_material_reached
+    current_windows = _safe_float(
+        safe_dict(tracker_lookup.get("usable_oos_windows_per_ticker")).get("current_value")
+    )
+    stretch_pending = [
+        f"{batch_id} actual={current_windows} stretch_target>={_safe_float(target)}"
+        for batch_id, target in list(safe_dict(window_semantics.get("stretch_target_windows_by_batch")).items())
+        if current_windows < _safe_float(target)
+    ]
 
     if batch_state["highest_completed_batch"] == "batch_1" and not checkpoint_material_reached:
-        decisive_statement = "Batch-1 sudah tercapai tetapi checkpoint material belum cukup untuk recheck gate."
+        decisive_statement = "Batch-1 sudah tercapai tetapi checkpoint material belum cukup untuk refresh readiness blocker audit."
         recommended_next_action = "continue_batch_2_until_material_checkpoint_and_refresh_metadata_segmentation"
     elif not batch_state["completed_batches"]:
         decisive_statement = "Progress history naik, tetapi article-day recovery primary segment masih menahan batch."
         recommended_next_action = "keep_executing_batch_1_history_extension_and_primary_article_day_recovery"
     elif checkpoint_material_reached:
-        decisive_statement = "Checkpoint material sudah tercapai. Gate readiness boleh dijalankan ulang sesuai rule yang sudah disepakati."
-        recommended_next_action = "refresh_retest_gate_inputs_and_rerun_phase_b_retest_readiness_gate"
+        decisive_statement = (
+            "Checkpoint material operasional sudah tercapai di bawah threshold metodologi resmi. "
+            "Gate readiness boleh dijalankan ulang hanya untuk refresh blocker status; strategy retry tetap tertutup."
+        )
+        recommended_next_action = "refresh_retest_gate_inputs_and_rerun_phase_b_retest_readiness_gate_for_status_only"
     else:
-        decisive_statement = "Gate readiness belum boleh dijalankan ulang sampai blocker checkpoint material selesai."
+        decisive_statement = "Gate readiness belum boleh dijalankan ulang sampai blocker checkpoint material operasional selesai."
         recommended_next_action = "continue_current_batch_until_remaining_checkpoint_blockers_are_closed"
 
     progress_update = {
         "generated_at": _now_iso(),
         "current_batch": batch_state["current_batch"],
         "current_batch_completed": batch_state["current_batch_completed"],
+        "batch_1_operationally_complete": _batch_operational_completion(batch_state, "batch_1"),
+        "ready_for_batch_2": _batch_operational_completion(batch_state, "batch_1"),
         "next_batch_ready_to_start": batch_state["next_batch_ready_to_start"],
         "next_batch_id": batch_state["next_batch_id"],
         "highest_completed_batch": batch_state["highest_completed_batch"],
@@ -557,6 +587,9 @@ def run_phase_b_data_extension_progress_update(
         "remaining_blockers": remaining_blockers,
         "checkpoint_material_reached": checkpoint_material_reached,
         "recheck_readiness_gate_allowed": recheck_allowed,
+        "strategy_retry_still_blocked": True,
+        "oos_window_threshold_semantics": window_semantics,
+        "stretch_targets_pending": stretch_pending,
         "recommended_next_action": recommended_next_action,
         "decisive_statement": decisive_statement,
         "metadata_segmentation_updated": metadata_segmentation_updated,
@@ -567,11 +600,16 @@ def run_phase_b_data_extension_progress_update(
     recheck_status = {
         "current_batch": batch_state["current_batch"],
         "current_batch_completed": batch_state["current_batch_completed"],
+        "batch_1_operationally_complete": _batch_operational_completion(batch_state, "batch_1"),
+        "ready_for_batch_2": _batch_operational_completion(batch_state, "batch_1"),
         "checkpoint_material_reached": checkpoint_material_reached,
         "recheck_readiness_gate_allowed": recheck_allowed,
+        "strategy_retry_still_blocked": True,
         "remaining_blockers": remaining_blockers,
         "recommended_next_action": recommended_next_action,
         "decisive_statement": decisive_statement,
+        "oos_window_threshold_semantics": window_semantics,
+        "stretch_targets_pending": stretch_pending,
     }
 
     batch_status_rows = [

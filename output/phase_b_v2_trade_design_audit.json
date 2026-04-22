@@ -1,0 +1,65 @@
+{
+  "generated_at": "2026-04-19T02:09:03.110065+00:00",
+  "current_hold_period": 5,
+  "baseline_min_trades_floor": 8,
+  "hold_period_diagnostics": [
+    {
+      "hold_period": 3,
+      "ticker_count": 10,
+      "phase_a_total_trades_sum": 8.0,
+      "baseline_total_trades_sum": 134.0,
+      "trade_retention_vs_baseline_pct": 5.97,
+      "phase_a_win_rate_mean": 2.0,
+      "phase_a_average_return_mean": -1.6179999999999999,
+      "zero_trade_ticker_count": 6,
+      "eligible_ticker_count_by_min_trades": {
+        "5": 1,
+        "8": 0,
+        "10": 0
+      }
+    },
+    {
+      "hold_period": 5,
+      "ticker_count": 10,
+      "phase_a_total_trades_sum": 6.0,
+      "baseline_total_trades_sum": 96.0,
+      "trade_retention_vs_baseline_pct": 6.25,
+      "phase_a_win_rate_mean": 3.3329999999999997,
+      "phase_a_average_return_mean": -1.5553199999999998,
+      "zero_trade_ticker_count": 6,
+      "eligible_ticker_count_by_min_trades": {
+        "5": 0,
+        "8": 0,
+        "10": 0
+      }
+    },
+    {
+      "hold_period": 7,
+      "ticker_count": 10,
+      "phase_a_total_trades_sum": 6.0,
+      "baseline_total_trades_sum": 75.0,
+      "trade_retention_vs_baseline_pct": 8.0,
+      "phase_a_win_rate_mean": 0.0,
+      "phase_a_average_return_mean": -1.57654,
+      "zero_trade_ticker_count": 6,
+      "eligible_ticker_count_by_min_trades": {
+        "5": 0,
+        "8": 0,
+        "10": 0
+      }
+    }
+  ],
+  "best_hold_period_for_coverage": 3,
+  "best_hold_period_improves_current_coverage": false,
+  "labeling_sensitivity": {
+    "average_return_range": 0.06268,
+    "win_rate_range": 3.333
+  },
+  "diagnosis_flags": {
+    "baseline_needs_entry_exit_redesign": true,
+    "baseline_usable_but_needs_scoring_eval_redesign": false,
+    "current_hold_is_not_best_for_coverage": true
+  },
+  "conclusion": "Desain trade baseline masih terlalu ketat terhadap data yang tersedia; redesign entry/exit dan/atau labeling perlu didahulukan.",
+  "warnings": []
+}

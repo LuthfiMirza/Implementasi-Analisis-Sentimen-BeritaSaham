@@ -974,7 +974,9 @@ def _build_after_push_text(payload: Dict[str, object]) -> List[str]:
     return [
         "Phase B Batch-1 After Article Push",
         f"- batch_1_status={payload.get('batch_1_status')}",
-        f"- batch_1_completed={payload.get('batch_1_completed')}",
+        f"- batch_1_priority_targets_closed={payload.get('batch_1_priority_targets_closed')}",
+        f"- batch_1_operationally_complete={payload.get('batch_1_operationally_complete')}",
+        f"- ready_for_batch_2={payload.get('ready_for_batch_2')}",
         f"- checkpoint_material_reached={payload.get('checkpoint_material_reached')}",
         f"- recheck_readiness_gate_allowed={payload.get('recheck_readiness_gate_allowed')}",
         f"- primary_segment_total_articles={payload.get('primary_segment_total_articles')}",
@@ -1128,12 +1130,16 @@ def run_phase_b_primary_article_coverage_push(
         "official_primary_segment_membership_audit": membership_audit_payload,
         "bbca_article_day_audit": bbca_article_day_audit_payload,
         "decisive_statement": (
-            "Batch-1 resmi complete setelah total article primary mencapai >=14 dan median article days mencapai >=3."
-            if _safe_bool(after_completion.get("batch_1_completed"))
+            "Batch-1 operasional complete setelah progress resmi mengakui target prioritas sudah tertutup."
+            if _safe_bool(after_completion.get("batch_1_operationally_complete"))
             else (
-                "Article coverage primary segment naik, tetapi median article days masih belum cukup untuk menutup batch-1."
-                if push_effective
-                else f"Batch-1 belum complete karena {blocker_text} masih menahan article-day recovery primary segment resmi."
+                "Target prioritas batch-1 sudah tertutup, tetapi progress artifact resmi belum mengakui batch sebagai complete."
+                if _safe_bool(after_completion.get("batch_1_priority_targets_closed"))
+                else (
+                    "Article coverage primary segment naik, tetapi median article days masih belum cukup untuk menutup batch-1."
+                    if push_effective
+                    else f"Batch-1 belum complete karena {blocker_text} masih menahan article-day recovery primary segment resmi."
+                )
             )
         ),
         "recommended_next_action": _safe_str(after_completion.get("recommended_next_action")),
@@ -1146,7 +1152,10 @@ def run_phase_b_primary_article_coverage_push(
         "priority_tickers_checked": priority_tickers,
         "article_coverage_push_effective": push_effective,
         "batch_1_status": _safe_str(after_completion.get("batch_1_status")),
-        "batch_1_completed": _safe_bool(after_completion.get("batch_1_completed")),
+        "batch_1_priority_targets_closed": _safe_bool(after_completion.get("batch_1_priority_targets_closed")),
+        "batch_1_operationally_complete": _safe_bool(after_completion.get("batch_1_operationally_complete")),
+        "ready_for_batch_2": _safe_bool(after_completion.get("ready_for_batch_2")),
+        "batch_1_completed": _safe_bool(after_completion.get("batch_1_operationally_complete")),
         "checkpoint_material_reached": _safe_bool(after_completion.get("checkpoint_material_reached")),
         "recheck_readiness_gate_allowed": _safe_bool(after_completion.get("recheck_readiness_gate_allowed")),
         "remaining_blockers": list(after_completion.get("remaining_blockers") or []),
@@ -1155,12 +1164,16 @@ def run_phase_b_primary_article_coverage_push(
             "Checkpoint material sudah tercapai sehingga readiness gate sekarang boleh dijalankan ulang."
             if _safe_bool(after_completion.get("checkpoint_material_reached"))
             else (
-                "Walaupun batch-1 complete, retest tetap belum boleh dibuka sebelum readiness gate resmi di-rerun."
-                if _safe_bool(after_completion.get("batch_1_completed"))
+                "Batch-1 operasional complete, tetapi retest tetap belum boleh dibuka sebelum readiness gate resmi di-rerun."
+                if _safe_bool(after_completion.get("batch_1_operationally_complete"))
                 else (
-                    "Article coverage primary segment naik, tetapi median article days masih belum cukup untuk menutup batch-1."
-                    if push_effective
-                    else f"Batch-1 belum complete karena {blocker_text} masih menahan article-day recovery primary segment resmi."
+                    "Target prioritas batch-1 sudah tertutup, tetapi progress artifact resmi belum mengakui batch sebagai complete."
+                    if _safe_bool(after_completion.get("batch_1_priority_targets_closed"))
+                    else (
+                        "Article coverage primary segment naik, tetapi median article days masih belum cukup untuk menutup batch-1."
+                        if push_effective
+                        else f"Batch-1 belum complete karena {blocker_text} masih menahan article-day recovery primary segment resmi."
+                    )
                 )
             )
         ),
@@ -1246,7 +1259,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     payload = safe_dict(result.get("phase_b_batch1_after_article_push"))
     print("Phase B primary article coverage push complete.")
     print(f"batch_1_status={payload.get('batch_1_status')}")
-    print(f"batch_1_completed={payload.get('batch_1_completed')}")
+    print(f"batch_1_operationally_complete={payload.get('batch_1_operationally_complete')}")
     print(f"recheck_readiness_gate_allowed={payload.get('recheck_readiness_gate_allowed')}")
     return 0
 

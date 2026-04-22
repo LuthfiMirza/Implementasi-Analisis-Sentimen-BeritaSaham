@@ -1,0 +1,58 @@
+Universe Manual Review Priority
+===============================
+
+Source policy:
+- use existing freeze-ready universe file only
+- do not rebuild yet
+- optimize for the fastest safe path to the hard floor of 24 ticker
+
+Pending tickers (21):
+- BBNI: completes finance breadth behind the already-frozen bank anchors
+- BBTN: backup finance add after BBNI
+- EXCL: second telco candidate behind frozen TLKM
+- ISAT: additional telco breadth after EXCL
+- PGAS: first infrastructure slot for sector diversification
+- UNTR: industrial breadth next to frozen ASII
+- PTBA: second energy candidate behind frozen ADRO
+- ITMG: third energy candidate as backup depth
+- MEDC: backup energy candidate
+- ANTM: first materials slot for sector diversification
+- INCO: backup materials candidate
+- MYOR: consumer breadth beyond frozen INDF/ICBP/UNVR
+- KLBF: first healthcare slot for sector diversification
+- CPIN: consumer/agri breadth candidate
+- JPFA: backup consumer/agri candidate
+- SMGR: second materials candidate
+- INTP: backup materials candidate
+- JSMR: second infrastructure candidate
+- AKRA: industrial-distribution breadth candidate
+- TPIA: additional materials/petrochemical breadth
+- ACES: backup discretionary-consumer candidate
+
+Shortlist 15 paling aman:
+1. BBNI
+2. PGAS
+3. ANTM
+4. KLBF
+5. UNTR
+6. PTBA
+7. EXCL
+8. MYOR
+9. SMGR
+10. JSMR
+11. ISAT
+12. AKRA
+13. CPIN
+14. ITMG
+15. TPIA
+
+Hard floor 24:
+- yes, can be reached safely from the existing 9 frozen names plus the 15-name shortlist above
+- resulting path uses 24 ticker total
+- resulting path covers finance, telco, industrial, energy, consumer, infrastructure, materials, and healthcare
+
+Immediate command queue after final approval:
+- python3 -m quant.rebuild_yfinance_ohlcv --universe-file data/universe/layer2_expansion_target_candidates.csv --output-dir data/stocks
+- python3 -m quant.build_indicator_master_table --stocks-dir data/stocks --ihsg-file data/IHSG.csv --output-dir data/indicator_master --artifact-dir output
+- python3 -m quant.run_phase_2_relative_strength_stock_selection
+- python3 -m quant.run_phase_2_1_relative_strength_redesign

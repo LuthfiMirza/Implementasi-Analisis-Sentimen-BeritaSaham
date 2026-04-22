@@ -1,0 +1,52 @@
+Baseline Root-Cause Postmortem
+==============================
+
+Roadmap snapshot:
+- Phase A: closed_with_notes
+- Phase B: phase_b_needs_redesign_before_continue
+- Phase C: phase_c_no_go_yet
+- Current track: redesign_baseline_v2_again
+
+Key findings:
+- Masalah utama bukan lagi entry relaxation, karena v3 sudah membuktikan coverage naik tetapi kualitas trade runtuh.
+- Masalah utama bukan exit/hold sebagai solusi tunggal, karena v5 tidak memulihkan eligibility maupun quality walau average return relatif membaik dari anchor v4.
+- Arah fast anchor plus quality gate terbukti lebih benar daripada entry relaxation only, karena v4 sempat menjaga quality, tetapi coverage-nya masih belum cukup stabil untuk lolos guardrail.
+- Bottleneck paling mungkin sekarang ada pada guardrail eligibility/sample dan kecocokan universe ticker, bukan pada anchor concept sebagai ide dasar.
+- Arah paling masuk akal berikutnya adalah review guardrail eligibility/sample atau segmentasi universe, bukan menambah filter teknikal baru.
+
+Stage root causes:
+- baseline_v2: primary=coverage_too_low | supporting=sample_size_too_small,entry_too_strict,eligibility_gate_misaligned
+  decision=baseline_v2_no_go_redesign_again | Baseline v2 gagal dengan eligible_ticker_count=1 vs minimum 3 dan total_trades_sum=10 vs minimum 15; ini menunjukkan baseline terlalu sempit untuk coverage dan sample yang dibutuhkan.
+- baseline_v3: primary=entry_too_loose_low_quality | supporting=objective_function_mismatch,ticker_universe_mismatch
+  decision=no_go | Baseline v3 menaikkan coverage dari 1 ke 8 dan trade dari 10 ke 56, tetapi mean_average_return turun dari 4.24329 ke -0.010139999999999727; jadi pelonggaran entry membuka coverage sambil merusak kualitas.
+- baseline_v4: primary=coverage_too_low | supporting=quality_gate_not_stable,eligibility_gate_misaligned,sample_size_too_small
+  decision=no_go | Baseline v4 sudah menunjukkan kualitas yang preserved dan mean_average_return=7.41434, tetapi berhenti di eligible_ticker_count=2 dan total_trades_sum=34, jadi masalah utama bergeser dari kualitas entry ke coverage yang tidak cukup untuk lolos guardrail.
+- baseline_v5: primary=exit_hold_not_primary_problem | supporting=coverage_too_low,sample_size_too_small,eligibility_gate_misaligned
+  decision=no_go | Baseline v5 memperbaiki mean_average_return relatif terhadap anchor v4 sebesar 1.7379999999999998, tetapi tetap berakhir dengan eligible_ticker_count=0, trade_retention_vs_v4_anchor=0.7778, dan quality_preserved=false; jadi redesign exit/hold bukan solusi utama tunggal.
+
+Current bottleneck:
+- data=not_primary
+- eligibility_rule=primary
+- scoring_objective=secondary
+- anchor_concept=not_primary
+- universe_ticker=secondary
+
+Stop or park:
+- item5
+- item6
+- item7
+- item8
+- entry_relaxation_only
+- volume_relaxed_entry
+- exit_hold_only_redesign
+
+Still explorable:
+- fast_anchor_plus_quality_gate
+- eligibility_gate_review
+- universe_segmentation
+- sample_sufficiency_redesign
+
+Next direction:
+- recommended_primary_direction=revisit_eligibility_and_sample_guardrails
+- recommended_secondary_direction_1=revisit_ticker_universe_segmentation
+- recommended_secondary_direction_2=revisit_fast_anchor_with_better_quality_gate

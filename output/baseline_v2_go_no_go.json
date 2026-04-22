@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-04-19T13:42:02.584610+00:00",
+  "decision": "baseline_v2_no_go_redesign_again",
+  "baseline_v2_candidate_selected": "baseline_v2_hold3_with_trend_guard",
+  "candidate_id": "baseline_v2_hold3_with_trend_guard",
+  "phase_a_runtime_status": "runtime_ok",
+  "phase_a_closeout_status": "closed_with_notes",
+  "baseline_redesign_decision": "improved_but_keep_experimental",
+  "baseline_v2_status": "no_go_redesign_again",
+  "baseline_v2_validation_status": "invalid",
+  "current_project_mode": "baseline_v2_redesign_required",
+  "current_phase_b_status": "phase_b_needs_redesign_before_continue",
+  "can_continue_after_redesign": false,
+  "recommended_next_action": "redesign_baseline_v2_again",
+  "blockers_remaining": [],
+  "roadmap_reference": {
+    "phase_b_status": "phase_b_needs_redesign_before_continue",
+    "phase_c_decision": "phase_c_no_go_yet",
+    "transition_retry_readiness": "not_ready_yet"
+  },
+  "warnings": []
+}

@@ -1,0 +1,174 @@
+{
+  "generated_at": "2026-04-22T01:57:37.884951+00:00",
+  "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+  "source_of_truth_field": "primary_segment",
+  "source_of_truth_value": "sentiment_segment=sentiment_poor",
+  "official_primary_segment_selection_basis": "run_phase_b_data_extension_progress_update marks a ticker as official primary when the current baseline_v6_universe_segmentation.csv value at the source-of-truth field matches the primary_segment gate; progress_since_baseline_v9 then aggregates only those rows.",
+  "official_primary_segment_tickers": [
+    "ASII",
+    "BBCA",
+    "BUMI",
+    "UNVR"
+  ],
+  "selection_pipeline": [
+    "phase_b_retest_readiness_gate.primary_segment",
+    "baseline_v6_universe_segmentation.csv.<selection_field>",
+    "run_phase_b_data_extension_execution_plan._merge_ticker_context -> is_primary_segment",
+    "phase_b_data_extension_progress_update.progress_since_baseline_v9.primary_segment_total_articles",
+    "phase_b_data_extension_progress_update.progress_since_baseline_v9.primary_segment_article_days_median"
+  ],
+  "rows": [
+    {
+      "ticker": "ASII",
+      "included_in_official_primary_segment": true,
+      "selection_field": "sentiment_segment",
+      "selection_value_required": "sentiment_poor",
+      "selection_value_actual": "sentiment_poor",
+      "in_current_batch_priority_verification": true,
+      "current_batch_verification_is_primary_segment": true,
+      "official_article_count_current": 9,
+      "official_article_days_current": 5,
+      "still_blocking": false,
+      "reason": "included because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_poor matches phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; post_backfill_batch1_decision.priority_ticker_verification is_primary_segment=True",
+      "source_artifact_reference": {
+        "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+        "source_of_truth_field": "primary_segment",
+        "segmentation_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "post_backfill_decision_artifact": "output/phase_b_batch1_completion_decision.json"
+      }
+    },
+    {
+      "ticker": "BUMI",
+      "included_in_official_primary_segment": true,
+      "selection_field": "sentiment_segment",
+      "selection_value_required": "sentiment_poor",
+      "selection_value_actual": "sentiment_poor",
+      "in_current_batch_priority_verification": true,
+      "current_batch_verification_is_primary_segment": true,
+      "official_article_count_current": 19,
+      "official_article_days_current": 6,
+      "still_blocking": false,
+      "reason": "included because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_poor matches phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; post_backfill_batch1_decision.priority_ticker_verification is_primary_segment=True",
+      "source_artifact_reference": {
+        "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+        "source_of_truth_field": "primary_segment",
+        "segmentation_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "post_backfill_decision_artifact": "output/phase_b_batch1_completion_decision.json"
+      }
+    },
+    {
+      "ticker": "UNVR",
+      "included_in_official_primary_segment": true,
+      "selection_field": "sentiment_segment",
+      "selection_value_required": "sentiment_poor",
+      "selection_value_actual": "sentiment_poor",
+      "in_current_batch_priority_verification": true,
+      "current_batch_verification_is_primary_segment": true,
+      "official_article_count_current": 7,
+      "official_article_days_current": 6,
+      "still_blocking": false,
+      "reason": "included because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_poor matches phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; post_backfill_batch1_decision.priority_ticker_verification is_primary_segment=True",
+      "source_artifact_reference": {
+        "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+        "source_of_truth_field": "primary_segment",
+        "segmentation_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "post_backfill_decision_artifact": "output/phase_b_batch1_completion_decision.json"
+      }
+    },
+    {
+      "ticker": "ADRO",
+      "included_in_official_primary_segment": false,
+      "selection_field": "sentiment_segment",
+      "selection_value_required": "sentiment_poor",
+      "selection_value_actual": "sentiment_rich",
+      "in_current_batch_priority_verification": true,
+      "current_batch_verification_is_primary_segment": false,
+      "official_article_count_current": 12,
+      "official_article_days_current": 8,
+      "still_blocking": false,
+      "reason": "excluded because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_rich does not match phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; post_backfill_batch1_decision.priority_ticker_verification is_primary_segment=False",
+      "source_artifact_reference": {
+        "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+        "source_of_truth_field": "primary_segment",
+        "segmentation_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "post_backfill_decision_artifact": "output/phase_b_batch1_completion_decision.json"
+      }
+    },
+    {
+      "ticker": "BBCA",
+      "included_in_official_primary_segment": true,
+      "selection_field": "sentiment_segment",
+      "selection_value_required": "sentiment_poor",
+      "selection_value_actual": "sentiment_poor",
+      "in_current_batch_priority_verification": true,
+      "current_batch_verification_is_primary_segment": true,
+      "official_article_count_current": 19,
+      "official_article_days_current": 7,
+      "still_blocking": false,
+      "reason": "included because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_poor matches phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; post_backfill_batch1_decision.priority_ticker_verification is_primary_segment=True",
+      "source_artifact_reference": {
+        "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+        "source_of_truth_field": "primary_segment",
+        "segmentation_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "post_backfill_decision_artifact": "output/phase_b_batch1_completion_decision.json"
+      }
+    },
+    {
+      "ticker": "INDF",
+      "included_in_official_primary_segment": false,
+      "selection_field": "sentiment_segment",
+      "selection_value_required": "sentiment_poor",
+      "selection_value_actual": "sentiment_rich",
+      "in_current_batch_priority_verification": false,
+      "current_batch_verification_is_primary_segment": false,
+      "official_article_count_current": 9,
+      "official_article_days_current": 8,
+      "still_blocking": false,
+      "reason": "excluded because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_rich does not match phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; ticker is absent from post_backfill_batch1_decision.priority_ticker_verification so it does not participate in current batch priority verification",
+      "source_artifact_reference": {
+        "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+        "source_of_truth_field": "primary_segment",
+        "segmentation_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "post_backfill_decision_artifact": "output/phase_b_batch1_completion_decision.json"
+      }
+    },
+    {
+      "ticker": "TLKM",
+      "included_in_official_primary_segment": false,
+      "selection_field": "sentiment_segment",
+      "selection_value_required": "sentiment_poor",
+      "selection_value_actual": "sentiment_rich",
+      "in_current_batch_priority_verification": false,
+      "current_batch_verification_is_primary_segment": false,
+      "official_article_count_current": 17,
+      "official_article_days_current": 10,
+      "still_blocking": false,
+      "reason": "excluded because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_rich does not match phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; ticker is absent from post_backfill_batch1_decision.priority_ticker_verification so it does not participate in current batch priority verification",
+      "source_artifact_reference": {
+        "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+        "source_of_truth_field": "primary_segment",
+        "segmentation_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "post_backfill_decision_artifact": "output/phase_b_batch1_completion_decision.json"
+      }
+    },
+    {
+      "ticker": "DEWA",
+      "included_in_official_primary_segment": false,
+      "selection_field": "sentiment_segment",
+      "selection_value_required": "sentiment_poor",
+      "selection_value_actual": "sentiment_rich",
+      "in_current_batch_priority_verification": false,
+      "current_batch_verification_is_primary_segment": false,
+      "official_article_count_current": 13,
+      "official_article_days_current": 8,
+      "still_blocking": false,
+      "reason": "excluded because baseline_v6_universe_segmentation.csv.sentiment_segment=sentiment_rich does not match phase_b_retest_readiness_gate.primary_segment=sentiment_segment=sentiment_poor; ticker is absent from post_backfill_batch1_decision.priority_ticker_verification so it does not participate in current batch priority verification",
+      "source_artifact_reference": {
+        "source_of_truth_artifact": "output/phase_b_retest_readiness_gate.json",
+        "source_of_truth_field": "primary_segment",
+        "segmentation_artifact": "output/baseline_v6_universe_segmentation.csv",
+        "post_backfill_decision_artifact": "output/phase_b_batch1_completion_decision.json"
+      }
+    }
+  ]
+}

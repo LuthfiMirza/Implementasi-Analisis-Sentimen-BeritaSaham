@@ -1,0 +1,158 @@
+{
+  "generated_at": "2026-04-19T03:05:51.457988+00:00",
+  "guardrails": {
+    "min_trades": 5,
+    "observation_windows": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "watchlists": [
+    {
+      "subset_id": "ticker_bmri",
+      "subset_type": "ticker",
+      "subset_label": "BMRI",
+      "group_field": null,
+      "group_value": null,
+      "tickers": [
+        "BMRI"
+      ]
+    },
+    {
+      "subset_id": "ticker_goto",
+      "subset_type": "ticker",
+      "subset_label": "GOTO",
+      "group_field": null,
+      "group_value": null,
+      "tickers": [
+        "GOTO"
+      ]
+    },
+    {
+      "subset_id": "ticker_bbca",
+      "subset_type": "ticker",
+      "subset_label": "BBCA",
+      "group_field": null,
+      "group_value": null,
+      "tickers": [
+        "BBCA"
+      ]
+    },
+    {
+      "subset_id": "ticker_bbri",
+      "subset_type": "ticker",
+      "subset_label": "BBRI",
+      "group_field": null,
+      "group_value": null,
+      "tickers": [
+        "BBRI"
+      ]
+    },
+    {
+      "subset_id": "best_subset_bmri_goto",
+      "subset_type": "subset",
+      "subset_label": "BMRI|GOTO",
+      "group_field": null,
+      "group_value": null,
+      "tickers": [
+        "BMRI",
+        "GOTO"
+      ]
+    },
+    {
+      "subset_id": "recommended_watchlist",
+      "subset_type": "subset",
+      "subset_label": "recommended_watchlist",
+      "group_field": null,
+      "group_value": null,
+      "tickers": [
+        "BMRI",
+        "GOTO",
+        "BBCA",
+        "BBRI"
+      ]
+    },
+    {
+      "subset_id": "group_sector_perbankan",
+      "subset_type": "group",
+      "subset_label": "sector:perbankan",
+      "group_field": "sector",
+      "group_value": "perbankan",
+      "tickers": [
+        "BBCA",
+        "BBRI",
+        "BMRI"
+      ]
+    }
+  ],
+  "best_snapshot": {
+    "subset_id": "ticker_goto",
+    "subset_type": "ticker",
+    "subset_label": "GOTO",
+    "group_field": null,
+    "group_value": null,
+    "tickers": "GOTO",
+    "observation_window": 5,
+    "window_label": "last_5_slice",
+    "ticker_count": 1,
+    "date_start": "2026-01-12",
+    "date_end": "2026-04-11",
+    "active_total_trades": 0,
+    "candidate_total_trades": 1,
+    "delta_total_trades": 1,
+    "active_win_rate_mean": 0.0,
+    "candidate_win_rate_mean": 100.0,
+    "delta_win_rate_mean": 100.0,
+    "active_average_return_mean": 0.0,
+    "candidate_average_return_mean": 57.8947,
+    "delta_average_return_mean": 57.8947,
+    "active_max_drawdown_mean": 0.0,
+    "candidate_max_drawdown_mean": 0.0,
+    "delta_max_drawdown_mean": 0.0,
+    "active_score_mean": -34.0,
+    "candidate_score_mean": 143.2368,
+    "delta_score_mean": 177.2368,
+    "active_eligible_ticker_count": 0,
+    "candidate_eligible_ticker_count": 0,
+    "coverage_improved": false,
+    "candidate_better_than_active": true,
+    "noise_risk": true,
+    "subset_stable_snapshot": false,
+    "stable_across_windows": false
+  },
+  "supported_snapshot_count": 5,
+  "stable_snapshot_count": 0,
+  "decision": {
+    "decision": "keep_candidate_experimental",
+    "candidate_id": "baseline_v2_hold3_with_trend_guard",
+    "still_experimental": true,
+    "watchlist_supported": true,
+    "stable_subset_found": false,
+    "recommended_tickers": [
+      "GOTO",
+      "BMRI",
+      "BBCA",
+      "BBRI"
+    ],
+    "recommended_groups": [
+      "sector:perbankan"
+    ],
+    "can_promote_for_subset": false,
+    "can_reject_candidate": false,
+    "next_action": "keep_candidate_experimental_for_watchlist_subset",
+    "best_subset_id": "ticker_goto",
+    "best_subset_label": "GOTO",
+    "best_subset_tickers": [
+      "GOTO"
+    ],
+    "decision_notes": [
+      "Watchlist monitoring masih melihat subset yang lebih baik daripada baseline aktif.",
+      "Subset belum stabil lintas horizon observasi lanjutan.",
+      "Candidate masih layak dipantau sebagai experimental."
+    ]
+  },
+  "warnings": []
+}

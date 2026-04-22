@@ -1,0 +1,56 @@
+Project Current State Summary
+=============================
+
+- Project state: frozen_waiting_data_extension_and_framework_redesign
+- Roadmap alignment: aligned_to_project_roadmap_status
+
+Operational baseline:
+- baseline_id=phase_a_active_baseline
+- use_for_operations=True
+- note=Gunakan baseline aktif Phase A untuk operasional sampai ada bukti yang cukup untuk menggantinya.
+
+Experimental candidate:
+- candidate_id=baseline_v2_hold3_with_trend_guard
+- status=keep_candidate_experimental
+- scope=framework_redesign_input_only
+- recommended_tickers=-
+- recommended_groups=-
+
+Phase gates:
+- phase_b_status=phase_b_closed_with_learnings_no_candidate
+- phase_b_retry_ready=False
+- phase_b_readiness_gate_status=belum_boleh_retest
+- phase_b_next_action=stop_and_collect_more_data_then_redesign_framework
+- phase_c_decision=phase_c_no_go_yet
+- phase_c_can_start=False
+
+Framework redesign status:
+- baseline_redesign_status=baseline_v2_no_go_redesign_again
+- candidate_validation_status=keep_candidate_experimental
+- baseline_candidate_usable_for_redesign_only=False
+- data_extension_required_before_any_retry=True
+- next_action=stop_and_collect_more_data_then_redesign_framework
+
+Project closeout status:
+- formal_closeout_status=closed_with_notes
+- operational_freeze_allowed=True
+- note=Project dibekukan pada state operasional saat ini, walaupun closeout formal masih punya blocker runtime yang terpisah.
+
+Allowed actions:
+- Gunakan baseline aktif Phase A untuk operasional.
+- Lanjutkan data extension dan refresh audit coverage/OOS secara berkala.
+- Gunakan hasil redesign baseline hanya sebagai input redesign framework evaluasi.
+- Refresh current-state summary setelah closeout/readiness artifacts diperbarui.
+
+Forbidden actions:
+- Jangan retry item 5-8 secara global.
+- Jangan promote baseline v2 menjadi baseline operasional global.
+- Jangan promote candidate watchlist-only menjadi baseline operasional.
+- Jangan mulai Phase C.
+- Jangan hidupkan adaptive search space lagi.
+
+Next decision gate:
+- gate_id=data_extension_and_framework_redesign_completion
+- promote_condition=Coverage data, OOS window, overlap audit, signal sparsity audit, dan baseline redesign usability sudah ditutup secara resmi.
+- reject_condition=Framework redesign membuktikan candidate redesign tetap tidak usable setelah data extension material.
+- default_until_then=keep_phase_b_closed_and_continue_data_extension

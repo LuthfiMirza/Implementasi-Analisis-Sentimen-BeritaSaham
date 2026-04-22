@@ -1,0 +1,139 @@
+{
+  "artifact": "walk_forward_validation_closeout",
+  "generated_at": "2026-04-22",
+  "source_of_truth": {
+    "walk_forward_validation_summary": "output/walk_forward_validation_summary.json",
+    "walk_forward_validation_report": "output/walk_forward_validation_report.txt",
+    "phase_4_position_sizing_summary": "output/phase_4_position_sizing_summary.json",
+    "phase_5_atr_trailing_stop_summary": "output/phase_5_atr_trailing_stop_summary.json",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "current_official_decision": {
+    "walk_forward_first_pass_status": "closed_failed_for_paper_trading_candidate_track",
+    "paper_trading_candidate_track": "not_ready",
+    "retest_readiness": "belum_boleh_retest",
+    "paper_trading_allowed": false,
+    "retest_allowed": false,
+    "baseline_operational_legacy_status": "frozen_unchanged",
+    "preferred_stack_after_closeout": "rebuild_core_without_layer3",
+    "layer_3_status": "optional_toggle_only",
+    "layer_3_default_active": false,
+    "decision_note": "Stack tanpa Layer 3 tetap menjadi baseline evaluasi rebuild. Layer 3 tidak dinaikkan menjadi default-active policy."
+  },
+  "assessed_stack_snapshot": {
+    "rebuild_core_without_layer3": {
+      "in_sample": {
+        "total_trades": 671,
+        "win_rate": 40.6855,
+        "average_return_per_trade": 0.6134,
+        "max_drawdown_pct": 28.6825,
+        "profit_factor": 1.1723
+      },
+      "out_of_sample": {
+        "total_trades": 439,
+        "win_rate": 38.2688,
+        "average_return_per_trade": -0.0909,
+        "max_drawdown_pct": 31.6175,
+        "profit_factor": 0.9629
+      },
+      "final_holdout": {
+        "total_trades": 461,
+        "win_rate": 38.6117,
+        "average_return_per_trade": -0.4867,
+        "max_drawdown_pct": 29.0187,
+        "profit_factor": 0.8416
+      },
+      "oos_degradation_vs_in_sample_pct": 114.819
+    },
+    "rebuild_core_with_layer3_optional_toggle": {
+      "in_sample": {
+        "total_trades": 596,
+        "win_rate": 40.7718,
+        "average_return_per_trade": 0.4745,
+        "max_drawdown_pct": 26.421,
+        "profit_factor": 1.1316
+      },
+      "out_of_sample": {
+        "total_trades": 390,
+        "win_rate": 37.9487,
+        "average_return_per_trade": -0.2735,
+        "max_drawdown_pct": 29.2625,
+        "profit_factor": 0.916
+      },
+      "final_holdout": {
+        "total_trades": 418,
+        "win_rate": 39.7129,
+        "average_return_per_trade": -0.3166,
+        "max_drawdown_pct": 28.9891,
+        "profit_factor": 0.8898
+      },
+      "oos_degradation_vs_in_sample_pct": 157.6396
+    }
+  },
+  "failure_classification": {
+    "dominant_failure_class": "oos_instability",
+    "classifications": [
+      {
+        "failure_class": "oos_instability",
+        "severity": "dominant",
+        "evidence": [
+          "Stack tanpa Layer 3 turun dari avg_return_per_trade 0.6134 di in-sample menjadi -0.0909 di out-of-sample dan -0.4867 di final holdout.",
+          "OOS degradation vs in-sample untuk stack tanpa Layer 3 mencapai 114.819%, jauh di atas gate < 30%.",
+          "Profit factor OOS/holdout untuk stack tanpa Layer 3 turun ke 0.9629 dan 0.8416."
+        ]
+      },
+      {
+        "failure_class": "entry_design",
+        "severity": "high",
+        "evidence": [
+          "Layer 3 toggle tidak memperbaiki stabilitas OOS; justru membuat OOS degradation lebih buruk menjadi 157.6396%.",
+          "Kandidat entry terbaik setelah WFT tetap stack tanpa Layer 3, tetapi win rate tetap bertahan di kisaran 38-41%, masih di bawah gate 45%.",
+          "Ini mengindikasikan kualitas penyaringan entry inti belum cukup robust ketika dipindahkan dari in-sample ke OOS/holdout."
+        ]
+      },
+      {
+        "failure_class": "exit_or_hold_design",
+        "severity": "secondary",
+        "evidence": [
+          "ATR trailing stop sebelumnya memang mengalahkan fixed hold 5 hari pada integrasi full-period, jadi exit bukan sumber bukti terkuat untuk kegagalan ini.",
+          "Namun max drawdown WFT tetap berada di kisaran 28-32%, sehingga exit/hold design masih menyumbang tekanan performa walau bukan blocker dominan yang paling defensible untuk disentuh lebih dulu."
+        ]
+      },
+      {
+        "failure_class": "sample_coverage_insufficient",
+        "severity": "secondary",
+        "evidence": [
+          "Sample adequacy OOS dan holdout hanya moderate karena total trades per window 439 dan 461, tetapi bukan high-risk.",
+          "Tidak ada coverage collapse per ticker pada stack yang diuji.",
+          "Sample coverage tidak bersih sempurna, tetapi tidak cukup kuat untuk menjelaskan sendiri perubahan kualitas yang memburuk tajam dari in-sample ke OOS/holdout."
+        ]
+      }
+    ]
+  },
+  "targeted_redesign_scope": {
+    "selected_scope": "entry_simplification",
+    "selection_status": "official_next_cycle_priority",
+    "why_selected": [
+      "Dominan failure class adalah oos_instability, dan bukti terdekat menunjuk bahwa kualitas entry tidak cukup robust di luar in-sample.",
+      "Layer 3 sudah terbukti tidak layak menjadi default dan bahkan tidak membantu stabilitas OOS, sehingga arah paling logis adalah menyederhanakan entry, bukan menambah kompleksitas baru.",
+      "Layer 5 ATR trailing stop sudah pernah menunjukkan perbaikan terhadap fixed hold pada pass integrasi, sehingga exit redesign bukan titik pertama yang paling defensible untuk disentuh sebelum entry dibersihkan."
+    ],
+    "scope_boundaries": [
+      "Fokus redesign berikutnya hanya pada entry stack rebuild.",
+      "Jangan tweak kecil Layer 3, Layer 4, atau Layer 5 pada siklus ini.",
+      "Jangan buka retest Phase B lama.",
+      "Jangan buka paper trading."
+    ]
+  },
+  "forbidden_or_premature_actions": [
+    "Membuka paper trading candidate track sekarang.",
+    "Membuka retest atau kembali ke baseline lama.",
+    "Melakukan tweak kecil Layer 3 RSI gate sebagai prioritas utama.",
+    "Melakukan confirmation pass tambahan Layer 4 sizing atau Layer 5 ATR sebelum scope redesign berikutnya diputuskan dan dijalankan.",
+    "Menjalankan banyak redesign scope sekaligus."
+  ],
+  "official_next_action": {
+    "action": "open_targeted_entry_simplification_planning_closeout",
+    "note": "Siklus berikutnya harus dibatasi ke entry simplification sebagai targeted redesign scope tunggal yang paling defensible dari hasil walk-forward ini."
+  }
+}

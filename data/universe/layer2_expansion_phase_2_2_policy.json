@@ -1,0 +1,73 @@
+{
+  "phase": "phase_2_2_relative_strength_validation_basis_expansion",
+  "status": "target_50_frozen_rerun_completed",
+  "policy_id": "custom_50_liquid_long_history_manual_freeze",
+  "recommended_target_size": 50,
+  "minimum_defensible_size": 45,
+  "recommended_shortlist_size_for_next_freeze": 15,
+  "selection_policy": {
+    "policy_type": "custom_manual_universe_successor",
+    "benchmark_reference_only": [
+      "IDX30_style_liquidity",
+      "LQ45_style_liquidity"
+    ],
+    "reason": "Target near-30 sudah terbukti masih terlalu sempit untuk validasi RS. Policy paling defensible sekarang adalah memperluas manual-freeze universe ke 50 ticker, dengan checkpoint aman 45 ticker sebelum fetch massal."
+  },
+  "inclusion_criteria": {
+    "history_minimum_daily_rows": 1250,
+    "history_reason": "Sekitar 5 tahun daily bars tetap cukup untuk regime plus momentum validation awal dan mengurangi distorsi IPO baru.",
+    "listing_status": "active_common_stock_on_idx_only",
+    "liquidity_rule_after_rebuild": {
+      "metric": "median_daily_traded_value_last_252_sessions",
+      "threshold_idr": 50000000000,
+      "fallback_metric": "median_volume_last_252_sessions_if_value_unavailable"
+    },
+    "data_cleanliness_rule": [
+      "no_weekend_rows",
+      "no_duplicate_dates",
+      "ascending_dates",
+      "no_mixed_frequency_contamination",
+      "no_missing_core_prices"
+    ],
+    "sector_diversification": {
+      "minimum_sector_groups": 10,
+      "maximum_names_per_sector_group": 8
+    }
+  },
+  "phase_2_2_rationale": {
+    "why_45": "Checkpoint 45 ticker adalah minimum defensible baru karena memberi bucket RS sekitar top30=13-14, top40=18, top50=22-23; itu lebih aman daripada current max rankable 31 yang masih terlalu sempit.",
+    "why_50": "Target ideal 50 ticker dipilih karena memberi bucket RS sekitar top30=15, top40=20, top50=25 dan median breadth pasca Layer 1 yang lebih layak untuk menilai apakah blocker masih universe-size atau sudah bergeser ke desain rule RS."
+  },
+  "known_exclusions_for_now": [
+    {
+      "ticker": "GOTO",
+      "reason": "History masih terlalu pendek untuk universe long-history validation."
+    },
+    {
+      "ticker": "DEWA",
+      "reason": "Likuiditas repo lama tampak terlalu tipis dan profil kebersihan data tidak cocok sebagai anchor Phase 2.2."
+    },
+    {
+      "ticker": "BUMI",
+      "reason": "Walau history panjang dan likuid, profil volatilitas ekstrem serta noise kualitas membuatnya kurang cocok sebagai kandidat aman untuk scaffold freeze awal Phase 2.2."
+    }
+  ],
+  "governance": {
+    "freeze_required_before_fetch": true,
+    "freeze_status_values_allowed_for_fetch": [
+      "frozen",
+      "approved"
+    ]
+  },
+  "execution_status": {
+    "current_frozen_universe_count": 50,
+    "additional_candidates_planned": 20,
+    "new_pending_manual_confirmation_count": 0,
+    "minimum_checkpoint_45_needs": 0,
+    "ideal_target_50_needs": 0,
+    "ready_for_mass_rebuild_now": false,
+    "reason": "Target ideal 50 sudah dibekukan, direbuild, dan direrun. Phase 2 sekarang menandai Layer 2 usable sebagai prototype, tetapi Phase 2.1 formal masih belum menaikkan status ke validasi final."
+  },
+  "candidate_file": "data/universe/layer2_expansion_phase_2_2_target_candidates.csv",
+  "priority_file": "output/phase_2_2_universe_manual_review_priority.csv"
+}
