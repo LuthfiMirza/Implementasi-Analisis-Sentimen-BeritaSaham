@@ -1,0 +1,17 @@
+{
+  "artifact": "time_stop_freeze_sync_note",
+  "generated_at": "2026-04-23T14:27:10Z",
+  "official_frozen_time_stop_days": 12,
+  "source_of_truth": "output/project_roadmap_status.txt",
+  "files_synchronized": [
+    "output/one_small_controlled_strategy_hypothesis.json",
+    "output/one_small_controlled_strategy_hypothesis.txt",
+    "output/single_variable_experiment_spec.json",
+    "output/single_variable_experiment_spec.txt",
+    "quant/run_walk_forward_validation.py"
+  ],
+  "historical_metrics_recomputed": false,
+  "sync_note": "Roadmap aktif menetapkan provisional frozen time stop 12 hari. Cleanup ini hanya menyamakan referensi aktif dan runtime untuk interpretasi dan run ke depan; historical metrics lama tidak dihitung ulang pada langkah ini.",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

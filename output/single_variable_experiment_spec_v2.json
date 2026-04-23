@@ -1,0 +1,102 @@
+{
+  "artifact": "single_variable_experiment_spec_v2",
+  "generated_at": "2026-04-23T15:13:35Z",
+  "experiment_scope": "single_variable_only_entry_signal_persistence_minimum_confirmation_days",
+  "hypothesis_reference": "output/one_small_controlled_strategy_hypothesis_v2.json",
+  "single_variable_name": "entry_signal_persistence_minimum_confirmation_days",
+  "current_setting": 0,
+  "candidate_test_values": {
+    "values": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "units": "trading_days",
+    "selection_reason": "These values stay close to the current no-confirmation behavior, probe only a narrow short persistence range, and keep the experiment tightly controlled around a single Layer 2 entry-quality lever."
+  },
+  "fixed_components": {
+    "layer_1_regime_filter": "unchanged current active policy: ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50",
+    "layer_2_family_scope": "unchanged current Layer 2 family except for the confirmation-days lever",
+    "layer_2_return_20d_momentum_floor": "do_not_reopen_rejected_range",
+    "layer_2_close_gt_ema50_leg": "unchanged_and_not_reactivated_or_retuned",
+    "layer_3_mode": "inactive / optional-off",
+    "layer_5_atr_multiplier": 2.5,
+    "layer_5_trailing_logic": "unchanged",
+    "time_stop_days": 12,
+    "position_sizing": {
+      "risk_per_trade_pct": 2.0,
+      "max_position_pct": 10.0
+    },
+    "universe": "unchanged",
+    "walk_forward_split": "unchanged",
+    "allow_overlap_policy": "unchanged",
+    "realism_cost_policy": "unchanged",
+    "corporate_action_atr_temporary_policy": "unchanged",
+    "governance_status": "unchanged_blocked",
+    "retest_status": "blocked",
+    "paper_trading_status": "blocked"
+  },
+  "evaluation_protocol": {
+    "run_status": "do_not_run_in_this_step",
+    "comparison_basis": "compare every approved confirmation-days setting against the current frozen-stack baseline already documented",
+    "walk_forward_split_rule": "use the same walk-forward split as the current frozen-stack evaluation",
+    "realism_cost_rule": "use the same realism cost policy already documented",
+    "window_reporting_rule": "report both out_of_sample and final_holdout explicitly",
+    "criteria_freeze_rule": "do not change pass criteria after results are seen",
+    "approved_variants_rule": "all approved confirmation-days variants must be run before selecting any winner",
+    "single_variable_rule": "only entry_signal_persistence_minimum_confirmation_days may vary across runs"
+  },
+  "minimum_pass_criteria": {
+    "metric_basis": "same walk-forward evaluation with the same realism-cost policy already documented",
+    "oos_avg_return_per_trade_gt": 0.0,
+    "oos_max_drawdown_pct_lt": 35.0,
+    "holdout_avg_return_per_trade_floor": -0.1,
+    "trade_count_floor": 350,
+    "no_worse_than_current_holdout": true
+  },
+  "failure_conditions": [
+    "Fail if out-of-sample average return per trade remains less than or equal to 0.0.",
+    "Fail if out-of-sample max drawdown remains greater than or equal to 35.0%.",
+    "Fail if holdout average return per trade stays below -0.1.",
+    "Fail if trade count falls below 350 in the evaluated window set.",
+    "Fail if holdout performance becomes worse than the current frozen stack after costs.",
+    "Fail if out-of-sample average return per trade improves but holdout average return per trade remains materially weak below -0.1, because that would indicate only an OOS-side improvement without acceptable holdout robustness."
+  ],
+  "reporting_requirements": {
+    "minimum_outputs": [
+      "before_vs_after_by_window relative to the current frozen stack baseline",
+      "all_tested_variants",
+      "selected_setting_winner",
+      "trade_count_impact",
+      "out_of_sample average return per trade",
+      "final_holdout average return per trade",
+      "out_of_sample max drawdown",
+      "final_holdout max drawdown",
+      "explicit pass_or_fail against the frozen criteria"
+    ],
+    "no_ambiguity_rule": "All approved confirmation-days variants must be reported, not only the best-looking row."
+  },
+  "not_allowed_changes": [
+    "Do not change Layer 1.",
+    "Do not reopen the `return_20d` momentum-floor range.",
+    "Do not retune or reactivate the Layer 2 `close > ema50` leg.",
+    "Do not activate or retune Layer 3.",
+    "Do not change Layer 4 sizing.",
+    "Do not change Layer 5 ATR multiplier or trailing-stop logic.",
+    "Do not change the 12-day time stop.",
+    "Do not change universe membership.",
+    "Do not change walk-forward split.",
+    "Do not change realism cost policy.",
+    "Do not change corporate-action ATR temporary policy.",
+    "Do not add any second variable.",
+    "Do not loosen pass criteria after results are seen.",
+    "Do not open governance gate.",
+    "Do not open retest.",
+    "Do not open paper trading."
+  ],
+  "execution_status": "spec_only_not_run",
+  "next_action": "wait_for_explicit_approval_before_running_single_variable_confirmation_days_experiment",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

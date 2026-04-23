@@ -1,0 +1,15 @@
+{
+  "artifact": "walk_forward_fee_slippage_policy",
+  "generated_at": "2026-04-23T13:58:54Z",
+  "broker_fee_bps": 10.0,
+  "slippage_bps": 5.0,
+  "round_trip_cost_bps": 30.0,
+  "cost_application_scope": "Applied to every realized trade as a round-trip return haircut after signal/exit generation and before position-sizing portfolio aggregation.",
+  "source_runtime": "quant/run_walk_forward_validation.py",
+  "baseline_artifact_reference": "output/walk_forward_validation_summary.json",
+  "with_costs_output_dir": "output/walk_forward_with_costs_run",
+  "stack_changed": false,
+  "walk_forward_rerun_required": true,
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

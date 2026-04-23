@@ -1,0 +1,49 @@
+{
+  "artifact": "one_small_controlled_strategy_hypothesis",
+  "generated_at": "2026-04-23T14:22:14Z",
+  "hypothesis_statement": "Raising the Layer 2 absolute-momentum floor above the current `return_20d > 0` cutoff, while keeping the rest of the frozen stack unchanged, can lift out-of-sample average return per trade above zero without letting out-of-sample max drawdown stay above 35% under the same walk-forward and realism-cost policy.",
+  "why_this_hypothesis_first": "Diagnosis terbaru memilih `path_1_hypothesis_refinement_first` dan menyimpulkan bahwa masalah utama ada pada kualitas edge strategi, bukan pada fondasi data, governance, atau realism-cost plumbing. Karena current frozen stack gagal terutama pada OOS robustness dan drawdown, perubahan pertama yang paling terisolasi adalah mengetatkan satu variabel kualitas entry di Layer 2 tanpa menyentuh regime, exit, sizing, atau cost model.",
+  "what_changes": {
+    "component": "Layer 2 entry eligibility",
+    "single_variable": "absolute_momentum_floor_on_return_20d",
+    "current_setting": "return_20d > 0",
+    "proposed_hypothesis_change": "replace the neutral floor with one stricter positive `return_20d` cutoff in the same field and units already used by the pipeline",
+    "change_scope": "one variable only"
+  },
+  "what_stays_frozen": [
+    "Layer 1 market regime filter stays exactly as the current frozen stack.",
+    "Layer 2 `close > ema50` leg stays unchanged.",
+    "Layer 3 stays inactive / optional-off by default.",
+    "Layer 5 ATR multiplier stays 2.5.",
+    "Layer 5 trailing-stop logic stays unchanged.",
+    "Time stop stays fixed at 12 days.",
+    "Position sizing stays 2% risk per trade and 10% max position cap.",
+    "Universe stays unchanged.",
+    "Walk-forward split stays unchanged.",
+    "Allow-overlap policy stays unchanged.",
+    "Realism cost policy stays unchanged.",
+    "Corporate-action ATR temporary policy stays unchanged.",
+    "No governance status changes are allowed.",
+    "Retest remains blocked.",
+    "Paper trading remains blocked."
+  ],
+  "minimum_pass_criteria": {
+    "metric_basis": "same walk-forward evaluation with the same realism-cost policy already documented",
+    "oos_avg_return_per_trade_gt": 0.0,
+    "oos_max_drawdown_pct_lt": 35.0,
+    "holdout_avg_return_per_trade_floor": -0.1,
+    "trade_count_floor": 350,
+    "no_worse_than_current_holdout": true
+  },
+  "failure_conditions": [
+    "Fail if out-of-sample average return per trade remains less than or equal to 0.0.",
+    "Fail if out-of-sample max drawdown remains greater than or equal to 35.0%.",
+    "Fail if holdout average return per trade stays below -0.1.",
+    "Fail if trade count falls below 350 in the evaluated window set.",
+    "Fail if holdout performance becomes worse than the current frozen stack after costs."
+  ],
+  "why_this_is_not_a_full_rebuild": "Ini bukan full rebuild karena fondasi yang dipakai tetap sama: regime filter, exit logic, sizing, universe, walk-forward split, dan realism-cost policy semuanya dibekukan. Hipotesis ini hanya mengisolasi satu refinement kecil pada kualitas Layer 2 entry eligibility untuk menguji apakah edge OOS bisa diperbaiki tanpa memindahkan goalposts atau mengganti arsitektur utama.",
+  "next_action": "prepare_single_variable_experiment_spec_without_running_it_yet",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

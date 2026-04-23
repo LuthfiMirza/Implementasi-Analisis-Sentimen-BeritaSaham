@@ -1,0 +1,49 @@
+{
+  "artifact": "walk_forward_with_costs_summary",
+  "generated_at": "2026-04-23T13:58:54Z",
+  "baseline_artifact_reference": "output/walk_forward_validation_summary.json",
+  "with_costs_artifact_reference": "output/walk_forward_with_costs_run/walk_forward_validation_summary.json",
+  "preferred_stack_id": "rebuild_core_without_layer3",
+  "summary_scope": "preferred_stack_final_holdout",
+  "walk_forward_rerun_status": "completed_once",
+  "portfolio_return_pct_after_costs": -31.765,
+  "portfolio_max_drawdown_pct_after_costs": 34.6411,
+  "trade_count_after_costs": 461,
+  "average_return_per_trade_after_costs": -0.7867,
+  "cost_impact_summary": "On the preferred stack final holdout, 30 bps round-trip cost reduced average_return_per_trade from -0.4867% to -0.7867% and portfolio_return_pct from -21.6433% to -31.7650% with trade count unchanged at 461.",
+  "before_vs_after_by_window": {
+    "in_sample": {
+      "trade_count_before_costs": 671,
+      "trade_count_after_costs": 671,
+      "average_return_per_trade_before_costs": 0.6134,
+      "average_return_per_trade_after_costs": 0.3134,
+      "portfolio_return_pct_before_costs": 45.0667,
+      "portfolio_return_pct_after_costs": 18.6636,
+      "max_drawdown_pct_before_costs": 28.6825,
+      "max_drawdown_pct_after_costs": 32.6641
+    },
+    "out_of_sample": {
+      "trade_count_before_costs": 439,
+      "trade_count_after_costs": 439,
+      "average_return_per_trade_before_costs": -0.0909,
+      "average_return_per_trade_after_costs": -0.3909,
+      "portfolio_return_pct_before_costs": -5.5937,
+      "portfolio_return_pct_after_costs": -17.2457,
+      "max_drawdown_pct_before_costs": 31.6175,
+      "max_drawdown_pct_after_costs": 37.5149
+    },
+    "final_holdout": {
+      "trade_count_before_costs": 461,
+      "trade_count_after_costs": 461,
+      "average_return_per_trade_before_costs": -0.4867,
+      "average_return_per_trade_after_costs": -0.7867,
+      "portfolio_return_pct_before_costs": -21.6433,
+      "portfolio_return_pct_after_costs": -31.765,
+      "max_drawdown_pct_before_costs": 29.0187,
+      "max_drawdown_pct_after_costs": 34.6411
+    }
+  },
+  "stack_changed": false,
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

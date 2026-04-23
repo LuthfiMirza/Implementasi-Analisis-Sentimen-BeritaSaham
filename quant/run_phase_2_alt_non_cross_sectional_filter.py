@@ -111,20 +111,32 @@ def _build_variant_registry() -> List[AltFilterVariant]:
     ]
 
 
-def _compute_alt_features(frame: pd.DataFrame) -> pd.DataFrame:
+def _compute_alt_features(
+    frame: pd.DataFrame,
+    *,
+    momentum_floor_on_return_20d: float = 0.0,
+    short_term_ema_slope_gate: str = "none",
+) -> pd.DataFrame:
     working = frame.sort_values(["date", "ticker"]).reset_index(drop=True).copy()
     working["return_20d_numeric"] = pd.to_numeric(working["return_20d"], errors="coerce")
+    working["ema20_numeric"] = pd.to_numeric(working["ema20"], errors="coerce")
     working["close_numeric"] = pd.to_numeric(working["close"], errors="coerce")
     working["ema50_numeric"] = pd.to_numeric(working["ema50"], errors="coerce")
     working["volume_ma20_numeric"] = pd.to_numeric(working["volume_ma20"], errors="coerce")
+    working["prev_ema20_numeric"] = working.groupby("ticker")["ema20_numeric"].shift(1)
     working["avg_traded_value_20d"] = working["close_numeric"] * working["volume_ma20_numeric"]
     working["alt_data_ready"] = (
         working["return_20d_numeric"].notna()
+        & working["ema20_numeric"].notna()
+        & working["prev_ema20_numeric"].notna()
         & working["close_numeric"].notna()
         & working["ema50_numeric"].notna()
     )
-    working["alt_momentum_positive"] = working["return_20d_numeric"].gt(0)
+    working["alt_momentum_floor"] = float(momentum_floor_on_return_20d)
+    working["alt_momentum_positive"] = working["return_20d_numeric"].gt(float(momentum_floor_on_return_20d))
     working["alt_close_above_ema50"] = working["close_numeric"].gt(working["ema50_numeric"])
+    working["short_term_ema_slope_gate_mode"] = str(short_term_ema_slope_gate)
+    working["alt_short_term_ema_slope_up"] = working["ema20_numeric"].gt(working["prev_ema20_numeric"])
     working["available_ticker_count"] = working.groupby("date")["ticker"].transform("count").astype(int)
     return working
 

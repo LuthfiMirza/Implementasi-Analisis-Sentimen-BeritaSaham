@@ -1,0 +1,20 @@
+{
+  "atr_basis": "raw_ohlc",
+  "corporate_action_risk_tickers": [
+    "ASII",
+    "BBCA",
+    "BBRI",
+    "BMRI",
+    "TLKM"
+  ],
+  "clean_tickers": [],
+  "atr_outlier_tickers": [],
+  "temporary_policy_usable": false,
+  "policy_statement": "ATR Layer 5 saat ini terdokumentasi memakai basis raw OHLC sementara, tetapi spot check lima ticker corporate action menunjukkan lompatan harga harian >15% sehingga basis ini belum cukup bersih untuk dijadikan policy sementara yang eksplisit.",
+  "basis_evidence": {
+    "roadmap_note": "project_roadmap_status.txt menyatakan policy ATR masih temporary-not-final karena basis raw OHLC baru akan dibekukan saat walk-forward.",
+    "indicator_master_note": "stock_indicator_master.csv tidak menyimpan kolom ATR14 sehingga basis ATR tidak bisa diverifikasi langsung dari master indikator."
+  },
+  "corporate_action_spot_check_method": "Flag ticker jika ada absolute one-day raw close jump > 15% pada data/stocks/<ticker>.csv.",
+  "atr_value_sanity_method": "Flag potential_outlier jika mean ATR14 / mean close > 10%, dengan ATR14 dihitung dari raw high/low/close memakai Wilder smoothing 14 hari."
+}

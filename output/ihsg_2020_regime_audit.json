@@ -1,0 +1,25 @@
+{
+  "year": 2020,
+  "bullish_days": 33,
+  "non_bullish_days": 209,
+  "bullish_day_pct": 0.136364,
+  "crossover_dates": [
+    {
+      "date": "2020-01-15",
+      "from": "non_bullish",
+      "to": "bullish"
+    },
+    {
+      "date": "2020-01-28",
+      "from": "bullish",
+      "to": "non_bullish"
+    },
+    {
+      "date": "2020-11-24",
+      "from": "non_bullish",
+      "to": "bullish"
+    }
+  ],
+  "regime_suppression_likely": true,
+  "audit_note": "Pada 2020, hanya 33 dari 242 hari bursa (13.64%) yang memenuhi regime bullish IHSG EMA50 > EMA200, dengan stretch non-bullish panjang dari 2020-01-28 sampai 2020-11-24, sehingga low-signal 2020 lebih konsisten dengan regime suppression daripada indikasi masalah baru di luar regime filter."
+}

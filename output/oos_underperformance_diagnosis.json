@@ -1,0 +1,53 @@
+{
+  "artifact": "oos_underperformance_diagnosis",
+  "generated_at": "2026-04-23T14:11:38Z",
+  "diagnosis_scope": "close_reading_of_existing_walk_forward_and_signal_sparsity_artifacts_for_current_frozen_stack",
+  "preferred_stack_id": "rebuild_core_without_layer3",
+  "in_sample_summary": {
+    "average_return_per_trade": 0.6134,
+    "portfolio_return_pct": 45.0667,
+    "max_drawdown_pct": 28.6825,
+    "total_trades": 671,
+    "sample_adequacy_risk": "low"
+  },
+  "oos_summary": {
+    "average_return_per_trade_before_costs": -0.0909,
+    "average_return_per_trade_after_costs": -0.3909,
+    "portfolio_return_pct_before_costs": -5.5937,
+    "portfolio_return_pct_after_costs": -17.2457,
+    "max_drawdown_pct_before_costs": 31.6175,
+    "max_drawdown_pct_after_costs": 37.5149,
+    "total_trades": 439,
+    "sample_adequacy_risk": "moderate"
+  },
+  "holdout_summary": {
+    "average_return_per_trade_before_costs": -0.4867,
+    "average_return_per_trade_after_costs": -0.7867,
+    "portfolio_return_pct_before_costs": -21.6433,
+    "portfolio_return_pct_after_costs": -31.765,
+    "max_drawdown_pct_before_costs": 29.0187,
+    "max_drawdown_pct_after_costs": 34.6411,
+    "total_trades": 461,
+    "sample_adequacy_risk": "moderate"
+  },
+  "suspected_primary_causes": [
+    "oos_instability: edge yang positif di in-sample tidak bertahan ketika dipindahkan ke OOS dan final holdout",
+    "signal_sparsity_or_flatness: artifact sparsity menunjukkan distribusi trade-like events tidak rata, terutama 2020 yang sangat tipis karena regime suppression",
+    "entry_design_or_signal_quality: kelemahan muncul bahkan sebelum realism cost ditambahkan, sehingga cost hanya memperjelas edge yang memang sudah lemah",
+    "risk_profile_too_weak_for_promotion: drawdown OOS dan holdout tetap jauh di atas ambang 20 persen"
+  ],
+  "evidence_patterns": [
+    "In-sample average_return_per_trade positif 0.6134, tetapi OOS turun ke -0.0909 dan holdout ke -0.4867 sebelum costs.",
+    "Setelah minimum realism cost, OOS average_return_per_trade menjadi -0.3909 dan holdout menjadi -0.7867, dengan trade count tetap sama; ini berarti cost memperburuk kelemahan yang sudah ada, bukan menciptakan failure baru.",
+    "OOS max_drawdown_pct 31.6175 sebelum costs dan 37.5149 setelah costs; holdout max_drawdown_pct 29.0187 sebelum costs dan 34.6411 setelah costs, jadi risk profile tetap terlalu berat untuk promotion path.",
+    "Signal sparsity audit menunjukkan 2020 hanya 40 trade-like events, dan IHSG 2020 regime audit menunjukkan hanya 33 dari 242 hari bullish dengan bearish stretch panjang dari 2020-01-28 sampai 2020-11-24; ini mendukung interpretasi bahwa sebagian kelemahan coverage datang dari regime suppression, bukan kerusakan data.",
+    "Sample adequacy OOS dan holdout hanya moderate, tetapi tidak high-risk dan tidak ada coverage collapse ticker; jadi masalah utama lebih konsisten dengan edge strategy yang tidak cukup robust daripada fondasi data yang rusak."
+  ],
+  "most_plausible_interpretation": "Interpretasi paling defensible adalah current frozen stack memang punya edge yang terlalu tipis dan tidak stabil di luar in-sample. Macro/regime suppression membantu menjelaskan kenapa sebagian periode, terutama 2020, menjadi low-signal, tetapi itu tidak cukup untuk menjelaskan seluruh kegagalan karena OOS dan holdout tetap negatif bahkan saat sample masih usable dan tanpa coverage collapse. Realism cost hanya mempertegas bahwa edge yang tersisa tidak cukup kuat untuk promotion path.",
+  "recommended_path": "path_1_hypothesis_refinement_first",
+  "why_not_full_rebuild_yet": "Full rebuild belum menjadi langkah pertama yang paling defensible karena artifact yang ada tidak menunjukkan kegagalan fondasi data, infrastruktur evaluasi, atau runtime dasar. Indicator master, walk-forward pipeline, dan cost haircut minimum sudah cukup untuk membuktikan bahwa masalah utama ada pada kualitas edge strategi dan robustness lintas periode. Jadi yang lebih tepat adalah refinement hipotesis strategi secara kecil dan terkontrol, bukan membuang seluruh fondasi yang masih reusable.",
+  "recommended_path_note": "Path 1 dipilih karena infrastruktur data dan evaluasi masih reusable, sementara failure utama tampak berada di edge strategi, OOS robustness, dan risk profile, bukan di fondasi data.",
+  "next_action": "define_one_small_controlled_strategy_hypothesis_from_oos_underperformance_patterns",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

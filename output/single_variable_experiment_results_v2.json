@@ -1,0 +1,124 @@
+{
+  "artifact": "single_variable_experiment_results_v2",
+  "generated_at": "2026-04-23T15:27:49.831882+00:00",
+  "experiment_scope": "single_variable_only_entry_signal_persistence_minimum_confirmation_days",
+  "single_variable_name": "entry_signal_persistence_minimum_confirmation_days",
+  "baseline_reference": "output/walk_forward_with_costs_summary.json",
+  "tested_variants": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "results_by_variant": [
+    {
+      "confirmation_days": 0,
+      "in_sample_avg_return_per_trade": 0.2494,
+      "oos_avg_return_per_trade": -0.3549,
+      "holdout_avg_return_per_trade": -0.2523,
+      "oos_max_drawdown_pct": 39.6623,
+      "holdout_max_drawdown_pct": 28.6827,
+      "trade_count": 487,
+      "passes_minimum_criteria": false,
+      "assessment_note": "Fails at least one locked minimum criterion; no escape clause, range expansion, or second variable allowed.",
+      "baseline_comparison": {
+        "oos_avg_return_per_trade_before": -0.3909,
+        "oos_avg_return_per_trade_after": -0.3549,
+        "holdout_avg_return_per_trade_before": -0.7867,
+        "holdout_avg_return_per_trade_after": -0.2523,
+        "oos_max_drawdown_pct_before": 37.5149,
+        "oos_max_drawdown_pct_after": 39.6623,
+        "holdout_max_drawdown_pct_before": 34.6411,
+        "holdout_max_drawdown_pct_after": 28.6827,
+        "trade_count_before": 461,
+        "trade_count_after": 487
+      }
+    },
+    {
+      "confirmation_days": 1,
+      "in_sample_avg_return_per_trade": 0.2494,
+      "oos_avg_return_per_trade": -0.3549,
+      "holdout_avg_return_per_trade": -0.2523,
+      "oos_max_drawdown_pct": 39.6623,
+      "holdout_max_drawdown_pct": 28.6827,
+      "trade_count": 487,
+      "passes_minimum_criteria": false,
+      "assessment_note": "Fails at least one locked minimum criterion; no escape clause, range expansion, or second variable allowed.",
+      "baseline_comparison": {
+        "oos_avg_return_per_trade_before": -0.3909,
+        "oos_avg_return_per_trade_after": -0.3549,
+        "holdout_avg_return_per_trade_before": -0.7867,
+        "holdout_avg_return_per_trade_after": -0.2523,
+        "oos_max_drawdown_pct_before": 37.5149,
+        "oos_max_drawdown_pct_after": 39.6623,
+        "holdout_max_drawdown_pct_before": 34.6411,
+        "holdout_max_drawdown_pct_after": 28.6827,
+        "trade_count_before": 461,
+        "trade_count_after": 487
+      }
+    },
+    {
+      "confirmation_days": 2,
+      "in_sample_avg_return_per_trade": 0.7174,
+      "oos_avg_return_per_trade": -0.3895,
+      "holdout_avg_return_per_trade": -0.2758,
+      "oos_max_drawdown_pct": 36.2845,
+      "holdout_max_drawdown_pct": 25.7436,
+      "trade_count": 415,
+      "passes_minimum_criteria": false,
+      "assessment_note": "Fails at least one locked minimum criterion; no escape clause, range expansion, or second variable allowed.",
+      "baseline_comparison": {
+        "oos_avg_return_per_trade_before": -0.3909,
+        "oos_avg_return_per_trade_after": -0.3895,
+        "holdout_avg_return_per_trade_before": -0.7867,
+        "holdout_avg_return_per_trade_after": -0.2758,
+        "oos_max_drawdown_pct_before": 37.5149,
+        "oos_max_drawdown_pct_after": 36.2845,
+        "holdout_max_drawdown_pct_before": 34.6411,
+        "holdout_max_drawdown_pct_after": 25.7436,
+        "trade_count_before": 461,
+        "trade_count_after": 415
+      }
+    },
+    {
+      "confirmation_days": 3,
+      "in_sample_avg_return_per_trade": 0.7211,
+      "oos_avg_return_per_trade": -0.5529,
+      "holdout_avg_return_per_trade": -0.592,
+      "oos_max_drawdown_pct": 31.6191,
+      "holdout_max_drawdown_pct": 25.0206,
+      "trade_count": 363,
+      "passes_minimum_criteria": false,
+      "assessment_note": "Fails at least one locked minimum criterion; no escape clause, range expansion, or second variable allowed.",
+      "baseline_comparison": {
+        "oos_avg_return_per_trade_before": -0.3909,
+        "oos_avg_return_per_trade_after": -0.5529,
+        "holdout_avg_return_per_trade_before": -0.7867,
+        "holdout_avg_return_per_trade_after": -0.592,
+        "oos_max_drawdown_pct_before": 37.5149,
+        "oos_max_drawdown_pct_after": 31.6191,
+        "holdout_max_drawdown_pct_before": 34.6411,
+        "holdout_max_drawdown_pct_after": 25.0206,
+        "trade_count_before": 461,
+        "trade_count_after": 363
+      }
+    }
+  ],
+  "minimum_pass_criteria": {
+    "metric_basis": "same walk-forward evaluation with the same realism-cost policy already documented",
+    "oos_avg_return_per_trade_gt": 0.0,
+    "oos_max_drawdown_pct_lt": 35.0,
+    "holdout_avg_return_per_trade_floor": -0.1,
+    "trade_count_floor": 350,
+    "no_worse_than_current_holdout": true
+  },
+  "winner_variant": null,
+  "winner_selection_basis": "no_variant_passed_locked_minimum_criteria",
+  "hypothesis_result": "hypothesis_rejected",
+  "hypothesis_result_reason": "None of the four approved confirmation-days values passed the locked minimum criteria, so the hypothesis is rejected without expanding the range, loosening pass criteria, or adding a second variable.",
+  "no_range_expansion_performed": true,
+  "stack_changed": false,
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked",
+  "next_action": "review_single_variable_experiment_result_v2_against_locked_criteria_before_any_further_strategy_change"
+}

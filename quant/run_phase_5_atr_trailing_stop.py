@@ -107,8 +107,19 @@ def _build_variant_registry() -> List[ExitVariant]:
     ]
 
 
-def _compute_exit_features(frame: pd.DataFrame) -> pd.DataFrame:
-    working = _compute_features(frame)
+def _compute_exit_features(
+    frame: pd.DataFrame,
+    *,
+    momentum_floor_on_return_20d: float = 0.0,
+    confirmation_days: int = 0,
+    short_term_ema_slope_gate: str = "none",
+) -> pd.DataFrame:
+    working = _compute_features(
+        frame,
+        momentum_floor_on_return_20d=float(momentum_floor_on_return_20d),
+        confirmation_days=int(confirmation_days),
+        short_term_ema_slope_gate=str(short_term_ema_slope_gate),
+    )
     working = working.sort_values(["ticker", "date"]).reset_index(drop=True).copy()
     working["prev_close_raw"] = working.groupby("ticker")["close"].shift(1)
     high_low = pd.to_numeric(working["high"], errors="coerce") - pd.to_numeric(working["low"], errors="coerce")
@@ -126,10 +137,7 @@ def _compute_exit_features(frame: pd.DataFrame) -> pd.DataFrame:
     )
     working["atr14_ready"] = working["atr14"].notna()
     working["layer2_alt_entry_active"] = (
-        working["market_regime_bullish"].astype(bool)
-        & working["alt_data_ready"].astype(bool)
-        & working["alt_momentum_positive"].astype(bool)
-        & working["alt_close_above_ema50"].astype(bool)
+        working["layer2_alt_active"].astype(bool)
     )
     working["layer3_optional_active"] = working["layer3_rsi_50_70_active"].astype(bool)
     working["available_ticker_count"] = working.groupby("date")["ticker"].transform("count").astype(int)

@@ -98,14 +98,52 @@ def _build_variant_registry() -> List[IntegrationVariant]:
     ]
 
 
-def _compute_features(frame: pd.DataFrame) -> pd.DataFrame:
-    working = _compute_alt_features(frame)
-    working["rsi14_numeric"] = pd.to_numeric(working["rsi14"], errors="coerce")
-    working["layer2_alt_active"] = (
+def _compute_features(
+    frame: pd.DataFrame,
+    *,
+    momentum_floor_on_return_20d: float = 0.0,
+    confirmation_days: int = 0,
+    short_term_ema_slope_gate: str = "none",
+) -> pd.DataFrame:
+    working = _compute_alt_features(
+        frame,
+        momentum_floor_on_return_20d=float(momentum_floor_on_return_20d),
+        short_term_ema_slope_gate=str(short_term_ema_slope_gate),
+    )
+    minimum_required_streak = max(int(confirmation_days), 0) + 1
+    slope_gate_mode = str(short_term_ema_slope_gate)
+    if slope_gate_mode == "none":
+        slope_gate_pass = True
+    elif slope_gate_mode == "ema20_today_gt_ema20_prev_day":
+        slope_gate_pass = working["alt_short_term_ema_slope_up"].astype(bool)
+    else:  # pragma: no cover - defensive
+        raise ValueError(f"Unsupported short-term EMA slope gate: {short_term_ema_slope_gate}")
+
+    base_layer2_condition = (
         working["market_regime_bullish"].astype(bool)
         & working["alt_data_ready"].astype(bool)
         & working["alt_momentum_positive"].astype(bool)
         & working["alt_close_above_ema50"].astype(bool)
+        & slope_gate_pass
+    )
+    working["layer2_base_entry_condition"] = base_layer2_condition
+    working["layer2_short_term_ema_slope_gate"] = slope_gate_mode
+    working["layer2_confirmation_streak"] = (
+        working.groupby("ticker")["layer2_base_entry_condition"]
+        .transform(
+            lambda series: series.astype(bool)
+            .groupby((~series.astype(bool)).cumsum())
+            .cumcount()
+            .add(1)
+            .where(series.astype(bool), 0)
+        )
+        .astype(int)
+    )
+    working["layer2_confirmation_days_required"] = int(max(int(confirmation_days), 0))
+    working["rsi14_numeric"] = pd.to_numeric(working["rsi14"], errors="coerce")
+    working["layer2_alt_active"] = (
+        working["layer2_base_entry_condition"].astype(bool)
+        & working["layer2_confirmation_streak"].ge(minimum_required_streak)
     )
     working["layer3_rsi_50_70_active"] = (
         working["rsi14_numeric"].notna()

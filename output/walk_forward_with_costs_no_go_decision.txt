@@ -1,0 +1,25 @@
+Walk-Forward With Costs No-Go Decision
+======================================
+
+- decision_scope = promotion_path_closeout_for_current_frozen_stack_after_minimum_realism_cost_rerun
+- preferred_stack_id = rebuild_core_without_layer3
+- cost_model_scope = Minimum realism haircut model applied as round-trip cost on every realized trade after signal/exit generation and before position-sizing portfolio aggregation.
+- cost_model_limitations:
+  - Current cost model is haircut-only and not execution-aware.
+  - Current cost model does not model order book depth, queue position, fill uncertainty, or partial fills.
+  - Current cost model is sufficient for promotion closeout because OOS and holdout remain clearly negative after costs.
+- oos_average_return_per_trade_after_costs = -0.3909
+- holdout_average_return_per_trade_after_costs = -0.7867
+- oos_max_drawdown_pct_after_costs = 37.5149
+- holdout_max_drawdown_pct_after_costs = 34.6411
+- promotion_decision = no_go_for_promotion_path
+- promotion_decision_reason = Out-of-sample average return per trade is already negative after costs (-0.3909%), final holdout average return per trade is also negative after costs (-0.7867%), and out-of-sample drawdown remains far above the 20% threshold at 37.5149%. The current cost model is not yet execution-aware, but these negative post-cost results are already sufficient to close the promotion path for the current frozen stack.
+- what_this_decision_does_not_mean:
+  - This is not opening the governance gate.
+  - This is not opening retest.
+  - This is not opening paper trading.
+  - This does not mean the current cost model is already final or perfect.
+- stack_changed = false
+- retest_status = blocked
+- paper_trading_status = blocked
+- next_action = freeze_current_frozen_stack_as_not_promotable_and_do_not_extend_cost_model_work_until_a_stronger_candidate_exists

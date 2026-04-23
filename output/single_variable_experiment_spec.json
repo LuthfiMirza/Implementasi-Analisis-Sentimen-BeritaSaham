@@ -1,0 +1,97 @@
+{
+  "artifact": "single_variable_experiment_spec",
+  "generated_at": "2026-04-23T14:27:10Z",
+  "experiment_scope": "single_variable_only_absolute_momentum_floor_on_return_20d",
+  "hypothesis_reference": "output/one_small_controlled_strategy_hypothesis.json",
+  "single_variable_name": "absolute_momentum_floor_on_return_20d",
+  "current_setting": 0.0,
+  "candidate_test_values": {
+    "values": [
+      0.0,
+      0.01,
+      0.02,
+      0.03
+    ],
+    "units": "same units as return_20d field",
+    "selection_reason": "These values stay close to the current `> 0` cutoff, probe only a narrow stricter-positive range, and avoid turning the experiment into a broad search."
+  },
+  "fixed_components": {
+    "layer_1_regime_filter": "unchanged current frozen-stack regime filter",
+    "layer_2_close_gt_ema50_leg": "unchanged",
+    "layer_3_mode": "inactive / optional-off",
+    "layer_5_atr_multiplier": 2.5,
+    "layer_5_trailing_logic": "unchanged",
+    "time_stop_days": 12,
+    "position_sizing": {
+      "risk_per_trade_pct": 2.0,
+      "max_position_pct": 10.0
+    },
+    "universe": "unchanged",
+    "walk_forward_split": "unchanged",
+    "allow_overlap_policy": "unchanged",
+    "realism_cost_policy": "unchanged",
+    "corporate_action_atr_temporary_policy": "unchanged",
+    "governance_status": "unchanged_blocked",
+    "retest_status": "blocked",
+    "paper_trading_status": "blocked"
+  },
+  "evaluation_protocol": {
+    "run_status": "do_not_run_in_this_step",
+    "comparison_basis": "compare every tested threshold against the current frozen-stack baseline already documented",
+    "walk_forward_split_rule": "use the same walk-forward split as the current frozen-stack evaluation",
+    "realism_cost_rule": "use the same realism cost policy already documented",
+    "window_reporting_rule": "report both out_of_sample and final_holdout explicitly",
+    "criteria_freeze_rule": "do not change pass criteria after results are seen",
+    "single_variable_rule": "only the return_20d absolute momentum floor may vary across runs"
+  },
+  "minimum_pass_criteria": {
+    "metric_basis": "same walk-forward evaluation with the same realism-cost policy already documented",
+    "oos_avg_return_per_trade_gt": 0.0,
+    "oos_max_drawdown_pct_lt": 35.0,
+    "holdout_avg_return_per_trade_floor": -0.1,
+    "trade_count_floor": 350,
+    "no_worse_than_current_holdout": true
+  },
+  "failure_conditions": [
+    "Fail if out-of-sample average return per trade remains less than or equal to 0.0.",
+    "Fail if out-of-sample max drawdown remains greater than or equal to 35.0%.",
+    "Fail if holdout average return per trade stays below -0.1.",
+    "Fail if trade count falls below 350 in the evaluated window set.",
+    "Fail if holdout performance becomes worse than the current frozen stack after costs."
+  ],
+  "reporting_requirements": {
+    "minimum_outputs": [
+      "before_vs_after_by_window relative to the current frozen stack baseline",
+      "selected threshold winner",
+      "trade count impact",
+      "out_of_sample average return per trade",
+      "final_holdout average return per trade",
+      "out_of_sample max drawdown",
+      "final_holdout max drawdown",
+      "explicit pass_or_fail against the frozen criteria"
+    ],
+    "no_ambiguity_rule": "All candidate thresholds must be reported, not only the best-looking row."
+  },
+  "not_allowed_changes": [
+    "Do not change Layer 1.",
+    "Do not change the Layer 2 `close > ema50` leg.",
+    "Do not activate or retune Layer 3.",
+    "Do not change ATR multiplier.",
+    "Do not change trailing-stop logic.",
+    "Do not change the 12-day time stop.",
+    "Do not change 2% / 10% sizing.",
+    "Do not change universe membership.",
+    "Do not change walk-forward split.",
+    "Do not change realism cost policy.",
+    "Do not change corporate-action ATR temporary policy.",
+    "Do not loosen pass criteria after results are seen.",
+    "Do not add any second variable.",
+    "Do not open governance gate.",
+    "Do not open retest.",
+    "Do not open paper trading."
+  ],
+  "execution_status": "spec_only_not_run",
+  "next_action": "wait_for_explicit_approval_before_running_single_variable_layer2_threshold_experiment",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

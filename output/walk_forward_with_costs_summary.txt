@@ -1,0 +1,22 @@
+Walk-Forward With Costs Summary
+===============================
+
+- baseline_artifact_reference = output/walk_forward_validation_summary.json
+- with_costs_artifact_reference = output/walk_forward_with_costs_run/walk_forward_validation_summary.json
+- preferred_stack_id = rebuild_core_without_layer3
+- walk_forward_rerun_status = completed_once
+- summary_scope = preferred_stack_final_holdout
+- portfolio_return_pct_after_costs = -31.765
+- portfolio_max_drawdown_pct_after_costs = 34.6411
+- trade_count_after_costs = 461
+- average_return_per_trade_after_costs = -0.7867
+- cost_impact_summary = On the preferred stack final holdout, 30 bps round-trip cost reduced average_return_per_trade from -0.4867% to -0.7867% and portfolio_return_pct from -21.6433% to -31.7650% with trade count unchanged at 461.
+
+Preferred stack window comparison:
+- in_sample: trades 671 -> 671, avg_return_per_trade 0.6134 -> 0.3134, portfolio_return_pct 45.0667 -> 18.6636, max_drawdown_pct 28.6825 -> 32.6641
+- out_of_sample: trades 439 -> 439, avg_return_per_trade -0.0909 -> -0.3909, portfolio_return_pct -5.5937 -> -17.2457, max_drawdown_pct 31.6175 -> 37.5149
+- final_holdout: trades 461 -> 461, avg_return_per_trade -0.4867 -> -0.7867, portfolio_return_pct -21.6433 -> -31.765, max_drawdown_pct 29.0187 -> 34.6411
+
+- stack_changed = false
+- retest_status = blocked
+- paper_trading_status = blocked

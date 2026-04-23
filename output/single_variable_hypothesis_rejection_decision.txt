@@ -1,0 +1,16 @@
+Single Variable Hypothesis Rejection Decision
+============================================
+
+- artifact = single_variable_hypothesis_rejection_decision
+- generated_at = 2026-04-23T15:00:15Z
+- hypothesis_rejected = true
+- rejection_reason = The single-variable Layer 2 momentum-floor hypothesis is rejected because no tested variant passed the locked minimum pass criteria and the range was not expanded.
+- next_lever_direction = determine_next_lever_after_oos_vs_holdout_regime_comparison
+
+- what_stays_blocked:
+  - retest
+  - paper_trading
+  - range_expansion_on_return_20d_momentum_floor
+
+- retest_status = blocked
+- paper_trading_status = blocked

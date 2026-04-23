@@ -120,6 +120,9 @@ def _build_entry_exit_frame(
     *,
     baseline_payload: Dict[str, object],
     metadata_lookup: Dict[str, Dict[str, object]],
+    momentum_floor_on_return_20d: float = 0.0,
+    confirmation_days: int = 0,
+    short_term_ema_slope_gate: str = "none",
 ) -> pd.DataFrame:
     prepared_frame = _prepare_layer1_signal_frame(
         stock_indicator_master_file,
@@ -127,7 +130,12 @@ def _build_entry_exit_frame(
         baseline_payload=baseline_payload,
         metadata_lookup=metadata_lookup,
     )
-    return _compute_exit_features(prepared_frame)
+    return _compute_exit_features(
+        prepared_frame,
+        momentum_floor_on_return_20d=float(momentum_floor_on_return_20d),
+        confirmation_days=int(confirmation_days),
+        short_term_ema_slope_gate=str(short_term_ema_slope_gate),
+    )
 
 
 def _apply_entry_variant(frame: pd.DataFrame, variant: PositionSizingVariant) -> pd.DataFrame:

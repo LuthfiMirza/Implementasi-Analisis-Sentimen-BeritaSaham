@@ -1,0 +1,16 @@
+{
+  "artifact": "single_variable_hypothesis_rejection_decision_v2",
+  "generated_at": "2026-04-23T15:54:29Z",
+  "hypothesis_rejected": true,
+  "rejection_reason": "The single-variable Layer 2 confirmation-days hypothesis is rejected because no tested confirmation-days variant passed the locked minimum criteria, so there is no basis to reopen the confirmation-days range.",
+  "what_this_result_means": "Entry-signal persistence alone did not produce a variant that cleared the locked OOS, holdout, drawdown, and trade-count gates, so the next refinement should remain inside Layer 2 entry quality but move to a different lever family rather than recycle the rejected confirmation-days path.",
+  "what_stays_blocked": [
+    "governance_gate",
+    "retest",
+    "paper_trading",
+    "range_expansion_on_entry_signal_persistence_minimum_confirmation_days"
+  ],
+  "next_lever_direction": "stock_trend_quality_gate_via_short_term_ema_slope",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

@@ -1,0 +1,11 @@
+ATR Temporary Policy Decision
+=============================
+
+- selected_policy_option = C
+- decision_reason = Mayoritas corporate-action-like jump >15% terjadi sebelum 2019, sementara tiga event yang tersisa terkonsentrasi pada 2020-03-26 untuk BBCA, BBRI, dan BMRI sehingga risk ini didokumentasikan sebagai known risk tanpa mengubah basis ATR sementara.
+- source_audit = output/atr_ohlc_policy_audit.json
+- corporate_action_jump_map_used = output/atr_corporate_action_jump_map.csv
+- temporary_policy_usable = true
+- policy_statement = Temporary ATR policy dibekukan pada opsi C: ATR sementara tetap memakai basis raw OHLC dengan corporate action risk yang sudah diketahui dan didokumentasikan eksplisit sebagai known risk, tanpa adjustment tambahan pada langkah ini.
+- retest_status = blocked
+- paper_trading_status = blocked

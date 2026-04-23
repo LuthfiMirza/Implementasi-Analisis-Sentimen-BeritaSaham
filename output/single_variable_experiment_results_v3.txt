@@ -1,0 +1,44 @@
+Single Variable Layer 2 EMA Slope Gate Experiment Results
+=========================================================
+
+- experiment_scope = single_variable_only_stock_trend_quality_gate_via_short_term_ema_slope
+- single_variable_name = stock_trend_quality_gate_via_short_term_ema_slope
+- baseline_reference = output/walk_forward_with_costs_summary.json
+- tested_variants = ['none', 'ema20_today_gt_ema20_prev_day']
+
+Locked minimum pass criteria:
+- oos_avg_return_per_trade_gt = 0.0
+- oos_max_drawdown_pct_lt = 35.0
+- holdout_avg_return_per_trade_floor = -0.1
+- trade_count_floor = 350
+- no_worse_than_current_holdout = True
+
+Variant none
+- passes_minimum_criteria = False
+- in_sample_avg_return_per_trade = 0.2494
+- oos_avg_return_per_trade = -0.3549 (baseline -0.3909)
+- holdout_avg_return_per_trade = -0.2523 (baseline -0.7867)
+- oos_max_drawdown_pct = 39.6623 (baseline 37.5149)
+- holdout_max_drawdown_pct = 28.6827 (baseline 34.6411)
+- trade_count = 487 (baseline 461)
+- assessment_note = Fails at least one locked minimum criterion; no escape clause, slope-definition expansion, or second variable allowed.
+
+Variant ema20_today_gt_ema20_prev_day
+- passes_minimum_criteria = False
+- in_sample_avg_return_per_trade = 0.2765
+- oos_avg_return_per_trade = -0.3759 (baseline -0.3909)
+- holdout_avg_return_per_trade = -0.3171 (baseline -0.7867)
+- oos_max_drawdown_pct = 38.7178 (baseline 37.5149)
+- holdout_max_drawdown_pct = 29.0928 (baseline 34.6411)
+- trade_count = 468 (baseline 461)
+- assessment_note = Fails at least one locked minimum criterion; no escape clause, slope-definition expansion, or second variable allowed.
+
+- winner_variant = None
+- winner_selection_basis = no_variant_passed_locked_minimum_criteria
+- hypothesis_result = hypothesis_rejected
+- hypothesis_result_reason = None of the approved EMA-slope gate variants passed the locked minimum criteria, so the hypothesis is rejected without expanding the slope definition, loosening pass criteria, or adding a second variable.
+- no_range_expansion_performed = True
+- stack_changed = False
+- retest_status = blocked
+- paper_trading_status = blocked
+- next_action = review_single_variable_experiment_result_v3_against_locked_criteria_before_any_further_strategy_change

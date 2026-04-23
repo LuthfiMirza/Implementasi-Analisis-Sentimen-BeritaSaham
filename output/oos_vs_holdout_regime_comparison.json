@@ -1,0 +1,20 @@
+{
+  "artifact": "oos_vs_holdout_regime_comparison",
+  "generated_at": "2026-04-23T15:04:50Z",
+  "regime_rule_used": "ihsg_ema50_gt_ihsg_ema200_and_ihsg_ema50_gt_prev_ihsg_ema50",
+  "oos_window": "2022-01-01_to_2023-12-31",
+  "holdout_window": "2024-01-01_to_2025-12-31",
+  "oos_bullish_days": 228,
+  "oos_total_days": 485,
+  "oos_bullish_day_pct": 47.0103,
+  "holdout_bullish_days": 250,
+  "holdout_total_days": 473,
+  "holdout_bullish_day_pct": 52.8541,
+  "bullish_day_pct_gap_pp": -5.8438,
+  "comparability_rule_used": "abs(oos_bullish_day_pct - holdout_bullish_day_pct) <= 10.0 => comparable_regime_share; abs(oos_bullish_day_pct - holdout_bullish_day_pct) > 10.0 => material_difference_in_regime_share",
+  "regime_comparison_result": "comparable_regime_share",
+  "diagnosis_note": "This audit uses the official current active Layer 1 policy recorded in the active roadmap, not older historical wording or a new policy-sync step; holdout is only modestly more bullish than OOS by 5.8438 percentage points, so the regime-share difference is not large enough by itself to redirect the next lever toward Layer 1.",
+  "likely_next_lever_direction": "layer_2_entry_signal_or_entry_quality",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

@@ -1,0 +1,20 @@
+{
+  "trades_per_year": {
+    "2019": 485,
+    "2020": 40,
+    "2021": 711,
+    "2022": 684,
+    "2023": 296,
+    "2024": 593,
+    "2025": 267
+  },
+  "min_trades_per_year": 40,
+  "sparsity_risk": true,
+  "top_5_tickers_signal_share_pct": 12.9858,
+  "signal_concentration_risk": false,
+  "filter_overlap_pct": 73.3049,
+  "overlap_risk_high": false,
+  "audit_conclusion": "needs_attention",
+  "methodology_note": "Karena source-of-truth yang ditetapkan tidak menyimpan breakdown executed trades per tahun, audit ini memakai trade-like entry events per ticker dari transisi false->true pada stack L1 (IHSG EMA50 > EMA200 dihitung dari ihsg_adj_close source-of-truth) + L2 (return_20d > 0 AND close > ema50) tanpa rerun backtest atau walk-forward.",
+  "basis_note": "ema50 dan return_20d berasal dari stock_indicator_master.csv, yang menandai indicator_price_basis = adj_close; audit ini mengikuti field source-of-truth apa adanya tanpa mengubah parameter."
+}

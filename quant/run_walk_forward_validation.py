@@ -21,16 +21,20 @@ from quant.phase_a_baseline import (  # noqa: E402
     load_phase_a_baseline,
 )
 from quant.run_phase_4_position_sizing import (  # noqa: E402
-    _apply_entry_variant,
     _apply_position_sizing,
     _attach_entry_context,
     _build_entry_exit_frame,
-    _evaluate_variant_ticker,
+)
+from quant.run_phase_5_atr_trailing_stop import (  # noqa: E402
+    ExitVariant,
+    _apply_variant as _apply_exit_variant,
+    _backtest_atr_trailing_stop,
 )
 
 
 SUMMARY_OUTPUT = "walk_forward_validation_summary.json"
 REPORT_OUTPUT = "walk_forward_validation_report.txt"
+OFFICIAL_FROZEN_TIME_STOP_DAYS = 12
 
 
 @dataclass(frozen=True)
@@ -51,6 +55,24 @@ class WalkForwardStack:
     risk_per_trade_pct: float
     max_position_pct: float
     initial_capital: float
+
+
+@dataclass(frozen=True)
+class WalkForwardCostPolicy:
+    broker_fee_bps: float
+    slippage_bps: float
+
+    @property
+    def round_trip_cost_bps(self) -> float:
+        return (float(self.broker_fee_bps) * 2.0) + (float(self.slippage_bps) * 2.0)
+
+    @property
+    def round_trip_cost_pct(self) -> float:
+        return float(self.round_trip_cost_bps) / 100.0
+
+    @property
+    def active(self) -> bool:
+        return self.round_trip_cost_bps > 0
 
 
 def _now_iso() -> str:
@@ -131,6 +153,25 @@ def _profit_factor_from_trades(trades_df: pd.DataFrame) -> Optional[float]:
     if gross_profit <= 0 or gross_loss >= 0:
         return None
     return round(gross_profit / abs(gross_loss), 4)
+
+
+def _apply_realism_costs(
+    trades_df: pd.DataFrame,
+    cost_policy: WalkForwardCostPolicy,
+) -> pd.DataFrame:
+    working = trades_df.copy()
+    if working.empty:
+        return working
+
+    round_trip_cost_pct = float(cost_policy.round_trip_cost_pct)
+    working["gross_return_pct"] = working["return_pct"].astype(float)
+    working["broker_fee_bps"] = float(cost_policy.broker_fee_bps)
+    working["slippage_bps"] = float(cost_policy.slippage_bps)
+    working["round_trip_cost_bps"] = float(cost_policy.round_trip_cost_bps)
+    working["round_trip_cost_pct"] = round(round_trip_cost_pct, 4)
+    working["return_pct"] = working["gross_return_pct"] - round_trip_cost_pct
+    working["is_win"] = working["return_pct"] > 0
+    return working
 
 
 def _pct_degradation(in_sample_value: float, other_value: float) -> Optional[float]:
@@ -237,12 +278,69 @@ def _mask_non_tradable_tail_signals(frame: pd.DataFrame) -> pd.DataFrame:
     return working
 
 
+def _apply_walk_forward_entry_variant(frame: pd.DataFrame, stack: WalkForwardStack) -> pd.DataFrame:
+    variant = ExitVariant(
+        variant_id="walk_forward_runtime_variant",
+        label="walk_forward_runtime_variant",
+        layer_3_active=bool(stack.layer_3_active),
+        exit_policy="atr_trailing_stop",
+        atr_multiplier=2.5,
+        time_stop_days=OFFICIAL_FROZEN_TIME_STOP_DAYS,
+    )
+    return _apply_exit_variant(frame, variant)
+
+
+def _evaluate_walk_forward_ticker(
+    ticker: str,
+    frame: pd.DataFrame,
+    *,
+    layer_3_active: bool,
+    allow_overlap: bool,
+) -> tuple[Dict[str, object], pd.DataFrame]:
+    signal_count = int(frame["entry_signal"].fillna(False).astype(bool).sum())
+    trades_df = _backtest_atr_trailing_stop(
+        frame,
+        signal_column="entry_signal",
+        atr_multiplier=2.5,
+        time_stop_days=OFFICIAL_FROZEN_TIME_STOP_DAYS,
+        allow_overlap=allow_overlap,
+    )
+    if trades_df.empty:
+        ticker_row = {
+            "ticker": ticker,
+            "entry_signals": signal_count,
+            "total_trades": 0,
+            "avg_return_per_trade": 0.0,
+            "avg_win_rate": 0.0,
+            "avg_holding_period_actual": 0.0,
+            "max_drawdown_per_trade": 0.0,
+            "coverage_collapsed": bool(signal_count > 0),
+        }
+        return ticker_row, trades_df
+
+    ticker_row = {
+        "ticker": ticker,
+        "entry_signals": signal_count,
+        "total_trades": int(len(trades_df)),
+        "avg_return_per_trade": round(float(trades_df["return_pct"].mean()), 4),
+        "avg_win_rate": round(float(trades_df["is_win"].mean() * 100.0), 4),
+        "avg_holding_period_actual": round(float(trades_df["holding_period_bars"].mean()), 4),
+        "max_drawdown_per_trade": round(float(trades_df["max_drawdown_pct"].mean()), 4),
+        "coverage_collapsed": False,
+    }
+    trades_df = trades_df.copy()
+    trades_df["ticker"] = ticker
+    trades_df["layer_3_active"] = bool(layer_3_active)
+    return ticker_row, trades_df
+
+
 def _evaluate_window(
     prepared_frame: pd.DataFrame,
     stack: WalkForwardStack,
     window: WalkForwardWindow,
     *,
     allow_overlap: bool,
+    cost_policy: WalkForwardCostPolicy,
 ) -> Dict[str, object]:
     class _Variant:
         layer_3_active = stack.layer_3_active
@@ -251,14 +349,14 @@ def _evaluate_window(
         max_position_pct = stack.max_position_pct
         initial_capital = stack.initial_capital
 
-    variant_frame = _apply_entry_variant(prepared_frame, _Variant())
+    variant_frame = _apply_walk_forward_entry_variant(prepared_frame, stack)
     window_frame = _slice_window_frame(variant_frame, window)
 
     ticker_rows: List[Dict[str, object]] = []
     trade_frames: List[pd.DataFrame] = []
     for ticker, group in window_frame.groupby("ticker"):
         tradable_group = _mask_non_tradable_tail_signals(group.copy())
-        ticker_row, ticker_trades = _evaluate_variant_ticker(
+        ticker_row, ticker_trades = _evaluate_walk_forward_ticker(
             ticker,
             tradable_group,
             layer_3_active=stack.layer_3_active,
@@ -271,6 +369,7 @@ def _evaluate_window(
     per_ticker_df = pd.DataFrame(ticker_rows)
     trades_df = pd.concat(trade_frames, ignore_index=True) if trade_frames else pd.DataFrame()
     trades_df = _attach_entry_context(window_frame, trades_df)
+    trades_df = _apply_realism_costs(trades_df, cost_policy)
     sized_trades_df, sizing_metrics = _apply_position_sizing(trades_df, _Variant())
 
     sample_risk, sample_reason, sample_detail = _summarize_sample_adequacy(window_frame, per_ticker_df)
@@ -310,7 +409,13 @@ def _evaluate_window(
             **sample_detail,
         },
         "window_notes": [
-            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung."
+            "Signals dan trade dievaluasi hanya di dalam window ini; trade yang melewati akhir window tidak dihitung.",
+            (
+                f"Realism cost applied as round-trip haircut {cost_policy.round_trip_cost_bps:.1f} bps "
+                f"(broker_fee_bps={cost_policy.broker_fee_bps:.1f}, slippage_bps={cost_policy.slippage_bps:.1f})."
+                if cost_policy.active
+                else "Realism cost disabled for this run."
+            ),
         ],
     }
 
@@ -443,6 +548,11 @@ def run_walk_forward_validation(
     allow_overlap: bool = False,
     baseline_config: Optional[Path] = None,
     metadata_file: Optional[Path] = None,
+    broker_fee_bps: float = 0.0,
+    slippage_bps: float = 0.0,
+    layer2_momentum_floor_on_return_20d: float = 0.0,
+    layer2_confirmation_days: int = 0,
+    layer2_short_term_ema_slope_gate: str = "none",
 ) -> Dict[str, object]:
     baseline_payload, baseline_warnings, baseline_source = load_phase_a_baseline(baseline_config=baseline_config)
     metadata_lookup, metadata_warnings = load_optional_metadata_lookup(metadata_file)
@@ -451,8 +561,15 @@ def run_walk_forward_validation(
         ihsg_indicator_master_file,
         baseline_payload=baseline_payload,
         metadata_lookup=metadata_lookup,
+        momentum_floor_on_return_20d=float(layer2_momentum_floor_on_return_20d),
+        confirmation_days=int(layer2_confirmation_days),
+        short_term_ema_slope_gate=str(layer2_short_term_ema_slope_gate),
     )
     prepared_frame["date"] = pd.to_datetime(prepared_frame["date"])
+    cost_policy = WalkForwardCostPolicy(
+        broker_fee_bps=float(broker_fee_bps),
+        slippage_bps=float(slippage_bps),
+    )
 
     stacks = _build_stack_registry()
     windows = _build_window_registry()
@@ -465,6 +582,7 @@ def run_walk_forward_validation(
                 stack,
                 window,
                 allow_overlap=allow_overlap,
+                cost_policy=cost_policy,
             )
             for window in windows
         ]
@@ -475,7 +593,11 @@ def run_walk_forward_validation(
                 "stack_id": stack.stack_id,
                 "stack_label": stack.label,
                 "layer_1_policy": "IHSG EMA50 > EMA200 with explicit previous-trading-day alignment",
-                "layer_2_policy": "return_20d > 0 AND close > ema50 without liquidity gate",
+                "layer_2_policy": (
+                    f"return_20d > {float(layer2_momentum_floor_on_return_20d):.4f} "
+                    f"AND close > ema50 without liquidity gate with confirmation_days={int(layer2_confirmation_days)} "
+                    f"and short_term_ema_slope_gate={str(layer2_short_term_ema_slope_gate)}"
+                ),
                 "layer_3_policy": "RSI14 >= 50 AND RSI14 <= 70" if stack.layer_3_active else "inactive",
                 "layer_4_policy": {
                     "risk_per_trade_pct": stack.risk_per_trade_pct,
@@ -484,7 +606,7 @@ def run_walk_forward_validation(
                 "layer_5_policy": {
                     "exit_policy": "atr_trailing_stop",
                     "atr_multiplier": 2.5,
-                    "time_stop_days": 15,
+                    "time_stop_days": OFFICIAL_FROZEN_TIME_STOP_DAYS,
                 },
                 "window_results": window_results,
                 "window_lookup": window_lookup,
@@ -519,6 +641,20 @@ def run_walk_forward_validation(
             }
             for window in windows
         ],
+        "cost_policy": {
+            "broker_fee_bps": float(cost_policy.broker_fee_bps),
+            "slippage_bps": float(cost_policy.slippage_bps),
+            "round_trip_cost_bps": float(cost_policy.round_trip_cost_bps),
+            "cost_application_scope": "Applied to every realized trade as a round-trip return haircut after signal/exit generation and before position-sizing portfolio aggregation.",
+            "cost_policy_active": bool(cost_policy.active),
+        },
+        "layer_2_experiment_context": {
+            "absolute_momentum_floor_on_return_20d": float(layer2_momentum_floor_on_return_20d),
+            "entry_signal_persistence_minimum_confirmation_days": int(layer2_confirmation_days),
+            "stock_trend_quality_gate_via_short_term_ema_slope": str(layer2_short_term_ema_slope_gate),
+            "close_above_ema50_required": True,
+            "range_expansion_performed": False,
+        },
         "stack_results": stack_results,
         "official_decision": {
             "layer_3_mode_decision": layer3_decision,
@@ -541,6 +677,17 @@ def run_walk_forward_validation(
         "- In-sample: 2019-01-01 to 2021-12-31",
         "- Out-of-sample: 2022-01-01 to 2023-12-31",
         "- Final holdout: 2024-01-01 to 2025-12-31",
+        "",
+        "Cost policy:",
+        f"- broker_fee_bps = {cost_policy.broker_fee_bps:.1f}",
+        f"- slippage_bps = {cost_policy.slippage_bps:.1f}",
+        f"- round_trip_cost_bps = {cost_policy.round_trip_cost_bps:.1f}",
+        "",
+        "Layer 2 experiment context:",
+        f"- absolute_momentum_floor_on_return_20d = {float(layer2_momentum_floor_on_return_20d):.4f}",
+        f"- entry_signal_persistence_minimum_confirmation_days = {int(layer2_confirmation_days)}",
+        f"- stock_trend_quality_gate_via_short_term_ema_slope = {str(layer2_short_term_ema_slope_gate)}",
+        "- close > ema50 remains required",
         "",
     ]
 
@@ -608,6 +755,35 @@ def build_argument_parser() -> argparse.ArgumentParser:
         default="data/ticker_metadata.csv",
         help="Optional metadata file for baseline runtime overrides.",
     )
+    parser.add_argument(
+        "--broker-fee-bps",
+        type=float,
+        default=0.0,
+        help="Per-side broker fee in basis points applied to each realized trade.",
+    )
+    parser.add_argument(
+        "--slippage-bps",
+        type=float,
+        default=0.0,
+        help="Per-side slippage in basis points applied to each realized trade.",
+    )
+    parser.add_argument(
+        "--layer2-momentum-floor-on-return-20d",
+        type=float,
+        default=0.0,
+        help="Strict lower bound for Layer 2 absolute momentum filter, applied as return_20d > floor.",
+    )
+    parser.add_argument(
+        "--layer2-confirmation-days",
+        type=int,
+        default=0,
+        help="Minimum number of additional consecutive trading days the Layer 2 condition must persist before entry is valid.",
+    )
+    parser.add_argument(
+        "--layer2-short-term-ema-slope-gate",
+        default="none",
+        help="Stock-side short-term EMA slope gate mode for Layer 2, e.g. none or ema20_today_gt_ema20_prev_day.",
+    )
     return parser
 
 
@@ -621,6 +797,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         allow_overlap=bool(args.allow_overlap),
         baseline_config=Path(args.baseline_config) if args.baseline_config else None,
         metadata_file=Path(args.metadata_file) if args.metadata_file else None,
+        broker_fee_bps=float(args.broker_fee_bps),
+        slippage_bps=float(args.slippage_bps),
+        layer2_momentum_floor_on_return_20d=float(args.layer2_momentum_floor_on_return_20d),
+        layer2_confirmation_days=int(args.layer2_confirmation_days),
+        layer2_short_term_ema_slope_gate=str(args.layer2_short_term_ema_slope_gate),
     )
     return 0
 

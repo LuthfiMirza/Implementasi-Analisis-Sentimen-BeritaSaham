@@ -1,0 +1,40 @@
+Next Layer 2 Lever Selection Note
+=================================
+
+- artifact = next_layer2_lever_selection_note
+- generated_at = 2026-04-23T15:07:52Z
+- decision_scope = document_only_selection_of_the_next_single_lever_family_within_layer_2_after_momentum_floor_rejection_and_regime_comparison_closeout
+- previous_hypothesis_rejected = true
+- regime_comparison_result = comparable_regime_share
+- eligible_next_lever_family = layer_2_entry_signal_or_entry_quality
+
+- disallowed_next_lever_family:
+  - layer_1_regime_rule_or_regime_sensitivity
+  - range_expansion_on_return_20d_momentum_floor
+  - multi_variable_strategy_change
+  - paper_trading
+  - retest
+
+- candidate_lever_options:
+  - entry_signal_persistence_minimum_confirmation_days = require the chosen stock-side entry condition to remain valid for a small number of consecutive trading days before entry so Layer 2 filters more transient signals without changing Layer 1, exits, or sizing
+  - stock_trend_quality_gate_via_short_term_ema_slope = use a stock-side trend-quality check such as a rising short-term EMA slope as a Layer 2 gate, focusing on trend quality rather than reopening the absolute momentum floor
+  - momentum_acceleration_quality_check = use a quality check on whether stock momentum is improving rather than only positive, keeping the change inside Layer 2 entry quality without expanding the rejected momentum-floor range
+
+- most_defensible_next_lever = entry_signal_persistence_minimum_confirmation_days
+- why_this_lever_not_momentum_floor_again = The absolute momentum-floor hypothesis was already tested across the locked narrow range and no approved variant passed the locked minimum pass criteria, so reopening that threshold family would only revisit a rejected path without new justification.
+- why_not_layer_1_next = The OOS-versus-holdout regime-share audit concluded `comparable_regime_share`, so there is not yet a strong basis to move the next lever toward Layer 1 regime rules or regime sensitivity.
+
+- what_stays_frozen:
+  - Layer 1 regime rule stays `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`.
+  - Layer 5 ATR multiplier stays 2.5.
+  - Time stop stays fixed at 12 days.
+  - Position sizing stays 2% risk per trade and 10% max position cap.
+  - Walk-forward split stays unchanged.
+  - Realism cost policy stays unchanged.
+  - Governance blocked state stays unchanged.
+  - Retest stays blocked.
+  - Paper trading stays blocked.
+
+- next_action = write_one_small_controlled_strategy_hypothesis_v2_for_selected_layer2_lever
+- retest_status = blocked
+- paper_trading_status = blocked

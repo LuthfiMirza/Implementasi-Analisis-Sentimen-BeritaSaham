@@ -1,0 +1,51 @@
+{
+  "artifact": "one_small_controlled_strategy_hypothesis_v3",
+  "generated_at": "2026-04-23T15:54:29Z",
+  "selected_next_lever": "stock_trend_quality_gate_via_short_term_ema_slope",
+  "hypothesis_statement": "Adding a short-term EMA slope-up stock trend-quality gate to Layer 2 entry eligibility, while keeping the rest of the frozen stack unchanged, can improve out-of-sample average return per trade above zero without letting out-of-sample max drawdown remain above 35% under the same walk-forward and realism-cost policy.",
+  "what_changes": {
+    "component": "Layer 2 entry eligibility",
+    "single_variable": "stock_trend_quality_gate_via_short_term_ema_slope",
+    "current_behavior": "no explicit short-term EMA slope-up stock trend-quality gate is required before a qualifying Layer 2 entry condition is treated as valid",
+    "proposed_hypothesis_change": "add one short-term EMA slope-up stock trend-quality gate to the Layer 2 entry eligibility check while leaving the rest of the stack unchanged",
+    "change_scope": "one variable only"
+  },
+  "what_stays_frozen": [
+    "Layer 1 regime rule stays the current active policy: `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`.",
+    "Layer 2 family stays the same except for the selected short-term EMA slope gate.",
+    "The `return_20d` momentum-floor range is not reopened.",
+    "The `entry_signal_persistence_minimum_confirmation_days` lever is not reopened in this hypothesis.",
+    "Layer 3 stays optional off-by-default.",
+    "Layer 5 ATR multiplier stays 2.5.",
+    "Layer 5 trailing-stop logic stays unchanged.",
+    "Time stop stays fixed at 12 days.",
+    "Position sizing stays 2% risk per trade and 10% max position cap.",
+    "Universe stays unchanged.",
+    "Walk-forward split stays unchanged.",
+    "Allow-overlap policy stays unchanged.",
+    "Realism cost policy stays unchanged.",
+    "Corporate-action ATR temporary policy stays unchanged.",
+    "Governance blocked state stays unchanged.",
+    "Retest remains blocked.",
+    "Paper trading remains blocked."
+  ],
+  "minimum_pass_criteria": {
+    "metric_basis": "same walk-forward evaluation with the same realism-cost policy already documented",
+    "oos_avg_return_per_trade_gt": 0.0,
+    "oos_max_drawdown_pct_lt": 35.0,
+    "holdout_avg_return_per_trade_floor": -0.1,
+    "trade_count_floor": 350,
+    "no_worse_than_current_holdout": true
+  },
+  "failure_conditions": [
+    "Fail if out-of-sample average return per trade remains less than or equal to 0.0.",
+    "Fail if out-of-sample max drawdown remains greater than or equal to 35.0%.",
+    "Fail if holdout average return per trade stays below -0.1.",
+    "Fail if trade count falls below 350 in the evaluated window set.",
+    "Fail if holdout performance becomes worse than the current frozen stack after costs.",
+    "Fail if out-of-sample average return per trade improves but holdout average return per trade remains materially weak below -0.1, because that would indicate only an OOS-side improvement without acceptable holdout robustness."
+  ],
+  "next_action": "prepare_single_variable_experiment_spec_v3_without_running_it_yet",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}
