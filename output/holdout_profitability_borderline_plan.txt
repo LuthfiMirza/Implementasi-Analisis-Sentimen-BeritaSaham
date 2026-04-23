@@ -1,0 +1,68 @@
+Holdout Profitability Borderline Plan
+=====================================
+
+Generated at: 2026-04-23
+
+Status:
+- Provisional Layer 5 update: complete
+- Planning direction: complete
+- Execution setup: frozen for first experiment setup
+- Strategy overall: not complete
+
+Baseline resmi:
+- Holdout average return per trade: 0.0261
+- Holdout profit factor: 0.9932
+- Holdout portfolio return: -1.0417%
+- Holdout max drawdown: 28.5468%
+- OOS average return per trade: 0.2516
+- OOS profit factor: 1.0675
+
+Objective:
+- Menjalankan narrow execution setup untuk menguji apakah holdout_profitability_borderline dapat diperbaiki tanpa merusak OOS secara material.
+
+In-scope:
+- Satu family eksperimen aktif saja
+- Layer 3 sebagai narrow profitability filter di atas stack resmi terbaru
+- Pembekuan artifact planning dan sinkronisasi governance
+- Evaluasi hanya terhadap baseline dan decision rules resmi
+
+Out-of-scope:
+- Perubahan Layer 4
+- Perubahan ATR multiplier
+- Perubahan trailing logic
+- Redesign Layer 5 tambahan
+- Redesign paralel lain
+- Paper trading
+- Retest
+
+Hipotesis aktif tunggal:
+- Layer 3 sebagai filter profitability sempit pada stack resmi terbaru
+
+Hipotesis backlog:
+- freshness gate entry
+- narrow confirmation entry
+- penguatan sempit Layer 1
+- absolute eligibility gate ringan
+
+Decision rules:
+- Holdout average return per trade harus membaik vs baseline 0.0261
+- Holdout profit factor harus membaik vs baseline 0.9932
+- OOS average return per trade harus tetap >= 0
+- OOS profit factor harus tetap >= 1.0
+- Hasil tidak boleh diterima jika hanya menang karena pruning trade yang terlalu agresif
+- Hasil tidak boleh diterima jika hanya satu metrik holdout yang membaik
+- Konfirmasi minimum: holdout average return per trade naik, holdout profit factor naik, dan holdout portfolio return membaik atau setidaknya tidak memburuk material
+
+Artifact yang diwajibkan:
+- output/holdout_profitability_borderline_plan.json
+- output/holdout_profitability_borderline_plan.txt
+- update output/project_roadmap_status.txt
+- output/holdout_profitability_borderline_planning_closeout.json
+- output/holdout_profitability_borderline_planning_closeout.txt
+
+Exit criteria:
+- Baseline resmi tertulis eksplisit dan frozen
+- Hipotesis aktif tunggal dibekukan
+- Decision rules tertulis operasional
+- Roadmap menunjuk langsung ke Layer 3 narrow profitability test
+- Tidak ada ambiguitas scope, sequencing, atau governance block

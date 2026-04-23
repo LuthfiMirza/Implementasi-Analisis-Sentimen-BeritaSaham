@@ -1,0 +1,9 @@
+Holdout Profitability Borderline Layer 3 Test Closeout
+=====================================================
+
+Ringkasan formal:
+- Eksperimen Layer 3 narrow profitability test selesai dengan hasil: fail
+- Residual failure holdout_profitability_borderline belum teratasi
+- Tidak boleh membuka hipotesis backlog otomatis
+- Paper trading tetap blocked
+- Retest tetap blocked

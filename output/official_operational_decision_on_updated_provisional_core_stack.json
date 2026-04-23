@@ -1,0 +1,36 @@
+{
+  "phase_status": "complete",
+  "decision_scope": "official_operational_decision_on_updated_provisional_core_stack",
+  "updated_provisional_core_stack_status": "adopted",
+  "strategy_validation_status": "validated",
+  "official_operational_status": "validated_but_operationally_blocked",
+  "residual_failure_status": {
+    "holdout_profitability_borderline": "resolved_for_now"
+  },
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked",
+  "decision_summary": {
+    "research_validity": "confirmed",
+    "governance_sync": "complete",
+    "operational_readiness_review": "complete",
+    "operational_approval": "not_granted"
+  },
+  "blocking_principle": "provisional adoption does not imply operational approval",
+  "blocking_reasons": [
+    "oos_degradation_still_material",
+    "atr_stop_corporate_action_policy_not_final",
+    "fee_slippage_operational_assumptions_not_final",
+    "phase_b_retest_readiness_gate_blocked",
+    "framework_governance_gate_fail",
+    "news_distribution_gate_fail",
+    "official_strategy_retry_reopened_blocked"
+  ],
+  "next_action": "wait_for_blocker_resolution_on_updated_provisional_core_stack",
+  "roadmap_sync_status": "updated",
+  "governance_constraints": {
+    "no_new_strategy_experiment": true,
+    "no_backlog_hypothesis_activation": true,
+    "paper_trading_must_remain_blocked": true,
+    "retest_must_remain_blocked": true
+  }
+}

@@ -1,0 +1,52 @@
+Holdout Profitability Borderline Narrow Confirmation Test
+========================================================
+
+Objective:
+- Test whether narrow_confirmation_entry improves holdout profitability on the official stack.
+
+Exact test setup:
+- Baseline: official stack without narrow confirmation
+- Candidate: same official stack with narrow confirmation active
+- Confirmation rule: one-bar persistence after a new base signal start
+- Layer 4 unchanged
+- ATR multiplier 2.5 unchanged
+- Trailing logic unchanged
+- Time stop 12 days unchanged
+
+Baseline resmi:
+- OOS average return per trade = 0.2516
+- OOS profit factor = 1.0675
+- OOS portfolio return = 11.9255
+- OOS max drawdown = 29.3906
+- OOS total trades = 518
+- OOS win rate = 40.1544
+- Holdout average return per trade = 0.0261
+- Holdout profit factor = 0.9932
+- Holdout portfolio return = -1.0417
+- Holdout max drawdown = 28.5468
+- Holdout total trades = 551
+- Holdout win rate = 43.7387
+
+Candidate yang diuji:
+- narrow_confirmation_entry aktif sesuai definisi beku
+- OOS average return per trade = 0.5538
+- OOS profit factor = 1.1697
+- OOS portfolio return = 13.6169
+- OOS max drawdown = 17.1198
+- OOS total trades = 243
+- OOS win rate = 42.3868
+- Holdout average return per trade = -0.0721
+- Holdout profit factor = 0.9539
+- Holdout portfolio return = -3.1892
+- Holdout max drawdown = 13.2414
+- Holdout total trades = 251
+- Holdout win rate = 40.6375
+
+Keputusan:
+- fail
+
+Alasan keputusan:
+- holdout average return per trade did not improve; holdout profit factor did not improve; holdout portfolio return did not improve; holdout improvement was not confirmed by the main holdout metrics
+
+Next state recommendation:
+- Tunggu keputusan resmi berikutnya; jangan membuka hipotesis backlog otomatis.

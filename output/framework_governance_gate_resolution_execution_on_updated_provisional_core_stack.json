@@ -1,0 +1,85 @@
+{
+  "blocker_id": "framework_governance_gate",
+  "execution_status": "complete",
+  "evidence_collected": [
+    {
+      "condition_id": "baseline_filter_overlap_risk_acceptable",
+      "source_artifact": "output/phase_b_v2_overlap_audit.json",
+      "source_field": "overall_overlap_risk",
+      "observed_value": "high",
+      "status": "false",
+      "why_not_cleared_yet": "Overlap audit still reports overall_overlap_risk = high, so the minimum governance condition that overlap risk is acceptable is not met."
+    },
+    {
+      "condition_id": "signal_sparsity_flatness_audit_passed",
+      "source_artifact": "output/phase_b_v2_trade_design_audit.json",
+      "source_field": "diagnosis_flags.baseline_needs_entry_exit_redesign + best_hold_period_improves_current_coverage + conclusion",
+      "observed_value": {
+        "baseline_needs_entry_exit_redesign": true,
+        "best_hold_period_improves_current_coverage": false,
+        "conclusion": "Desain trade baseline masih terlalu ketat terhadap data yang tersedia; redesign entry/exit dan/atau labeling perlu didahulukan."
+      },
+      "status": "false",
+      "why_not_cleared_yet": "The trade-design audit still concludes that baseline trade design needs redesign and coverage does not improve enough, so sparsity-flatness is not cleared."
+    },
+    {
+      "condition_id": "baseline_validation_candidate_usable",
+      "source_artifact": "output/baseline_v2_validation_go_no_go.json + output/baseline_redesign_go_no_go.json",
+      "source_field": "decision + can_retry_phase_b_after_validation + usable_for_framework_redesign",
+      "observed_value": {
+        "validation_decision": "keep_candidate_experimental",
+        "can_retry_phase_b_after_validation": false,
+        "usable_for_framework_redesign": true,
+        "redesign_scope_decision": "usable_for_framework_redesign_only"
+      },
+      "status": "false",
+      "why_not_cleared_yet": "The candidate is still experimental and usable only for framework-redesign scope, not validated as usable for framework-governance clearance."
+    },
+    {
+      "condition_id": "official_strategy_retry_reopened",
+      "source_artifact": "output/phase_b_final_closeout.json + output/project_after_phase_b_decision.json",
+      "source_field": "can_continue_strategy_experiments_now",
+      "observed_value": false,
+      "status": "false",
+      "why_not_cleared_yet": "Formal closeout artifacts still state can_continue_strategy_experiments_now = false, so retry reopening has not been granted at governance level."
+    },
+    {
+      "condition_id": "framework_governance_gate_no_longer_highest_blocking_gate",
+      "source_artifact": "output/phase_b_retest_readiness_gate.json + output/phase_b_retest_next_requirements.json",
+      "source_field": "highest_blocking_gate",
+      "observed_value": "framework_governance_gate",
+      "status": "false",
+      "why_not_cleared_yet": "Active retest-readiness artifacts still name framework_governance_gate as the highest_blocking_gate on the minimum retest path."
+    }
+  ],
+  "clear_condition_checklist": {
+    "baseline_filter_overlap_risk_acceptable": false,
+    "signal_sparsity_flatness_audit_passed": false,
+    "baseline_validation_candidate_usable": false,
+    "official_strategy_retry_reopened": false,
+    "framework_governance_gate_no_longer_highest_blocking_gate": false
+  },
+  "unmet_conditions": [
+    "baseline_filter_overlap_risk_acceptable",
+    "signal_sparsity_flatness_audit_passed",
+    "baseline_validation_candidate_usable",
+    "official_strategy_retry_reopened",
+    "framework_governance_gate_no_longer_highest_blocking_gate"
+  ],
+  "dependency_findings": {
+    "setup_definition_freeze": "confirmed_from_output/framework_governance_gate_resolution_setup_on_updated_provisional_core_stack.json",
+    "setup_closeout_status": "confirmed_complete_from_output/framework_governance_gate_resolution_setup_closeout_on_updated_provisional_core_stack.json",
+    "baseline_redesign_scope": "baseline_redesign_go_no_go still supports framework redesign only and does not satisfy validation-candidate clearance",
+    "active_readiness_path": "phase_b_retest_readiness_gate still shows framework_governance_gate = FAIL and highest_blocking_gate = framework_governance_gate",
+    "operational_governance_state": "official_operational_decision_on_updated_provisional_core_stack still lists framework_governance_gate_fail and official_strategy_retry_reopened_blocked while keeping retest and paper trading blocked",
+    "other_blocker_families": "not evaluated for closure in this execution except as out-of-scope dependency notes"
+  },
+  "final_gate_status": "blocked",
+  "final_decision": "framework_governance_gate_not_cleared",
+  "framework_governance_gate_cleared": false,
+  "highest_blocking_gate_after_execution": "framework_governance_gate",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked",
+  "next_action": "refresh_framework_governance_threshold_artifacts_and_formal_retry_reopening_decision_on_updated_provisional_core_stack",
+  "governance_policy_conflict_detected": false
+}

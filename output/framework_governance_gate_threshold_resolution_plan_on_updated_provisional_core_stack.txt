@@ -1,0 +1,98 @@
+Framework Governance Gate Threshold Resolution Plan On Updated Provisional Core Stack
+=====================================================================================
+
+Generated at: 2026-04-23
+
+Status:
+- current_blocker_id = framework_governance_gate
+- current_gate_status = fail
+- framework_governance_gate_cleared = false
+
+Active thresholds:
+1. `baseline_filter_overlap_risk_acceptable`
+2. `signal_sparsity_flatness_audit_passed`
+3. `baseline_validation_candidate_usable`
+4. `official_strategy_retry_reopened`
+
+Threshold workstreams:
+- `baseline_filter_overlap_risk_acceptable`
+  - current_status: false
+  - why_currently_false: `output/phase_b_v2_overlap_audit.json` masih menyatakan `overall_overlap_risk = high`
+  - current_source_artifact: `output/phase_b_v2_overlap_audit.json`
+  - refresh_artifact_or_decision_needed: refreshed overlap audit artifact pada updated provisional core stack
+  - minimum_evidence_needed:
+    - artifact refresh tidak lagi menyatakan overlap risk high
+    - statement eksplisit bahwa filter tambahan tidak lagi redundant terhadap active baseline path
+    - statement bahwa artifact refresh menggantikan audit fail lama untuk scope governance
+  - preconditions:
+    - pakai semantics updated provisional core stack tanpa mengubah core stack
+    - item 5-8 dan parked experiment tetap closed
+  - owner_lane: `governance_framework_lane`
+  - ready_to_execute_now: true
+- `signal_sparsity_flatness_audit_passed`
+  - current_status: false
+  - why_currently_false: `output/phase_b_v2_trade_design_audit.json` masih menyatakan redesign masih perlu dan coverage tidak membaik cukup
+  - current_source_artifact: `output/phase_b_v2_trade_design_audit.json`
+  - refresh_artifact_or_decision_needed: refreshed trade-design / sparsity-flatness audit artifact
+  - minimum_evidence_needed:
+    - artifact refresh tidak lagi menyatakan `baseline_needs_entry_exit_redesign = true` untuk jalur governance aktif
+    - statement eksplisit bahwa sparsity-flatness concern sudah resolved untuk scope governance
+  - preconditions:
+    - overlap threshold refresh sudah dipublikasikan
+  - owner_lane: `governance_framework_lane`
+  - ready_to_execute_now: false
+- `baseline_validation_candidate_usable`
+  - current_status: false
+  - why_currently_false: validation masih `keep_candidate_experimental`, `can_retry_phase_b_after_validation = false`, dan redesign scope masih `usable_for_framework_redesign_only`
+  - current_source_artifact: `output/baseline_v2_validation_go_no_go.json + output/baseline_redesign_go_no_go.json`
+  - refresh_artifact_or_decision_needed: refreshed validation artifact atau formal replacement decision untuk governance scope
+  - minimum_evidence_needed:
+    - validation refresh tidak lagi menahan candidate di status experimental untuk scope governance
+    - statement eksplisit bahwa usability kandidat cukup untuk governance clearance
+  - preconditions:
+    - overlap threshold refresh sudah dipublikasikan
+    - trade-design / sparsity-flatness refresh sudah dipublikasikan
+  - owner_lane: `governance_framework_lane`
+  - ready_to_execute_now: false
+- `official_strategy_retry_reopened`
+  - current_status: false
+  - why_currently_false: `output/phase_b_final_closeout.json` dan `output/project_after_phase_b_decision.json` masih menyatakan `can_continue_strategy_experiments_now = false`
+  - current_source_artifact: `output/phase_b_final_closeout.json + output/project_after_phase_b_decision.json`
+  - refresh_artifact_or_decision_needed: keputusan governance formal untuk status retry reopening
+  - minimum_evidence_needed:
+    - refresh basis untuk tiga threshold sebelumnya sudah ada
+    - keputusan formal eksplisit true/false untuk `official_strategy_retry_reopened`
+  - preconditions:
+    - tiga threshold pertama sudah punya refresh basis yang cukup
+    - framing keputusan harus membedakan governance reopening dari retest/paper trading opening
+  - owner_lane: `formal_governance_decision_lane`
+  - ready_to_execute_now: false
+
+Formal governance decision rules:
+- `official_strategy_retry_reopened` adalah keputusan governance formal
+- `official_strategy_retry_reopened = true` tidak sama dengan membuka retest
+- `official_strategy_retry_reopened = true` tidak sama dengan membuka paper trading
+- keputusan ini baru boleh diproses setelah tiga threshold evidence sebelumnya punya refresh basis yang cukup
+- readiness artifacts baru boleh direfresh setelah empat threshold aktif clear
+
+Sequencing rules:
+1. refresh overlap threshold artifacts
+2. refresh trade-design / sparsity-flatness threshold artifacts
+3. refresh validation-candidate usability artifacts
+4. proses formal retry-reopening decision
+5. hanya jika empat threshold di atas clear, baru handoff untuk refresh active readiness artifacts
+
+Out of scope now:
+- `atr_stop_corporate_action_policy`
+- `retest_governance_artifacts_sync`
+- `paper_trading_open`
+- `retest_open`
+- `new_strategy_experiment`
+- `updated_provisional_core_stack_change`
+
+Next action:
+- refresh_framework_governance_threshold_artifacts_and_formal_retry_reopening_decision_on_updated_provisional_core_stack
+
+Governance:
+- retest blocked
+- paper trading blocked

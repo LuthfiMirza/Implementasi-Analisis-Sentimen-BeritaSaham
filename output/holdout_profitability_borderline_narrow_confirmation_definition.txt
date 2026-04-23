@@ -1,0 +1,57 @@
+Holdout Profitability Borderline Narrow Confirmation Definition
+===============================================================
+
+Generated at: 2026-04-23
+
+Status:
+- freshness_gate_entry test: completed_failed_archived
+- narrow confirmation implementation in repo: definition was frozen documentatively
+- current phase: narrow confirmation archived after failed test
+- experiment execution: completed_failed
+
+Residual failure:
+- holdout_profitability_borderline remains active
+
+Archived hypothesis branch:
+- narrow_confirmation_entry
+- status: archived_failed_branch_for_this_phase
+
+Official baseline:
+- Holdout average return per trade: 0.0261
+- Holdout profit factor: 0.9932
+- Holdout portfolio return: -1.0417%
+- Holdout max drawdown: 28.5468%
+- OOS average return per trade: 0.2516
+- OOS profit factor: 1.0675
+
+Official stack definition:
+- Phase 1 base signal generation
+- Layer 1 market regime
+- tanpa return_20d > 0
+- Layer 3 optional default off
+- Layer 4 unchanged
+- Layer 5 ATR14 x 2.5 trailing stop, trailing logic unchanged, time stop 12 hari
+
+Historical narrow confirmation definition:
+- Narrow confirmation berarti base entry signal yang baru mulai harus bertahan satu bar trading tambahan sebelum entry diizinkan.
+- Field utama yang dipakai: phase_1_signal_layer1
+- Variabel turunan:
+  - confirmation_anchor_start = true pada bar pertama saat phase_1_signal_layer1 berubah false -> true
+  - confirmation_pass_next_bar = true hanya jika bar trading berikutnya masih mempertahankan phase_1_signal_layer1 == true
+- Rule pass:
+  - signal lolos hanya jika phase_1_signal_layer1 tetap true pada follow-through bar pertama
+  - entry menjadi eligible pada confirmation bar tersebut
+- Rule fail:
+  - signal gagal jika follow-through bar pertama tidak mempertahankan phase_1_signal_layer1 true
+- Pipeline touchpoint:
+  - setelah base signal run terdeteksi dari phase_1_signal_layer1
+  - sebelum trade diteruskan ke Layer 4 sizing atau Layer 5 exit
+
+Archive note:
+- branch ini tetap terdokumentasi untuk audit
+- branch ini tidak lagi menjadi hipotesis aktif pada fase sekarang
+- reaktivasi hanya boleh terjadi lewat keputusan governance baru
+
+Governance:
+- Paper trading tetap blocked
+- Retest tetap blocked

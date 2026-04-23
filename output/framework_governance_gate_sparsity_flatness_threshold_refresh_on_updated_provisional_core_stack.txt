@@ -1,0 +1,55 @@
+Framework Governance Gate Sparsity Flatness Threshold Refresh On Updated Provisional Core Stack
+===============================================================================================
+
+Generated at: 2026-04-23
+
+Threshold:
+- `threshold_id = signal_sparsity_flatness_audit_passed`
+
+Current source artifact:
+- `output/phase_b_v2_trade_design_audit.json`
+
+Dependency artifact used:
+- `output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json`
+- usage_mode = dependency_note_only_not_clearance_evidence
+- dependency_published = true
+
+Previous observed value:
+- `baseline_needs_entry_exit_redesign = true`
+- `best_hold_period_improves_current_coverage = false`
+- conclusion menyatakan redesign entry/exit dan/atau labeling masih perlu didahulukan
+
+Refresh scope:
+- governance-facing trade-design / signal sparsity-flatness refresh pada updated provisional core stack
+- tidak membuka retest
+- tidak membuka paper trading
+- tidak membuka eksperimen strategi baru
+
+Sparsity / flatness findings:
+- audit trade-design aktif masih membutuhkan redesign
+- `baseline_needs_entry_exit_redesign = true`
+- `best_hold_period_improves_current_coverage = false`
+- `current_hold_is_not_best_for_coverage = true`
+- coverage eligible ticker pada best hold period tetap tipis:
+  - min_trades_5 = 1
+  - min_trades_8 = 0
+  - min_trades_10 = 0
+- tidak ditemukan evidence governance-facing baru yang membalik audit lama
+- concern sparsity/flatness pada governance path aktif masih unresolved
+
+Coverage assessment after refresh:
+- `coverage_improved_enough_for_governance_path = false`
+- alasan: coverage tidak membaik cukup dan eligible ticker coverage masih terlalu tipis pada min-trades floor audit aktif
+- status ini adalah reaffirmed dari source-of-truth aktif, bukan clearance baru
+
+Final threshold state:
+- `signal_sparsity_flatness_audit_passed = false`
+- `supersedes_prior_trade_design_audit_for_framework_governance = false`
+- `final_decision = signal_sparsity_flatness_audit_passed_not_cleared_reaffirmed_fail_state`
+
+Next action:
+- prepare_validation_candidate_usability_refresh_only_after_sparsity_flatness_refresh_basis_is_published_on_updated_provisional_core_stack
+
+Governance:
+- retest blocked
+- paper trading blocked

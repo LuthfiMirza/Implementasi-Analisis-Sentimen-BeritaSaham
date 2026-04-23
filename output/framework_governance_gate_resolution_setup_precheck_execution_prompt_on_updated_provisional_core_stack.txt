@@ -1,0 +1,56 @@
+Gunakan workspace yang sama dan kerjakan patch sinkronisasi governance artifacts berikut.
+
+Tujuan:
+- sinkronkan artifact aktif setelah setup `framework_governance_gate` terbaru
+- pertahankan `retest = blocked`
+- pertahankan `paper_trading = blocked`
+- jangan buka eksperimen strategi baru
+- jangan ubah semantics updated provisional core stack
+
+Files yang perlu ditinjau dan dipatch:
+- `output/phase_b_readiness_blocker_audit.json`
+- `output/phase_b_retest_readiness_gate.json`
+- `output/phase_b_retest_readiness_gate.txt`
+- `output/phase_b_retest_next_requirements.json`
+- `output/phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack.json`
+- `output/phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack.txt`
+
+Perubahan yang diminta:
+1. Di `output/phase_b_readiness_blocker_audit.json`
+- cari blocker `news_distribution_gate::median_news_density_pct`
+- ubah `recommended_fix` agar selaras dengan threshold aktif `0.3252`
+- jangan lagi merujuk target obsolete `>= 5.0`
+- wording boleh tetap konservatif, tetapi harus jelas bahwa target aktif adalah threshold hasil realignment
+
+2. Di `output/phase_b_retest_readiness_gate.json` dan `output/phase_b_retest_readiness_gate.txt`
+- ubah `recommended_next_action` menjadi:
+  `begin_framework_governance_gate_resolution_execution_on_updated_provisional_core_stack`
+- jangan ubah:
+  - `final_decision = belum_boleh_retest`
+  - `highest_blocking_gate = framework_governance_gate`
+  - daftar blocking thresholds
+  - status gate yang masih PASS/FAIL saat ini
+
+3. Di `output/phase_b_retest_next_requirements.json`
+- ubah `recommended_next_action` menjadi:
+  `begin_framework_governance_gate_resolution_execution_on_updated_provisional_core_stack`
+- jangan ubah `can_continue_to_phase_c` atau `can_continue_strategy_experiments_now`
+
+4. Di `output/phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack.json`
+   dan versi `.txt`
+- hilangkan loop balik ke setup
+- minimal ubah `next_action` menjadi:
+  `begin_framework_governance_gate_resolution_execution_on_updated_provisional_core_stack`
+- jika perlu, tambahkan catatan singkat bahwa artifact ini stale atau superseded setelah setup 2026-04-23 complete
+- jangan ubah fakta bahwa gate ini masih blocked
+
+Validasi wajib setelah patch:
+- jalankan `jq empty` untuk semua JSON yang diedit
+- cek `rg -n "recommended_next_action|next_action|5.0|framework_governance_gate_resolution_setup_on_updated_provisional_core_stack" output/phase_b_readiness_blocker_audit.json output/phase_b_retest_readiness_gate.json output/phase_b_retest_readiness_gate.txt output/phase_b_retest_next_requirements.json output/phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack.json output/phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack.txt`
+- pastikan tidak ada stale instruction yang mengarahkan jalur aktif kembali ke setup
+
+Gunakan `apply_patch` untuk edit manual. Setelah selesai, laporkan:
+- file yang diubah
+- ringkasan perubahan
+- hasil validasi `jq empty`
+- konfirmasi bahwa `retest` dan `paper_trading` tetap blocked

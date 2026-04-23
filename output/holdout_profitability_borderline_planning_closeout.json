@@ -1,0 +1,11 @@
+{
+  "artifact": "holdout_profitability_borderline_planning_closeout",
+  "generated_at": "2026-04-23",
+  "planning_status": "complete",
+  "baseline_frozen": true,
+  "active_hypothesis_frozen": true,
+  "roadmap_updated": true,
+  "next_execution_target": "Layer 3 narrow profitability test",
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked"
+}

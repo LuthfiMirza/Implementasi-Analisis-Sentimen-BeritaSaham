@@ -1,0 +1,35 @@
+Operational Blockers Matrix On Updated Provisional Core Stack
+=============================================================
+
+Generated at: 2026-04-23
+
+Official operational status:
+- validated_but_operationally_blocked
+
+Open blockers:
+- oos_degradation_material | category=strategy_performance | status=open | blocks_retest=false | blocks_paper_trading=true
+- atr_stop_corporate_action_policy_not_final | category=data_policy | status=open | blocks_retest=true | blocks_paper_trading=true
+- fee_slippage_assumptions_not_final | category=data_policy | status=open | blocks_retest=false | blocks_paper_trading=true
+- phase_b_retest_readiness_gate | category=governance_process | status=fail | blocks_retest=true | blocks_paper_trading=true
+- framework_governance_gate | category=governance_process | status=fail | blocks_retest=true | blocks_paper_trading=true
+- news_distribution_gate | category=governance_process | status=fail | blocks_retest=false | blocks_paper_trading=true
+- official_strategy_retry_reopened | category=governance_process | status=blocked | blocks_retest=true | blocks_paper_trading=true
+
+Minimum exit criteria:
+- for_retest:
+  - phase_b_retest_readiness_gate_cleared
+  - framework_governance_gate_cleared
+  - atr_stop_corporate_action_policy_finalized
+  - retest_governance_artifacts_synced
+- for_paper_trading:
+  - all_retest_requirements_cleared
+  - fee_slippage_assumptions_finalized
+  - news_distribution_gate_cleared
+  - explicit_operational_approval_issued
+- for_operationally_blocked_status_closure:
+  - critical_data_policy_blockers_closed
+  - critical_governance_process_blockers_closed
+  - no_active_operational_gate_in_fail_or_blocked_state
+
+Next action:
+- wait_for_blocker_resolution_on_updated_provisional_core_stack

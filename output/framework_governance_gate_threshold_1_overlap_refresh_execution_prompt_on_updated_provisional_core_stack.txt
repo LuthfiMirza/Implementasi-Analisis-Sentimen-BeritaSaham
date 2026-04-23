@@ -1,0 +1,72 @@
+Gunakan workspace yang sama. Jalankan workstream threshold 1:
+`baseline_filter_overlap_risk_acceptable`
+
+Tujuan:
+- refresh overlap audit untuk `framework_governance_gate`
+- nilai ulang apakah overlap risk pada updated provisional core stack masih `high` atau sudah acceptable
+- publish artifact governance-facing yang eksplisit
+- jangan buka retest
+- jangan buka paper trading
+- jangan buka eksperimen strategi baru
+- jangan ubah updated provisional core stack
+
+Output yang harus dibuat:
+- `output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json`
+- `output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.txt`
+
+Artifact sumber yang wajib dibaca:
+- `output/framework_governance_gate_threshold_resolution_plan_on_updated_provisional_core_stack.json`
+- `output/framework_governance_gate_resolution_execution_on_updated_provisional_core_stack.json`
+- `output/phase_b_v2_overlap_audit.json`
+- `output/phase_b_retest_readiness_gate.json`
+- `output/phase_b_readiness_blocker_audit.json`
+- `output/project_roadmap_status.txt`
+
+Yang harus dikerjakan:
+1. Bekukan dulu definisi threshold:
+- `baseline_filter_overlap_risk_acceptable = true` hanya jika refresh basis tidak lagi menyatakan overlap risk `high`
+- harus ada statement eksplisit apakah filter tambahan masih redundant atau tidak terhadap active baseline path
+
+2. Buat artifact refresh yang memuat minimal:
+- `artifact`
+- `generated_at`
+- `threshold_id`
+- `current_source_artifact`
+- `previous_observed_value`
+- `refresh_scope`
+- `overlap_refresh_findings`
+- `redundancy_assessment`
+- `overall_overlap_risk_after_refresh`
+- `baseline_filter_overlap_risk_acceptable`
+- `supersedes_prior_overlap_audit_for_framework_governance`
+- `final_decision`
+- `next_action`
+- `retest_status`
+- `paper_trading_status`
+
+3. Jika evidence belum cukup untuk mengubah hasil:
+- tetap publish artifact refresh
+- tetapkan `baseline_filter_overlap_risk_acceptable = false`
+- jelaskan dengan eksplisit kenapa threshold masih gagal
+
+4. Jika threshold clear:
+- nyatakan eksplisit bahwa overlap risk tidak lagi `high`
+- nyatakan artifact refresh ini supersedes prior fail state untuk scope framework governance
+- jangan menyamakan clearance ini dengan izin retest atau paper trading
+
+Guardrail:
+- jangan edit active readiness artifacts pada langkah ini
+- jangan sentuh threshold 2, 3, atau 4 selain sebagai dependency note
+- jangan buka blocker family lain
+
+Validasi wajib:
+- `jq empty output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json`
+- cek ringkas:
+  `rg -n "baseline_filter_overlap_risk_acceptable|overall_overlap_risk_after_refresh|final_decision|retest_status|paper_trading_status|next_action" output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json`
+
+Gunakan `apply_patch` untuk edit/manual create file. Setelah selesai, laporkan:
+- apakah threshold 1 clear atau masih false
+- observed value utama
+- final_decision
+- hasil `jq empty`
+- konfirmasi retest dan paper_trading tetap blocked

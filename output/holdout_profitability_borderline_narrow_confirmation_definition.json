@@ -1,0 +1,127 @@
+{
+  "artifact": "holdout_profitability_borderline_narrow_confirmation_definition",
+  "generated_at": "2026-04-23",
+  "phase_status": {
+    "freshness_gate_test_status": "completed_failed_archived",
+    "narrow_confirmation_repo_implementation_status": "definition_was_frozen_documentatively",
+    "current_phase": "narrow_confirmation_archived_after_failed_test",
+    "experiment_execution_status": "completed_failed"
+  },
+  "residual_failure": {
+    "target_id": "holdout_profitability_borderline",
+    "status": "active"
+  },
+  "active_hypothesis": "narrow_confirmation_entry",
+  "active_hypothesis_status": "archived_failed_branch_for_this_phase",
+  "official_baseline": {
+    "holdout_average_return_per_trade": 0.0261,
+    "holdout_profit_factor": 0.9932,
+    "holdout_portfolio_return_pct": -1.0417,
+    "holdout_max_drawdown_pct": 28.5468,
+    "out_of_sample_average_return_per_trade": 0.2516,
+    "out_of_sample_profit_factor": 1.0675
+  },
+  "official_stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "market_regime",
+    "layer_2": "without_return_20d_positive_filter",
+    "layer_3": "optional_default_off",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12,
+      "policy_status": "official_provisional"
+    }
+  },
+  "hard_constraints": [
+    "Do not change Layer 4.",
+    "Do not change ATR multiplier.",
+    "Do not change trailing logic.",
+    "Do not change time stop 12 days.",
+    "Do not open parallel redesign tracks.",
+    "Do not reactivate narrow_confirmation_entry in this phase.",
+    "Do not activate absolute_light_eligibility_gate.",
+    "Do not change the official baseline.",
+    "Do not open paper trading.",
+    "Do not open retest."
+  ],
+  "narrow_confirmation_definition": {
+    "definition_id": "one_bar_persistence_confirmation",
+    "what_narrow_confirmation_means": "Narrow confirmation means a newly started base entry signal must persist for one additional trading bar before entry is allowed.",
+    "measurement_variables": [
+      {
+        "field_name": "phase_1_signal_layer1",
+        "field_type": "existing_boolean",
+        "usage": "Defines the base signal run and the new-signal anchor."
+      },
+      {
+        "field_name": "confirmation_anchor_start",
+        "field_type": "derived_boolean",
+        "usage": "True on the first bar where phase_1_signal_layer1 changes from false to true."
+      },
+      {
+        "field_name": "confirmation_pass_next_bar",
+        "field_type": "derived_boolean",
+        "usage": "True only when the next trading bar after confirmation_anchor_start still has phase_1_signal_layer1 == true."
+      }
+    ],
+    "pass_rule": "A signal passes narrow confirmation only if phase_1_signal_layer1 is true on the first follow-through bar immediately after a new-signal anchor, and entry becomes eligible on that confirmation bar.",
+    "fail_rule": "A signal fails narrow confirmation if the follow-through bar immediately after a new-signal anchor does not keep phase_1_signal_layer1 true.",
+    "pipeline_touchpoint": "Apply the confirmation gate after the base signal run is detected from phase_1_signal_layer1 and before any trade is sent to Layer 4 sizing or Layer 5 exit handling.",
+    "what_does_not_change": [
+      "Layer 1 regime policy does not change.",
+      "Layer 3 remains optional default off and is not part of this hypothesis.",
+      "Layer 4 does not change.",
+      "Layer 5 ATR14 x 2.5, trailing logic, and time stop 12 days do not change.",
+      "No additional eligibility gate or regime filter is introduced."
+    ],
+    "entry_side_boundary": [
+      "This gate only checks one-bar persistence of the existing base signal.",
+      "It does not redefine market regime.",
+      "It does not introduce cross-sectional or absolute eligibility redesign.",
+      "It does not combine with freshness or any other additional filter."
+    ]
+  },
+  "allowed_variation_space": {
+    "family_id": "single_family_narrow_confirmation_entry",
+    "authorized_control_axis": "one_bar_persistence_only",
+    "frozen_first_execution_rule": "entry only after one-bar persistence confirmation of phase_1_signal_layer1",
+    "notes": [
+      "This definition remains archived as a failed branch for this phase.",
+      "No combined redesign with regime, eligibility, freshness, or exit changes is authorized.",
+      "No reactivation is authorized without a new governance decision."
+    ]
+  },
+  "disallowed_changes": [
+    "Regime redesign.",
+    "Eligibility redesign besar.",
+    "Freshness gate redesign.",
+    "Layer 4 changes.",
+    "ATR multiplier changes.",
+    "Trailing logic changes.",
+    "Time stop changes.",
+    "Combined redesign with any other gate or filter."
+  ],
+  "decision_rules": {
+    "must_improve_holdout_average_return_per_trade_vs_baseline": 0.0261,
+    "must_improve_holdout_profit_factor_vs_baseline": 0.9932,
+    "must_improve_holdout_portfolio_return_pct_vs_baseline": -1.0417,
+    "must_keep_oos_average_return_per_trade_gte": 0.0,
+    "must_keep_oos_profit_factor_gte": 1.0,
+    "must_not_win_only_from_aggressive_trade_pruning": true,
+    "must_not_be_accepted_if_only_one_holdout_metric_improves": true
+  },
+  "sequencing_rules": [
+    "Narrow confirmation is closed and archived for this phase.",
+    "Only one hypothesis family may be active at a time.",
+    "Do not reactivate narrow_confirmation_entry without a new governance decision.",
+    "Do not combine two redesigns in one experiment pass."
+  ],
+  "exit_criteria": [
+    "Narrow confirmation remains documented explicitly as a historical failed branch.",
+    "The failed branch status is frozen without ambiguity.",
+    "The roadmap no longer points to narrow-confirmation execution setup.",
+    "Paper trading remains blocked and retest remains blocked."
+  ]
+}

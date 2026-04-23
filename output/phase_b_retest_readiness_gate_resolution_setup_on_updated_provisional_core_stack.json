@@ -1,0 +1,63 @@
+{
+  "phase_status": "complete",
+  "blocker_id": "phase_b_retest_readiness_gate",
+  "current_status": "fail",
+  "why_it_blocks_retest": "Retest cannot be considered while the active source-of-truth readiness gate still declares final_decision = belum_boleh_retest.",
+  "dependency_status": {
+    "final_decision_not_belum_boleh_retest": "not_yet_true",
+    "highest_blocking_gate_not_minimum_retest_path_gate": "not_yet_true",
+    "framework_governance_gate_cleared": "not_yet_true",
+    "atr_stop_corporate_action_policy_finalized": "not_yet_true",
+    "retest_governance_artifacts_synced": "not_yet_true",
+    "updated_provisional_core_stack_adoption_complete": "true",
+    "post_adoption_governance_sync_complete": "true"
+  },
+  "what_must_be_true_to_clear": [
+    "final_decision_not_belum_boleh_retest = true",
+    "highest_blocking_gate_not_minimum_retest_path_gate = true",
+    "framework_governance_gate_cleared = true",
+    "atr_stop_corporate_action_policy_finalized = true",
+    "retest_governance_artifacts_synced = true",
+    "updated_provisional_core_stack_adoption_complete = true",
+    "post_adoption_governance_sync_complete = true"
+  ],
+  "required_evidence": [
+    "A refreshed phase_b_retest_readiness_gate artifact on the updated provisional core stack where final_decision is no longer belum_boleh_retest",
+    "Explicit evidence that the refreshed gate no longer reports a minimum-retest-path blocking gate as highest_blocking_gate",
+    "Explicit evidence that framework_governance_gate is cleared on the minimum retest path",
+    "A formal artifact stating atr_stop_corporate_action_policy_finalized = true",
+    "Explicit evidence that retest_governance_artifacts_synced = true across active artifacts",
+    "A formal statement that the refreshed gate supersedes the prior blocked gate as active source of truth"
+  ],
+  "required_artifacts": [
+    "output/phase_b_retest_readiness_gate.json",
+    "output/phase_b_readiness_blocker_audit.json",
+    "output/official_operational_decision_on_updated_provisional_core_stack.json",
+    "output/project_roadmap_status.txt",
+    "output/phase_b_retest_readiness_gate_resolution_setup_on_updated_provisional_core_stack.json",
+    "output/phase_b_retest_readiness_gate_resolution_setup_on_updated_provisional_core_stack.txt",
+    "output/phase_b_retest_readiness_gate_resolution_setup_closeout_on_updated_provisional_core_stack.json",
+    "output/phase_b_retest_readiness_gate_resolution_setup_closeout_on_updated_provisional_core_stack.txt"
+  ],
+  "decision_owner_or_governance_owner": "governance_readiness_lane",
+  "sequencing_rules": [
+    "Do not open retest during this setup phase.",
+    "Do not open paper trading during this setup phase.",
+    "Do not open new strategy experiments.",
+    "Resolve readiness-gate status first before opening work on the next blocker family.",
+    "Treat only the official minimum retest blockers as gate-clearance dependencies unless a newer formal policy changes them."
+  ],
+  "exit_criteria": [
+    "The meaning of phase_b_retest_readiness_gate_cleared is frozen explicitly.",
+    "The minimum evidence required to change the gate from fail/blocked to cleared is frozen explicitly.",
+    "Dependency states for the minimum retest path are listed without ambiguity.",
+    "Roadmap points directly to phase_b_retest_readiness_gate resolution execution on the updated provisional core stack."
+  ],
+  "governance_constraints": {
+    "do_not_run_backtest_new_strategy_experiment": true,
+    "do_not_change_updated_provisional_core_stack": true,
+    "do_not_open_backlog_hypothesis": true,
+    "paper_trading_must_remain_blocked": true,
+    "retest_must_remain_blocked": true
+  }
+}

@@ -1,0 +1,57 @@
+Framework Governance Gate Validation Candidate Usability Refresh On Updated Provisional Core Stack
+==================================================================================================
+
+Generated at: 2026-04-23
+
+Threshold:
+- `threshold_id = baseline_validation_candidate_usable`
+
+Current source artifact:
+- `output/baseline_v2_validation_go_no_go.json + output/baseline_redesign_go_no_go.json`
+
+Dependency artifacts used:
+- `output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json`
+  - usage_mode = refresh_basis_published_only_not_clearance_evidence
+- `output/framework_governance_gate_sparsity_flatness_threshold_refresh_on_updated_provisional_core_stack.json`
+  - usage_mode = refresh_basis_published_only_not_clearance_evidence
+
+Previous observed value:
+- `validation_decision = keep_candidate_experimental`
+- `validation_status = usable`
+- `can_promote_baseline_v2 = false`
+- `can_retry_phase_b_after_validation = false`
+- `usable_for_framework_redesign = true`
+- `redesign_scope_decision = usable_for_framework_redesign_only`
+- `phase_b_retry_blocked_until_data_extension = true`
+
+Refresh scope:
+- governance-facing validation-candidate usability refresh pada updated provisional core stack
+- tidak membuka retest
+- tidak membuka paper trading
+- tidak membuka eksperimen strategi baru
+
+Validation refresh findings:
+- validation artifact aktif masih menahan kandidat pada status `experimental`
+- kandidat masih tidak promotable untuk governance clearance
+- `can_retry_phase_b_after_validation = false`
+- redesign scope masih `framework-redesign-only`
+- tidak ditemukan evidence governance-facing baru yang membalik validation lama
+- usability kandidat masih belum cukup untuk governance clearance
+
+Candidate usability for governance:
+- `candidate_usable_for_governance_clearance = false`
+- alasan: basis validasi aktif masih menahan kandidat sebagai experimental, tidak mengizinkan retry setelah validation, dan artifact redesign masih membatasi kandidat ke scope framework input only
+- governance path aktif masih blocked oleh candidate usability
+- status ini adalah reaffirmed dari source-of-truth aktif, bukan clearance baru
+
+Final threshold state:
+- `baseline_validation_candidate_usable = false`
+- `supersedes_prior_validation_fail_state_for_framework_governance = false`
+- `final_decision = baseline_validation_candidate_usable_not_cleared_reaffirmed_fail_state`
+
+Next action:
+- prepare_official_strategy_retry_reopened_formal_decision_only_after_validation_refresh_basis_is_published_on_updated_provisional_core_stack
+
+Governance:
+- retest blocked
+- paper trading blocked

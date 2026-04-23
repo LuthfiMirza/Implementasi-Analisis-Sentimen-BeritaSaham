@@ -1,0 +1,11 @@
+{
+  "experiment_status": "complete",
+  "active_hypothesis": "Layer 3 as a narrow profitability filter",
+  "result": "fail",
+  "baseline_preserved": true,
+  "stack_preserved": true,
+  "other_hypotheses_activated": false,
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked",
+  "recommended_next_action": "wait_for_official_decision_after_layer3_narrow_profitability_test_closeout"
+}

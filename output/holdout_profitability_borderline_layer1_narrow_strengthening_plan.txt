@@ -1,0 +1,50 @@
+Holdout Profitability Borderline Layer1 Narrow Strengthening Plan
+================================================================
+
+Generated at: 2026-04-23
+
+Status:
+- narrow_confirmation_entry test: completed_failed_archived
+- layer1_narrow_strengthening definition: completed
+- planning direction: completed
+- execution setup: ready after definition freeze
+
+Residual failure:
+- holdout_profitability_borderline remains active
+
+Active hypothesis:
+- layer1_narrow_strengthening
+
+Official baseline:
+- Holdout average return per trade: 0.0261
+- Holdout profit factor: 0.9932
+- Holdout portfolio return: -1.0417%
+- Holdout max drawdown: 28.5468%
+- OOS average return per trade: 0.2516
+- OOS profit factor: 1.0675
+
+Official stack:
+- Phase 1 base signal generation
+- Layer 1 market regime
+- tanpa return_20d > 0
+- Layer 3 optional default off
+- Layer 4 unchanged
+- Layer 5 ATR14 x 2.5 trailing stop, trailing logic unchanged, time stop 12 hari
+
+Scope:
+- Allowed area: Layer 1 regime pass condition only
+- Disallowed area: entry confirmation redesign, eligibility redesign besar, Layer 4 changes, exit changes, combined redesign
+- Execution mode: single active hypothesis only
+
+Decision rules:
+- Holdout average return per trade harus membaik vs 0.0261
+- Holdout profit factor harus membaik vs 0.9932
+- Holdout portfolio return harus membaik vs -1.0417%
+- OOS average return per trade harus tetap >= 0
+- OOS profit factor harus tetap >= 1.0
+- Hasil tidak boleh diterima jika hanya menang karena pruning trade berlebihan
+- Hasil tidak boleh diterima jika hanya membaik pada satu metrik holdout
+
+Governance:
+- Paper trading tetap blocked
+- Retest tetap blocked

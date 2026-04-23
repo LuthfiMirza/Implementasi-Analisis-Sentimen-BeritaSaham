@@ -1,0 +1,12 @@
+{
+  "artifact": "framework_governance_gate_threshold_resolution_planning_closeout_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "planning_status": "complete",
+  "blocker_id": "framework_governance_gate",
+  "threshold_workstreams_defined": true,
+  "sequencing_frozen": true,
+  "roadmap_updated": true,
+  "next_action": "refresh_framework_governance_threshold_artifacts_and_formal_retry_reopening_decision_on_updated_provisional_core_stack",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

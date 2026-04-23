@@ -1,0 +1,19 @@
+Holdout Profitability Borderline Layer1 Narrow Strengthening Close Review
+========================================================================
+
+Generated at: 2026-04-23
+
+Close review decision:
+- status: validated_candidate
+- candidate status: provisional_stack_update_candidate
+- residual failure status: resolved_for_now
+
+Review conclusion:
+- pass ini cukup kuat untuk close review karena improvement holdout besar, multi-metric, dan tidak bergantung pada satu angka saja
+- OOS memang melemah material, tetapi masih positif dan masih berada di dalam guardrail minimum
+- pelemahan OOS masih acceptable untuk objective fase ini karena kandidat mengubah holdout dari borderline menjadi jelas positif
+- hasil ini layak dipromosikan menjadi provisional stack update candidate, tetapi belum layak untuk paper trading atau retest
+
+Governance tetap:
+- paper trading blocked
+- retest blocked

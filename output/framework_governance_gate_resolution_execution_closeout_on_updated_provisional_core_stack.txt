@@ -1,0 +1,28 @@
+Framework Governance Gate Resolution Execution Closeout On Updated Provisional Core Stack
+=========================================================================================
+
+Generated at: 2026-04-23
+
+Status:
+- blocker_id = framework_governance_gate
+- execution_status = complete
+- framework_governance_gate_cleared = false
+- final_gate_status = blocked
+- final_decision = framework_governance_gate_not_cleared
+- highest_blocking_gate_after_execution = framework_governance_gate
+
+Closeout checks:
+- evidence untuk empat threshold aktif sudah dikumpulkan dari source-of-truth artifact yang relevan
+- tidak ada threshold aktif yang terbukti `true`
+- gate ini masih `FAIL` pada jalur readiness aktif minimum retest
+- gate ini masih menjadi `highest_blocking_gate`
+- clearance gate ini belum punya basis formal
+- clearance gate ini tidak membuka retest
+- clearance gate ini tidak membuka paper trading
+
+Next action:
+- refresh_framework_governance_threshold_artifacts_and_formal_retry_reopening_decision_on_updated_provisional_core_stack
+
+Governance:
+- retest blocked
+- paper trading blocked

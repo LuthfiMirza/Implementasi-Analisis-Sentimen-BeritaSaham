@@ -1,0 +1,76 @@
+{
+  "phase_status": "complete",
+  "blocker_id": "framework_governance_gate",
+  "current_status": "fail",
+  "why_it_blocks_retest": "Retest remains blocked because framework_governance_gate is still the highest_blocking_gate in the active phase_b_retest_readiness_gate and still fails on overlap risk, signal sparsity-flatness, baseline validation candidate usability, and official strategy retry reopening.",
+  "dependency_status": {
+    "baseline_filter_overlap_audit_completed": "true",
+    "baseline_filter_overlap_risk_acceptable": "not_yet_true",
+    "baseline_trade_design_audit_completed": "true",
+    "signal_sparsity_flatness_audit_passed": "not_yet_true",
+    "baseline_redesign_candidate_usable_for_framework_redesign": "true",
+    "baseline_validation_candidate_usable": "not_yet_true",
+    "official_strategy_retry_reopened": "not_yet_true",
+    "updated_provisional_core_stack_adoption_complete": "true",
+    "phase_b_retest_readiness_gate_execution_complete": "true"
+  },
+  "what_must_be_true_to_clear": [
+    "framework_governance_gate_cleared means framework_governance_gate is no longer FAIL in the active retest-readiness path on the updated provisional core stack and none of its four active fail thresholds remain false.",
+    "baseline_filter_overlap_risk_acceptable = true",
+    "signal_sparsity_flatness_audit_passed = true",
+    "baseline_validation_candidate_usable = true",
+    "official_strategy_retry_reopened = true",
+    "framework_governance_gate is no longer the highest_blocking_gate on the active minimum retest path"
+  ],
+  "required_evidence": [
+    "A refreshed overlap audit artifact stating overlap risk is no longer high and baseline_filter_overlap_risk_acceptable = true on the updated provisional core stack.",
+    "A refreshed trade-design or equivalent framework audit stating signal_sparsity_flatness_audit_passed = true on the updated provisional core stack.",
+    "A refreshed baseline validation artifact stating baseline_validation_candidate_usable = true on the updated provisional core stack.",
+    "A formal governance decision that explicitly resolves official_strategy_retry_reopened for framework-governance purposes on the updated provisional core stack, while retest and paper trading remain blocked until other official blockers clear.",
+    "A refreshed active readiness artifact showing framework_governance_gate is no longer FAIL and no longer the highest_blocking_gate on the minimum retest path."
+  ],
+  "required_artifacts": [
+    "output/retest_blocker_resolution_plan_on_updated_provisional_core_stack.json",
+    "output/operational_blockers_matrix_on_updated_provisional_core_stack.json",
+    "output/official_operational_decision_on_updated_provisional_core_stack.json",
+    "output/phase_b_retest_readiness_gate.json",
+    "output/phase_b_retest_next_requirements.json",
+    "output/phase_b_readiness_blocker_audit.json",
+    "output/phase_b_v2_overlap_audit.json",
+    "output/phase_b_v2_trade_design_audit.json",
+    "output/baseline_redesign_go_no_go.json",
+    "output/baseline_v2_validation_go_no_go.json",
+    "output/phase_b_final_closeout.json",
+    "output/project_after_phase_b_decision.txt",
+    "output/project_roadmap_status.txt",
+    "output/framework_governance_gate_resolution_setup_on_updated_provisional_core_stack.json",
+    "output/framework_governance_gate_resolution_setup_on_updated_provisional_core_stack.txt",
+    "output/framework_governance_gate_resolution_setup_closeout_on_updated_provisional_core_stack.json",
+    "output/framework_governance_gate_resolution_setup_closeout_on_updated_provisional_core_stack.txt"
+  ],
+  "decision_owner_or_governance_owner": "governance_framework_lane",
+  "sequencing_rules": [
+    "Do not open retest during this setup phase.",
+    "Do not open paper trading during this setup phase.",
+    "Do not open new strategy experiments or backlog hypotheses.",
+    "Resolve only the four active framework_governance_gate thresholds before opening any downstream retest blocker family.",
+    "Treat official_strategy_retry_reopened as a formal governance-decision dependency and not as permission to open retest or paper trading.",
+    "Do not open atr_stop_corporate_action_policy or retest_governance_artifacts_sync unless framework_governance_gate execution produces an explicit dependency handoff artifact."
+  ],
+  "exit_criteria": [
+    "The meaning of framework_governance_gate_cleared is frozen explicitly.",
+    "The minimum evidence required to change framework_governance_gate from fail/blocked to cleared is frozen explicitly.",
+    "Dependency states for all active framework_governance_gate thresholds are listed without ambiguity.",
+    "Roadmap points directly to framework_governance_gate resolution execution on the updated provisional core stack.",
+    "Paper trading remains blocked and retest remains blocked."
+  ],
+  "governance_constraints": {
+    "do_not_run_backtest_new_strategy_experiment": true,
+    "do_not_change_updated_provisional_core_stack": true,
+    "do_not_open_backlog_hypothesis": true,
+    "do_not_open_next_blocker_without_explicit_dependency": true,
+    "official_strategy_retry_reopened_does_not_equal_retest_open": true,
+    "paper_trading_must_remain_blocked": true,
+    "retest_must_remain_blocked": true
+  }
+}

@@ -1,21 +1,24 @@
 {
   "artifact": "core_stack_update_closeout",
-  "generated_at": "2026-04-22",
+  "generated_at": "2026-04-23",
   "source_of_truth": {
     "entry_simplification_cycle_2_summary": "output/entry_simplification_cycle_2_summary.json",
     "entry_simplification_cycle_2_closeout": "output/entry_simplification_cycle_2_closeout.json",
     "entry_effective_constraint_audit": "output/entry_effective_constraint_audit.json",
+    "layer5_shorter_time_stop_validation_summary": "output/layer5_shorter_time_stop_validation_summary.json",
+    "layer5_shorter_time_stop_validation_closeout": "output/layer5_shorter_time_stop_validation_closeout.json",
     "project_roadmap_status": "output/project_roadmap_status.txt"
   },
   "current_official_decision": {
-    "core_stack_update_status": "completed_provisional_core_stack_realignment",
+    "core_stack_update_status": "completed_provisional_core_stack_realignment_with_layer5_update",
     "paper_trading_allowed": false,
     "retest_allowed": false,
     "layer_3_status": "optional_toggle_only_off_by_default",
     "layer_4_status": "unchanged",
-    "layer_5_status": "unchanged",
+    "layer_5_status": "provisionally_revised_time_stop_12d",
     "return20d_positive_status": "provisionally_dropped_from_core_stack",
-    "return20d_positive_final_freeze": false
+    "return20d_positive_final_freeze": false,
+    "layer5_time_stop_final_freeze": false
   },
   "core_stack_transition": {
     "previous_core_stack": [
@@ -23,7 +26,7 @@
       "Layer 1 market regime",
       "return_20d > 0",
       "Layer 3 optional off-by-default",
-      "Layer 5 unchanged",
+      "Layer 5 ATR14 x 2.5 trailing stop + time stop 15 days",
       "Layer 4 unchanged"
     ],
     "updated_core_stack": [
@@ -31,13 +34,14 @@
       "Layer 1 market regime",
       "without return_20d > 0",
       "Layer 3 optional off-by-default",
-      "Layer 5 unchanged",
+      "Layer 5 ATR14 x 2.5 trailing stop + provisional time stop 12 days",
       "Layer 4 unchanged"
     ],
     "what_changed": [
       "Explicit `close > ema50` had already been classified as redundant/non-binding and is no longer part of the active core decision.",
       "`return_20d > 0` is now removed from the core stack on a provisional basis after cycle 2.",
-      "No changes were made to Layer 3, Layer 4, or Layer 5."
+      "Layer 5 is now provisionally revised from time stop 15 days to 12 days while keeping ATR14 x 2.5 and trailing logic unchanged.",
+      "No changes were made to Layer 3 or Layer 4."
     ]
   },
   "why_return20d_positive_was_provisionally_dropped": {
@@ -45,9 +49,17 @@
       "Cycle 2 candidate `Phase 1 + Layer 1 only` improved out-of-sample average return per trade from -0.0909 to 0.1342.",
       "Cycle 2 candidate improved out-of-sample profit factor from 0.9629 to 1.0270.",
       "Cycle 2 candidate reduced OOS degradation vs in-sample from 114.819 to 69.0498.",
-      "These improvements occurred while Layer 4 and Layer 5 remained unchanged, so the improvement is attributable to the entry simplification."
+      "These improvements established the provisional entry simplification baseline before the shorter Layer 5 time stop validation was applied."
     ],
     "provisional_only_note": "The drop is not final permanent freeze because final holdout remains negative and drawdown remains too high."
+  },
+  "why_layer5_was_provisionally_revised": {
+    "reasoning": [
+      "The shorter time stop validation selected 12 days as the best Layer 5 variant against the 15-day control.",
+      "On final holdout, 12 days improved average return per trade from -0.4595 to 0.0261, profit factor from 0.8420 to 0.9932, and max drawdown from 34.4658% to 28.5468%.",
+      "The revision keeps ATR14 x 2.5 and trailing logic unchanged, so the policy change remains narrow and formally scoped."
+    ],
+    "provisional_only_note": "The time stop revision is provisional, not final permanent freeze, because holdout profitability is still borderline and drawdown remains above the operational target."
   },
   "observed_improvement_vs_previous_core_stack": {
     "out_of_sample": {
@@ -63,27 +75,37 @@
       "candidate_profit_factor": 1.027,
       "control_oos_degradation_vs_in_sample_pct": 114.819,
       "candidate_oos_degradation_vs_in_sample_pct": 69.0498
+    },
+    "layer5_12d_vs_15d_control": {
+      "control_time_stop_days": 15,
+      "candidate_time_stop_days": 12,
+      "control_holdout_average_return_per_trade": -0.4595,
+      "candidate_holdout_average_return_per_trade": 0.0261,
+      "control_holdout_profit_factor": 0.842,
+      "candidate_holdout_profit_factor": 0.9932,
+      "control_holdout_max_drawdown_pct": 34.4658,
+      "candidate_holdout_max_drawdown_pct": 28.5468
     }
   },
   "why_still_not_ready_for_paper_trading": {
     "reasons": [
-      "Final holdout remains negative at average_return_per_trade = -0.4595.",
-      "Final holdout max drawdown remains high at 34.4658%.",
-      "Win rate remains low at roughly 38-40%, still below the minimum operational target.",
-      "The provisional core stack improved OOS but did not yet convert the full validation path into a paper-trading candidate."
+      "Final holdout average_return_per_trade is only 0.0261, so profitability is still borderline rather than convincingly positive.",
+      "Final holdout profit factor remains below 1.0 at 0.9932.",
+      "Final holdout max drawdown remains high at 28.5468%.",
+      "The provisional core stack is stronger than before, but it still has not converted the full validation path into a paper-trading candidate."
     ]
   },
   "selected_next_redesign_target": {
-    "target_id": "holdout_resilience",
+    "target_id": "holdout_profitability_borderline",
     "selection_status": "official_next_planning_priority",
     "why_selected": [
-      "OOS resilience improved materially after the core stack update, so the dominant residual gap has shifted to final holdout weakness.",
-      "Holdout remains negative even after the best current entry simplification result, which is the strongest evidence that robustness across the final unseen window is still insufficient.",
-      "Drawdown is still high, but the first redesign target should stay aligned with the generalization problem before narrowing into a specific portfolio-risk treatment."
+      "OOS resilience and holdout damage both improved materially after the provisional core stack update, so the narrowest remaining failure is holdout profitability that is still only borderline.",
+      "Drawdown is still high, but the latest Layer 5 revision already reduced it materially, so the next planning cycle should stay focused on profitability recovery first.",
+      "Operational readiness is still not passed, but that remains downstream of economic edge quality rather than the first redesign target itself."
     ]
   },
   "official_next_action": {
-    "action": "open_holdout_resilience_planning_on_updated_core_stack",
-    "note": "The next planning cycle should focus only on holdout resilience for the updated provisional core stack, without reopening exit, sizing, or Layer 3 redesign."
+    "action": "open_holdout_profitability_borderline_planning_on_updated_provisional_core_stack",
+    "note": "The next planning cycle should focus only on holdout profitability borderline for the updated provisional core stack, without reopening Layer 4, ATR multiplier, trailing logic, or Layer 3 redesign."
   }
 }

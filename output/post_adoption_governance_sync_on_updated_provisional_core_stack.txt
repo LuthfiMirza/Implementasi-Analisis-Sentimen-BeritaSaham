@@ -1,0 +1,20 @@
+Post Adoption Governance Sync On Updated Provisional Core Stack
+===============================================================
+
+Generated at: 2026-04-23
+
+Governance sync decision:
+- status: post_adoption_governance_sync_complete
+
+Summary:
+- active governance artifacts sudah sinkron terhadap updated provisional core stack
+- residual failure lama `holdout_profitability_borderline` sudah ditutup sebagai `resolved_for_now` pada artifact aktif
+- roadmap aktif sudah sinkron
+- tidak ada mismatch governance aktif yang perlu dibuka ulang
+
+Note:
+- artifact historis lama tetap menyimpan state sebelumnya untuk audit dan tidak dihitung sebagai mismatch governance aktif
+
+Governance locks:
+- paper trading blocked
+- retest blocked

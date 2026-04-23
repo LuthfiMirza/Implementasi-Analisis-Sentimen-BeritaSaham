@@ -1,0 +1,111 @@
+{
+  "phase_status": "complete",
+  "scope": "retest_blocker_resolution_on_updated_provisional_core_stack",
+  "official_operational_status": "validated_but_operationally_blocked",
+  "updated_provisional_core_stack_status": "adopted",
+  "blocker_resolution_priority": [
+    "phase_b_retest_readiness_gate",
+    "framework_governance_gate",
+    "atr_stop_corporate_action_policy",
+    "retest_governance_artifacts_sync"
+  ],
+  "blocker_definitions": [
+    {
+      "blocker_id": "phase_b_retest_readiness_gate",
+      "current_status": "fail",
+      "why_it_blocks_retest": "Retest cannot be considered while the official readiness gate still says belum_boleh_retest.",
+      "what_must_be_true_to_clear": [
+        "phase_b_retest_readiness_gate final_decision is no longer belum_boleh_retest",
+        "its dependency blockers required by the gate have been closed or explicitly reclassified",
+        "the refreshed gate is published as the active source of truth"
+      ],
+      "what_artifact_or_decision_is_needed": [
+        "refreshed phase_b_retest_readiness_gate source-of-truth artifact",
+        "formal gate closeout or status refresh decision on the updated provisional core stack"
+      ],
+      "whether_it_also_blocks_paper_trading": true
+    },
+    {
+      "blocker_id": "framework_governance_gate",
+      "current_status": "fail",
+      "why_it_blocks_retest": "Retest remains blocked while framework governance still fails on overlap risk, signal sparsity-flatness, candidate usability, and official retry reopening.",
+      "what_must_be_true_to_clear": [
+        "framework_governance_gate no longer has active fail thresholds",
+        "baseline_filter_overlap_risk_acceptable is cleared",
+        "signal_sparsity_flatness_audit_passed is cleared",
+        "baseline_validation_candidate_usable is cleared",
+        "official_strategy_retry_reopened is explicitly resolved at governance level"
+      ],
+      "what_artifact_or_decision_is_needed": [
+        "updated framework governance audit artifacts",
+        "formal governance decision on strategy retry reopening status"
+      ],
+      "whether_it_also_blocks_paper_trading": true
+    },
+    {
+      "blocker_id": "atr_stop_corporate_action_policy",
+      "current_status": "open",
+      "why_it_blocks_retest": "Retest should not be reopened while ATR/stop/candle logic still lacks a finalized corporate-action and back-adjusted OHLC policy.",
+      "what_must_be_true_to_clear": [
+        "back-adjusted OHLC and corporate-action handling policy for ATR-stop-candle logic is finalized",
+        "the active provisional core stack references the finalized policy",
+        "policy coverage is documented as sufficient for retest governance"
+      ],
+      "what_artifact_or_decision_is_needed": [
+        "formal ATR stop corporate-action policy artifact",
+        "formal closeout stating the policy is finalized for retest use"
+      ],
+      "whether_it_also_blocks_paper_trading": true
+    },
+    {
+      "blocker_id": "retest_governance_artifacts_sync",
+      "current_status": "open",
+      "why_it_blocks_retest": "Retest should not be considered while the refreshed blocker closures are not synchronized into the governing readiness and roadmap artifacts.",
+      "what_must_be_true_to_clear": [
+        "all minimum retest blocker decisions are reflected in active governance artifacts",
+        "roadmap, readiness gate, and operational decision artifacts are mutually consistent",
+        "retest consideration status is published without ambiguity"
+      ],
+      "what_artifact_or_decision_is_needed": [
+        "synchronized retest governance closeout artifacts",
+        "roadmap update that reflects the post-blocker state"
+      ],
+      "whether_it_also_blocks_paper_trading": true
+    }
+  ],
+  "blocker_ownership_assumptions": {
+    "phase_b_retest_readiness_gate": "governance_readiness_lane",
+    "framework_governance_gate": "governance_framework_lane",
+    "atr_stop_corporate_action_policy": "data_policy_lane",
+    "retest_governance_artifacts_sync": "governance_sync_lane"
+  },
+  "required_artifacts": [
+    "output/retest_blocker_resolution_plan_on_updated_provisional_core_stack.json",
+    "output/retest_blocker_resolution_plan_on_updated_provisional_core_stack.txt",
+    "output/retest_blocker_resolution_planning_closeout_on_updated_provisional_core_stack.json",
+    "output/retest_blocker_resolution_planning_closeout_on_updated_provisional_core_stack.txt",
+    "output/project_roadmap_status.txt"
+  ],
+  "sequencing_rules": [
+    "Resolve retest blockers first and do not work on paper-trading-only blockers during this phase.",
+    "Do not open new strategy experiments.",
+    "Do not open retest because one blocker clears; retest may only be considered after all minimum retest blockers clear.",
+    "Keep paper trading blocked throughout this phase.",
+    "Use one blocker family at a time in the official sequence."
+  ],
+  "exit_criteria_for_retest_unblock": [
+    "phase_b_retest_readiness_gate has an explicit close condition and is either cleared or formally refreshed from updated inputs.",
+    "framework_governance_gate has an explicit close condition and no longer fails on the minimum retest path.",
+    "atr_stop_corporate_action_policy is finalized for retest use.",
+    "retest_governance_artifacts_sync is complete across active artifacts.",
+    "No ambiguity remains about what must close before retest may be considered."
+  ],
+  "governance_constraints": {
+    "do_not_run_backtest_new_strategy_experiment": true,
+    "do_not_change_updated_provisional_core_stack": true,
+    "do_not_change_historical_baseline": true,
+    "do_not_open_backlog_hypothesis": true,
+    "paper_trading_must_remain_blocked": true,
+    "retest_must_remain_blocked": true
+  }
+}

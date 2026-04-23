@@ -1,0 +1,129 @@
+{
+  "artifact": "holdout_profitability_borderline_layer1_narrow_strengthening_definition",
+  "generated_at": "2026-04-23",
+  "phase_status": {
+    "narrow_confirmation_test_status": "completed_failed_archived",
+    "layer1_repo_implementation_status": "explicit_existing_variant_available_from_holdout_regime_sensitivity_validation",
+    "current_phase": "layer1_narrow_strengthening_definition_freeze_completed",
+    "experiment_execution_status": "not_started"
+  },
+  "residual_failure": {
+    "target_id": "holdout_profitability_borderline",
+    "status": "active"
+  },
+  "active_hypothesis": "layer1_narrow_strengthening",
+  "official_baseline": {
+    "holdout_average_return_per_trade": 0.0261,
+    "holdout_profit_factor": 0.9932,
+    "holdout_portfolio_return_pct": -1.0417,
+    "holdout_max_drawdown_pct": 28.5468,
+    "out_of_sample_average_return_per_trade": 0.2516,
+    "out_of_sample_profit_factor": 1.0675
+  },
+  "official_stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "market_regime",
+    "layer_2": "without_return_20d_positive_filter",
+    "layer_3": "optional_default_off",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12,
+      "policy_status": "official_provisional"
+    }
+  },
+  "hard_constraints": [
+    "Do not change Layer 4.",
+    "Do not change ATR multiplier.",
+    "Do not change trailing logic.",
+    "Do not change time stop 12 days.",
+    "Do not open parallel redesign tracks.",
+    "Do not activate absolute_light_eligibility_gate.",
+    "Do not change the official baseline.",
+    "Do not open paper trading.",
+    "Do not open retest."
+  ],
+  "layer1_narrow_strengthening_definition": {
+    "strengthening_rule_id": "ema50_above_ema200_and_ema50_slope_up",
+    "component_tightened": "Layer 1 market regime pass condition",
+    "base_rule": "ihsg_ema50 > ihsg_ema200",
+    "narrow_strengthening_rule": "ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50",
+    "measurement_variables": [
+      {
+        "field_name": "ihsg_ema50",
+        "field_type": "existing_numeric",
+        "usage": "Primary fast market regime moving average."
+      },
+      {
+        "field_name": "ihsg_ema200",
+        "field_type": "existing_numeric",
+        "usage": "Primary slow market regime moving average."
+      },
+      {
+        "field_name": "prev_ihsg_ema50",
+        "field_type": "derived_numeric",
+        "usage": "Previous aligned trading-day value of ihsg_ema50 for the same regime series."
+      }
+    ],
+    "pass_rule": "Layer 1 passes only when ihsg_ema50 is above ihsg_ema200 and the current aligned ihsg_ema50 is above prev_ihsg_ema50 on the same evaluation date.",
+    "fail_rule": "Layer 1 fails if ihsg_ema50 <= ihsg_ema200 or if ihsg_ema50 <= prev_ihsg_ema50 on the aligned evaluation date.",
+    "pipeline_touchpoint": "Apply the strengthened regime gate at the existing Layer 1 regime evaluation step before Phase 1 base signals are allowed to continue to downstream entry processing, Layer 4 sizing, and Layer 5 exit handling.",
+    "what_does_not_change": [
+      "Phase 1 base signal generation logic does not change.",
+      "Layer 2 remains without return_20d > 0 filter.",
+      "Layer 3 remains optional default off.",
+      "Layer 4 does not change.",
+      "Layer 5 ATR14 x 2.5, trailing logic, and time stop 12 days do not change."
+    ],
+    "regime_tightening_boundary": [
+      "This is a single additional slope-up requirement inside the existing Layer 1 family.",
+      "It does not add a new filter family outside Layer 1.",
+      "It does not introduce entry confirmation logic.",
+      "It does not introduce a large eligibility redesign.",
+      "It does not combine buffer thresholds, EMA200 slope rules, or multiple strengthening rules."
+    ]
+  },
+  "allowed_variation_space": {
+    "family_id": "single_family_layer1_narrow_strengthening",
+    "authorized_control_axis": "ema50_slope_up_only",
+    "frozen_first_execution_rule": "ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50",
+    "notes": [
+      "Only one active hypothesis family is authorized.",
+      "No threshold sweep is authorized.",
+      "No combined redesign with entry confirmation, eligibility, freshness, or exit changes is authorized."
+    ]
+  },
+  "disallowed_changes": [
+    "Layer 1 redesign outside the existing market regime family.",
+    "Entry confirmation redesign.",
+    "Eligibility redesign besar.",
+    "Layer 4 changes.",
+    "ATR multiplier changes.",
+    "Trailing logic changes.",
+    "Time stop changes.",
+    "Combined redesign with any other gate or filter."
+  ],
+  "decision_rules": {
+    "must_improve_holdout_average_return_per_trade_vs_baseline": 0.0261,
+    "must_improve_holdout_profit_factor_vs_baseline": 0.9932,
+    "must_improve_holdout_portfolio_return_pct_vs_baseline": -1.0417,
+    "must_keep_oos_average_return_per_trade_gte": 0.0,
+    "must_keep_oos_profit_factor_gte": 1.0,
+    "must_not_win_only_from_aggressive_trade_pruning": true,
+    "must_not_be_accepted_if_only_one_holdout_metric_improves": true
+  },
+  "sequencing_rules": [
+    "Definition freeze must complete before any layer1_narrow_strengthening execution setup begins.",
+    "Only layer1_narrow_strengthening may be active.",
+    "Do not activate absolute_light_eligibility_gate.",
+    "Do not combine two redesigns in one experiment pass."
+  ],
+  "exit_criteria": [
+    "Layer 1 narrow strengthening is defined explicitly as a single official regime-tightening concept.",
+    "The measurement variables and pass/fail rule are frozen without ambiguity.",
+    "The pipeline touchpoint is defined explicitly.",
+    "The roadmap points directly to layer1_narrow_strengthening execution setup after definition freeze.",
+    "Paper trading remains blocked and retest remains blocked."
+  ]
+}

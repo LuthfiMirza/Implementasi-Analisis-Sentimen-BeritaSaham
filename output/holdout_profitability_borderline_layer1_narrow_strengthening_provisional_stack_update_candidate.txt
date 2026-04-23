@@ -1,0 +1,24 @@
+Holdout Profitability Borderline Layer1 Narrow Strengthening Provisional Stack Update Candidate
+================================================================================================
+
+Generated at: 2026-04-23
+
+Candidate status:
+- provisional_stack_update_candidate
+
+Candidate stack:
+- Phase 1 base signal generation
+- Layer 1 = `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`
+- tanpa `return_20d > 0`
+- Layer 3 optional default off
+- Layer 4 unchanged
+- Layer 5 ATR14 x 2.5 trailing stop, trailing logic unchanged, time stop 12 hari
+
+Basis promosi:
+- holdout profitability berubah dari borderline menjadi positif dan cukup kuat
+- OOS tetap positif, walau melemah material
+- kandidat layak dibawa ke governance sync, belum langsung menjadi stack resmi
+
+Governance tetap:
+- paper trading blocked
+- retest blocked

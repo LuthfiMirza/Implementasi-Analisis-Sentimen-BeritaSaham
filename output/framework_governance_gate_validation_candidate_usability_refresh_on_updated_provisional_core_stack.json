@@ -1,0 +1,46 @@
+{
+  "artifact": "framework_governance_gate_validation_candidate_usability_refresh_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "threshold_id": "baseline_validation_candidate_usable",
+  "current_source_artifact": "output/baseline_v2_validation_go_no_go.json + output/baseline_redesign_go_no_go.json",
+  "dependency_artifacts_used": [
+    {
+      "artifact_path": "output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json",
+      "usage_mode": "refresh_basis_published_only_not_clearance_evidence"
+    },
+    {
+      "artifact_path": "output/framework_governance_gate_sparsity_flatness_threshold_refresh_on_updated_provisional_core_stack.json",
+      "usage_mode": "refresh_basis_published_only_not_clearance_evidence"
+    }
+  ],
+  "previous_observed_value": {
+    "validation_decision": "keep_candidate_experimental",
+    "validation_status": "usable",
+    "can_promote_baseline_v2": false,
+    "can_retry_phase_b_after_validation": false,
+    "usable_for_framework_redesign": true,
+    "redesign_scope_decision": "usable_for_framework_redesign_only",
+    "phase_b_retry_blocked_until_data_extension": true
+  },
+  "refresh_scope": "governance_facing_validation_candidate_usability_refresh_on_updated_provisional_core_stack_without_opening_retest_paper_trading_or_new_strategy_experiments",
+  "validation_refresh_findings": {
+    "validation_artifact_still_keeps_candidate_experimental": true,
+    "candidate_is_not_promotable_for_governance_clearance": true,
+    "can_retry_phase_b_after_validation": false,
+    "redesign_scope_still_framework_input_only": true,
+    "material_new_evidence_found_since_prior_validation_artifacts": false,
+    "governance_refresh_conclusion": "No newer governance-facing evidence was found that overturns the prior validation position. The candidate may remain usable as framework input, but it is still not usable for framework-governance clearance because it remains experimental and redesign-scoped rather than governance-clearable."
+  },
+  "candidate_usability_for_governance": {
+    "candidate_usable_for_governance_clearance": false,
+    "reason": "The active validation basis still keeps the candidate in experimental status, does not allow Phase B retry after validation, and the redesign artifact still limits it to framework-redesign-only use.",
+    "governance_path_blocked_by_candidate_usability": true,
+    "reaffirmed_from_active_source_of_truth": true
+  },
+  "baseline_validation_candidate_usable": false,
+  "supersedes_prior_validation_fail_state_for_framework_governance": false,
+  "final_decision": "baseline_validation_candidate_usable_not_cleared_reaffirmed_fail_state",
+  "next_action": "prepare_official_strategy_retry_reopened_formal_decision_only_after_validation_refresh_basis_is_published_on_updated_provisional_core_stack",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

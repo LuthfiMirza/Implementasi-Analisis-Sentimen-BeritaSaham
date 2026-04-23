@@ -1,0 +1,18 @@
+Layer1 Narrow Strengthening Provisional Adoption Decision
+========================================================
+
+Generated at: 2026-04-23
+
+Official decision:
+- adopt_as_provisional_core_stack_update
+
+Assessment:
+- improvement holdout cukup kuat untuk membenarkan pelemahan OOS
+- candidate layak dipromosikan menjadi provisional core stack resmi
+- masih ada alasan governance untuk menahan adopsi operasional: OOS melemah material, paper trading belum boleh, retest belum boleh
+
+Status updates:
+- `layer1_narrow_strengthening` diadopsi sebagai provisional core stack update
+- `holdout_profitability_borderline` = resolved_for_now
+- paper trading blocked
+- retest blocked

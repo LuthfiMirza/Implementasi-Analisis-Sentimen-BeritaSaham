@@ -1,0 +1,69 @@
+{
+  "artifact": "core_stack_provisional_update_from_layer1_narrow_strengthening",
+  "generated_at": "2026-04-23",
+  "source_of_truth": {
+    "adoption_decision": "output/layer1_narrow_strengthening_provisional_adoption_decision.json",
+    "validation_closeout": "output/holdout_profitability_borderline_layer1_narrow_strengthening_validation_closeout.json",
+    "close_review": "output/holdout_profitability_borderline_layer1_narrow_strengthening_close_review.json",
+    "candidate_artifact": "output/holdout_profitability_borderline_layer1_narrow_strengthening_provisional_stack_update_candidate.json"
+  },
+  "current_official_decision": {
+    "core_stack_update_status": "completed_provisional_core_stack_realignment_with_layer1_narrow_strengthening",
+    "paper_trading_allowed": false,
+    "retest_allowed": false,
+    "layer_1_status": "provisionally_revised_to_ema50_above_ema200_and_ema50_slope_up",
+    "layer_3_status": "optional_toggle_only_off_by_default",
+    "layer_4_status": "unchanged",
+    "layer_5_status": "provisionally_revised_time_stop_12d",
+    "return20d_positive_status": "provisionally_dropped_from_core_stack"
+  },
+  "core_stack_transition": {
+    "previous_provisional_core_stack": [
+      "Phase 1 base signal generation",
+      "Layer 1 market regime: ihsg_ema50 > ihsg_ema200",
+      "without return_20d > 0",
+      "Layer 3 optional off-by-default",
+      "Layer 5 ATR14 x 2.5 trailing stop + provisional time stop 12 days",
+      "Layer 4 unchanged"
+    ],
+    "updated_provisional_core_stack": [
+      "Phase 1 base signal generation",
+      "Layer 1 market regime: ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50",
+      "without return_20d > 0",
+      "Layer 3 optional off-by-default",
+      "Layer 5 ATR14 x 2.5 trailing stop + provisional time stop 12 days",
+      "Layer 4 unchanged"
+    ],
+    "what_changed": [
+      "Layer 1 is provisionally tightened by adding the EMA50 slope-up requirement inside the existing market regime family.",
+      "No changes were made to Layer 3, Layer 4, ATR multiplier, trailing logic, or time stop 12 days.",
+      "No backlog hypothesis was opened as part of this adoption."
+    ]
+  },
+  "why_adopted_provisionally": {
+    "reasoning": [
+      "The candidate improved final holdout average return per trade from 0.0261 to 0.3054.",
+      "The candidate improved final holdout profit factor from 0.9932 to 1.1008.",
+      "The candidate improved final holdout portfolio return from -1.0417% to 13.5128%.",
+      "The candidate reduced final holdout max drawdown from 28.5468% to 18.0377%.",
+      "OOS stayed positive with average return per trade 0.1827 and profit factor 1.0482, so the OOS degradation remained acceptable for provisional adoption."
+    ],
+    "provisional_only_note": "The adoption remains provisional rather than final because OOS weakened materially and operational readiness has not been cleared."
+  },
+  "residual_failure_status": {
+    "target_id": "holdout_profitability_borderline",
+    "status": "resolved_for_now"
+  },
+  "why_still_not_ready_for_paper_trading": {
+    "reasons": [
+      "OOS performance remains weaker than the previous provisional core stack even though it stays positive.",
+      "Operational readiness has not been re-cleared on the updated provisional core stack.",
+      "Retest governance has not been reopened.",
+      "Paper trading remains blocked until a later governance decision explicitly allows it."
+    ]
+  },
+  "official_next_action": {
+    "action": "begin_post_adoption_governance_sync_and_operational_readiness_review_on_updated_provisional_core_stack",
+    "note": "The next step after adoption is governance synchronization and readiness review on the updated provisional core stack, without opening new hypotheses, paper trading, or retest."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "experiment_status": "complete",
+  "active_hypothesis": "freshness_gate_entry",
+  "active_hypothesis_status": "archived_failed_branch_for_this_phase",
+  "result": "fail",
+  "baseline_preserved": true,
+  "stack_preserved": true,
+  "other_hypotheses_activated": false,
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked",
+  "recommended_next_action": "begin_holdout_profitability_borderline_layer1_narrow_strengthening_execution_setup_after_definition_freeze"
+}

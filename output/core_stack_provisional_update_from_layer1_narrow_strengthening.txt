@@ -1,0 +1,24 @@
+Core Stack Provisional Update From Layer1 Narrow Strengthening
+=============================================================
+
+Generated at: 2026-04-23
+
+Official decision:
+- layer1_narrow_strengthening diadopsi sebagai provisional core stack update
+
+Updated provisional core stack:
+- Phase 1 base signal generation
+- Layer 1 = `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`
+- tanpa `return_20d > 0`
+- Layer 3 optional off-by-default
+- Layer 5 ATR14 x 2.5 trailing stop dengan provisional time stop 12 hari
+- Layer 4 unchanged
+
+Why adopted:
+- holdout improvement cukup besar dan multi-metric
+- OOS tetap positif walau melemah material
+- trade-off tersebut cukup untuk adopsi provisional, belum cukup untuk promosi operasional
+
+Governance tetap:
+- paper trading blocked
+- retest blocked

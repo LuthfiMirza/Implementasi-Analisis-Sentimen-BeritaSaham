@@ -1,0 +1,124 @@
+{
+  "experiment_name": "holdout_profitability_borderline_layer3_narrow_profitability_test",
+  "residual_failure": "holdout_profitability_borderline",
+  "baseline_reference": {
+    "source_artifact": "output/layer5_shorter_time_stop_validation_closeout.json",
+    "best_variant_id": "candidate_atr25_time_stop_12d"
+  },
+  "stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "market_regime",
+    "layer_2": "without_return_20d > 0",
+    "layer_3": "optional_default_off_baseline_vs_on_candidate",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12
+    }
+  },
+  "constraints_applied": [
+    "Layer 4 unchanged.",
+    "ATR multiplier unchanged at 2.5.",
+    "Trailing logic unchanged.",
+    "Time stop unchanged at 12 days.",
+    "No parallel redesign activated.",
+    "No backlog hypothesis activated.",
+    "Official baseline preserved.",
+    "Paper trading remains blocked.",
+    "Retest remains blocked."
+  ],
+  "candidate_definition": {
+    "candidate_id": "layer3_on_same_official_stack",
+    "difference_vs_baseline": "Layer 3 activated as the only change on the official stack.",
+    "layer_3_rule": "RSI14 >= 50 AND RSI14 <= 70"
+  },
+  "metrics_baseline": {
+    "out_of_sample": {
+      "average_return_per_trade": 0.2516,
+      "profit_factor": 1.0675,
+      "portfolio_return_pct": 11.9255,
+      "max_drawdown_pct": 29.3906,
+      "total_trades": 518,
+      "win_rate": 40.1544
+    },
+    "final_holdout": {
+      "average_return_per_trade": 0.0261,
+      "profit_factor": 0.9932,
+      "portfolio_return_pct": -1.0417,
+      "max_drawdown_pct": 28.5468,
+      "total_trades": 551,
+      "win_rate": 43.7387
+    }
+  },
+  "metrics_candidate": {
+    "out_of_sample": {
+      "average_return_per_trade": 0.2426,
+      "profit_factor": 1.0666,
+      "portfolio_return_pct": 10.1026,
+      "max_drawdown_pct": 23.1724,
+      "total_trades": 447,
+      "win_rate": 40.9396
+    },
+    "final_holdout": {
+      "average_return_per_trade": -0.1441,
+      "profit_factor": 0.9399,
+      "portfolio_return_pct": -7.926,
+      "max_drawdown_pct": 31.4994,
+      "total_trades": 490,
+      "win_rate": 42.6531
+    }
+  },
+  "comparison_summary": {
+    "out_of_sample": {
+      "baseline_average_return_per_trade": 0.2516,
+      "candidate_average_return_per_trade": 0.2426,
+      "delta_average_return_per_trade": -0.009,
+      "baseline_profit_factor": 1.0675,
+      "candidate_profit_factor": 1.0666,
+      "delta_profit_factor": -0.0009,
+      "baseline_portfolio_return_pct": 11.9255,
+      "candidate_portfolio_return_pct": 10.1026,
+      "delta_portfolio_return_pct": -1.8229,
+      "baseline_max_drawdown_pct": 29.3906,
+      "candidate_max_drawdown_pct": 23.1724,
+      "delta_max_drawdown_pct": -6.2182,
+      "baseline_total_trades": 518,
+      "candidate_total_trades": 447,
+      "baseline_win_rate": 40.1544,
+      "candidate_win_rate": 40.9396
+    },
+    "final_holdout": {
+      "baseline_average_return_per_trade": 0.0261,
+      "candidate_average_return_per_trade": -0.1441,
+      "delta_average_return_per_trade": -0.1702,
+      "baseline_profit_factor": 0.9932,
+      "candidate_profit_factor": 0.9399,
+      "delta_profit_factor": -0.0533,
+      "baseline_portfolio_return_pct": -1.0417,
+      "candidate_portfolio_return_pct": -7.926,
+      "delta_portfolio_return_pct": -6.8843,
+      "baseline_max_drawdown_pct": 28.5468,
+      "candidate_max_drawdown_pct": 31.4994,
+      "delta_max_drawdown_pct": 2.9526,
+      "baseline_total_trades": 551,
+      "candidate_total_trades": 490,
+      "baseline_win_rate": 43.7387,
+      "candidate_win_rate": 42.6531
+    }
+  },
+  "decision": "fail",
+  "decision_reason": "holdout average return per trade did not improve; holdout profit factor did not improve; holdout portfolio return did not improve; holdout improvement was not confirmed by the main holdout metrics",
+  "guardrail_status": {
+    "holdout_average_return_improved": false,
+    "holdout_profit_factor_improved": false,
+    "holdout_portfolio_return_improved": false,
+    "oos_average_return_nonnegative": true,
+    "oos_profit_factor_gte_1": true,
+    "holdout_improvement_count": 0,
+    "aggressive_trade_pruning_triggered": false,
+    "aggressive_trade_pruning_reason": "not_needed_for_final_decision"
+  },
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked"
+}

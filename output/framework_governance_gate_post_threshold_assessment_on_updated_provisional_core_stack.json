@@ -1,0 +1,48 @@
+{
+  "artifact": "framework_governance_gate_post_threshold_assessment_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "blocker_id": "framework_governance_gate",
+  "assessment_status": "complete",
+  "threshold_results": [
+    {
+      "threshold_id": "baseline_filter_overlap_risk_acceptable",
+      "source_artifact": "output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json",
+      "observed_value": false,
+      "status": false,
+      "assessment_note": "Latest governance-facing overlap refresh still concludes overlap risk remains high and does not supersede the prior fail state."
+    },
+    {
+      "threshold_id": "signal_sparsity_flatness_audit_passed",
+      "source_artifact": "output/framework_governance_gate_sparsity_flatness_threshold_refresh_on_updated_provisional_core_stack.json",
+      "observed_value": false,
+      "status": false,
+      "assessment_note": "Latest governance-facing sparsity-flatness refresh reaffirms that redesign is still required and coverage remains too thin for governance clearance."
+    },
+    {
+      "threshold_id": "baseline_validation_candidate_usable",
+      "source_artifact": "output/framework_governance_gate_validation_candidate_usability_refresh_on_updated_provisional_core_stack.json",
+      "observed_value": false,
+      "status": false,
+      "assessment_note": "Latest governance-facing validation refresh reaffirms that the candidate remains experimental and framework-redesign-only, not governance-clearable."
+    },
+    {
+      "threshold_id": "official_strategy_retry_reopened",
+      "source_artifact": "output/framework_governance_gate_official_strategy_retry_reopening_decision_on_updated_provisional_core_stack.json",
+      "observed_value": false,
+      "status": false,
+      "assessment_note": "Latest formal governance decision explicitly keeps official_strategy_retry_reopened = false and frames it as a reaffirmed blocked state."
+    }
+  ],
+  "highest_blocking_gate_assessment": {
+    "source_artifact": "output/phase_b_retest_readiness_gate.json + output/phase_b_retest_next_requirements.json + output/phase_b_readiness_blocker_audit.json",
+    "observed_value": "framework_governance_gate",
+    "status": false,
+    "assessment_note": "Active readiness artifacts still show framework_governance_gate as the highest_blocking_gate and still list its thresholds as failed."
+  },
+  "framework_governance_gate_cleared": false,
+  "final_gate_status": "blocked",
+  "final_decision": "framework_governance_gate_still_not_cleared_after_threshold_refresh_cycle",
+  "next_action": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

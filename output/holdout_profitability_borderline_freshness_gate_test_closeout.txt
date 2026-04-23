@@ -1,0 +1,11 @@
+Holdout Profitability Borderline Freshness Gate Test Closeout
+============================================================
+
+Ringkasan formal hasil eksperimen:
+- freshness_gate_entry test selesai dengan hasil: fail
+- Residual failure holdout_profitability_borderline belum teratasi
+- Tidak boleh membuka hipotesis backlog otomatis
+- freshness_gate_entry diarsipkan sebagai failed branch untuk fase ini
+- Hipotesis resmi berikutnya adalah `layer1_narrow_strengthening`
+- Paper trading tetap blocked
+- Retest tetap blocked

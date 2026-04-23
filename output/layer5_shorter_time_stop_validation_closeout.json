@@ -1,6 +1,6 @@
 {
   "artifact": "layer5_shorter_time_stop_validation_closeout",
-  "generated_at": "2026-04-22",
+  "generated_at": "2026-04-23",
   "source_of_truth": {
     "validation_summary": "output/layer5_shorter_time_stop_validation_summary.json",
     "validation_report": "output/layer5_shorter_time_stop_validation_report.txt",
@@ -10,12 +10,37 @@
   },
   "current_official_decision": {
     "validation_status": "completed",
+    "provisional_update_formalized": true,
     "best_variant_id": "candidate_atr25_time_stop_12d",
     "candidate_more_resilient_than_control": true,
     "layer5_time_stop_revision_decision": "provisionally_revise_layer5_time_stop",
+    "official_layer5_policy": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "previous_time_stop_days": 15,
+      "provisional_time_stop_days": 12
+    },
     "paper_trading_allowed": false,
     "retest_allowed": false,
-    "note": "Shorter time stop terbaik mengalahkan control 15 hari pada metrik holdout utama tanpa merusak OOS secara material, sehingga Layer 5 layak direvisi provisional ke time stop yang lebih pendek."
+    "note": "Shorter time stop terbaik mengalahkan control 15 hari pada metrik holdout utama tanpa merusak OOS secara material, sehingga Layer 5 resmi direvisi secara provisional dari time stop 15 hari ke 12 hari dengan ATR14 x 2.5 dan trailing logic tetap."
+  },
+  "policy_transition": {
+    "old_policy": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 15
+    },
+    "new_provisional_policy": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12
+    },
+    "what_changed": [
+      "Time stop Layer 5 direvisi secara provisional dari 15 hari menjadi 12 hari.",
+      "ATR14 x 2.5 tetap aktif tanpa perubahan.",
+      "Trailing stop logic tetap sama dan tidak dibuka redesign baru.",
+      "Layer 4 tetap tidak diubah."
+    ]
   },
   "comparison_snapshot": {
     "control_full_period": {
@@ -413,8 +438,50 @@
       "holdout_degradation_vs_in_sample_pct": 95.3501
     }
   },
+  "why_12_days_was_selected": {
+    "reasoning": [
+      "Varian 12 hari memperbaiki final holdout average return per trade dari -0.4595 menjadi 0.0261 terhadap control 15 hari.",
+      "Varian 12 hari memperbaiki final holdout profit factor dari 0.8420 menjadi 0.9932 dan menurunkan holdout max drawdown dari 34.4658% menjadi 28.5468%.",
+      "Varian 12 hari juga tetap menjaga OOS tetap quality-positive dengan average return per trade 0.2516 dan profit factor 1.0675.",
+      "Secara lintas-jendela, 12 hari memberi trade-off paling seimbang antara OOS resilience, holdout recovery, dan drawdown reduction."
+    ]
+  },
+  "why_10_days_was_not_selected": {
+    "candidate_10d_snapshot": {
+      "time_stop_days": 10,
+      "out_of_sample_average_return_per_trade": 0.326,
+      "out_of_sample_profit_factor": 1.103,
+      "out_of_sample_max_drawdown_pct": 19.3733,
+      "final_holdout_average_return_per_trade": -0.2988,
+      "final_holdout_profit_factor": 0.8771,
+      "final_holdout_max_drawdown_pct": 33.2356
+    },
+    "reasoning": [
+      "Varian 10 hari memang terlihat lebih kuat di OOS, tetapi final holdout kembali negatif pada average return per trade -0.2988.",
+      "Profit factor holdout 10 hari hanya 0.8771, masih jelas di bawah 12 hari yang mencapai 0.9932.",
+      "Holdout max drawdown 10 hari sebesar 33.2356% juga lebih buruk daripada 12 hari yang turun ke 28.5468%.",
+      "Karena keputusan formal dipusatkan pada perbaikan holdout yang tetap seimbang dengan OOS, 10 hari tidak cukup resilient untuk dipromosikan ke stack resmi provisional."
+    ]
+  },
+  "why_still_not_ready_for_paper_trading": {
+    "reasoning": [
+      "Final holdout average return per trade 12 hari hanya 0.0261, jadi profitability masih borderline dan belum cukup tegas.",
+      "Final holdout profit factor masih 0.9932, masih di bawah 1.0 sehingga belum menunjukkan edge yang cukup aman untuk paper trading.",
+      "Final holdout portfolio return masih -1.0417% dan max drawdown masih 28.5468%, jadi risk profile belum lolos.",
+      "Retest dan paper trading tetap harus tertutup sampai residual failure utama berikutnya ditangani pada stack resmi terbaru."
+    ]
+  },
+  "selected_next_redesign_target": {
+    "target_id": "holdout_profitability_borderline",
+    "selection_status": "official_next_planning_priority",
+    "why_selected": [
+      "Setelah update provisional Layer 5, kerusakan holdout besar sudah turun dari -0.4595 ke 0.0261 sehingga gap paling sempit yang tersisa adalah holdout profitability borderline.",
+      "Drawdown masih tinggi, tetapi sudah membaik material pada 12 hari sehingga belum perlu dibuka sebagai redesign target berikutnya.",
+      "Operational readiness tetap gagal, tetapi kegagalan itu masih turunan dari profitability dan drawdown yang belum cukup kuat."
+    ]
+  },
   "official_next_action": {
-    "action": "prepare_provisional_layer5_time_stop_update",
-    "note": "Sinkronkan core stack provisional dengan time stop lebih pendek dan tutup pass drawdown-control ini secara formal."
+    "action": "open_holdout_profitability_borderline_planning_on_updated_provisional_core_stack",
+    "note": "Mulai planning sempit hanya untuk holdout profitability borderline di atas core stack resmi terbaru, tanpa menyentuh Layer 4, ATR multiplier, trailing logic, atau redesign paralel lain."
   }
 }

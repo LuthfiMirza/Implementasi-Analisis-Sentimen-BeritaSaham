@@ -1,0 +1,30 @@
+{
+  "artifact": "layer1_narrow_strengthening_provisional_adoption_decision",
+  "generated_at": "2026-04-23",
+  "source_of_truth": {
+    "validation_closeout": "output/holdout_profitability_borderline_layer1_narrow_strengthening_validation_closeout.json",
+    "close_review": "output/holdout_profitability_borderline_layer1_narrow_strengthening_close_review.json",
+    "provisional_stack_update_candidate": "output/holdout_profitability_borderline_layer1_narrow_strengthening_provisional_stack_update_candidate.json",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "official_decision": "adopt_as_provisional_core_stack_update",
+  "decision_assessment": {
+    "holdout_improvement_strong_enough_to_justify_oos_tradeoff": true,
+    "oos_degradation_assessment": "material_but_still_acceptable_for_provisional_adoption",
+    "candidate_fit_for_provisional_core_stack_promotion": true,
+    "remaining_governance_reason_to_block_operational_promotion": true
+  },
+  "status_updates": {
+    "layer1_narrow_strengthening_status": "adopted_as_provisional_core_stack_update",
+    "holdout_profitability_borderline_status": "resolved_for_now",
+    "paper_trading_status": "blocked",
+    "retest_status": "blocked"
+  },
+  "adoption_scope": {
+    "official_core_stack_updated": true,
+    "provisional_only": true,
+    "operational_promotion_allowed": false,
+    "backlog_hypotheses_opened": false
+  },
+  "recommended_next_action": "begin_post_adoption_governance_sync_and_operational_readiness_review_on_updated_provisional_core_stack"
+}

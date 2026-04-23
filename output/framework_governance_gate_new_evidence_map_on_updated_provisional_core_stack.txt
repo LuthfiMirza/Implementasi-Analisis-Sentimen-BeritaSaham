@@ -1,0 +1,80 @@
+Framework Governance Gate New Evidence Map On Updated Provisional Core Stack
+============================================================================
+
+Generated at: 2026-04-23
+
+Current state:
+- `framework_governance_gate_cleared = false`
+- gate masih `blocked`
+- gate masih `highest_blocking_gate`
+- retest tetap blocked
+- paper trading tetap blocked
+
+Makna artifact ini:
+- menjawab evidence baru seperti apa yang benar-benar dibutuhkan sebelum gate ini layak dinilai ulang
+- repeated refresh tanpa evidence baru tidak cukup
+
+Threshold 1:
+- `baseline_filter_overlap_risk_acceptable`
+- status sekarang: false
+- masih terblokir karena overlap refresh terbaru tetap menyatakan `overall_overlap_risk = high`
+- evidence baru yang benar-benar dihitung:
+  - artifact overlap governance-facing baru yang tidak lagi menyatakan risk `high`
+  - statement eksplisit bahwa filter tambahan tidak lagi materially redundant terhadap active baseline path
+  - statement formal bahwa artifact baru menggantikan prior fail state
+- evidence yang tidak dihitung:
+  - membaca ulang artifact lama tanpa perubahan kesimpulan
+  - argumen umum bahwa item6/item7 low-overlap tanpa mengubah total overlap conclusion
+
+Threshold 2:
+- `signal_sparsity_flatness_audit_passed`
+- status sekarang: false
+- masih terblokir karena audit terbaru tetap menyatakan redesign masih perlu dan coverage masih terlalu tipis
+- evidence baru yang benar-benar dihitung:
+  - artifact trade-design governance-facing baru yang tidak lagi menyatakan redesign required
+  - evidence eksplisit bahwa coverage/flatness concern sudah materially improved untuk governance path
+  - statement formal bahwa artifact baru menggantikan prior fail state
+- evidence yang tidak dihitung:
+  - mengulang audit lama dengan kesimpulan yang sama
+  - memakai threshold 1 sebagai bukti otomatis bahwa threshold 2 resolved
+
+Threshold 3:
+- `baseline_validation_candidate_usable`
+- status sekarang: false
+- masih terblokir karena kandidat tetap `experimental` dan masih `framework-redesign-only`
+- evidence baru yang benar-benar dihitung:
+  - artifact validasi baru yang tidak lagi menaruh kandidat di `keep_candidate_experimental` untuk governance scope
+  - evidence eksplisit bahwa kandidat usable beyond framework-redesign-only
+  - statement formal bahwa artifact baru menggantikan prior validation fail state
+- evidence yang tidak dihitung:
+  - memakai result validasi lama yang tetap experimental
+  - menganggap framework-redesign-only sudah cukup untuk governance clearance
+
+Threshold 4:
+- `official_strategy_retry_reopened`
+- status sekarang: false
+- masih terblokir karena tiga refresh basis sebelumnya tetap negatif dan keputusan formal masih menutup reopening
+- evidence baru yang benar-benar dihitung:
+  - perubahan nyata pada threshold 1, 2, atau 3
+  - keputusan governance formal baru yang dievaluasi di atas basis threshold yang memang berubah
+  - statement eksplisit bahwa reopening sedang dinilai ulang karena changed evidence
+- evidence yang tidak dihitung:
+  - mengulang keputusan formal yang sama di atas basis negatif yang sama
+  - menganggap publish refresh basis otomatis membuka reopening
+
+Global non-triggers:
+- repeated refresh tanpa changed evidence
+- refresh readiness artifacts saat gate masih not clear
+- buka `atr_stop_corporate_action_policy`
+- buka `retest_governance_artifacts_sync`
+- buka retest
+- buka paper trading
+- buka eksperimen strategi baru
+
+Apa yang harus berubah sebelum gate bisa bergerak:
+1. minimal satu threshold harus punya source-of-truth baru yang benar-benar mengubah hasil
+2. jika threshold 4 mau dinilai ulang, basis threshold 1-3 harus benar-benar berubah dulu
+3. baru setelah itu gate boleh dinilai ulang secara formal
+
+Next action:
+- `maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack`

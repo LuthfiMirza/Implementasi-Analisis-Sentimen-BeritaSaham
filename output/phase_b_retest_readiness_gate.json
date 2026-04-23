@@ -15,7 +15,7 @@
     "framework_governance_gate::baseline_validation_candidate_usable actual=0 target>=1",
     "framework_governance_gate::official_strategy_retry_reopened actual=0 target>=1"
   ],
-  "recommended_next_action": "collect_more_data_and_refresh_framework_audits_before_any_strategy_retry",
+  "recommended_next_action": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
   "decisive_statement": "Retest masih dilarang karena blocker coverage/OOS bukan satu-satunya masalah; audit overlap baseline, signal sparsity-flatness, usability redesign baseline, dan closeout resmi juga harus lolos.",
   "strategy_retry_still_blocked_by_official_closeout": true,
   "primary_segment": "sentiment_segment=sentiment_poor",

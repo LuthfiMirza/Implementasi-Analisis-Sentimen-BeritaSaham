@@ -1,0 +1,11 @@
+{
+  "artifact": "holdout_profitability_borderline_layer1_narrow_strengthening_planning_closeout",
+  "generated_at": "2026-04-23",
+  "planning_status": "complete",
+  "definition_frozen": true,
+  "active_hypothesis_frozen": true,
+  "roadmap_updated": true,
+  "next_execution_target": "begin_holdout_profitability_borderline_layer1_narrow_strengthening_execution_setup_after_definition_freeze",
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked"
+}

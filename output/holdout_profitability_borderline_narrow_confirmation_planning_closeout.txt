@@ -1,0 +1,12 @@
+Holdout Profitability Borderline Narrow Confirmation Planning Closeout
+=====================================================================
+
+Generated at: 2026-04-23
+
+Planning historis untuk `narrow_confirmation_entry` tetap tersimpan, tetapi branch ini sekarang berstatus `archived_failed_branch_for_this_phase`.
+
+Status formal:
+- planning lama tidak lagi menjadi planning aktif
+- roadmap sudah dialihkan ke branch resmi berikutnya
+- paper trading tetap blocked
+- retest tetap blocked

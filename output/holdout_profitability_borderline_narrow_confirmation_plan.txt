@@ -1,0 +1,42 @@
+Holdout Profitability Borderline Narrow Confirmation Plan
+=========================================================
+
+Generated at: 2026-04-23
+
+Status:
+- freshness_gate_entry test: completed_failed_archived
+- narrow confirmation definition: completed_archived_after_failed_test
+- planning direction: completed_archived_after_failed_test
+- execution setup: closed for this phase
+
+Residual failure:
+- holdout_profitability_borderline remains active
+
+Archived hypothesis branch:
+- narrow_confirmation_entry
+- status: archived_failed_branch_for_this_phase
+
+Official baseline:
+- Holdout average return per trade: 0.0261
+- Holdout profit factor: 0.9932
+- Holdout portfolio return: -1.0417%
+- Holdout max drawdown: 28.5468%
+- OOS average return per trade: 0.2516
+- OOS profit factor: 1.0675
+
+Official stack:
+- Phase 1 base signal generation
+- Layer 1 market regime
+- tanpa return_20d > 0
+- Layer 3 optional default off
+- Layer 4 unchanged
+- Layer 5 ATR14 x 2.5 trailing stop, trailing logic unchanged, time stop 12 hari
+
+Archive scope:
+- planning ini tetap disimpan untuk audit
+- branch ini tidak aktif lagi pada fase sekarang
+- branch resmi berikutnya adalah `layer1_narrow_strengthening`
+
+Governance:
+- Paper trading tetap blocked
+- Retest tetap blocked

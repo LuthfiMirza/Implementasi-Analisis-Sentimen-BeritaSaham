@@ -1,0 +1,50 @@
+{
+  "artifact": "operational_readiness_review_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "source_of_truth": {
+    "core_stack_provisional_update": "output/core_stack_provisional_update_from_layer1_narrow_strengthening.json",
+    "retest_readiness_gate": "output/phase_b_retest_readiness_gate.json",
+    "readiness_blocker_audit": "output/phase_b_readiness_blocker_audit.json",
+    "project_current_state_summary": "output/project_current_state_summary.json",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "operational_readiness_review_status": "operational_readiness_review_complete",
+  "updated_provisional_stack_status": "validated_provisional_stack_but_not_operationally_ready",
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked",
+  "paper_trading_blockers": [
+    "OOS performance remains materially weaker than the prior provisional core stack even though it stays positive.",
+    "Operational readiness has not been re-cleared on the updated provisional core stack.",
+    "Back-adjusted OHLC policy for ATR/stop/candle logic is still not fully finalized in the active roadmap.",
+    "Fee/slippage and broader operational market assumptions are not yet closed on the updated provisional stack."
+  ],
+  "retest_blockers": [
+    "phase_b_retest_readiness_gate final_decision remains belum_boleh_retest.",
+    "framework_governance_gate is still FAIL.",
+    "news_distribution_gate is still FAIL.",
+    "official_strategy_retry_reopened remains blocked by formal closeout governance."
+  ],
+  "blocking_gates": {
+    "highest_blocking_gate": "framework_governance_gate",
+    "failed_gates": [
+      "framework_governance_gate",
+      "news_distribution_gate"
+    ],
+    "framework_governance_thresholds_still_failed": [
+      "baseline_filter_overlap_risk_acceptable",
+      "signal_sparsity_flatness_audit_passed",
+      "baseline_validation_candidate_usable",
+      "official_strategy_retry_reopened"
+    ],
+    "distribution_thresholds_still_failed": [
+      "median_news_density_pct"
+    ]
+  },
+  "review_assessment": {
+    "governance_ready_for_operational_promotion": false,
+    "stack_stable_enough_for_validated_provisional_status": true,
+    "new_experiment_required": false,
+    "additional_operational_decision_required": true
+  },
+  "recommended_next_action": "wait_for_official_operational_decision_on_updated_provisional_core_stack"
+}

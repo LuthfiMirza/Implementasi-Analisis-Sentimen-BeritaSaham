@@ -1,0 +1,83 @@
+Framework Governance Gate Resolution Setup On Updated Provisional Core Stack
+============================================================================
+
+Generated at: 2026-04-23
+
+Status:
+- phase_status = complete
+- blocker_id = framework_governance_gate
+- current_status = fail
+
+Why it blocks retest:
+- retest tetap blocked karena `framework_governance_gate` masih menjadi `highest_blocking_gate` pada artifact aktif `output/phase_b_retest_readiness_gate.json`
+- gate ini masih FAIL pada empat threshold aktif:
+  - `baseline_filter_overlap_risk_acceptable`
+  - `signal_sparsity_flatness_audit_passed`
+  - `baseline_validation_candidate_usable`
+  - `official_strategy_retry_reopened`
+
+Dependency status:
+- baseline_filter_overlap_audit_completed = true
+- baseline_filter_overlap_risk_acceptable = not_yet_true
+- baseline_trade_design_audit_completed = true
+- signal_sparsity_flatness_audit_passed = not_yet_true
+- baseline_redesign_candidate_usable_for_framework_redesign = true
+- baseline_validation_candidate_usable = not_yet_true
+- official_strategy_retry_reopened = not_yet_true
+- updated_provisional_core_stack_adoption_complete = true
+- phase_b_retest_readiness_gate_execution_complete = true
+
+Clear condition resmi:
+- `framework_governance_gate_cleared` berarti:
+  - `framework_governance_gate` tidak lagi berstatus `FAIL` pada jalur readiness aktif minimum retest di atas updated provisional core stack
+  - tidak ada lagi threshold aktif gate ini yang bernilai false
+  - `baseline_filter_overlap_risk_acceptable = true`
+  - `signal_sparsity_flatness_audit_passed = true`
+  - `baseline_validation_candidate_usable = true`
+  - `official_strategy_retry_reopened = true`
+  - `framework_governance_gate` tidak lagi menjadi `highest_blocking_gate`
+
+Bukti minimum yang diperlukan:
+- refreshed `output/phase_b_v2_overlap_audit.json` atau artifact audit pengganti yang menyatakan overlap risk tidak lagi high dan `baseline_filter_overlap_risk_acceptable = true`
+- refreshed `output/phase_b_v2_trade_design_audit.json` atau artifact audit framework setara yang menyatakan `signal_sparsity_flatness_audit_passed = true`
+- refreshed `output/baseline_v2_validation_go_no_go.json` atau artifact validasi pengganti yang menyatakan `baseline_validation_candidate_usable = true`
+- keputusan governance formal yang secara eksplisit menyelesaikan `official_strategy_retry_reopened` untuk scope framework governance di updated provisional core stack, tanpa membuka retest atau paper trading
+- refreshed artifact readiness aktif yang menunjukkan `framework_governance_gate` tidak lagi `FAIL` dan tidak lagi menjadi `highest_blocking_gate`
+
+Required artifacts:
+- output/retest_blocker_resolution_plan_on_updated_provisional_core_stack.json
+- output/operational_blockers_matrix_on_updated_provisional_core_stack.json
+- output/official_operational_decision_on_updated_provisional_core_stack.json
+- output/phase_b_retest_readiness_gate.json
+- output/phase_b_retest_next_requirements.json
+- output/phase_b_readiness_blocker_audit.json
+- output/phase_b_v2_overlap_audit.json
+- output/phase_b_v2_trade_design_audit.json
+- output/baseline_redesign_go_no_go.json
+- output/baseline_v2_validation_go_no_go.json
+- output/phase_b_final_closeout.json
+- output/project_after_phase_b_decision.txt
+- output/project_roadmap_status.txt
+- output/framework_governance_gate_resolution_setup_on_updated_provisional_core_stack.json
+- output/framework_governance_gate_resolution_setup_on_updated_provisional_core_stack.txt
+- output/framework_governance_gate_resolution_setup_closeout_on_updated_provisional_core_stack.json
+- output/framework_governance_gate_resolution_setup_closeout_on_updated_provisional_core_stack.txt
+
+Governance owner:
+- governance_framework_lane
+
+Sequencing rules:
+- jangan buka retest
+- jangan buka paper trading
+- jangan buka eksperimen strategi baru atau backlog hypothesis
+- selesaikan hanya empat threshold aktif `framework_governance_gate` sebelum membuka family blocker retest berikutnya
+- perlakukan `official_strategy_retry_reopened` sebagai dependency keputusan governance formal, bukan sebagai izin membuka retest atau paper trading
+- jangan buka `atr_stop_corporate_action_policy` atau `retest_governance_artifacts_sync` kecuali execution gate ini menghasilkan handoff dependency yang eksplisit
+
+Exit criteria:
+- clear condition untuk `framework_governance_gate` sudah dibekukan
+- bukti minimum untuk mengubah gate dari fail/blocked menjadi cleared sudah dibekukan
+- status dependency untuk seluruh threshold aktif sudah ditulis tanpa ambiguitas
+- roadmap menunjuk langsung ke `begin_framework_governance_gate_resolution_execution_on_updated_provisional_core_stack`
+- paper trading tetap blocked
+- retest tetap blocked

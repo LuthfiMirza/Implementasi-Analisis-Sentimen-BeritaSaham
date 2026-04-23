@@ -1,0 +1,24 @@
+Framework Governance Gate Threshold Execution Prompt Sequence On Updated Provisional Core Stack
+===============================================================================================
+
+Gunakan prompt secara berurutan dan jangan lompat langkah:
+
+1. `output/framework_governance_gate_threshold_1_overlap_refresh_execution_prompt_on_updated_provisional_core_stack.txt`
+2. `output/framework_governance_gate_threshold_2_sparsity_flatness_refresh_execution_prompt_on_updated_provisional_core_stack.txt`
+3. `output/framework_governance_gate_threshold_3_validation_candidate_usability_refresh_execution_prompt_on_updated_provisional_core_stack.txt`
+4. `output/framework_governance_gate_threshold_4_formal_retry_reopening_decision_prompt_on_updated_provisional_core_stack.txt`
+
+Guardrail global:
+- retest tetap blocked
+- paper trading tetap blocked
+- jangan buka eksperimen strategi baru
+- jangan ubah updated provisional core stack
+- jangan buka `atr_stop_corporate_action_policy`
+- jangan buka `retest_governance_artifacts_sync`
+- jangan refresh active readiness artifacts sebelum empat threshold aktif clear
+
+Aturan penggunaan:
+- Threshold 2 hanya boleh dijalankan setelah refresh artifact threshold 1 dipublikasikan
+- Threshold 3 hanya boleh dijalankan setelah refresh artifact threshold 1 dan 2 dipublikasikan
+- Threshold 4 hanya boleh dijalankan setelah basis refresh threshold 1, 2, dan 3 dipublikasikan
+- Jika suatu threshold tetap `false`, jangan memaksa clearance; publish artifact refresh dengan keputusan fail/blocked yang eksplisit

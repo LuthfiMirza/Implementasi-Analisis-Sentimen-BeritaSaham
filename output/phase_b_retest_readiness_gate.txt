@@ -1,7 +1,7 @@
 Phase B Retest Readiness Gate
 - final_decision=belum_boleh_retest
 - highest_blocking_gate=framework_governance_gate
-- recommended_next_action=collect_more_data_and_refresh_framework_audits_before_any_strategy_retry
+- recommended_next_action=maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
 - decisive_statement=Retest masih dilarang karena blocker coverage/OOS bukan satu-satunya masalah; audit overlap baseline, signal sparsity-flatness, usability redesign baseline, dan closeout resmi juga harus lolos.
 
 Gate status:

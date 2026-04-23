@@ -1,0 +1,9 @@
+Holdout Profitability Borderline Layer1 Narrow Strengthening Test Closeout
+=========================================================================
+
+Ringkasan formal hasil eksperimen:
+- layer1_narrow_strengthening test selesai dengan hasil: pass
+- residual failure menunjukkan perbaikan pada metrik holdout utama
+- boleh lanjut ke fase validasi/close review berikutnya
+- paper trading tetap blocked
+- retest tetap blocked

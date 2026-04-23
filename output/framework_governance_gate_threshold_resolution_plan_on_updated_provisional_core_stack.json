@@ -1,0 +1,196 @@
+{
+  "artifact": "framework_governance_gate_threshold_resolution_plan_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "plan_scope": "threshold_resolution_planning_for_framework_governance_gate_on_updated_provisional_core_stack",
+  "current_blocker_id": "framework_governance_gate",
+  "current_gate_status": "fail",
+  "framework_governance_gate_cleared": false,
+  "active_thresholds": [
+    "baseline_filter_overlap_risk_acceptable",
+    "signal_sparsity_flatness_audit_passed",
+    "baseline_validation_candidate_usable",
+    "official_strategy_retry_reopened"
+  ],
+  "threshold_workstreams": [
+    {
+      "threshold_id": "baseline_filter_overlap_risk_acceptable",
+      "current_status": "false",
+      "why_currently_false": "The active overlap audit still reports overall_overlap_risk = high and concludes that baseline variations already absorb most simple threshold changes.",
+      "current_source_artifact": "output/phase_b_v2_overlap_audit.json",
+      "refresh_artifact_or_decision_needed": "A refreshed overlap audit artifact on the updated provisional core stack that explicitly re-evaluates overlap risk and states baseline_filter_overlap_risk_acceptable = true if supported.",
+      "minimum_evidence_needed": [
+        "A published overlap refresh artifact that no longer reports overall_overlap_risk = high.",
+        "Explicit governance-facing statement that additional filter logic is no longer redundant versus the active baseline path.",
+        "Evidence that the refreshed overlap assessment supersedes the earlier high-risk audit for framework-governance purposes."
+      ],
+      "preconditions": [
+        "Use the updated provisional core stack semantics without changing the core stack itself.",
+        "Keep item 5-8 and other parked experiment tracks closed.",
+        "Treat the current overlap audit as active source of truth until the refresh artifact is published."
+      ],
+      "owner_lane": "governance_framework_lane",
+      "allowed_actions": [
+        "Refresh the overlap audit artifact using the active updated provisional core stack semantics.",
+        "Document whether redundancy signals still remain against the current baseline path.",
+        "Publish a formal governance-facing overlap conclusion."
+      ],
+      "disallowed_actions": [
+        "Open a new strategy experiment.",
+        "Modify the updated provisional core stack.",
+        "Treat overlap refresh as retest authorization.",
+        "Move to downstream blocker families."
+      ],
+      "ready_to_execute_now": true,
+      "blocking_dependencies": []
+    },
+    {
+      "threshold_id": "signal_sparsity_flatness_audit_passed",
+      "current_status": "false",
+      "why_currently_false": "The active trade-design audit still says baseline trade design needs entry/exit redesign, best_hold_period_improves_current_coverage = false, and the conclusion explicitly says redesign must come first.",
+      "current_source_artifact": "output/phase_b_v2_trade_design_audit.json",
+      "refresh_artifact_or_decision_needed": "A refreshed trade-design or equivalent framework audit artifact on the updated provisional core stack that explicitly re-evaluates sparsity-flatness and states signal_sparsity_flatness_audit_passed = true if supported.",
+      "minimum_evidence_needed": [
+        "A published trade-design refresh artifact that no longer concludes baseline_needs_entry_exit_redesign = true for the active governance path.",
+        "Explicit evidence that signal coverage and flatness concerns are materially resolved for framework-governance purposes.",
+        "A governance-facing statement that the refreshed trade-design audit supersedes the prior fail state."
+      ],
+      "preconditions": [
+        "Baseline overlap threshold refresh must be published first so trade-design review is evaluated on the latest governance path.",
+        "Keep the updated provisional core stack unchanged.",
+        "Do not reopen Phase B experiments while refreshing the audit basis."
+      ],
+      "owner_lane": "governance_framework_lane",
+      "allowed_actions": [
+        "Refresh the trade-design audit artifact on the updated provisional core stack.",
+        "Re-evaluate sparsity, flatness, retention, and labeling sufficiency in governance form.",
+        "Publish a pass/fail refresh statement tied to the active governance path."
+      ],
+      "disallowed_actions": [
+        "Open retest.",
+        "Open paper trading.",
+        "Run a new strategy experiment.",
+        "Use unresolved overlap findings as if they were already cleared."
+      ],
+      "ready_to_execute_now": false,
+      "blocking_dependencies": [
+        "baseline_filter_overlap_risk_acceptable refresh artifact published"
+      ]
+    },
+    {
+      "threshold_id": "baseline_validation_candidate_usable",
+      "current_status": "false",
+      "why_currently_false": "The active validation artifact still says keep_candidate_experimental and can_retry_phase_b_after_validation = false, while baseline_redesign_go_no_go only allows the candidate as usable_for_framework_redesign_only.",
+      "current_source_artifact": "output/baseline_v2_validation_go_no_go.json + output/baseline_redesign_go_no_go.json",
+      "refresh_artifact_or_decision_needed": "A refreshed validation artifact or formal replacement decision on the updated provisional core stack that explicitly re-assesses candidate usability for framework-governance clearance and states baseline_validation_candidate_usable = true if supported.",
+      "minimum_evidence_needed": [
+        "A published validation refresh artifact that no longer leaves the candidate in keep_candidate_experimental status for governance purposes.",
+        "Explicit evidence that the candidate is usable beyond framework-input-only scope on the governance path being assessed.",
+        "A formal statement that the refreshed validation basis supersedes the prior validation fail state for this threshold."
+      ],
+      "preconditions": [
+        "Overlap threshold refresh must already be published.",
+        "Trade-design / sparsity-flatness threshold refresh must already be published.",
+        "The validation refresh must remain within framework-governance resolution scope and not reopen strategy experimentation."
+      ],
+      "owner_lane": "governance_framework_lane",
+      "allowed_actions": [
+        "Refresh candidate validation artifact on the updated provisional core stack.",
+        "Re-assess whether candidate usability is sufficient for framework-governance closure.",
+        "Publish a formal validation refresh decision for governance use."
+      ],
+      "disallowed_actions": [
+        "Promote the candidate to retest.",
+        "Promote the candidate to paper trading.",
+        "Use framework-redesign-only usability as if it already satisfied governance clearance.",
+        "Open a new experiment branch."
+      ],
+      "ready_to_execute_now": false,
+      "blocking_dependencies": [
+        "baseline_filter_overlap_risk_acceptable refresh artifact published",
+        "signal_sparsity_flatness_audit_passed refresh artifact published"
+      ]
+    },
+    {
+      "threshold_id": "official_strategy_retry_reopened",
+      "current_status": "false",
+      "why_currently_false": "The formal closeout artifacts still say can_continue_strategy_experiments_now = false and official_strategy_retry_reopened remains blocked by governance closeout.",
+      "current_source_artifact": "output/phase_b_final_closeout.json + output/project_after_phase_b_decision.json",
+      "refresh_artifact_or_decision_needed": "A formal governance decision artifact on the updated provisional core stack that explicitly decides official_strategy_retry_reopened for framework-governance purposes after the first three threshold refreshes have sufficient evidence basis.",
+      "minimum_evidence_needed": [
+        "Published refresh basis for overlap threshold.",
+        "Published refresh basis for trade-design / sparsity-flatness threshold.",
+        "Published refresh basis for validation-candidate usability threshold.",
+        "A formal governance decision that explicitly states whether official_strategy_retry_reopened is true or false for framework-governance purposes."
+      ],
+      "preconditions": [
+        "The first three threshold refresh workstreams must have published sufficient evidence basis.",
+        "Decision framing must explicitly distinguish governance reopening from retest opening.",
+        "Decision framing must explicitly distinguish governance reopening from paper-trading opening."
+      ],
+      "owner_lane": "formal_governance_decision_lane",
+      "allowed_actions": [
+        "Prepare a formal governance memo or decision artifact.",
+        "Evaluate whether the first three refresh workstreams produce sufficient basis for reopening at governance level.",
+        "Publish an explicit true/false decision without changing retest or paper-trading status."
+      ],
+      "disallowed_actions": [
+        "Treat official_strategy_retry_reopened = true as retest authorization.",
+        "Treat official_strategy_retry_reopened = true as paper-trading authorization.",
+        "Process the formal decision before the first three threshold refresh bases exist.",
+        "Open downstream blocker families."
+      ],
+      "ready_to_execute_now": false,
+      "blocking_dependencies": [
+        "baseline_filter_overlap_risk_acceptable refresh artifact published",
+        "signal_sparsity_flatness_audit_passed refresh artifact published",
+        "baseline_validation_candidate_usable refresh artifact published"
+      ]
+    }
+  ],
+  "formal_governance_decision_rules": {
+    "official_strategy_retry_reopened_is_formal_governance_decision": true,
+    "official_strategy_retry_reopened_true_does_not_mean_retest_open": true,
+    "official_strategy_retry_reopened_true_does_not_mean_paper_trading_open": true,
+    "official_strategy_retry_reopened_may_only_be_processed_after_first_three_threshold_refresh_bases_exist": true,
+    "active_readiness_artifacts_may_only_be_refreshed_after_all_four_thresholds_are_clear": true
+  },
+  "sequencing_rules": [
+    "First: refresh overlap threshold artifacts for baseline_filter_overlap_risk_acceptable.",
+    "Second: refresh trade-design / sparsity-flatness threshold artifacts for signal_sparsity_flatness_audit_passed.",
+    "Third: refresh validation-candidate usability artifacts for baseline_validation_candidate_usable.",
+    "Fourth: only after the first three refresh bases exist, process the formal retry-reopening decision for official_strategy_retry_reopened.",
+    "Fifth: only if all four thresholds are clear, hand off to refresh active readiness artifacts.",
+    "Do not open atr_stop_corporate_action_policy during this phase.",
+    "Do not open retest_governance_artifacts_sync during this phase.",
+    "Do not open retest during this phase.",
+    "Do not open paper trading during this phase.",
+    "Do not open new strategy experiments during this phase."
+  ],
+  "readiness_artifact_refresh_rule": {
+    "when_allowed": "Only after all four active framework_governance_gate thresholds are refreshed and clear.",
+    "not_allowed_before": [
+      "baseline_filter_overlap_risk_acceptable clear",
+      "signal_sparsity_flatness_audit_passed clear",
+      "baseline_validation_candidate_usable clear",
+      "official_strategy_retry_reopened clear"
+    ]
+  },
+  "out_of_scope_now": [
+    "atr_stop_corporate_action_policy",
+    "retest_governance_artifacts_sync",
+    "paper_trading_open",
+    "retest_open",
+    "new_strategy_experiment",
+    "updated_provisional_core_stack_change"
+  ],
+  "success_criteria_for_threshold_refresh_phase": [
+    "All four threshold workstreams have explicit source-of-truth refresh targets.",
+    "Threshold sequencing is frozen in official order.",
+    "The formal governance decision rule for official_strategy_retry_reopened is frozen explicitly.",
+    "The handoff point for refreshing active readiness artifacts is frozen explicitly.",
+    "Retest remains blocked and paper trading remains blocked throughout this planning phase."
+  ],
+  "next_action": "refresh_framework_governance_threshold_artifacts_and_formal_retry_reopening_decision_on_updated_provisional_core_stack",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

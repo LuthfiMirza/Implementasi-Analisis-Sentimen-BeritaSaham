@@ -1,0 +1,77 @@
+{
+  "blocker_id": "phase_b_retest_readiness_gate",
+  "execution_status": "complete",
+  "evidence_collected": [
+    {
+      "condition_id": "final_decision_not_belum_boleh_retest",
+      "source_artifact": "output/phase_b_retest_readiness_gate.json",
+      "source_field": "final_decision",
+      "observed_value": "belum_boleh_retest"
+    },
+    {
+      "condition_id": "highest_blocking_gate_not_minimum_retest_path_gate",
+      "source_artifact": "output/phase_b_retest_readiness_gate.json",
+      "source_field": "highest_blocking_gate",
+      "observed_value": "framework_governance_gate"
+    },
+    {
+      "condition_id": "framework_governance_gate_cleared",
+      "source_artifact": "output/phase_b_retest_readiness_gate.json",
+      "source_field": "framework_governance_gate",
+      "observed_value": "FAIL"
+    },
+    {
+      "condition_id": "atr_stop_corporate_action_policy_finalized",
+      "source_artifact": "output/operational_blockers_matrix_on_updated_provisional_core_stack.json",
+      "source_field": "blockers[atr_stop_corporate_action_policy_not_final].status",
+      "observed_value": "open"
+    },
+    {
+      "condition_id": "retest_governance_artifacts_synced",
+      "source_artifact": "output/operational_blockers_matrix_on_updated_provisional_core_stack.json",
+      "source_field": "minimum_exit_criteria.for_retest + official_operational_status",
+      "observed_value": "not_proven_true_in_active_retest_artifacts"
+    },
+    {
+      "condition_id": "updated_provisional_core_stack_adoption_complete",
+      "source_artifact": "output/layer1_narrow_strengthening_provisional_adoption_decision.json",
+      "source_field": "adoption_scope.official_core_stack_updated",
+      "observed_value": true
+    },
+    {
+      "condition_id": "post_adoption_governance_sync_complete",
+      "source_artifact": "output/post_adoption_governance_sync_on_updated_provisional_core_stack.json",
+      "source_field": "governance_sync_status",
+      "observed_value": "post_adoption_governance_sync_complete"
+    }
+  ],
+  "clear_condition_checklist": {
+    "final_decision_not_belum_boleh_retest": false,
+    "highest_blocking_gate_not_minimum_retest_path_gate": false,
+    "framework_governance_gate_cleared": false,
+    "atr_stop_corporate_action_policy_finalized": false,
+    "retest_governance_artifacts_synced": false,
+    "updated_provisional_core_stack_adoption_complete": true,
+    "post_adoption_governance_sync_complete": true
+  },
+  "unmet_conditions": [
+    "final_decision_not_belum_boleh_retest",
+    "highest_blocking_gate_not_minimum_retest_path_gate",
+    "framework_governance_gate_cleared",
+    "atr_stop_corporate_action_policy_finalized",
+    "retest_governance_artifacts_synced"
+  ],
+  "dependency_findings": {
+    "framework_governance_gate": "still_fail_and_is_the_most_direct_dependency_blocking_gate_clearance",
+    "atr_stop_corporate_action_policy": "still_open_and_required_for_minimum_retest_path",
+    "retest_governance_artifacts_sync": "not_yet_complete_because_refreshed_gate_clearance_has_not_been_published"
+  },
+  "final_gate_status": "blocked",
+  "final_decision": "phase_b_retest_readiness_gate_not_cleared",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked",
+  "stale_setup_loop_removed": true,
+  "superseded_note": "Previous next_action pointing back to framework_governance_gate setup is superseded by the completed setup artifact. Active path now proceeds to framework_governance_gate resolution execution while retest and paper trading remain blocked.",
+  "next_action": "begin_framework_governance_gate_resolution_execution_on_updated_provisional_core_stack",
+  "governance_policy_conflict_detected": false
+}

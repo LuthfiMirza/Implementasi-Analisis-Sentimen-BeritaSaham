@@ -1,0 +1,96 @@
+{
+  "artifact": "holdout_profitability_borderline_narrow_confirmation_plan",
+  "generated_at": "2026-04-23",
+  "phase_status": {
+    "freshness_gate_test_status": "completed_failed_archived",
+    "narrow_confirmation_definition_status": "completed_archived_after_failed_test",
+    "planning_direction_status": "completed_archived_after_failed_test",
+    "execution_setup_status": "closed_not_active_for_this_phase"
+  },
+  "residual_failure": {
+    "target_id": "holdout_profitability_borderline",
+    "status": "active"
+  },
+  "official_baseline": {
+    "holdout_average_return_per_trade": 0.0261,
+    "holdout_profit_factor": 0.9932,
+    "holdout_portfolio_return_pct": -1.0417,
+    "holdout_max_drawdown_pct": 28.5468,
+    "out_of_sample_average_return_per_trade": 0.2516,
+    "out_of_sample_profit_factor": 1.0675
+  },
+  "official_stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "market_regime",
+    "layer_2": "without_return_20d_positive_filter",
+    "layer_3": "optional_default_off",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12
+    }
+  },
+  "hard_constraints": [
+    "Do not change Layer 4.",
+    "Do not change ATR multiplier.",
+    "Do not change trailing logic.",
+    "Do not change time stop 12 days.",
+    "Do not open parallel redesign tracks.",
+    "Do not reactivate narrow_confirmation_entry in this phase.",
+    "Do not activate absolute_light_eligibility_gate.",
+    "Do not change the official baseline.",
+    "Do not open paper trading.",
+    "Do not open retest."
+  ],
+  "active_hypothesis": "narrow_confirmation_entry",
+  "active_hypothesis_status": "archived_failed_branch_for_this_phase",
+  "backlog_hypotheses": [
+    {
+      "hypothesis_id": "layer1_narrow_strengthening",
+      "status": "governance_selected_active_branch"
+    },
+    {
+      "hypothesis_id": "absolute_light_eligibility_gate",
+      "status": "backlog_only_do_not_activate_now"
+    }
+  ],
+  "narrow_confirmation_scope_definition": {
+    "objective": "Historical record only. The hypothesis is no longer active after the failed test.",
+    "allowed_area": "none_for_current_phase",
+    "disallowed_area": "reactivation without governance, regime redesign, eligibility redesign besar, freshness redesign, Layer 4 changes, exit changes, combined redesign",
+    "execution_mode": "inactive_archived_branch"
+  },
+  "decision_rules": {
+    "must_improve_holdout_average_return_per_trade_vs_baseline": 0.0261,
+    "must_improve_holdout_profit_factor_vs_baseline": 0.9932,
+    "must_improve_holdout_portfolio_return_pct_vs_baseline": -1.0417,
+    "must_keep_oos_average_return_per_trade_gte": 0.0,
+    "must_keep_oos_profit_factor_gte": 1.0,
+    "must_not_win_only_from_aggressive_trade_pruning": true,
+    "must_not_be_accepted_if_only_one_holdout_metric_improves": true
+  },
+  "sequencing_rules": [
+    "This branch is closed for the current phase.",
+    "Only one hypothesis family may be active.",
+    "Do not combine narrow confirmation with any other redesign.",
+    "Do not reactivate this branch before a new governance decision."
+  ],
+  "required_artifacts": [
+    "output/project_roadmap_status.txt",
+    "output/holdout_profitability_borderline_narrow_confirmation_definition.json",
+    "output/holdout_profitability_borderline_narrow_confirmation_definition.txt",
+    "output/holdout_profitability_borderline_narrow_confirmation_definition_closeout.json",
+    "output/holdout_profitability_borderline_narrow_confirmation_definition_closeout.txt",
+    "output/holdout_profitability_borderline_narrow_confirmation_plan.json",
+    "output/holdout_profitability_borderline_narrow_confirmation_plan.txt",
+    "output/holdout_profitability_borderline_narrow_confirmation_planning_closeout.json",
+    "output/holdout_profitability_borderline_narrow_confirmation_planning_closeout.txt"
+  ],
+  "exit_criteria": [
+    "The branch is archived explicitly as failed for this phase.",
+    "Historical planning remains available for audit only.",
+    "Roadmap points to the next official single hypothesis branch.",
+    "Paper trading remains blocked and retest remains blocked."
+  ]
+}

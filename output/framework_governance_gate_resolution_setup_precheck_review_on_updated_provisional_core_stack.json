@@ -1,0 +1,106 @@
+{
+  "artifact": "framework_governance_gate_resolution_setup_precheck_review_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "review_scope": "precheck_after_framework_governance_gate_resolution_setup",
+  "review_status": "complete_with_actionable_findings",
+  "setup_artifact_status": "internally_consistent_but_not_fully_synchronized_with_active_governance_artifacts",
+  "overall_recommendation": "patch_active_governance_artifacts_for_consistency_before_or_at_the_start_of_framework_governance_gate_resolution_execution",
+  "invariants_to_preserve": [
+    "paper_trading_status remains blocked",
+    "retest_status remains blocked",
+    "final_decision remains belum_boleh_retest where the active readiness gate is still not refreshed from cleared inputs",
+    "do not open new strategy experiments",
+    "do not change updated provisional core stack semantics"
+  ],
+  "reviewed_artifacts": [
+    "output/framework_governance_gate_resolution_setup_on_updated_provisional_core_stack.json",
+    "output/framework_governance_gate_resolution_setup_on_updated_provisional_core_stack.txt",
+    "output/framework_governance_gate_resolution_setup_closeout_on_updated_provisional_core_stack.json",
+    "output/framework_governance_gate_resolution_setup_closeout_on_updated_provisional_core_stack.txt",
+    "output/project_roadmap_status.txt",
+    "output/phase_b_retest_readiness_gate.json",
+    "output/phase_b_retest_readiness_gate.txt",
+    "output/phase_b_retest_next_requirements.json",
+    "output/phase_b_readiness_blocker_audit.json",
+    "output/phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack.json",
+    "output/phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack.txt"
+  ],
+  "findings": [
+    {
+      "finding_id": "stale_news_density_fix_guidance",
+      "severity": "medium",
+      "status": "open",
+      "summary": "phase_b_readiness_blocker_audit still recommends pushing median_news_density_pct to >= 5.0 even though the active gate threshold was already realigned to 0.3252.",
+      "affected_artifacts": [
+        "output/phase_b_readiness_blocker_audit.json",
+        "output/phase_b_retest_readiness_gate.json"
+      ],
+      "evidence": {
+        "stale_guidance_location": "phase_b_readiness_blocker_audit.json active_blockers news_distribution_gate::median_news_density_pct recommended_fix",
+        "active_threshold_location": "phase_b_retest_readiness_gate.json methodology_aligned_thresholds news_distribution_gate::median_news_density_pct = 0.3252"
+      },
+      "risk_if_not_patched": "operators may execute the wrong remediation target because the audit guidance disagrees with the active threshold semantics"
+    },
+    {
+      "finding_id": "next_action_not_fully_synchronized",
+      "severity": "medium",
+      "status": "open",
+      "summary": "new setup artifacts and roadmap point to framework_governance_gate resolution execution, but active readiness artifacts still point to the older generic collect-more-data action.",
+      "affected_artifacts": [
+        "output/framework_governance_gate_resolution_setup_closeout_on_updated_provisional_core_stack.json",
+        "output/project_roadmap_status.txt",
+        "output/phase_b_retest_readiness_gate.json",
+        "output/phase_b_retest_readiness_gate.txt",
+        "output/phase_b_retest_next_requirements.json"
+      ],
+      "evidence": {
+        "new_path": "begin_framework_governance_gate_resolution_execution_on_updated_provisional_core_stack",
+        "stale_path": "collect_more_data_and_refresh_framework_audits_before_any_strategy_retry"
+      },
+      "risk_if_not_patched": "governance operators may follow different next steps depending on which artifact they open first"
+    },
+    {
+      "finding_id": "backward_loop_in_old_execution_artifact",
+      "severity": "low",
+      "status": "open",
+      "summary": "an older retest-readiness execution artifact still points back to setup even though setup is now complete.",
+      "affected_artifacts": [
+        "output/phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack.json",
+        "output/phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack.txt"
+      ],
+      "evidence": {
+        "stale_next_action": "begin_framework_governance_gate_resolution_setup_on_updated_provisional_core_stack",
+        "current_setup_status": "complete"
+      },
+      "risk_if_not_patched": "artifact readers can enter a step loop and reopen setup work that is already closed"
+    }
+  ],
+  "recommended_actions": [
+    {
+      "priority": 1,
+      "action_id": "align_news_distribution_guidance",
+      "action": "Refresh the stale recommended_fix text in output/phase_b_readiness_blocker_audit.json so it targets the active aligned threshold rather than the obsolete 5.0 target.",
+      "required_result": "news distribution remediation guidance references the current threshold semantics consistently"
+    },
+    {
+      "priority": 2,
+      "action_id": "sync_active_next_actions",
+      "action": "Update recommended_next_action in output/phase_b_retest_readiness_gate.json, output/phase_b_retest_readiness_gate.txt, and output/phase_b_retest_next_requirements.json to the setup-approved next step: begin_framework_governance_gate_resolution_execution_on_updated_provisional_core_stack.",
+      "required_result": "active governance artifacts point to one official next action without changing blocked status"
+    },
+    {
+      "priority": 3,
+      "action_id": "remove_setup_loop_from_old_execution_artifact",
+      "action": "Refresh the stale next_action in the old phase_b_retest_readiness_gate resolution execution artifact so it no longer points back to setup; annotate it as superseded if needed.",
+      "required_result": "no active artifact points backward to an already completed setup phase"
+    }
+  ],
+  "success_checks_for_executor": [
+    "jq empty passes for every patched JSON artifact",
+    "paper_trading_status remains blocked everywhere it already existed",
+    "retest_status remains blocked everywhere it already existed",
+    "phase_b_retest_readiness_gate final_decision remains belum_boleh_retest unless the executor was explicitly instructed to refresh the gate from new cleared inputs",
+    "rg shows no remaining stale next_action that points from the current path back to setup"
+  ],
+  "execution_handoff_artifact": "output/framework_governance_gate_resolution_setup_precheck_execution_prompt_on_updated_provisional_core_stack.txt"
+}

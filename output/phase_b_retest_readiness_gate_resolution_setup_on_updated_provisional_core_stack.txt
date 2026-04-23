@@ -1,0 +1,59 @@
+Phase B Retest Readiness Gate Resolution Setup On Updated Provisional Core Stack
+================================================================================
+
+Generated at: 2026-04-23
+
+Status:
+- phase_status = complete
+- blocker_id = phase_b_retest_readiness_gate
+- current_status = fail
+
+Why it blocks retest:
+- retest tidak boleh dipertimbangkan selama artifact aktif `phase_b_retest_readiness_gate.json` masih menyatakan `final_decision = belum_boleh_retest`
+
+Dependency status:
+- final_decision_not_belum_boleh_retest = not_yet_true
+- highest_blocking_gate_not_minimum_retest_path_gate = not_yet_true
+- framework_governance_gate_cleared = not_yet_true
+- atr_stop_corporate_action_policy_finalized = not_yet_true
+- retest_governance_artifacts_synced = not_yet_true
+- updated_provisional_core_stack_adoption_complete = true
+- post_adoption_governance_sync_complete = true
+
+Clear condition resmi:
+- `phase_b_retest_readiness_gate_cleared` berarti:
+  - `final_decision_not_belum_boleh_retest = true`
+  - `highest_blocking_gate_not_minimum_retest_path_gate = true`
+  - `framework_governance_gate_cleared = true`
+  - `atr_stop_corporate_action_policy_finalized = true`
+  - `retest_governance_artifacts_synced = true`
+  - `updated_provisional_core_stack_adoption_complete = true`
+  - `post_adoption_governance_sync_complete = true`
+
+Bukti minimum yang diperlukan:
+- refreshed `output/phase_b_retest_readiness_gate.json` dengan `final_decision` tidak lagi `belum_boleh_retest`
+- bukti eksplisit bahwa refreshed gate tidak lagi menaruh minimum retest path blocker sebagai `highest_blocking_gate`
+- bukti eksplisit bahwa `framework_governance_gate_cleared = true`
+- artifact formal bahwa `atr_stop_corporate_action_policy_finalized = true`
+- bukti eksplisit bahwa `retest_governance_artifacts_synced = true`
+- formal statement bahwa gate baru menggantikan gate blocked lama sebagai source of truth aktif
+
+Required artifacts:
+- output/phase_b_retest_readiness_gate.json
+- output/phase_b_readiness_blocker_audit.json
+- output/official_operational_decision_on_updated_provisional_core_stack.json
+- output/project_roadmap_status.txt
+- output/phase_b_retest_readiness_gate_resolution_setup_on_updated_provisional_core_stack.json
+- output/phase_b_retest_readiness_gate_resolution_setup_on_updated_provisional_core_stack.txt
+- output/phase_b_retest_readiness_gate_resolution_setup_closeout_on_updated_provisional_core_stack.json
+- output/phase_b_retest_readiness_gate_resolution_setup_closeout_on_updated_provisional_core_stack.txt
+
+Governance owner:
+- governance_readiness_lane
+
+Sequencing rules:
+- jangan buka retest
+- jangan buka paper trading
+- jangan buka eksperimen strategi baru
+- tutup status readiness gate dulu sebelum masuk family blocker berikutnya
+- perlakukan hanya minimum blocker retest resmi sebagai dependency eksplisit gate clearance kecuali ada policy baru yang mengubahnya

@@ -1,0 +1,124 @@
+{
+  "artifact": "holdout_profitability_borderline_freshness_gate_definition",
+  "generated_at": "2026-04-23",
+  "phase_status": {
+    "layer3_narrow_profitability_test_status": "completed_failed",
+    "freshness_gate_blocker_status": "resolved_by_definition_freeze",
+    "current_phase": "freshness_gate_definition_freeze_completed_then_archived_after_failed_test",
+    "experiment_execution_status": "completed_failed"
+  },
+  "residual_failure": {
+    "target_id": "holdout_profitability_borderline",
+    "status": "active"
+  },
+  "active_hypothesis": "freshness_gate_entry",
+  "active_hypothesis_status": "archived_failed_branch_for_this_phase",
+  "objective": "Freeze a narrow entry-timing freshness gate definition to improve holdout profitability without touching exit management or position sizing.",
+  "official_baseline": {
+    "holdout_average_return_per_trade": 0.0261,
+    "holdout_profit_factor": 0.9932,
+    "holdout_portfolio_return_pct": -1.0417,
+    "holdout_max_drawdown_pct": 28.5468,
+    "out_of_sample_average_return_per_trade": 0.2516,
+    "out_of_sample_profit_factor": 1.0675
+  },
+  "official_stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "market_regime",
+    "layer_2": "without_return_20d_positive_filter",
+    "layer_3": "optional_default_off",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12,
+      "policy_status": "official_provisional"
+    }
+  },
+  "hard_constraints": [
+    "Do not change Layer 4.",
+    "Do not change ATR multiplier.",
+    "Do not change trailing logic.",
+    "Do not change time stop 12 days.",
+    "Do not open parallel redesign tracks.",
+    "Do not reactivate freshness_gate_entry in this phase without a new explicit governance decision.",
+    "Do not change the official baseline.",
+    "Do not open paper trading.",
+    "Do not open retest."
+  ],
+  "freshness_gate_definition": {
+    "definition_id": "entry_signal_first_day_only",
+    "what_freshness_means": "Freshness means how many trading bars have passed since the official base entry signal for a ticker first became true in its current uninterrupted run.",
+    "measurement_variable": {
+      "field_name": "freshness_age_bars",
+      "field_type": "derived_integer",
+      "source_fields": [
+        "ticker",
+        "date",
+        "phase_1_signal_layer1"
+      ],
+      "calculation_rule": "For each ticker, reset the counter when phase_1_signal_layer1 is false. When phase_1_signal_layer1 becomes true after a false bar, freshness_age_bars = 0. Each consecutive true bar increments the counter by 1."
+    },
+    "too_old_rule": "A signal is too old for entry when freshness_age_bars > 0.",
+    "gate_pass_rule": "The freshness gate passes only when freshness_age_bars == 0 on the signal bar.",
+    "gate_fail_rule": "The freshness gate fails when freshness_age_bars >= 1 on the signal bar.",
+    "pipeline_touchpoint": "Apply the gate on the entry-signal path after the official base signal is formed from phase_1_signal_layer1 and before any trade is emitted to Layer 4 sizing or Layer 5 exit handling.",
+    "what_does_not_change": [
+      "Layer 1 policy does not change.",
+      "Layer 3 remains optional default off and is not part of this hypothesis.",
+      "Layer 4 does not change.",
+      "Layer 5 ATR14 x 2.5, trailing logic, and time stop 12 days do not change.",
+      "No additional confirmation or eligibility filter is introduced."
+    ]
+  },
+  "allowed_variation_space": {
+    "family_id": "single_family_entry_freshness_gate",
+    "authorized_control_axis": "freshness_age_bars_only",
+    "frozen_first_execution_rule": "freshness_age_bars == 0",
+    "notes": [
+      "Only one active hypothesis family is authorized.",
+      "No combined redesign with confirmation, regime, eligibility, or exit changes is authorized.",
+      "No secondary control axis is authorized in the first execution setup."
+    ]
+  },
+  "disallowed_changes": [
+    "Regime redesign.",
+    "Layer 1 strengthening redesign.",
+    "Layer 4 changes.",
+    "ATR multiplier changes.",
+    "Trailing logic changes.",
+    "Time stop changes.",
+    "Combined redesign with confirmation gate.",
+    "Combined redesign with eligibility filter.",
+    "Any additional filter family beyond freshness timing."
+  ],
+  "decision_rules": {
+    "must_improve_holdout_average_return_per_trade_vs_baseline": 0.0261,
+    "must_improve_holdout_profit_factor_vs_baseline": 0.9932,
+    "must_improve_holdout_portfolio_return_pct_vs_baseline": -1.0417,
+    "must_keep_oos_average_return_per_trade_gte": 0.0,
+    "must_keep_oos_profit_factor_gte": 1.0,
+    "must_not_win_only_from_aggressive_trade_pruning": true,
+    "must_not_be_accepted_if_only_one_holdout_metric_improves": true
+  },
+  "sequencing_rules": [
+    "This definition is now archived as a failed branch for this phase.",
+    "Do not reactivate freshness_gate_entry automatically.",
+    "Only the newly selected governance hypothesis may become active next.",
+    "Do not combine two redesigns in one experiment pass."
+  ],
+  "required_artifacts": [
+    "output/holdout_profitability_borderline_freshness_gate_definition.json",
+    "output/holdout_profitability_borderline_freshness_gate_definition.txt",
+    "output/project_roadmap_status.txt",
+    "output/holdout_profitability_borderline_freshness_gate_definition_closeout.json",
+    "output/holdout_profitability_borderline_freshness_gate_definition_closeout.txt"
+  ],
+  "exit_criteria": [
+    "Freshness is defined explicitly as a single official entry-timing concept.",
+    "The measurement variable and gate pass/fail rule are frozen without ambiguity.",
+    "The pipeline touchpoint is defined explicitly.",
+    "The roadmap points directly to freshness gate execution setup after definition freeze.",
+    "Paper trading remains blocked and retest remains blocked."
+  ]
+}

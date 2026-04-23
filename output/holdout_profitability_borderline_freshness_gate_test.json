@@ -1,0 +1,148 @@
+{
+  "experiment_name": "holdout_profitability_borderline_freshness_gate_test",
+  "residual_failure": "holdout_profitability_borderline",
+  "baseline_reference": {
+    "baseline_source_artifact": "output/layer5_shorter_time_stop_validation_closeout.json",
+    "definition_source_artifact": "output/holdout_profitability_borderline_freshness_gate_definition.json",
+    "baseline_variant_id": "candidate_atr25_time_stop_12d"
+  },
+  "stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "market_regime",
+    "layer_2": "without_return_20d_positive_filter",
+    "layer_3": "optional_default_off",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12,
+      "policy_status": "official_provisional"
+    }
+  },
+  "freshness_gate_definition": {
+    "definition_id": "entry_signal_first_day_only",
+    "what_freshness_means": "Freshness means how many trading bars have passed since the official base entry signal for a ticker first became true in its current uninterrupted run.",
+    "measurement_variable": {
+      "field_name": "freshness_age_bars",
+      "field_type": "derived_integer",
+      "source_fields": [
+        "ticker",
+        "date",
+        "phase_1_signal_layer1"
+      ],
+      "calculation_rule": "For each ticker, reset the counter when phase_1_signal_layer1 is false. When phase_1_signal_layer1 becomes true after a false bar, freshness_age_bars = 0. Each consecutive true bar increments the counter by 1."
+    },
+    "too_old_rule": "A signal is too old for entry when freshness_age_bars > 0.",
+    "gate_pass_rule": "The freshness gate passes only when freshness_age_bars == 0 on the signal bar.",
+    "gate_fail_rule": "The freshness gate fails when freshness_age_bars >= 1 on the signal bar.",
+    "pipeline_touchpoint": "Apply the gate on the entry-signal path after the official base signal is formed from phase_1_signal_layer1 and before any trade is emitted to Layer 4 sizing or Layer 5 exit handling.",
+    "what_does_not_change": [
+      "Layer 1 policy does not change.",
+      "Layer 3 remains optional default off and is not part of this hypothesis.",
+      "Layer 4 does not change.",
+      "Layer 5 ATR14 x 2.5, trailing logic, and time stop 12 days do not change.",
+      "No additional confirmation or eligibility filter is introduced."
+    ]
+  },
+  "constraints_applied": [
+    "Freshness gate definition unchanged.",
+    "Layer 4 unchanged.",
+    "ATR multiplier unchanged at 2.5.",
+    "Trailing logic unchanged.",
+    "Time stop unchanged at 12 days.",
+    "No backlog hypothesis activated.",
+    "No combined redesign activated.",
+    "Paper trading remains blocked.",
+    "Retest remains blocked."
+  ],
+  "metrics_baseline": {
+    "out_of_sample": {
+      "average_return_per_trade": 0.2516,
+      "profit_factor": 1.0675,
+      "portfolio_return_pct": 11.9255,
+      "max_drawdown_pct": 29.3906,
+      "total_trades": 518,
+      "win_rate": 40.1544
+    },
+    "final_holdout": {
+      "average_return_per_trade": 0.0261,
+      "profit_factor": 0.9932,
+      "portfolio_return_pct": -1.0417,
+      "max_drawdown_pct": 28.5468,
+      "total_trades": 551,
+      "win_rate": 43.7387
+    }
+  },
+  "metrics_candidate": {
+    "out_of_sample": {
+      "average_return_per_trade": 0.2236,
+      "profit_factor": 1.0644,
+      "portfolio_return_pct": 10.4355,
+      "max_drawdown_pct": 25.3231,
+      "total_trades": 500,
+      "win_rate": 40.4
+    },
+    "final_holdout": {
+      "average_return_per_trade": -0.1391,
+      "profit_factor": 0.9368,
+      "portfolio_return_pct": -9.079,
+      "max_drawdown_pct": 30.16,
+      "total_trades": 539,
+      "win_rate": 43.5993
+    }
+  },
+  "comparison_summary": {
+    "out_of_sample": {
+      "baseline_average_return_per_trade": 0.2516,
+      "candidate_average_return_per_trade": 0.2236,
+      "delta_average_return_per_trade": -0.028,
+      "baseline_profit_factor": 1.0675,
+      "candidate_profit_factor": 1.0644,
+      "delta_profit_factor": -0.0031,
+      "baseline_portfolio_return_pct": 11.9255,
+      "candidate_portfolio_return_pct": 10.4355,
+      "delta_portfolio_return_pct": -1.49,
+      "baseline_max_drawdown_pct": 29.3906,
+      "candidate_max_drawdown_pct": 25.3231,
+      "delta_max_drawdown_pct": -4.0675,
+      "baseline_total_trades": 518,
+      "candidate_total_trades": 500,
+      "baseline_win_rate": 40.1544,
+      "candidate_win_rate": 40.4
+    },
+    "final_holdout": {
+      "baseline_average_return_per_trade": 0.0261,
+      "candidate_average_return_per_trade": -0.1391,
+      "delta_average_return_per_trade": -0.1652,
+      "baseline_profit_factor": 0.9932,
+      "candidate_profit_factor": 0.9368,
+      "delta_profit_factor": -0.0564,
+      "baseline_portfolio_return_pct": -1.0417,
+      "candidate_portfolio_return_pct": -9.079,
+      "delta_portfolio_return_pct": -8.0373,
+      "baseline_max_drawdown_pct": 28.5468,
+      "candidate_max_drawdown_pct": 30.16,
+      "delta_max_drawdown_pct": 1.6132,
+      "baseline_total_trades": 551,
+      "candidate_total_trades": 539,
+      "baseline_win_rate": 43.7387,
+      "candidate_win_rate": 43.5993,
+      "trade_retention_pct": 97.8221
+    }
+  },
+  "decision": "fail",
+  "decision_reason": "holdout average return per trade did not improve; holdout profit factor did not improve; holdout portfolio return did not improve; holdout improvement was not confirmed by the main holdout metrics",
+  "guardrail_status": {
+    "holdout_average_return_improved": false,
+    "holdout_profit_factor_improved": false,
+    "holdout_portfolio_return_improved": false,
+    "oos_average_return_nonnegative": true,
+    "oos_profit_factor_gte_1": true,
+    "holdout_improvement_count": 0,
+    "trade_retention_pct": 97.8221,
+    "aggressive_trade_pruning_triggered": false,
+    "aggressive_trade_pruning_reason": "not_needed_for_final_decision"
+  },
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked"
+}

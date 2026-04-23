@@ -1,0 +1,41 @@
+{
+  "artifact": "framework_governance_gate_sparsity_flatness_threshold_refresh_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "threshold_id": "signal_sparsity_flatness_audit_passed",
+  "current_source_artifact": "output/phase_b_v2_trade_design_audit.json",
+  "dependency_artifact_used": {
+    "artifact_path": "output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json",
+    "usage_mode": "dependency_note_only_not_clearance_evidence",
+    "dependency_published": true
+  },
+  "previous_observed_value": {
+    "baseline_needs_entry_exit_redesign": true,
+    "best_hold_period_improves_current_coverage": false,
+    "conclusion": "Desain trade baseline masih terlalu ketat terhadap data yang tersedia; redesign entry/exit dan/atau labeling perlu didahulukan."
+  },
+  "refresh_scope": "governance_facing_trade_design_and_signal_sparsity_flatness_refresh_on_updated_provisional_core_stack_without_opening_retest_paper_trading_or_new_strategy_experiments",
+  "sparsity_flatness_findings": {
+    "active_trade_design_audit_still_requires_redesign": true,
+    "baseline_needs_entry_exit_redesign": true,
+    "best_hold_period_improves_current_coverage": false,
+    "current_hold_is_not_best_for_coverage": true,
+    "eligible_ticker_count_by_min_trades_at_best_hold_period": {
+      "5": 1,
+      "8": 0,
+      "10": 0
+    },
+    "material_new_evidence_found_since_prior_trade_design_audit": false,
+    "governance_refresh_conclusion": "No newer governance-facing evidence was found that overturns the prior trade-design audit. On the active governance path, the signal still appears too sparse/flat to clear this threshold because the audit still requires entry/exit redesign and coverage does not improve enough."
+  },
+  "coverage_assessment_after_refresh": {
+    "coverage_improved_enough_for_governance_path": false,
+    "reason": "Best hold-period coverage still does not materially improve the active baseline path, and eligible ticker coverage remains too thin at the min-trades floors used in the trade-design audit.",
+    "reaffirmed_from_active_source_of_truth": true
+  },
+  "signal_sparsity_flatness_audit_passed": false,
+  "supersedes_prior_trade_design_audit_for_framework_governance": false,
+  "final_decision": "signal_sparsity_flatness_audit_passed_not_cleared_reaffirmed_fail_state",
+  "next_action": "prepare_validation_candidate_usability_refresh_only_after_sparsity_flatness_refresh_basis_is_published_on_updated_provisional_core_stack",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

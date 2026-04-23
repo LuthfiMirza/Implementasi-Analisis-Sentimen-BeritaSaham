@@ -1,0 +1,12 @@
+{
+  "artifact": "framework_governance_gate_post_threshold_assessment_closeout_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "assessment_complete": true,
+  "blocker_id": "framework_governance_gate",
+  "framework_governance_gate_cleared": false,
+  "final_gate_status": "blocked",
+  "final_decision": "framework_governance_gate_still_not_cleared_after_threshold_refresh_cycle",
+  "next_action": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

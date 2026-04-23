@@ -1,0 +1,19 @@
+Holdout Profitability Borderline Layer1 Narrow Strengthening Validation Closeout
+===============================================================================
+
+Generated at: 2026-04-23
+
+Validation decision:
+- status: validated_candidate
+- active hypothesis: `layer1_narrow_strengthening`
+- residual failure `holdout_profitability_borderline`: resolved_for_now
+
+Validation conclusion:
+- holdout pass cukup kuat dan tidak terlihat sebagai noise sempit
+- OOS melemah material, tetapi tetap positif dan tetap lolos guardrail minimum
+- trade-off OOS masih dapat diterima untuk objective fase ini karena improvement holdout sangat besar
+- kandidat layak dipromosikan menjadi provisional stack update candidate
+
+Governance tetap:
+- paper trading blocked
+- retest blocked

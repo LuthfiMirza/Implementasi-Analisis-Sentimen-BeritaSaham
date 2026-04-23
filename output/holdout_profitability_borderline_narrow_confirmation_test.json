@@ -1,0 +1,160 @@
+{
+  "experiment_name": "holdout_profitability_borderline_narrow_confirmation_test",
+  "residual_failure": "holdout_profitability_borderline",
+  "baseline_reference": {
+    "baseline_source_artifact": "output/layer5_shorter_time_stop_validation_closeout.json",
+    "definition_source_artifact": "output/holdout_profitability_borderline_narrow_confirmation_definition.json",
+    "baseline_variant_id": "candidate_atr25_time_stop_12d"
+  },
+  "stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "market_regime",
+    "layer_2": "without_return_20d_positive_filter",
+    "layer_3": "optional_default_off",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12,
+      "policy_status": "official_provisional"
+    }
+  },
+  "narrow_confirmation_definition": {
+    "definition_id": "one_bar_persistence_confirmation",
+    "what_narrow_confirmation_means": "Narrow confirmation means a newly started base entry signal must persist for one additional trading bar before entry is allowed.",
+    "measurement_variables": [
+      {
+        "field_name": "phase_1_signal_layer1",
+        "field_type": "existing_boolean",
+        "usage": "Defines the base signal run and the new-signal anchor."
+      },
+      {
+        "field_name": "confirmation_anchor_start",
+        "field_type": "derived_boolean",
+        "usage": "True on the first bar where phase_1_signal_layer1 changes from false to true."
+      },
+      {
+        "field_name": "confirmation_pass_next_bar",
+        "field_type": "derived_boolean",
+        "usage": "True only when the next trading bar after confirmation_anchor_start still has phase_1_signal_layer1 == true."
+      }
+    ],
+    "pass_rule": "A signal passes narrow confirmation only if phase_1_signal_layer1 is true on the first follow-through bar immediately after a new-signal anchor, and entry becomes eligible on that confirmation bar.",
+    "fail_rule": "A signal fails narrow confirmation if the follow-through bar immediately after a new-signal anchor does not keep phase_1_signal_layer1 true.",
+    "pipeline_touchpoint": "Apply the confirmation gate after the base signal run is detected from phase_1_signal_layer1 and before any trade is sent to Layer 4 sizing or Layer 5 exit handling.",
+    "what_does_not_change": [
+      "Layer 1 regime policy does not change.",
+      "Layer 3 remains optional default off and is not part of this hypothesis.",
+      "Layer 4 does not change.",
+      "Layer 5 ATR14 x 2.5, trailing logic, and time stop 12 days do not change.",
+      "No additional eligibility gate or regime filter is introduced."
+    ],
+    "entry_side_boundary": [
+      "This gate only checks one-bar persistence of the existing base signal.",
+      "It does not redefine market regime.",
+      "It does not introduce cross-sectional or absolute eligibility redesign.",
+      "It does not combine with freshness or any other additional filter."
+    ]
+  },
+  "constraints_applied": [
+    "Narrow confirmation definition unchanged.",
+    "Layer 4 unchanged.",
+    "ATR multiplier unchanged at 2.5.",
+    "Trailing logic unchanged.",
+    "Time stop unchanged at 12 days.",
+    "No backlog hypothesis activated.",
+    "No combined redesign activated.",
+    "Paper trading remains blocked.",
+    "Retest remains blocked."
+  ],
+  "metrics_baseline": {
+    "out_of_sample": {
+      "average_return_per_trade": 0.2516,
+      "profit_factor": 1.0675,
+      "portfolio_return_pct": 11.9255,
+      "max_drawdown_pct": 29.3906,
+      "total_trades": 518,
+      "win_rate": 40.1544
+    },
+    "final_holdout": {
+      "average_return_per_trade": 0.0261,
+      "profit_factor": 0.9932,
+      "portfolio_return_pct": -1.0417,
+      "max_drawdown_pct": 28.5468,
+      "total_trades": 551,
+      "win_rate": 43.7387
+    }
+  },
+  "metrics_candidate": {
+    "out_of_sample": {
+      "average_return_per_trade": 0.5538,
+      "profit_factor": 1.1697,
+      "portfolio_return_pct": 13.6169,
+      "max_drawdown_pct": 17.1198,
+      "total_trades": 243,
+      "win_rate": 42.3868
+    },
+    "final_holdout": {
+      "average_return_per_trade": -0.0721,
+      "profit_factor": 0.9539,
+      "portfolio_return_pct": -3.1892,
+      "max_drawdown_pct": 13.2414,
+      "total_trades": 251,
+      "win_rate": 40.6375
+    }
+  },
+  "comparison_summary": {
+    "out_of_sample": {
+      "baseline_average_return_per_trade": 0.2516,
+      "candidate_average_return_per_trade": 0.5538,
+      "delta_average_return_per_trade": 0.3022,
+      "baseline_profit_factor": 1.0675,
+      "candidate_profit_factor": 1.1697,
+      "delta_profit_factor": 0.1022,
+      "baseline_portfolio_return_pct": 11.9255,
+      "candidate_portfolio_return_pct": 13.6169,
+      "delta_portfolio_return_pct": 1.6914,
+      "baseline_max_drawdown_pct": 29.3906,
+      "candidate_max_drawdown_pct": 17.1198,
+      "delta_max_drawdown_pct": -12.2708,
+      "baseline_total_trades": 518,
+      "candidate_total_trades": 243,
+      "baseline_win_rate": 40.1544,
+      "candidate_win_rate": 42.3868
+    },
+    "final_holdout": {
+      "baseline_average_return_per_trade": 0.0261,
+      "candidate_average_return_per_trade": -0.0721,
+      "delta_average_return_per_trade": -0.0982,
+      "baseline_profit_factor": 0.9932,
+      "candidate_profit_factor": 0.9539,
+      "delta_profit_factor": -0.0393,
+      "baseline_portfolio_return_pct": -1.0417,
+      "candidate_portfolio_return_pct": -3.1892,
+      "delta_portfolio_return_pct": -2.1475,
+      "baseline_max_drawdown_pct": 28.5468,
+      "candidate_max_drawdown_pct": 13.2414,
+      "delta_max_drawdown_pct": -15.3054,
+      "baseline_total_trades": 551,
+      "candidate_total_trades": 251,
+      "baseline_win_rate": 43.7387,
+      "candidate_win_rate": 40.6375,
+      "trade_retention_pct": 45.5535
+    }
+  },
+  "decision": "fail",
+  "decision_reason": "holdout average return per trade did not improve; holdout profit factor did not improve; holdout portfolio return did not improve; holdout improvement was not confirmed by the main holdout metrics",
+  "guardrail_status": {
+    "holdout_average_return_improved": false,
+    "holdout_profit_factor_improved": false,
+    "holdout_portfolio_return_improved": false,
+    "oos_average_return_nonnegative": true,
+    "oos_profit_factor_gte_1": true,
+    "holdout_improvement_count": 0,
+    "trade_retention_pct": 45.5535,
+    "aggressive_trade_pruning_triggered": false,
+    "aggressive_trade_pruning_reason": "not_needed_for_final_decision"
+  },
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked"
+}

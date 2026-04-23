@@ -1,0 +1,52 @@
+Holdout Profitability Borderline Freshness Gate Test
+===================================================
+
+Objective:
+- Test whether freshness_gate_entry improves holdout profitability on the official stack.
+
+Exact test setup:
+- Baseline: official stack without freshness gate
+- Candidate: same official stack with freshness gate active
+- Gate rule: freshness_age_bars == 0
+- Layer 4 unchanged
+- ATR multiplier 2.5 unchanged
+- Trailing logic unchanged
+- Time stop 12 days unchanged
+
+Baseline resmi:
+- OOS average return per trade = 0.2516
+- OOS profit factor = 1.0675
+- OOS portfolio return = 11.9255
+- OOS max drawdown = 29.3906
+- OOS total trades = 518
+- OOS win rate = 40.1544
+- Holdout average return per trade = 0.0261
+- Holdout profit factor = 0.9932
+- Holdout portfolio return = -1.0417
+- Holdout max drawdown = 28.5468
+- Holdout total trades = 551
+- Holdout win rate = 43.7387
+
+Candidate yang diuji:
+- freshness_gate_entry aktif dengan rule freshness_age_bars == 0
+- OOS average return per trade = 0.2236
+- OOS profit factor = 1.0644
+- OOS portfolio return = 10.4355
+- OOS max drawdown = 25.3231
+- OOS total trades = 500
+- OOS win rate = 40.4
+- Holdout average return per trade = -0.1391
+- Holdout profit factor = 0.9368
+- Holdout portfolio return = -9.079
+- Holdout max drawdown = 30.16
+- Holdout total trades = 539
+- Holdout win rate = 43.5993
+
+Keputusan:
+- fail
+
+Alasan keputusan:
+- holdout average return per trade did not improve; holdout profit factor did not improve; holdout portfolio return did not improve; holdout improvement was not confirmed by the main holdout metrics
+
+Next state recommendation:
+- Tunggu keputusan resmi berikutnya; jangan membuka hipotesis backlog otomatis.

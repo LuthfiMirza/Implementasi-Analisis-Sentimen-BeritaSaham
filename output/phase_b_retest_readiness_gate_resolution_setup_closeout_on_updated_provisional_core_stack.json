@@ -1,0 +1,13 @@
+{
+  "artifact": "phase_b_retest_readiness_gate_resolution_setup_closeout_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "setup_status": "complete",
+  "blocker_id": "phase_b_retest_readiness_gate",
+  "clear_condition_frozen": true,
+  "dependency_status_frozen": true,
+  "governance_policy_conflict_detected": false,
+  "roadmap_updated": true,
+  "next_action": "begin_phase_b_retest_readiness_gate_resolution_execution_on_updated_provisional_core_stack",
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked"
+}

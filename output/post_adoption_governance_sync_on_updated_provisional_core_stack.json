@@ -1,0 +1,30 @@
+{
+  "artifact": "post_adoption_governance_sync_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "source_of_truth": {
+    "adoption_decision": "output/layer1_narrow_strengthening_provisional_adoption_decision.json",
+    "core_stack_provisional_update": "output/core_stack_provisional_update_from_layer1_narrow_strengthening.json",
+    "project_roadmap_status": "output/project_roadmap_status.txt"
+  },
+  "governance_sync_status": "post_adoption_governance_sync_complete",
+  "updated_provisional_core_stack_reflected_in_active_artifacts": true,
+  "residual_failure_sync": {
+    "target_id": "holdout_profitability_borderline",
+    "status": "resolved_for_now",
+    "active_artifact_sync_complete": true
+  },
+  "roadmap_sync": {
+    "status": "synced",
+    "next_action": "wait_for_official_operational_decision_on_updated_provisional_core_stack"
+  },
+  "mismatch_review": {
+    "active_governance_mismatch_found": false,
+    "historical_artifacts_remain_historical": true,
+    "historical_artifact_note": "Older experiment, readiness, and Phase B artifacts still record prior states by design and are not treated as current governance mismatch."
+  },
+  "status_locks": {
+    "paper_trading_status": "blocked",
+    "retest_status": "blocked",
+    "backlog_hypotheses_opened": false
+  }
+}

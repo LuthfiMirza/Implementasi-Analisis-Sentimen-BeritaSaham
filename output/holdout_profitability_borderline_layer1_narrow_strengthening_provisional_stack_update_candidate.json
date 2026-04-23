@@ -1,0 +1,36 @@
+{
+  "artifact": "holdout_profitability_borderline_layer1_narrow_strengthening_provisional_stack_update_candidate",
+  "generated_at": "2026-04-23",
+  "candidate_status": "provisional_stack_update_candidate",
+  "source_of_truth": {
+    "validation_closeout": "output/holdout_profitability_borderline_layer1_narrow_strengthening_validation_closeout.json",
+    "close_review": "output/holdout_profitability_borderline_layer1_narrow_strengthening_close_review.json",
+    "test_artifact": "output/holdout_profitability_borderline_layer1_narrow_strengthening_test.json"
+  },
+  "candidate_stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50",
+    "layer_2": "without_return_20d_positive_filter",
+    "layer_3": "optional_default_off",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12
+    }
+  },
+  "promotion_basis": {
+    "holdout_average_return_per_trade": 0.3054,
+    "holdout_profit_factor": 1.1008,
+    "holdout_portfolio_return_pct": 13.5128,
+    "oos_average_return_per_trade": 0.1827,
+    "oos_profit_factor": 1.0482
+  },
+  "governance_limits": {
+    "official_stack_updated": false,
+    "paper_trading_status": "blocked",
+    "retest_status": "blocked",
+    "backlog_hypotheses_opened": false
+  },
+  "recommended_next_action": "prepare_formal_governance_sync_if_candidate_is_accepted"
+}

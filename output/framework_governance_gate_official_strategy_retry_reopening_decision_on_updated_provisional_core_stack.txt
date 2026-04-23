@@ -1,0 +1,49 @@
+Framework Governance Gate Official Strategy Retry Reopening Decision On Updated Provisional Core Stack
+=====================================================================================================
+
+Generated at: 2026-04-23
+
+Threshold:
+- `threshold_id = official_strategy_retry_reopened`
+
+Decision scope:
+- formal framework-governance decision only pada updated provisional core stack
+
+Dependency artifacts used:
+- `output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json`
+- `output/framework_governance_gate_sparsity_flatness_threshold_refresh_on_updated_provisional_core_stack.json`
+- `output/framework_governance_gate_validation_candidate_usability_refresh_on_updated_provisional_core_stack.json`
+
+Preconditions:
+- tiga refresh basis sudah dipublikasikan
+- preconditions_satisfied = true
+
+Decision basis summary:
+- hasil refresh overlap tetap `not_cleared`
+- hasil refresh sparsity-flatness tetap `not_cleared_reaffirmed_fail_state`
+- hasil refresh validation-candidate usability tetap `not_cleared_reaffirmed_fail_state`
+- `output/phase_b_final_closeout.json` masih menyatakan `can_continue_strategy_experiments_now = false`
+- `output/project_after_phase_b_decision.json` masih menyatakan `can_continue_strategy_experiments_now = false`
+- `output/official_operational_decision_on_updated_provisional_core_stack.json` masih memuat `official_strategy_retry_reopened_blocked`
+- basis formal saat ini belum cukup untuk governance reopening
+
+Formal decision:
+- `official_strategy_retry_reopened = false`
+- ini adalah reaffirmed blocked state, bukan governance reopening state
+- publish tiga refresh basis tidak dianggap sebagai clearance otomatis
+
+Guardrail statements:
+- `official_strategy_retry_reopened = true` tidak sama dengan membuka retest
+- `official_strategy_retry_reopened = true` tidak sama dengan membuka paper trading
+- pada keputusan aktual ini, retest tetap blocked
+- pada keputusan aktual ini, paper trading tetap blocked
+
+Final decision:
+- `official_strategy_retry_reopened_false_reaffirmed_blocked_state`
+
+Next action:
+- assess_framework_governance_gate_after_formal_retry_reopening_decision_and_confirm_gate_still_not_clear_on_updated_provisional_core_stack
+
+Governance:
+- retest blocked
+- paper trading blocked

@@ -1,0 +1,90 @@
+{
+  "artifact": "holdout_profitability_borderline_layer1_narrow_strengthening_plan",
+  "generated_at": "2026-04-23",
+  "phase_status": {
+    "narrow_confirmation_test_status": "completed_failed_archived",
+    "layer1_narrow_strengthening_definition_status": "completed",
+    "planning_direction_status": "completed",
+    "execution_setup_status": "ready_after_definition_freeze"
+  },
+  "residual_failure": {
+    "target_id": "holdout_profitability_borderline",
+    "status": "active"
+  },
+  "official_baseline": {
+    "holdout_average_return_per_trade": 0.0261,
+    "holdout_profit_factor": 0.9932,
+    "holdout_portfolio_return_pct": -1.0417,
+    "holdout_max_drawdown_pct": 28.5468,
+    "out_of_sample_average_return_per_trade": 0.2516,
+    "out_of_sample_profit_factor": 1.0675
+  },
+  "official_stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "market_regime",
+    "layer_2": "without_return_20d_positive_filter",
+    "layer_3": "optional_default_off",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12
+    }
+  },
+  "hard_constraints": [
+    "Do not change Layer 4.",
+    "Do not change ATR multiplier.",
+    "Do not change trailing logic.",
+    "Do not change time stop 12 days.",
+    "Do not open parallel redesign tracks.",
+    "Do not activate absolute_light_eligibility_gate.",
+    "Do not change the official baseline.",
+    "Do not open paper trading.",
+    "Do not open retest."
+  ],
+  "active_hypothesis": "layer1_narrow_strengthening",
+  "backlog_hypotheses": [
+    {
+      "hypothesis_id": "absolute_light_eligibility_gate",
+      "status": "backlog_only_do_not_activate_now"
+    }
+  ],
+  "layer1_narrow_strengthening_scope_definition": {
+    "objective": "Improve holdout profitability by tightening the existing Layer 1 regime pass condition in one narrow way without touching exit or sizing.",
+    "allowed_area": "Layer 1 regime pass condition only",
+    "disallowed_area": "entry confirmation redesign, eligibility redesign besar, Layer 4 changes, exit changes, combined redesign",
+    "execution_mode": "single active hypothesis only"
+  },
+  "decision_rules": {
+    "must_improve_holdout_average_return_per_trade_vs_baseline": 0.0261,
+    "must_improve_holdout_profit_factor_vs_baseline": 0.9932,
+    "must_improve_holdout_portfolio_return_pct_vs_baseline": -1.0417,
+    "must_keep_oos_average_return_per_trade_gte": 0.0,
+    "must_keep_oos_profit_factor_gte": 1.0,
+    "must_not_win_only_from_aggressive_trade_pruning": true,
+    "must_not_be_accepted_if_only_one_holdout_metric_improves": true
+  },
+  "sequencing_rules": [
+    "Definition freeze must be completed before execution setup begins.",
+    "Only one hypothesis family may be active.",
+    "Do not combine layer1_narrow_strengthening with any other redesign.",
+    "Do not activate backlog hypotheses before this hypothesis is formally closed out."
+  ],
+  "required_artifacts": [
+    "output/project_roadmap_status.txt",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_definition.json",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_definition.txt",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_definition_closeout.json",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_definition_closeout.txt",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_plan.json",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_plan.txt",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_planning_closeout.json",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_planning_closeout.txt"
+  ],
+  "exit_criteria": [
+    "Narrow strengthening is defined explicitly and frozen.",
+    "Planning is synchronized to a single next execution target.",
+    "Roadmap points directly to layer1_narrow_strengthening execution setup after definition freeze.",
+    "Paper trading remains blocked and retest remains blocked."
+  ]
+}

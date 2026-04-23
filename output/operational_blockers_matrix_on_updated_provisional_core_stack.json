@@ -1,0 +1,91 @@
+{
+  "phase_status": "complete",
+  "matrix_scope": "operational_blockers_on_updated_provisional_core_stack",
+  "official_operational_status": "validated_but_operationally_blocked",
+  "blockers": [
+    {
+      "blocker_id": "oos_degradation_material",
+      "category": "strategy_performance",
+      "status": "open",
+      "description": "OOS masih melemah material versus provisional stack sebelumnya",
+      "blocks_retest": false,
+      "blocks_paper_trading": true,
+      "must_clear_before_operational_unblock": true
+    },
+    {
+      "blocker_id": "atr_stop_corporate_action_policy_not_final",
+      "category": "data_policy",
+      "status": "open",
+      "description": "Policy back-adjusted OHLC / corporate-action untuk ATR-stop-candle logic belum final penuh",
+      "blocks_retest": true,
+      "blocks_paper_trading": true,
+      "must_clear_before_operational_unblock": true
+    },
+    {
+      "blocker_id": "fee_slippage_assumptions_not_final",
+      "category": "data_policy",
+      "status": "open",
+      "description": "Asumsi fee/slippage operasional belum ditutup",
+      "blocks_retest": false,
+      "blocks_paper_trading": true,
+      "must_clear_before_operational_unblock": true
+    },
+    {
+      "blocker_id": "phase_b_retest_readiness_gate",
+      "category": "governance_process",
+      "status": "fail",
+      "description": "phase_b_retest_readiness_gate masih belum_boleh_retest",
+      "blocks_retest": true,
+      "blocks_paper_trading": true,
+      "must_clear_before_operational_unblock": true
+    },
+    {
+      "blocker_id": "framework_governance_gate",
+      "category": "governance_process",
+      "status": "fail",
+      "description": "framework_governance_gate masih FAIL",
+      "blocks_retest": true,
+      "blocks_paper_trading": true,
+      "must_clear_before_operational_unblock": true
+    },
+    {
+      "blocker_id": "news_distribution_gate",
+      "category": "governance_process",
+      "status": "fail",
+      "description": "news_distribution_gate masih FAIL",
+      "blocks_retest": false,
+      "blocks_paper_trading": true,
+      "must_clear_before_operational_unblock": true
+    },
+    {
+      "blocker_id": "official_strategy_retry_reopened",
+      "category": "governance_process",
+      "status": "blocked",
+      "description": "official_strategy_retry_reopened masih blocked oleh formal closeout governance",
+      "blocks_retest": true,
+      "blocks_paper_trading": true,
+      "must_clear_before_operational_unblock": true
+    }
+  ],
+  "minimum_exit_criteria": {
+    "for_retest": [
+      "phase_b_retest_readiness_gate_cleared",
+      "framework_governance_gate_cleared",
+      "atr_stop_corporate_action_policy_finalized",
+      "retest_governance_artifacts_synced"
+    ],
+    "for_paper_trading": [
+      "all_retest_requirements_cleared",
+      "fee_slippage_assumptions_finalized",
+      "news_distribution_gate_cleared",
+      "explicit_operational_approval_issued"
+    ],
+    "for_operationally_blocked_status_closure": [
+      "critical_data_policy_blockers_closed",
+      "critical_governance_process_blockers_closed",
+      "no_active_operational_gate_in_fail_or_blocked_state"
+    ]
+  },
+  "next_action": "wait_for_blocker_resolution_on_updated_provisional_core_stack",
+  "roadmap_sync_status": "updated"
+}

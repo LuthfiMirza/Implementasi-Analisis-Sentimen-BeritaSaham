@@ -1,0 +1,83 @@
+Gunakan workspace yang sama. Jalankan workstream threshold 4:
+`official_strategy_retry_reopened`
+
+Precondition keras:
+- artifact threshold 1 sudah dipublikasikan:
+  `output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json`
+- artifact threshold 2 sudah dipublikasikan:
+  `output/framework_governance_gate_sparsity_flatness_threshold_refresh_on_updated_provisional_core_stack.json`
+- artifact threshold 3 sudah dipublikasikan:
+  `output/framework_governance_gate_validation_candidate_usability_refresh_on_updated_provisional_core_stack.json`
+- jangan jalankan prompt ini jika tiga refresh basis di atas belum ada
+
+Tujuan:
+- proses keputusan governance formal untuk `official_strategy_retry_reopened`
+- keputusan ini hanya untuk scope framework governance
+- keputusan ini tidak boleh membuka retest
+- keputusan ini tidak boleh membuka paper trading
+- jangan buka eksperimen strategi baru
+- jangan ubah updated provisional core stack
+
+Output yang harus dibuat:
+- `output/framework_governance_gate_official_strategy_retry_reopening_decision_on_updated_provisional_core_stack.json`
+- `output/framework_governance_gate_official_strategy_retry_reopening_decision_on_updated_provisional_core_stack.txt`
+
+Artifact sumber yang wajib dibaca:
+- `output/framework_governance_gate_threshold_resolution_plan_on_updated_provisional_core_stack.json`
+- `output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json`
+- `output/framework_governance_gate_sparsity_flatness_threshold_refresh_on_updated_provisional_core_stack.json`
+- `output/framework_governance_gate_validation_candidate_usability_refresh_on_updated_provisional_core_stack.json`
+- `output/framework_governance_gate_resolution_execution_on_updated_provisional_core_stack.json`
+- `output/phase_b_final_closeout.json`
+- `output/project_after_phase_b_decision.json`
+- `output/official_operational_decision_on_updated_provisional_core_stack.json`
+
+Yang harus dikerjakan:
+1. Bekukan rule keputusan:
+- `official_strategy_retry_reopened = true` boleh diputuskan hanya jika tiga refresh basis sebelumnya sudah dipublikasikan
+- `official_strategy_retry_reopened = true` tidak sama dengan membuka retest
+- `official_strategy_retry_reopened = true` tidak sama dengan membuka paper trading
+
+2. Buat artifact keputusan formal yang memuat minimal:
+- `artifact`
+- `generated_at`
+- `threshold_id`
+- `decision_scope`
+- `dependency_artifacts_used`
+- `preconditions_satisfied`
+- `decision_basis_summary`
+- `official_strategy_retry_reopened`
+- `does_not_open_retest`
+- `does_not_open_paper_trading`
+- `final_decision`
+- `next_action`
+- `retest_status`
+- `paper_trading_status`
+
+3. Jika decision tetap false:
+- publish keputusan formal false secara eksplisit
+- jelaskan basis mana yang masih belum cukup
+- jangan lompat ke refresh readiness artifacts
+
+4. Jika decision true:
+- nyatakan eksplisit bahwa ini hanya governance reopening
+- tetap tetapkan `retest_status = blocked`
+- tetap tetapkan `paper_trading_status = blocked`
+- jangan refresh readiness artifacts di prompt ini; cukup arahkan next action ke penilaian apakah empat threshold sekarang clear semua
+
+Guardrail:
+- jangan edit active readiness artifacts di langkah ini
+- jangan buka blocker family lain
+- jangan menyamakan decision formal dengan otorisasi operasional
+
+Validasi wajib:
+- `jq empty output/framework_governance_gate_official_strategy_retry_reopening_decision_on_updated_provisional_core_stack.json`
+- cek ringkas:
+  `rg -n "official_strategy_retry_reopened|does_not_open_retest|does_not_open_paper_trading|final_decision|retest_status|paper_trading_status|next_action" output/framework_governance_gate_official_strategy_retry_reopening_decision_on_updated_provisional_core_stack.json`
+
+Gunakan `apply_patch` untuk edit/manual create file. Setelah selesai, laporkan:
+- apakah threshold 4 diputuskan true atau false
+- basis keputusan utamanya
+- final_decision
+- hasil `jq empty`
+- konfirmasi retest dan paper_trading tetap blocked

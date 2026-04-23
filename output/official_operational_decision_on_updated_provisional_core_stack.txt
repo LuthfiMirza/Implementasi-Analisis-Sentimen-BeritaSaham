@@ -1,0 +1,33 @@
+Official Operational Decision On Updated Provisional Core Stack
+==============================================================
+
+Generated at: 2026-04-23
+
+Official operational status:
+- updated_provisional_core_stack_status = adopted
+- strategy_validation_status = validated
+- official_operational_status = validated_but_operationally_blocked
+- holdout_profitability_borderline = resolved_for_now
+- paper_trading_status = blocked
+- retest_status = blocked
+
+Decision summary:
+- research_validity = confirmed
+- governance_sync = complete
+- operational_readiness_review = complete
+- operational_approval = not_granted
+
+Blocking principle:
+- provisional adoption does not imply operational approval
+
+Blocking reasons:
+- oos_degradation_still_material
+- atr_stop_corporate_action_policy_not_final
+- fee_slippage_operational_assumptions_not_final
+- phase_b_retest_readiness_gate_blocked
+- framework_governance_gate_fail
+- news_distribution_gate_fail
+- official_strategy_retry_reopened_blocked
+
+Next action:
+- wait_for_blocker_resolution_on_updated_provisional_core_stack

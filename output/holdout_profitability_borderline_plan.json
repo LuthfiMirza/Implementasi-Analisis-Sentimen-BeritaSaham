@@ -1,0 +1,111 @@
+{
+  "artifact": "holdout_profitability_borderline_plan",
+  "generated_at": "2026-04-23",
+  "phase_status": {
+    "previous_phase": "provisional_layer5_update_completed",
+    "planning_direction_status": "completed",
+    "execution_specification_status": "frozen_for_first_experiment_setup",
+    "strategy_overall_status": "not_complete"
+  },
+  "residual_failure": {
+    "target_id": "holdout_profitability_borderline",
+    "selection_status": "single_active_residual_failure"
+  },
+  "official_baseline": {
+    "holdout_average_return_per_trade": 0.0261,
+    "holdout_profit_factor": 0.9932,
+    "holdout_portfolio_return_pct": -1.0417,
+    "holdout_max_drawdown_pct": 28.5468,
+    "out_of_sample_average_return_per_trade": 0.2516,
+    "out_of_sample_profit_factor": 1.0675
+  },
+  "official_stack_definition": {
+    "phase_1": "base_signal_generation",
+    "layer_1": "market_regime",
+    "layer_2": "without_return_20d_positive_filter",
+    "layer_3": "optional_default_off",
+    "layer_4": "unchanged",
+    "layer_5": {
+      "atr_multiplier": 2.5,
+      "trailing_logic": "unchanged",
+      "time_stop_days": 12,
+      "policy_status": "official_provisional"
+    }
+  },
+  "hard_constraints": [
+    "Do not change Layer 4.",
+    "Do not change the ATR multiplier.",
+    "Do not change trailing logic.",
+    "Do not open parallel redesign tracks.",
+    "Paper trading remains blocked.",
+    "Retest remains blocked."
+  ],
+  "objective": "Run narrow execution setup to test whether holdout_profitability_borderline can be improved without materially damaging OOS.",
+  "in_scope": [
+    "Single active experiment family only.",
+    "Layer 3 as a narrow profitability filter on the official stack.",
+    "Artifact freezing for execution setup and governance synchronization.",
+    "Evaluation strictly against the frozen baseline and decision rules."
+  ],
+  "out_of_scope": [
+    "Any Layer 4 change.",
+    "Any ATR multiplier change.",
+    "Any trailing logic change.",
+    "Any additional Layer 5 redesign.",
+    "Any parallel redesign family.",
+    "Paper trading activation.",
+    "Retest activation."
+  ],
+  "active_hypothesis": {
+    "hypothesis_id": "layer3_narrow_profitability_filter",
+    "title": "Layer 3 as a narrow profitability filter on the updated official stack",
+    "activation_status": "active_first_experiment_only",
+    "rationale": "This is the single approved first experiment family because it is already available in the stack, remains upstream of exit and sizing, and tests profitability tightening without changing Layer 4 or Layer 5 mechanics."
+  },
+  "backlog_hypotheses": [
+    {
+      "hypothesis_id": "freshness_gate_entry",
+      "status": "backlog_only_do_not_activate_now"
+    },
+    {
+      "hypothesis_id": "narrow_confirmation_entry",
+      "status": "backlog_only_do_not_activate_now"
+    },
+    {
+      "hypothesis_id": "narrow_layer1_strengthening",
+      "status": "backlog_only_do_not_activate_now"
+    },
+    {
+      "hypothesis_id": "light_absolute_eligibility_gate",
+      "status": "backlog_only_do_not_activate_now"
+    }
+  ],
+  "decision_rules": {
+    "must_improve_holdout_average_return_per_trade_vs_baseline": 0.0261,
+    "must_improve_holdout_profit_factor_vs_baseline": 0.9932,
+    "must_keep_oos_average_return_per_trade_gte": 0.0,
+    "must_keep_oos_profit_factor_gte": 1.0,
+    "must_not_win_only_from_aggressive_trade_pruning": true,
+    "must_not_be_accepted_if_only_one_holdout_metric_improves": true,
+    "minimum_confirmation_rule": "Holdout average return per trade must increase, holdout profit factor must increase, and holdout portfolio return must improve or at least not materially worsen."
+  },
+  "sequencing_rules": [
+    "Only one experiment family may be active at a time.",
+    "Do not combine two redesigns in a single experiment pass.",
+    "Do not activate backlog hypotheses before the active hypothesis is formally closed out."
+  ],
+  "required_artifacts": [
+    "output/holdout_profitability_borderline_plan.json",
+    "output/holdout_profitability_borderline_plan.txt",
+    "output/project_roadmap_status.txt",
+    "output/holdout_profitability_borderline_planning_closeout.json",
+    "output/holdout_profitability_borderline_planning_closeout.txt"
+  ],
+  "exit_criteria": [
+    "Official baseline is written explicitly and frozen.",
+    "A single active hypothesis is frozen explicitly.",
+    "Decision rules are operational and non-ambiguous.",
+    "Roadmap points directly to Layer 3 narrow profitability test as the next execution target.",
+    "No ambiguity remains in scope, sequencing, or blocked governance states."
+  ]
+}

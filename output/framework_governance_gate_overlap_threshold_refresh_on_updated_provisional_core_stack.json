@@ -1,0 +1,38 @@
+{
+  "artifact": "framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "threshold_id": "baseline_filter_overlap_risk_acceptable",
+  "current_source_artifact": "output/phase_b_v2_overlap_audit.json",
+  "previous_observed_value": {
+    "overall_overlap_risk": "high",
+    "overall_conclusion": "Baseline aktif sudah menyerap sebagian besar variasi threshold sederhana; eksperimen item 5 dan item 8 terutama terlihat redundant atau terlalu sempit."
+  },
+  "refresh_scope": "governance_facing_overlap_threshold_refresh_on_updated_provisional_core_stack_without_opening_new_experiments_or_changing_core_stack",
+  "overlap_refresh_findings": {
+    "active_readiness_path_still_blocked_by_this_threshold": true,
+    "highest_blocking_gate_on_minimum_retest_path": "framework_governance_gate",
+    "prior_overlap_audit_still_reports_high_risk": true,
+    "item5_overlap_level": "high",
+    "item8_overlap_level": "high",
+    "item6_overlap_level": "low",
+    "item7_overlap_level": "low",
+    "material_new_evidence_found_since_prior_overlap_audit": false,
+    "governance_refresh_conclusion": "No newer governance-facing evidence was found that overturns the prior overlap conclusion. The active overlap basis still indicates that the active baseline absorbs most simple threshold variation and that the highest-risk overlap concerns remain unresolved."
+  },
+  "redundancy_assessment": {
+    "additional_filter_logic_no_longer_redundant": false,
+    "redundancy_signals_still_active": true,
+    "evidence_summary": [
+      "Item 5 still indicates threshold collapse toward the baseline rule set.",
+      "Item 8 still indicates adaptive search space remains centered too close to the baseline configuration.",
+      "No refreshed artifact was found that formally supersedes the prior high-overlap assessment for framework-governance purposes."
+    ]
+  },
+  "overall_overlap_risk_after_refresh": "high",
+  "baseline_filter_overlap_risk_acceptable": false,
+  "supersedes_prior_overlap_audit_for_framework_governance": false,
+  "final_decision": "baseline_filter_overlap_risk_acceptable_not_cleared",
+  "next_action": "review_and_optionally_execute_threshold_2_signal_sparsity_flatness_refresh_with_overlap_refresh_artifact_as_dependency_on_updated_provisional_core_stack",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

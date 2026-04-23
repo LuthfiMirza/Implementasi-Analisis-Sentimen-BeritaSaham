@@ -1,0 +1,17 @@
+Holdout Profitability Borderline Freshness Gate Definition Closeout
+==================================================================
+
+Generated at: 2026-04-23
+
+Definition freeze resmi untuk `freshness_gate_entry` telah selesai.
+
+Konfirmasi formal:
+- Residual failure tetap `holdout_profitability_borderline`
+- `freshness_gate_entry` sekarang diarsipkan sebagai failed branch untuk fase ini
+- Definisi freshness gate sudah dibekukan secara eksplisit
+- Eksekusi eksperimen sudah selesai dengan hasil fail
+- Roadmap sudah diarahkan ke hipotesis resmi berikutnya: `layer1_narrow_strengthening`
+
+Governance tetap:
+- Paper trading: blocked
+- Retest: blocked

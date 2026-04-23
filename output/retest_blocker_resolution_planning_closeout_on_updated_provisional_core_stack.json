@@ -1,0 +1,12 @@
+{
+  "artifact": "retest_blocker_resolution_planning_closeout_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "planning_status": "complete",
+  "scope": "retest_blocker_resolution_on_updated_provisional_core_stack",
+  "official_operational_status": "validated_but_operationally_blocked",
+  "roadmap_updated": true,
+  "first_blocker_priority": "phase_b_retest_readiness_gate",
+  "next_action": "begin_phase_b_retest_readiness_gate_resolution_setup_on_updated_provisional_core_stack",
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked"
+}

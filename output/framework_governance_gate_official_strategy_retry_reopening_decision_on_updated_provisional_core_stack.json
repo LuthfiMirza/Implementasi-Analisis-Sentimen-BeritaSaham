@@ -1,0 +1,29 @@
+{
+  "artifact": "framework_governance_gate_official_strategy_retry_reopening_decision_on_updated_provisional_core_stack",
+  "generated_at": "2026-04-23",
+  "threshold_id": "official_strategy_retry_reopened",
+  "decision_scope": "formal_framework_governance_decision_on_updated_provisional_core_stack_only",
+  "dependency_artifacts_used": [
+    "output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json",
+    "output/framework_governance_gate_sparsity_flatness_threshold_refresh_on_updated_provisional_core_stack.json",
+    "output/framework_governance_gate_validation_candidate_usability_refresh_on_updated_provisional_core_stack.json"
+  ],
+  "preconditions_satisfied": true,
+  "decision_basis_summary": {
+    "three_refresh_bases_published": true,
+    "overlap_refresh_result": "baseline_filter_overlap_risk_acceptable_not_cleared",
+    "sparsity_flatness_refresh_result": "signal_sparsity_flatness_audit_passed_not_cleared_reaffirmed_fail_state",
+    "validation_candidate_refresh_result": "baseline_validation_candidate_usable_not_cleared_reaffirmed_fail_state",
+    "phase_b_final_closeout_can_continue_strategy_experiments_now": false,
+    "project_after_phase_b_decision_can_continue_strategy_experiments_now": false,
+    "official_operational_decision_still_lists_official_strategy_retry_reopened_blocked": true,
+    "formal_governance_basis_conclusion": "The three published refresh bases do not provide sufficient support for governance reopening because none of them cleared their thresholds and the formal closeout posture still says strategy experiments cannot continue now."
+  },
+  "official_strategy_retry_reopened": false,
+  "does_not_open_retest": true,
+  "does_not_open_paper_trading": true,
+  "final_decision": "official_strategy_retry_reopened_false_reaffirmed_blocked_state",
+  "next_action": "assess_framework_governance_gate_after_formal_retry_reopening_decision_and_confirm_gate_still_not_clear_on_updated_provisional_core_stack",
+  "retest_status": "blocked",
+  "paper_trading_status": "blocked"
+}

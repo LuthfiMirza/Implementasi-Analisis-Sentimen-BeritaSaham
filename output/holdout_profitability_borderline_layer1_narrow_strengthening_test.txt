@@ -1,0 +1,59 @@
+Holdout Profitability Borderline Layer1 Narrow Strengthening Test
+================================================================
+
+Objective:
+- Test whether `layer1_narrow_strengthening` improves holdout profitability on the official stack without violating OOS guardrails.
+
+Exact test setup:
+- Baseline resmi: stack resmi tanpa `layer1_narrow_strengthening`
+- Candidate: stack resmi dengan `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`
+- Layer 4 unchanged
+- ATR multiplier tetap 2.5
+- Trailing logic unchanged
+- Time stop tetap 12 hari
+- Layer 3 tetap optional default off
+
+Baseline resmi:
+- OOS average return per trade: 0.2516
+- OOS profit factor: 1.0675
+- OOS portfolio return: 11.9255%
+- OOS max drawdown: 29.3906%
+- OOS total trades: 518
+- OOS win rate: 40.1544
+- Holdout average return per trade: 0.0261
+- Holdout profit factor: 0.9932
+- Holdout portfolio return: -1.0417%
+- Holdout max drawdown: 28.5468%
+- Holdout total trades: 551
+- Holdout win rate: 43.7387
+
+Candidate yang diuji:
+- OOS average return per trade: 0.1827
+- OOS profit factor: 1.0482
+- OOS portfolio return: 6.7872%
+- OOS max drawdown: 30.2615%
+- OOS total trades: 427
+- OOS win rate: 39.5785
+- Holdout average return per trade: 0.3054
+- Holdout profit factor: 1.1008
+- Holdout portfolio return: 13.5128%
+- Holdout max drawdown: 18.0377%
+- Holdout total trades: 477
+- Holdout win rate: 44.6541
+
+Keputusan:
+- pass
+
+Alasan keputusan:
+- holdout average return per trade membaik vs 0.0261
+- holdout profit factor membaik vs 0.9932
+- holdout portfolio return membaik vs -1.0417%
+- OOS average return per trade tetap >= 0
+- OOS profit factor tetap >= 1.0
+- hasil tidak hanya menang pada satu metrik holdout
+- hasil tidak menunjukkan pruning trade yang cukup agresif untuk membatalkan keputusan
+
+Next state recommendation:
+- lanjut ke fase validasi/close review berikutnya tanpa membuka hipotesis backlog
+- paper trading tetap blocked
+- retest tetap blocked

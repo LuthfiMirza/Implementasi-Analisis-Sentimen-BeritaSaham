@@ -1,0 +1,10 @@
+Holdout Profitability Borderline Narrow Confirmation Test Closeout
+=================================================================
+
+Ringkasan formal hasil eksperimen:
+- narrow_confirmation_entry test selesai dengan hasil: fail
+- status branch: archived_failed_branch_for_this_phase
+- residual failure holdout_profitability_borderline belum teratasi
+- next official branch: layer1_narrow_strengthening
+- paper trading tetap blocked
+- retest tetap blocked

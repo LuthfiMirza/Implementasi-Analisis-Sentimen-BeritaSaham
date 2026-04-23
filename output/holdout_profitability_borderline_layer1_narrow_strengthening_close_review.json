@@ -1,0 +1,35 @@
+{
+  "artifact": "holdout_profitability_borderline_layer1_narrow_strengthening_close_review",
+  "generated_at": "2026-04-23",
+  "review_status": "validated_candidate",
+  "active_hypothesis": "layer1_narrow_strengthening",
+  "candidate_status": "provisional_stack_update_candidate",
+  "residual_failure_status": "resolved_for_now",
+  "evidence_used": [
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_test.json",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_test_closeout.json",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_definition.json",
+    "output/holdout_profitability_borderline_layer1_narrow_strengthening_plan.json"
+  ],
+  "close_review_assessment": {
+    "robustness_assessment": "pass_is_directionally_credible_but_not_final",
+    "holdout_improvement_assessment": "large_and_multi_metric",
+    "oos_tradeoff_assessment": "weaker_but_still_acceptable_for_this_close_review",
+    "pruning_assessment": "not_excessive_for_rejection",
+    "promotion_readiness": "sufficient_for_provisional_candidate_not_for_operational_promotion"
+  },
+  "decision_rules_applied": {
+    "do_not_accept_based_only_on_holdout_pass": true,
+    "evaluate_oos_degradation_acceptability": true,
+    "evaluate_holdout_gain_vs_oos_tradeoff": true,
+    "do_not_open_backlog_hypotheses": true
+  },
+  "final_decision": {
+    "status": "validated_candidate",
+    "should_update_official_stack_now": false,
+    "should_create_provisional_stack_update_candidate_artifact": true,
+    "paper_trading_status": "blocked",
+    "retest_status": "blocked"
+  },
+  "recommended_next_action": "freeze_provisional_stack_update_candidate_artifact_and_wait_for_governance_sync"
+}

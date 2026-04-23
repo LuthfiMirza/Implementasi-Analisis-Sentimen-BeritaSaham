@@ -1,0 +1,78 @@
+Holdout Profitability Borderline Freshness Gate Definition
+==========================================================
+
+Generated at: 2026-04-23
+
+Status:
+- Layer 3 narrow profitability test: completed_failed
+- Freshness gate blocker: resolved by definition freeze
+- Current phase: freshness gate definition freeze completed, then archived after failed test
+- Experiment execution: completed_failed
+
+Residual failure:
+- holdout_profitability_borderline remains active
+
+Active hypothesis:
+- freshness_gate_entry
+- current status: archived_failed_branch_for_this_phase
+
+Objective:
+- Freeze a narrow entry-timing freshness gate to improve holdout profitability without touching exit management or position sizing.
+
+Official baseline:
+- Holdout average return per trade: 0.0261
+- Holdout profit factor: 0.9932
+- Holdout portfolio return: -1.0417%
+- Holdout max drawdown: 28.5468%
+- OOS average return per trade: 0.2516
+- OOS profit factor: 1.0675
+
+Official stack definition:
+- Phase 1 base signal generation
+- Layer 1 market regime
+- tanpa return_20d > 0
+- Layer 3 optional default off
+- Layer 4 unchanged
+- Layer 5 ATR14 x 2.5 trailing stop, trailing logic unchanged, time stop 12 hari
+
+Freshness gate definition:
+- Freshness berarti jumlah bar trading yang telah berlalu sejak official base entry signal pertama kali menjadi true pada run yang masih berlanjut.
+- Variabel yang dipakai: freshness_age_bars
+- Source field: ticker, date, phase_1_signal_layer1
+- Aturan hitung:
+  setiap kali phase_1_signal_layer1 false, counter reset
+  saat phase_1_signal_layer1 berubah dari false ke true, freshness_age_bars = 0
+  setiap true bar berikutnya menambah counter +1
+- Signal dianggap terlalu lama jika freshness_age_bars > 0
+- Gate pass hanya jika freshness_age_bars == 0
+- Gate fail jika freshness_age_bars >= 1
+- Gate diterapkan pada jalur entry setelah base signal phase_1_signal_layer1 terbentuk dan sebelum trade diteruskan ke Layer 4 atau Layer 5
+
+Allowed variation space:
+- Single family only: entry freshness timing
+- Authorized control axis: freshness_age_bars only
+- Frozen first execution rule: freshness_age_bars == 0
+
+Disallowed changes:
+- Regime redesign
+- Eligibility redesign besar
+- Layer 4 changes
+- ATR multiplier changes
+- Trailing logic changes
+- Time stop changes
+- Combined redesign dengan confirmation gate
+- Combined redesign dengan filter lain
+
+Decision rules for next phase:
+- Holdout average return per trade harus membaik vs 0.0261
+- Holdout profit factor harus membaik vs 0.9932
+- Holdout portfolio return harus membaik vs -1.0417%
+- OOS average return per trade harus tetap >= 0
+- OOS profit factor harus tetap >= 1.0
+- Hasil tidak boleh diterima jika hanya menang karena pruning trade berlebihan
+- Hasil tidak boleh diterima jika hanya membaik pada satu metrik holdout
+
+Governance:
+- Paper trading tetap blocked
+- Retest tetap blocked
+- freshness_gate_entry tidak boleh tetap menjadi hipotesis aktif untuk fase ini

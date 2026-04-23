@@ -1,0 +1,42 @@
+Layer 5 Provisional Update Formal
+=================================
+
+Generated at: 2026-04-23
+
+Old Layer 5 policy:
+- ATR trailing stop dengan ATR14 x 2.5
+- trailing logic unchanged
+- time stop 15 hari
+
+New provisional Layer 5 policy:
+- ATR trailing stop dengan ATR14 x 2.5
+- trailing logic unchanged
+- time stop provisional 12 hari
+
+Why 12 days was selected:
+- Mengalahkan control 15 hari pada final holdout average return per trade: 0.0261 vs -0.4595
+- Mengalahkan control 15 hari pada final holdout profit factor: 0.9932 vs 0.8420
+- Menurunkan final holdout max drawdown: 28.5468% vs 34.4658%
+- Tetap menjaga OOS quality-positive: average return per trade 0.2516, profit factor 1.0675
+
+Why 10 days was not selected:
+- OOS memang lebih kuat, tetapi final holdout kembali negatif: average return per trade -0.2988
+- Final holdout profit factor 0.8771 masih lebih buruk daripada 12 hari
+- Final holdout max drawdown 33.2356% juga lebih buruk daripada 12 hari
+- Karena itu 10 hari tidak cukup resilient untuk masuk ke stack resmi provisional
+
+Why paper trading is still closed:
+- Final holdout profitability masih borderline: average return per trade 0.0261
+- Final holdout profit factor masih di bawah 1.0: 0.9932
+- Final holdout portfolio return masih negatif: -1.0417%
+- Final holdout max drawdown masih tinggi: 28.5468%
+
+Selected residual failure target:
+- holdout_profitability_borderline
+
+Official next action:
+- Buka planning sempit hanya untuk holdout profitability borderline di atas stack resmi terbaru
+- Jangan sentuh Layer 4
+- Jangan ubah ATR multiplier
+- Jangan ubah trailing logic
+- Tetap tutup paper trading dan retest

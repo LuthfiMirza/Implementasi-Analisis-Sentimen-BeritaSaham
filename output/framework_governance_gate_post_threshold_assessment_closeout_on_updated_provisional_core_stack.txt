@@ -1,0 +1,25 @@
+Framework Governance Gate Post Threshold Assessment Closeout On Updated Provisional Core Stack
+==============================================================================================
+
+Generated at: 2026-04-23
+
+Status:
+- assessment_complete = true
+- blocker_id = framework_governance_gate
+- framework_governance_gate_cleared = false
+- final_gate_status = blocked
+- final_decision = framework_governance_gate_still_not_cleared_after_threshold_refresh_cycle
+
+Closeout:
+- empat threshold resmi sudah dinilai ulang dari artifact refresh terbaru
+- kondisi `framework_governance_gate_no_longer_highest_blocking_gate` juga masih false pada readiness artifacts aktif
+- gate ini belum clear
+- assessment ini tidak membuka retest
+- assessment ini tidak membuka paper trading
+
+Next action:
+- maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+
+Governance:
+- retest blocked
+- paper trading blocked

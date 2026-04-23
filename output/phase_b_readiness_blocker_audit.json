@@ -8,7 +8,7 @@
   ],
   "readiness_status_final": "belum_boleh_retest",
   "highest_blocking_gate": "framework_governance_gate",
-  "recommended_next_action": "collect_more_data_and_refresh_framework_audits_before_any_strategy_retry",
+  "recommended_next_action": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
   "previous_readiness_snapshot": {
     "available": true,
     "final_decision": "belum_boleh_retest",
@@ -114,7 +114,7 @@
       "gap_value": 0.0048,
       "gap_ratio": 0.0148,
       "impact": "Median aligned news density across current universe after explicit density-policy alignment review.",
-      "recommended_fix": "Tambah article-day coverage lintas universe sampai median news_density_pct >= 5.0.",
+      "recommended_fix": "Tambah article-day coverage lintas universe sampai median news_density_pct >= 0.3252 sesuai threshold aktif yang sudah direalign.",
       "gate_requirement": "Ratakan coverage news/article days untuk primary segment atau ubah horizon label terlebih dulu.",
       "operational_bucket": "distribution_rebalance_required",
       "closable_now": false
@@ -316,7 +316,7 @@
       "gap_value": 0.0048,
       "gap_ratio": 0.0148,
       "impact": "Median aligned news density across current universe after explicit density-policy alignment review.",
-      "recommended_fix": "Tambah article-day coverage lintas universe sampai median news_density_pct >= 5.0.",
+      "recommended_fix": "Tambah article-day coverage lintas universe sampai median news_density_pct >= 0.3252 sesuai threshold aktif yang sudah direalign.",
       "gate_requirement": "Ratakan coverage news/article days untuk primary segment atau ubah horizon label terlebih dulu.",
       "operational_bucket": "distribution_rebalance_required",
       "closable_now": false

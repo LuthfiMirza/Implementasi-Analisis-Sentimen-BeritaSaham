@@ -1,0 +1,46 @@
+Framework Governance Gate Overlap Threshold Refresh On Updated Provisional Core Stack
+=====================================================================================
+
+Generated at: 2026-04-23
+
+Threshold:
+- `baseline_filter_overlap_risk_acceptable`
+
+Source of truth:
+- `output/phase_b_v2_overlap_audit.json`
+
+Previous observed value:
+- `overall_overlap_risk = high`
+- conclusion: baseline aktif masih menyerap sebagian besar variasi threshold sederhana
+
+Refresh scope:
+- governance-facing overlap threshold refresh
+- tanpa membuka eksperimen baru
+- tanpa mengubah updated provisional core stack
+
+Overlap refresh findings:
+- jalur readiness aktif minimum retest masih diblokir oleh `framework_governance_gate`
+- prior overlap audit masih menyatakan risk `high`
+- `item5` masih `high overlap`
+- `item8` masih `high overlap`
+- `item6` dan `item7` memang `low overlap`, tetapi ini tidak cukup untuk membalik kesimpulan total gate
+- tidak ditemukan evidence governance-facing baru yang membatalkan prior overlap conclusion
+
+Redundancy assessment:
+- additional filter logic masih belum bisa dinyatakan non-redundant terhadap active baseline path
+- redundancy signal masih aktif, terutama pada item 5 dan item 8
+
+Result:
+- `overall_overlap_risk_after_refresh = high`
+- `baseline_filter_overlap_risk_acceptable = false`
+- `supersedes_prior_overlap_audit_for_framework_governance = false`
+
+Final decision:
+- `baseline_filter_overlap_risk_acceptable_not_cleared`
+
+Governance:
+- retest blocked
+- paper trading blocked
+
+Next action:
+- `review_and_optionally_execute_threshold_2_signal_sparsity_flatness_refresh_with_overlap_refresh_artifact_as_dependency_on_updated_provisional_core_stack`

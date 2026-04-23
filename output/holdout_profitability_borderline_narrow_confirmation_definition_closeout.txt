@@ -1,0 +1,13 @@
+Holdout Profitability Borderline Narrow Confirmation Definition Closeout
+=======================================================================
+
+Generated at: 2026-04-23
+
+Definition freeze historis untuk `narrow_confirmation_entry` tetap tercatat, tetapi branch ini sekarang berstatus `archived_failed_branch_for_this_phase`.
+
+Status formal:
+- residual failure tetap `holdout_profitability_borderline`
+- narrow_confirmation_entry tidak lagi menjadi hipotesis aktif
+- roadmap sudah dialihkan ke branch resmi berikutnya
+- paper trading tetap blocked
+- retest tetap blocked

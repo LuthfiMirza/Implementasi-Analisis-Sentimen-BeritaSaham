@@ -1,0 +1,13 @@
+{
+  "artifact": "holdout_profitability_borderline_freshness_gate_definition_closeout",
+  "generated_at": "2026-04-23",
+  "definition_freeze_status": "complete",
+  "residual_failure": "holdout_profitability_borderline",
+  "active_hypothesis": "freshness_gate_entry",
+  "active_hypothesis_status": "archived_failed_branch_for_this_phase",
+  "definition_frozen": true,
+  "roadmap_updated": true,
+  "next_execution_target": "begin_holdout_profitability_borderline_layer1_narrow_strengthening_execution_setup_after_definition_freeze",
+  "paper_trading_status": "blocked",
+  "retest_status": "blocked"
+}

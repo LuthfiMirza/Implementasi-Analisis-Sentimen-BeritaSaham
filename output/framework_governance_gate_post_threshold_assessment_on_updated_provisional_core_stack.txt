@@ -1,0 +1,48 @@
+Framework Governance Gate Post Threshold Assessment On Updated Provisional Core Stack
+=====================================================================================
+
+Generated at: 2026-04-23
+
+Status:
+- blocker_id = framework_governance_gate
+- assessment_status = complete
+
+Threshold results:
+- `baseline_filter_overlap_risk_acceptable`
+  - source_artifact: `output/framework_governance_gate_overlap_threshold_refresh_on_updated_provisional_core_stack.json`
+  - observed_value: `false`
+  - status: `false`
+  - assessment_note: overlap refresh terbaru masih menyatakan risk unresolved dan tidak menggantikan fail state lama
+- `signal_sparsity_flatness_audit_passed`
+  - source_artifact: `output/framework_governance_gate_sparsity_flatness_threshold_refresh_on_updated_provisional_core_stack.json`
+  - observed_value: `false`
+  - status: `false`
+  - assessment_note: refresh sparsity-flatness terbaru menegaskan redesign masih dibutuhkan dan coverage masih terlalu tipis
+- `baseline_validation_candidate_usable`
+  - source_artifact: `output/framework_governance_gate_validation_candidate_usability_refresh_on_updated_provisional_core_stack.json`
+  - observed_value: `false`
+  - status: `false`
+  - assessment_note: refresh validation terbaru menegaskan kandidat masih experimental dan framework-redesign-only
+- `official_strategy_retry_reopened`
+  - source_artifact: `output/framework_governance_gate_official_strategy_retry_reopening_decision_on_updated_provisional_core_stack.json`
+  - observed_value: `false`
+  - status: `false`
+  - assessment_note: keputusan governance formal terbaru tetap mempertahankan blocked state
+
+Highest blocking gate assessment:
+- source_artifact: `output/phase_b_retest_readiness_gate.json + output/phase_b_retest_next_requirements.json + output/phase_b_readiness_blocker_audit.json`
+- observed_value: `framework_governance_gate`
+- status: `false`
+- assessment_note: readiness artifacts aktif masih menaruh `framework_governance_gate` sebagai `highest_blocking_gate`
+
+Final assessment:
+- `framework_governance_gate_cleared = false`
+- `final_gate_status = blocked`
+- `final_decision = framework_governance_gate_still_not_cleared_after_threshold_refresh_cycle`
+
+Next action:
+- maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+
+Governance:
+- retest blocked
+- paper trading blocked
