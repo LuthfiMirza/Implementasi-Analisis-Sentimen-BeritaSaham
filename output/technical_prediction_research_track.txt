@@ -1,0 +1,82 @@
+Technical Prediction Research Track
+===================================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Track purpose:
+- Melanjutkan proyek sebagai technical prediction research lane yang tetap produktif selama documented pause.
+- Menjaga agar proyek bisa bergerak sebagai research/prediction project tanpa mengklaim trading strategy sudah valid.
+- Menegaskan bahwa track ini bukan promotion path untuk trading strategy dan bukan jalur override governance state aktif.
+
+Allowed prediction questions:
+- Arah return horizon pendek atau menengah.
+- Probabilitas breakout atau breakdown pada horizon teknikal tertentu.
+- Continuation versus reversal tendency setelah kondisi teknikal tertentu muncul.
+- Kualitas sinyal teknikal yang dikondisikan oleh regime pasar.
+
+Baseline research lanes that may continue:
+- target_label_definition
+  - Mendefinisikan target atau label prediction yang jelas tanpa membuka backtest strategy baru.
+- horizon_selection
+  - Membandingkan horizon prediksi yang layak secara offline, misalnya 1D, 5D, 10D, atau horizon lain yang eksplisit.
+- benchmark_metric_definition
+  - Menetapkan metrik evaluasi prediction yang cocok untuk riset, bukan metrik promotion strategy.
+- offline_feature_signal_comparison
+  - Membandingkan fitur atau sinyal teknikal secara offline pada tugas prediction tertentu tanpa mengubah stack strategi resmi.
+- signal_calibration_and_ranking_quality_analysis
+  - Menilai calibration, bucket hit-rate, atau kualitas ranking sinyal untuk research use.
+- model_free_baseline_benchmarking
+  - Menyusun baseline sederhana non-strategy seperti majority-class, naive direction, atau ranking baseline sebagai pembanding research.
+
+Research metrics that fit this track:
+- directional_accuracy
+- precision_recall_by_class
+- rank_correlation
+- calibration_or_hit_rate_by_bucket
+- stability_by_regime_or_time_slice
+
+Lanes that remain forbidden:
+- backtest_strategy_baru
+- retest
+- paper_trading
+- phase_c
+- strategy_promotion_claim
+- reopen_layer2_without_newer_valid_governance_override_artifact
+- write_new_strategy_code
+
+Explicit interpretation:
+- Hasil prediction research tidak otomatis berarti strategy validity pulih.
+- Hasil prediction research tidak otomatis membuka trading path.
+- Hasil prediction research tidak otomatis membuka retest, paper trading, atau Phase C.
+- Track ini adalah research lane, bukan approval lane.
+- Track ini harus dibaca terpisah dari strategy promotion path yang tetap blocked.
+
+Relationship to the active roadmap:
+- `output/project_roadmap_status.txt` tetap menjadi source-of-truth untuk status strategi resmi.
+- `output/post_pause_non_strategy_workstream.*` tetap menjadi payung umum lane kerja non-strategy selama pause.
+- Artifact ini memperjelas satu jalur spesifik di bawah payung non-strategy tersebut, yaitu technical prediction research.
+- Strategy readiness progress tidak berubah hanya karena track research ini berjalan.
+
+Evidence files used:
+- output/project_roadmap_status.txt
+- output/post_pause_non_strategy_workstream.txt
+- output/post_pause_non_strategy_workstream.json
+- output/next_step_after_v3_pause_resolution.txt
+- output/next_step_after_v3_pause_resolution.json
+- output/phase_0b_final_data_policy_closeout.txt
+- output/phase_0b_final_data_policy_closeout.json
+- output/layer2_reopen_threshold_governance_note.txt
+- output/layer2_reopen_threshold_governance_note.json
+- output/governance_artifact_registry.txt
+- output/governance_artifact_registry.json
+
+Bottom line:
+- Strategy roadmap tetap paused.
+- Technical prediction research boleh berjalan sebagai lane riset terpisah yang fokus pada pertanyaan prediction, metrik prediction, dan evaluasi offline.
+- Lane ini tidak memberi izin untuk membuka strategy promotion path, retest, paper trading, Phase C, atau Layer 2 reopen.

@@ -1,0 +1,20 @@
+Prediction Model Comparison
+===========================
+
+Dataset rows: 50196
+Tickers: 10
+Date range: 2001-01-02 -> 2026-04-15
+Walk-forward folds: 93
+
+Scenario results:
+- with_sentiment
+  - majority_class: acc=0.4002, f1_macro=0.1893, dir_acc=0.4002
+  - random_forest: acc=0.3749, f1_macro=0.3404, dir_acc=0.3749
+  - logistic_regression: acc=0.3601, f1_macro=0.3148, dir_acc=0.3601
+- without_sentiment
+  - majority_class: acc=0.4002, f1_macro=0.1893, dir_acc=0.4002
+  - random_forest: acc=0.3766, f1_macro=0.3432, dir_acc=0.3766
+  - logistic_regression: acc=0.3602, f1_macro=0.3148, dir_acc=0.3602
+
+Selected deployment model: majority_class (with_sentiment)
+Sentiment contribution delta vs best no-sentiment: 0.0000

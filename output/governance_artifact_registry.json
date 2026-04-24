@@ -46,6 +46,126 @@
       {
         "artifact_path": "output/layer2_governance_toolkit_index.json",
         "reason": "operational_map_of_the_toolkit_not_a_governance_state_changer"
+      },
+      {
+        "artifact_path": "output/governance_reviewer_quickstart_note.txt",
+        "reason": "one_page_quickstart_for_new_reviewers_to_understand_the_official_state_reading_sequence_active_lane_and_blocked_scope"
+      },
+      {
+        "artifact_path": "output/governance_reviewer_quickstart_note.json",
+        "reason": "machine_readable_onboarding_quickstart_for_reviewers"
+      },
+      {
+        "artifact_path": "output/governance_artifact_sync_map.txt",
+        "reason": "maintenance_map_showing_which_artifacts_should_be_checked_together_to_prevent_drift_across_the_active_governance_package"
+      },
+      {
+        "artifact_path": "output/governance_artifact_sync_map.json",
+        "reason": "machine_readable_maintenance_sync_map_for_the_governance_package"
+      },
+      {
+        "artifact_path": "output/documentation_hardening_completion_assessment.txt",
+        "reason": "formal_assessment_of_whether_the_non_strategy_maintenance_lane_has_reached_documentation_hardening_completion_or_only_watchpoint_level_closeout"
+      },
+      {
+        "artifact_path": "output/documentation_hardening_completion_assessment.json",
+        "reason": "machine_readable_completion_assessment_for_documentation_hardening"
+      },
+      {
+        "artifact_path": "output/post_documentation_hardening_lane_status_decision.txt",
+        "reason": "operational_post_assessment_decision_for_whether_non_strategy_maintenance_is_closed_with_watchpoints_or_should_still_be_read_as_low_intensity_active_maintenance"
+      },
+      {
+        "artifact_path": "output/post_documentation_hardening_lane_status_decision.json",
+        "reason": "machine_readable_post_assessment_lane_status_decision"
+      },
+      {
+        "artifact_path": "output/post_lane_close_next_selection_decision.txt",
+        "reason": "decision_for_the_most_defensible_next_step_after_the_documentation_lane_was_closed_including_whether_to_hold_or_activate_an_existing_non_strategy_lane"
+      },
+      {
+        "artifact_path": "output/post_lane_close_next_selection_decision.json",
+        "reason": "machine_readable_next_lane_selection_decision_after_lane_close"
+      },
+      {
+        "artifact_path": "output/post_pause_non_strategy_workstream.txt",
+        "reason": "umbrella_definition_for_non_strategy_lanes_allowed_during_documented_pause"
+      },
+      {
+        "artifact_path": "output/post_pause_non_strategy_workstream.json",
+        "reason": "machine_readable_umbrella_definition_for_non_strategy_lanes"
+      },
+      {
+        "artifact_path": "output/technical_prediction_research_track.txt",
+        "reason": "definition_of_the_prediction_research_lane_that_remains_separate_from_strategy_promotion"
+      },
+      {
+        "artifact_path": "output/technical_prediction_research_track.json",
+        "reason": "machine_readable_definition_of_the_prediction_research_lane"
+      },
+      {
+        "artifact_path": "output/data_governance_limitation_register.txt",
+        "reason": "operational_register_for_active_data_and_governance_limitations"
+      },
+      {
+        "artifact_path": "output/data_governance_limitation_register.json",
+        "reason": "machine_readable_register_for_active_data_and_governance_limitations"
+      },
+      {
+        "artifact_path": "output/data_governance_limitation_notes_index.txt",
+        "reason": "single_page_discovery_index_for_the_four_active_boundary_notes"
+      },
+      {
+        "artifact_path": "output/data_governance_limitation_notes_index.json",
+        "reason": "machine_readable_discovery_index_for_the_four_active_boundary_notes"
+      },
+      {
+        "artifact_path": "output/corporate_action_boundary_note.txt",
+        "reason": "operational_boundary_note_for_corporate_action_risk_on_raw_ohlc"
+      },
+      {
+        "artifact_path": "output/corporate_action_boundary_note.json",
+        "reason": "machine_readable_operational_boundary_note_for_corporate_action_risk"
+      },
+      {
+        "artifact_path": "output/survivorship_boundary_note.txt",
+        "reason": "operational_boundary_note_for_survivorship_and_delisted_universe_limitations"
+      },
+      {
+        "artifact_path": "output/survivorship_boundary_note.json",
+        "reason": "machine_readable_operational_boundary_note_for_survivorship_limitations"
+      },
+      {
+        "artifact_path": "output/execution_realism_boundary_note.txt",
+        "reason": "operational_boundary_note_for_minimum_cost_realism_that_is_sufficient_for_no_go_but_not_final_execution_aware_realism"
+      },
+      {
+        "artifact_path": "output/execution_realism_boundary_note.json",
+        "reason": "machine_readable_operational_boundary_note_for_execution_realism_boundary"
+      },
+      {
+        "artifact_path": "output/portfolio_execution_aware_position_sizing_boundary_note.txt",
+        "reason": "operational_boundary_note_for_integrated_but_not_final_portfolio_sizing_realism"
+      },
+      {
+        "artifact_path": "output/portfolio_execution_aware_position_sizing_boundary_note.json",
+        "reason": "machine_readable_operational_boundary_note_for_portfolio_sizing_realism_boundary"
+      },
+      {
+        "artifact_path": "output/post_pause_active_lane_decision.txt",
+        "reason": "explicit_choice_of_the_current_active_non_strategy_lane"
+      },
+      {
+        "artifact_path": "output/post_pause_active_lane_decision.json",
+        "reason": "machine_readable_active_lane_decision"
+      },
+      {
+        "artifact_path": "output/layer2_reopen_evidence_preparation_pack.txt",
+        "reason": "pre_intake_preparation_pack_for_any_future_layer2_reopen_proposal"
+      },
+      {
+        "artifact_path": "output/layer2_reopen_evidence_preparation_pack.json",
+        "reason": "machine_readable_pre_intake_preparation_pack_for_future_layer2_reopen_proposals"
       }
     ],
     "historical_supporting_context": [

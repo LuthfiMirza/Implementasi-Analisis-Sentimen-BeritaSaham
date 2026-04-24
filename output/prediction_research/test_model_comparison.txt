@@ -1,0 +1,26 @@
+Prediction Model Comparison
+===========================
+
+Dataset rows: 237
+Tickers: 1
+Date range: 2024-01-02 -> 2024-12-30
+Walk-forward folds: 3
+
+Scenario results:
+- with_sentiment
+  - random_forest: acc=0.4111, f1_macro=0.4067, dir_acc=0.4111
+  - logistic_regression: acc=0.4000, f1_macro=0.3411, dir_acc=0.4000
+  - majority_class: acc=0.3111, f1_macro=0.1545, dir_acc=0.3111
+- without_sentiment
+  - random_forest: acc=0.4111, f1_macro=0.3982, dir_acc=0.4111
+  - logistic_regression: acc=0.4000, f1_macro=0.3411, dir_acc=0.4000
+  - majority_class: acc=0.3111, f1_macro=0.1545, dir_acc=0.3111
+
+Selected deployment model: random_forest (with_sentiment)
+Sentiment contribution delta vs best no-sentiment: 0.0000
+Top model features:
+  - price_vs_ema50: 0.257974
+  - atr14_pct: 0.212655
+  - volume_ratio_20d: 0.206253
+  - return_20d: 0.178475
+  - return_5d: 0.144643

@@ -1,0 +1,83 @@
+{
+  "artifact": "layer2_reopen_evidence_preparation_pack",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "purpose": [
+    "prepare_evidence_material_for_any_future_layer2_reopen_proposal_that_is_truly_new",
+    "prevent_future_proposals_from_falling_into_disguised_reopen_backlog_auto_activation_or_hopeful_interpretation",
+    "make_clear_that_this_pack_is_not_an_override_artifact_and_not_an_execution_authorization"
+  ],
+  "what_this_pack_is_for": [
+    "pre_intake_preparation_before_a_proposal_enters_the_official_layer2_reopen_request_template",
+    "ensure_reviewer_ready_material_exists_for_novelty_failure_mechanism_and_frozen_stack_review"
+  ],
+  "required_components": [
+    {
+      "component": "residual_lever_family_novelty_note",
+      "requirement": "must_explain_why_the_new_lever_family_is_truly_residual_and_not_a_threshold_range_persistence_or_slope_variation_of_rejected_paths"
+    },
+    {
+      "component": "failure_mechanism_difference_memo",
+      "requirement": "must_explain_why_the_targeted_failure_mechanism_differs_from_the_failure_classes_already_closed_by_v1_v2_and_v3_rejections"
+    },
+    {
+      "component": "historical_rejection_non_coverage_map",
+      "requirement": "must_map_why_existing_rejection_artifacts_do_not_already_close_the_new_case"
+    },
+    {
+      "component": "frozen_stack_confirmation_sheet",
+      "requirement": "must_confirm_layer1_layer3_layer4_layer5_walk_forward_split_and_realism_cost_policy_all_remain_unchanged"
+    },
+    {
+      "component": "governance_override_artifact_draft_stub",
+      "requirement": "may_exist_as_a_draft_but_is_not_valid_until_a_formal_newer_governance_facing_artifact_is_actually_issued"
+    },
+    {
+      "component": "forbidden_scope_self_check",
+      "requirement": "must_confirm_that_the_future_proposal_does_not_open_backtest_retest_paper_trading_phase_c_or_new_strategy_coding"
+    }
+  ],
+  "minimum_quality_standard_before_formal_intake": [
+    "concrete_novelty_note_not_new_wording_for_an_old_idea",
+    "defensible_failure_mechanism_separation_against_existing_rejection_artifacts",
+    "complete_frozen_stack_confirmation",
+    "clear_artifact_pointers_for_all_material_claims"
+  ],
+  "automatic_reject_triggers_before_formal_intake": [
+    "the_lever_family_is_only_a_rename_of_a_rejected_path",
+    "the_failure_mechanism_is_not_actually_different",
+    "the_frozen_stack_is_not_preserved",
+    "the_proposal_implicitly_requests_backtest_or_retest",
+    "there_is_no_plan_for_a_newer_governance_facing_override_artifact"
+  ],
+  "relationship_to_existing_toolkit": {
+    "after_this_pack_is_ready_the_proposal_still_must_use": [
+      "output/layer2_reopen_request_template.txt",
+      "output/layer2_reopen_request_template.json",
+      "output/governance_change_intake_checklist.txt",
+      "output/governance_change_intake_checklist.json",
+      "output/layer2_reopen_decision_memo_template.txt",
+      "output/layer2_reopen_decision_memo_template.json"
+    ]
+  },
+  "forbidden_interpretation": [
+    "this_pack_is_not_a_governance_override_artifact",
+    "this_pack_is_not_an_approval_path",
+    "this_pack_is_not_permission_for_backtest",
+    "this_pack_is_not_permission_for_retest",
+    "this_pack_is_not_permission_for_paper_trading"
+  ],
+  "evidence_files_used": [
+    "output/project_roadmap_status.txt",
+    "output/next_step_after_v3_pause_resolution.txt",
+    "output/layer2_reopen_threshold_governance_note.txt",
+    "output/layer2_reopen_request_template.txt",
+    "output/governance_change_intake_checklist.txt",
+    "output/layer2_governance_operator_guide.txt"
+  ]
+}

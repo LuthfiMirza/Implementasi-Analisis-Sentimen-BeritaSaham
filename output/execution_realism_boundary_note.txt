@@ -1,0 +1,54 @@
+Execution Realism Boundary Note
+===============================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Purpose:
+- Menajamkan batas interpretasi untuk limitation `execution_realism_boundary`.
+- Menjelaskan secara eksplisit bahwa policy minimum cost yang sudah dibekukan cukup untuk no-go promotion path, tetapi belum setara realism operasional final.
+- Menjaga agar evidence biaya tidak salah dibaca sebagai izin retest atau paper trading.
+
+What is officially frozen now:
+- Minimum realism cost policy tetap `broker_fee_bps=10` per side, `slippage_bps=5` per side, `round_trip_cost_bps=30`.
+- Cost-applied walk-forward closeout sudah completed once pada current official stack.
+- Status governance tetap `documented pause`, retest tetap blocked, dan paper trading tetap blocked.
+
+Why this remains a limitation:
+- Policy biaya minimum sekarang cukup untuk menunjukkan bahwa current stack tidak promotable pada promotion path saat ini.
+- `output/walk_forward_with_costs_summary.json` menunjukkan biaya 30 bps memperburuk hasil holdout tanpa mengubah trade count, sehingga no-go makin kuat.
+- Tetapi policy ini belum sama dengan fully execution-aware final realism untuk scope operasional yang lebih lengkap.
+
+Operational interpretation boundary:
+- Note ini cukup untuk menjelaskan kenapa minimum realism policy yang ada sudah memadai sebagai batas no-go promotion path.
+- Note ini tidak cukup untuk mengklaim bahwa realism execution sudah final atau bahwa stack siap untuk retest operasional.
+- Note ini tidak mengubah documented pause.
+- Note ini tidak memberi izin untuk retest, paper trading, Phase C, atau eksperimen strategi baru.
+
+Allowed maintenance work:
+- Menjaga pointer evidence biaya minimum tetap sinkron dengan closeout Phase 0B dan governance registry.
+- Menjelaskan perbedaan antara `minimum realism sufficient for no-go` versus `fully execution-aware final realism not complete`.
+- Menjaga reviewer baru membaca boundary biaya ini sebagai limitation dokumentasi, bukan approval signal.
+
+Forbidden interpretation:
+- Jangan dibaca sebagai bukti bahwa fee/slippage modeling sudah final secara operasional.
+- Jangan dibaca sebagai alasan bahwa strategy path boleh diuji ulang hanya karena cost policy sudah dibekukan.
+- Jangan dibaca sebagai izin membuka backtest, retest, atau paper trading.
+
+Evidence pointers:
+- output/phase_0b_final_data_policy_closeout.txt
+- output/phase_0b_final_data_policy_closeout.json
+- output/project_roadmap_status.txt
+- output/walk_forward_with_costs_summary.json
+- output/data_governance_limitation_register.txt
+- output/data_governance_limitation_register.json
+- output/post_pause_active_lane_decision.txt
+
+Bottom line:
+- Execution realism boundary sekarang sudah punya note operasional khusus.
+- Note ini memperjelas bahwa minimum cost policy current stack sudah cukup untuk mendukung no-go promotion path, tetapi belum sama dengan fully execution-aware final realism.

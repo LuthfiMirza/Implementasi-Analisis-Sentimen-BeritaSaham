@@ -1,0 +1,63 @@
+{
+  "artifact": "post_pause_non_strategy_workstream",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "workstream_purpose": [
+    "define_non_strategy_lanes_that_may_continue_after_the_strategy_roadmap_entered_documented_pause",
+    "allow_project_work_to_continue_without_claiming_strategy_readiness_has_improved"
+  ],
+  "allowed_lanes_that_may_continue": [
+    {
+      "lane": "data_governance_hardening",
+      "scope": "refine_data_policy_documentation_coverage_notes_and_audit_boundaries_without_opening_new_strategy_experiments"
+    },
+    {
+      "lane": "corporate_action_and_survivorship_documentation_refinement",
+      "scope": "clarify_corporate_action_risk_survivorship_limitations_and_data_readiness_boundaries"
+    },
+    {
+      "lane": "evidence_archival_policy",
+      "scope": "organize_and_archive_evidence_artifacts_to_keep_the_decision_trail_auditable"
+    },
+    {
+      "lane": "future_reopen_intake_queue_management",
+      "scope": "prepare_and_manage_layer2_reopen_intake_materials_without_authorizing_execution"
+    },
+    {
+      "lane": "product_app_maintenance_non_strategy",
+      "scope": "maintain_app_dashboard_or_pipeline_behavior_without_treating_it_as_strategy_validity_evidence"
+    }
+  ],
+  "lanes_that_must_remain_blocked": [
+    "run_new_backtest",
+    "open_retest",
+    "open_paper_trading",
+    "open_phase_c",
+    "write_new_strategy_code",
+    "reopen_layer2_without_newer_valid_governance_override_artifact",
+    "treat_non_strategy_progress_as_strategy_readiness_progress"
+  ],
+  "explicit_interpretation": [
+    "progress_in_this_workstream_must_not_be_read_as_an_increase_in_strategy_readiness_progress",
+    "progress_in_this_workstream_must_not_be_read_as_an_approval_path",
+    "the_workstream_exists_to_keep_project_work_moving_without_changing_the_active_governance_state"
+  ],
+  "relationship_to_active_roadmap": {
+    "project_roadmap_status_txt_remains_source_of_truth_for_strategy_state": true,
+    "this_artifact_is_not_a_replacement_for_the_strategy_roadmap": true,
+    "this_artifact_only_defines_non_strategy_lanes_allowed_during_documented_pause": true
+  },
+  "evidence_files_used": [
+    "output/project_roadmap_status.txt",
+    "output/next_step_after_v3_pause_resolution.txt",
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/layer2_reopen_threshold_governance_note.txt",
+    "output/governance_artifact_registry.txt",
+    "output/governance_documentation_package_closeout.txt"
+  ]
+}

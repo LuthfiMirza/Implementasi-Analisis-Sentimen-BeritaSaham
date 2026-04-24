@@ -1,0 +1,49 @@
+{
+  "artifact": "corporate_action_boundary_note",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "purpose": [
+    "sharpen_the_interpretation_boundary_for_raw_ohlc_corporate_action_boundary",
+    "turn_scattered_corporate_action_notes_into_a_single_operational_reference",
+    "prevent_the_known_risk_from_being_misread_as_fully_solved"
+  ],
+  "officially_frozen_now": {
+    "regime_return_momentum_ema": "adj_close_official_basis",
+    "atr_trailing_stop_candle_sensitive_logic": "raw_ohlc_under_temporary_option_c_for_current_official_evaluation_scope",
+    "corporate_action_risk_position": "accepted_known_risk_for_current_evaluation_scope_not_promotion_grade_final"
+  },
+  "why_this_remains_a_limitation": [
+    "ohlc_sensitive_components_remain_exposed_to_corporate_action_jumps_on_raw_ohlc",
+    "atr_corporate_action_jump_map_contains_material_jump_events_relevant_to_this_boundary",
+    "the_boundary_is_documented_but_not_fully_normalized_for_final_ohlc_sensitive_claims"
+  ],
+  "operational_interpretation_boundary": [
+    "this_note_supports_documented_and_consistent_reading_for_the_current_official_evaluation_scope",
+    "this_note_does_not_support_promotion_grade_final_claims_for_atr_stop_or_candle_sensitive_logic",
+    "this_note_does_not_change_the_documented_pause_state",
+    "this_note_does_not_open_retest_paper_trading_phase_c_or_new_strategy_experiments"
+  ],
+  "allowed_maintenance_work": [
+    "keep_corporate_action_evidence_pointers_synchronized",
+    "keep_registry_and_reading_guidance_pointing_to_this_note",
+    "explain_the_current_official_evaluation_scope_without_modifying_the_frozen_stack"
+  ],
+  "forbidden_interpretation": [
+    "do_not_treat_this_as_proof_that_the_corporate_action_issue_is_fully_solved_for_final_promotion_scope",
+    "do_not_treat_this_as_reason_to_retest_exit_logic",
+    "do_not_treat_this_as_permission_for_backtest_retest_or_paper_trading"
+  ],
+  "evidence_pointers": [
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/phase_0b_final_data_policy_closeout.json",
+    "output/project_roadmap_status.txt",
+    "output/atr_corporate_action_jump_map.csv",
+    "output/data_governance_limitation_register.txt",
+    "output/data_governance_limitation_register.json"
+  ]
+}

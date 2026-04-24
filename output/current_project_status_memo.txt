@@ -1,0 +1,14 @@
+Memo Status Proyek Saat Ini
+===========================
+
+Tanggal referensi: 2026-04-24
+
+Posisi resmi proyek saat ini masih berada pada `documented pause`. Artinya, jalur strategi belum dibuka kembali, tetapi posisi proyek sekarang sudah jauh lebih tertata dibanding sebelumnya. Paket governance dan dokumentasi data yang menjadi fondasi pembacaan status proyek sudah dirapikan, sehingga kondisi saat ini tidak lagi kabur atau tergantung interpretasi informal.
+
+Dalam beberapa tahap terakhir, yang sudah selesai bukan eksperimen strategi baru, melainkan pekerjaan merapikan fondasi dokumentasi dan tata baca proyek. Limitation data yang aktif sudah dicatat dalam register, empat area batas interpretasi utama sudah punya note khusus, jalur baca untuk reviewer baru sudah disederhanakan, dan paket maintenance sudah dilengkapi dengan quickstart, index, serta sync map agar artifact tidak mudah drift antar-file. Hasil akhirnya dinilai sebagai `documentation_hardening_complete_with_watchpoints`, lalu lane `non_strategy_maintenance` ditutup rapi untuk scope tersebut.
+
+Yang tidak berubah adalah status strategi inti proyek. `Documented pause` tetap aktif. Retest, paper trading, Phase C, eksperimen strategi baru, dan reopen Layer 2 tetap belum boleh dibuka. Jalur `technical_prediction_research` memang tetap tersedia sebagai opsi riset non-strategy, tetapi sampai saat ini masih berstatus `parked_not_rejected`, belum diaktifkan sebagai lane kerja baru. Paket persiapan intake untuk kemungkinan reopen di masa depan juga sudah tersedia, tetapi itu tetap hanya readiness/tooling, bukan izin eksekusi.
+
+Karena itu, keputusan operasional yang paling masuk akal sekarang adalah menempatkan proyek pada `managed hold`. Secara praktis, ini berarti lane dokumentasi sudah selesai, watchpoint ringan tetap dipantau, tetapi tidak ada lane aktif baru yang dibuka secara otomatis. Posisi ini paling aman karena konsisten dengan semua artifact terbaru: fondasi dokumentasi sudah cukup rapi untuk dipakai, tetapi belum ada alasan formal yang cukup kuat untuk langsung menggeser proyek ke lane baru.
+
+Kalau nanti ingin membuka langkah berikutnya, kondisinya harus jelas dan eksplisit. Jika yang dipilih adalah lane riset prediction, perlu ada keputusan lane baru yang memang menyatakannya aktif, bukan sekadar mengandalkan fakta bahwa jalur itu “boleh”. Jika yang dipertimbangkan adalah reopen jalur strategi, tetap dibutuhkan artifact governance yang lebih baru, metodologi yang benar-benar berbeda, dan justifikasi yang cukup kuat untuk melewati ambang reopen yang sudah ditetapkan. Sampai kondisi itu ada, posisi proyek yang paling jujur dan tertata adalah: fondasi dokumentasi sudah dibereskan dengan baik, tetapi proyek tetap berada dalam hold resmi yang terkelola.

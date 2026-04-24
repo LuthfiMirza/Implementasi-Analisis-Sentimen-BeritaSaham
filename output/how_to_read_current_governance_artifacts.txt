@@ -13,9 +13,33 @@ Read these first:
    This explains the official Phase 0B closeout and what data policy is considered documented versus still limited.
 4. `output/layer2_reopen_threshold_governance_note.txt`
    This defines the only acceptable threshold for reopening Layer 2.
-5. `output/governance_artifact_registry.txt`
+5. `output/data_governance_limitation_register.txt`
+   This summarizes the active data/governance limitations that still need documentation hardening work.
+6. `output/data_governance_limitation_notes_index.txt`
+   This gives a single-page map of the four active boundary notes before you open them one by one.
+7. `output/corporate_action_boundary_note.txt`
+   This sharpens the interpretation boundary for raw OHLC corporate-action risk in the current official evaluation scope.
+8. `output/survivorship_boundary_note.txt`
+   This sharpens the interpretation boundary for survivorship and delisted-universe limitations in the active evaluation base.
+9. `output/execution_realism_boundary_note.txt`
+   This sharpens the interpretation boundary for minimum cost realism that is sufficient for no-go but not final execution-aware realism.
+10. `output/portfolio_execution_aware_position_sizing_boundary_note.txt`
+   This sharpens the interpretation boundary for integrated-but-not-final portfolio sizing realism.
+11. `output/post_pause_active_lane_decision.txt`
+   This states which allowed post-pause lane is currently selected as the operational focus.
+12. `output/governance_reviewer_quickstart_note.txt`
+   This gives new reviewers a one-page onboarding note before they branch into the wider toolkit.
+13. `output/governance_artifact_sync_map.txt`
+   This tells maintainers which artifacts should be checked together when one part of the package changes.
+14. `output/documentation_hardening_completion_assessment.txt`
+   This tells you whether the active documentation-hardening lane is most defensibly read as complete, complete with watchpoints, or not yet complete.
+15. `output/post_documentation_hardening_lane_status_decision.txt`
+   This tells you the operational status of the lane after the documentation-hardening assessment has been completed.
+16. `output/post_lane_close_next_selection_decision.txt`
+   This tells you the most defensible next-step status after the previous lane was closed.
+17. `output/governance_artifact_registry.txt`
    This tells you which other artifacts are current, historical, or superseded.
-6. `output/layer2_governance_operator_guide.txt`
+18. `output/layer2_governance_operator_guide.txt`
    After you finish the source-of-truth pass, use this to follow the end-to-end operational review process.
 
 Read these as supporting context:
@@ -56,6 +80,19 @@ Simple reading sequence:
 - Then confirm the formal pause logic in `output/next_step_after_v3_pause_resolution.*`.
 - Then confirm the data-policy boundary in `output/phase_0b_final_data_policy_closeout.*`.
 - Then confirm the reopen threshold in `output/layer2_reopen_threshold_governance_note.*`.
+- Then confirm the active limitation backlog in `output/data_governance_limitation_register.*`.
+- Then read `output/data_governance_limitation_notes_index.*` if you want a single-page map before opening the specialized notes.
+- Then read the specialized boundary note that matches the limitation you are reviewing:
+  - `output/corporate_action_boundary_note.*`
+  - `output/survivorship_boundary_note.*`
+  - `output/execution_realism_boundary_note.*`
+  - `output/portfolio_execution_aware_position_sizing_boundary_note.*`
+- Then confirm the selected work lane in `output/post_pause_active_lane_decision.*`.
+- Then use `output/governance_reviewer_quickstart_note.*` if you want a one-page onboarding recap before moving deeper into the toolkit.
+- Then use `output/governance_artifact_sync_map.*` if you are maintaining the package and need to know which artifacts must be checked together.
+- Then use `output/documentation_hardening_completion_assessment.*` if you need the most recent closeout judgment on whether the active documentation-hardening lane is finished.
+- Then use `output/post_documentation_hardening_lane_status_decision.*` if you need the operational decision on whether that lane remains active or is now closed with watchpoints.
+- Then use `output/post_lane_close_next_selection_decision.*` if you need the explicit next-step choice after the previous lane was closed.
 - Then use `output/layer2_governance_operator_guide.txt` and `output/layer2_governance_toolkit_index.json` as operational tooling for the review workflow.
 - Only after that, read historical artifacts to understand why the current state exists.
 

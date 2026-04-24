@@ -18,10 +18,32 @@ Documentation package components now present:
 - registry and reading guidance
   - `output/governance_artifact_registry.*`
   - `output/how_to_read_current_governance_artifacts.txt`
+- reviewer quickstart
+  - `output/governance_reviewer_quickstart_note.*`
+- sync map
+  - `output/governance_artifact_sync_map.*`
+- documentation hardening completion assessment
+  - `output/documentation_hardening_completion_assessment.*`
+- post-assessment lane status decision
+  - `output/post_documentation_hardening_lane_status_decision.*`
+- next-lane selection decision
+  - `output/post_lane_close_next_selection_decision.*`
+- active lane and limitation register
+  - `output/post_pause_active_lane_decision.*`
+  - `output/data_governance_limitation_register.*`
+- limitation notes index
+  - `output/data_governance_limitation_notes_index.*`
+- boundary notes
+  - `output/corporate_action_boundary_note.*`
+  - `output/survivorship_boundary_note.*`
+  - `output/execution_realism_boundary_note.*`
+  - `output/portfolio_execution_aware_position_sizing_boundary_note.*`
 - request template
   - `output/layer2_reopen_request_template.*`
 - intake checklist
   - `output/governance_change_intake_checklist.*`
+- future reopen preparation pack
+  - `output/layer2_reopen_evidence_preparation_pack.*`
 - example cases
   - `output/example_layer2_reopen_request_reject_case.txt`
   - `output/example_layer2_reopen_request_hold_case.txt`
@@ -44,6 +66,13 @@ Closeout statement:
 
 Intended future use:
 - Paket ini hanya dipakai lagi bila ada proposal reopen Layer 2 yang nyata dan perlu dinilai secara governance-consistent.
+- Paket ini juga dipakai untuk menjaga lane non-strategy maintenance tetap rapi, terarah, dan tidak disalahartikan sebagai kenaikan strategy readiness.
+- Quickstart reviewer dipakai sebagai helper onboarding cepat, bukan sebagai source-of-truth baru.
+- Sync map dipakai sebagai helper maintenance agar update kecil tidak membuat drift antar-artifact.
+- Completion assessment dipakai untuk membaca apakah scope documentation hardening pada lane aktif sudah cukup layak ditutup tanpa mengubah documented pause.
+- Post-assessment lane status decision dipakai untuk membaca apakah lane tersebut masih aktif operasional atau sudah ditutup dengan watchpoints tanpa otomatis mengganti lane aktif.
+- Next-lane selection decision dipakai untuk membaca apakah proyek paling defensible tetap berada di managed hold atau perlu aktivasi lane non-strategy yang sudah tersedia.
 
 Bottom line:
 - Governance intake/review package sekarang cukup lengkap untuk mendukung current documented pause tanpa mengubah governance state aktif.
+- Boundary note untuk corporate action, survivorship, execution realism, dan portfolio sizing sekarang ikut melengkapi paket limitation hardening pada lane non-strategy aktif.

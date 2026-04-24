@@ -1,0 +1,101 @@
+{
+  "artifact": "governance_reviewer_quickstart_note",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "purpose": [
+    "give_new_reviewers_a_one_page_orientation_to_the_active_governance_flow",
+    "accelerate_discovery_without_replacing_the_source_of_truth_limitation_register_or_formal_closeout_artifacts",
+    "make_clear_that_this_quickstart_is_an_onboarding_helper_not_an_approval_artifact"
+  ],
+  "what_a_new_reviewer_should_know_first": [
+    "the_official_project_status_is_documented_pause_not_active_experiment_selection",
+    "the_source_of_truth_remains_in_newer_formal_artifacts_not_in_this_quickstart",
+    "the_current_active_lane_is_non_strategy_maintenance",
+    "governance_and_data_documentation_progress_is_not_the_same_as_strategy_readiness_progress",
+    "technical_prediction_research_is_parked_not_rejected_but_is_not_the_current_active_lane"
+  ],
+  "first_reading_sequence": [
+    "output/project_roadmap_status.txt",
+    "output/next_step_after_v3_pause_resolution.txt",
+    "output/next_step_after_v3_pause_resolution.json",
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/phase_0b_final_data_policy_closeout.json",
+    "output/layer2_reopen_threshold_governance_note.txt",
+    "output/layer2_reopen_threshold_governance_note.json",
+    "output/data_governance_limitation_register.txt",
+    "output/data_governance_limitation_register.json",
+    "output/data_governance_limitation_notes_index.txt",
+    "output/data_governance_limitation_notes_index.json",
+    "output/post_pause_active_lane_decision.txt",
+    "output/post_pause_active_lane_decision.json",
+    "output/governance_artifact_registry.txt",
+    "output/governance_artifact_registry.json",
+    "output/how_to_read_current_governance_artifacts.txt"
+  ],
+  "where_to_look_for_active_limitation_boundaries": {
+    "start_with": [
+      "output/data_governance_limitation_register.txt",
+      "output/data_governance_limitation_register.json"
+    ],
+    "then_use_index": [
+      "output/data_governance_limitation_notes_index.txt",
+      "output/data_governance_limitation_notes_index.json"
+    ],
+    "then_open_the_relevant_boundary_note": [
+      "output/corporate_action_boundary_note.txt",
+      "output/corporate_action_boundary_note.json",
+      "output/survivorship_boundary_note.txt",
+      "output/survivorship_boundary_note.json",
+      "output/execution_realism_boundary_note.txt",
+      "output/execution_realism_boundary_note.json",
+      "output/portfolio_execution_aware_position_sizing_boundary_note.txt",
+      "output/portfolio_execution_aware_position_sizing_boundary_note.json"
+    ]
+  },
+  "what_remains_blocked": [
+    "new_strategy_experiments",
+    "new_backtests",
+    "retest",
+    "paper_trading",
+    "phase_c",
+    "new_strategy_coding",
+    "layer2_reopen_without_a_newer_valid_governance_override_artifact"
+  ],
+  "common_misread_to_avoid": [
+    "do_not_treat_this_quickstart_as_a_new_source_of_truth",
+    "do_not_treat_documentation_or_packaging_progress_as_proof_that_strategy_validity_has_recovered",
+    "do_not_treat_limitation_notes_as_an_approval_path",
+    "do_not_treat_the_existence_of_technical_prediction_research_as_a_replacement_for_the_current_active_lane",
+    "do_not_use_historical_or_superseded_artifacts_alone_to_open_a_new_step"
+  ],
+  "relationship_to_the_active_lane": {
+    "active_lane": "non_strategy_maintenance",
+    "supports_sub_lanes": [
+      "data_governance_hardening",
+      "evidence_archival_policy",
+      "reviewer_onboarding"
+    ],
+    "does_not_change_governance_state": true,
+    "quickstart_role": "discovery_and_onboarding_helper_only"
+  },
+  "evidence_pointers": [
+    "output/governance_artifact_registry.txt",
+    "output/governance_artifact_registry.json",
+    "output/how_to_read_current_governance_artifacts.txt",
+    "output/governance_documentation_package_closeout.txt",
+    "output/post_pause_active_lane_decision.txt",
+    "output/post_pause_active_lane_decision.json",
+    "output/data_governance_limitation_register.txt",
+    "output/data_governance_limitation_register.json",
+    "output/data_governance_limitation_notes_index.txt",
+    "output/data_governance_limitation_notes_index.json",
+    "output/technical_prediction_research_track.txt",
+    "output/technical_prediction_research_track.json",
+    "output/project_roadmap_status.txt"
+  ]
+}

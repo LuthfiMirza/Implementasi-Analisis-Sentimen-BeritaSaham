@@ -1,0 +1,91 @@
+Layer 2 Reopen Evidence Preparation Pack
+========================================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Purpose:
+- Menyiapkan paket persiapan evidence jika suatu hari ada proposal reopen Layer 2 yang benar-benar baru.
+- Menahan proposal masa depan agar tidak langsung jatuh ke disguised reopen, backlog auto-activation, atau hopeful interpretation.
+- Paket ini bukan override artifact dan bukan izin eksperimen.
+
+What this pack is for:
+- Pre-intake preparation sebelum proposal resmi masuk `output/layer2_reopen_request_template.*`
+- Kumpulan komponen yang harus siap agar reviewer punya dasar untuk menilai novelty dan failure mechanism secara disiplin
+
+Required components in the preparation pack:
+1. residual_lever_family_novelty_note
+   - Wajib menjelaskan lever family baru yang benar-benar residual.
+   - Harus eksplisit kenapa ia bukan variasi threshold/range/persistence/slope dari jalur yang sudah ditolak.
+
+2. failure_mechanism_difference_memo
+   - Wajib menjelaskan failure mechanism yang ditarget.
+   - Harus eksplisit kenapa failure mechanism ini berbeda dari yang sudah tertutup oleh rejection v1, v2, dan v3.
+
+3. historical_rejection_non_coverage_map
+   - Wajib memetakan kenapa evidence historis yang ada belum otomatis menutup proposal baru ini.
+   - Harus menyebut artifact yang dibandingkan, bukan hanya narasi umum.
+
+4. frozen_stack_confirmation_sheet
+   - Wajib menegaskan bahwa komponen berikut tetap unchanged:
+     - Layer 1 regime rule
+     - Layer 3 default status
+     - Layer 4 sizing policy
+     - Layer 5 exit policy
+     - walk-forward split
+     - realism cost policy
+
+5. governance_override_artifact_draft_stub
+   - Boleh berupa draft atau placeholder struktur artifact governance-facing yang kelak harus lebih baru daripada pause artifact aktif.
+   - Draft ini belum valid sebagai override sampai benar-benar diterbitkan sebagai artifact formal yang lebih baru.
+
+6. forbidden_scope_self_check
+   - Proposal wajib self-check bahwa ia tidak membuka:
+     - backtest execution
+     - retest
+     - paper trading
+     - Phase C
+     - coding strategi baru
+
+Minimum quality standard before formal intake:
+- Ada novelty note yang konkret, bukan wording baru untuk ide lama.
+- Ada pemisahan failure mechanism yang bisa dipertahankan terhadap artifact rejection lama.
+- Ada frozen-stack confirmation yang lengkap.
+- Ada pointer artifact yang jelas untuk semua klaim.
+
+Automatic reject triggers even before formal intake:
+- Lever family ternyata hanya rename dari path yang sudah ditolak.
+- Failure mechanism tidak benar-benar berbeda.
+- Frozen stack tidak dijaga.
+- Proposal secara implisit meminta backtest atau retest.
+- Tidak ada rencana artifact governance-facing yang lebih baru dari pause artifact saat ini.
+
+Relationship to the existing toolkit:
+- Setelah pack ini siap, proposal tetap harus masuk lewat:
+  - `output/layer2_reopen_request_template.*`
+  - `output/governance_change_intake_checklist.*`
+  - `output/layer2_reopen_decision_memo_template.*`
+
+Forbidden interpretation:
+- Paket ini bukan override artifact.
+- Paket ini bukan approval path.
+- Paket ini bukan izin backtest.
+- Paket ini bukan izin retest.
+- Paket ini bukan izin paper trading.
+
+Evidence files used:
+- output/project_roadmap_status.txt
+- output/next_step_after_v3_pause_resolution.txt
+- output/layer2_reopen_threshold_governance_note.txt
+- output/layer2_reopen_request_template.txt
+- output/governance_change_intake_checklist.txt
+- output/layer2_governance_operator_guide.txt
+
+Bottom line:
+- Sebelum ada proposal reopen resmi, preparation pack ini adalah pagar mutu minimum.
+- Bahkan setelah pack ini lengkap, documented pause tetap aktif sampai ada artifact governance-facing override yang lebih baru dan valid.

@@ -9,6 +9,12 @@ use Illuminate\Support\Collection;
 
 class FeatureBuilderService
 {
+    public function __construct(
+        protected ?ResearchPredictionFeatureService $researchPredictionFeatureService = null,
+    ) {
+        $this->researchPredictionFeatureService ??= new ResearchPredictionFeatureService();
+    }
+
     public function build(
         Stock $stock,
         Collection $prices,
@@ -59,7 +65,13 @@ class FeatureBuilderService
             $volatility = round(sqrt($variance), 4);
         }
 
-        return [
+        $researchFeatures = $this->researchPredictionFeatureService->buildForDate(
+            $stock,
+            $articles,
+            $referencePoint
+        );
+
+        return array_merge([
             'stock' => $stock->code,
             'period' => $periodDays,
             'sentiment_average' => $sentimentAverage,
@@ -99,7 +111,7 @@ class FeatureBuilderService
             'lag_correlation_h3' => data_get($analytics, 'lag_correlations.h3'),
             'lag_correlation_h7' => data_get($analytics, 'lag_correlations.h7'),
             'reference_date' => $referencePoint?->toDateString(),
-        ];
+        ], $researchFeatures);
     }
 
     protected function movingAverage(Collection $prices, int $window): ?float

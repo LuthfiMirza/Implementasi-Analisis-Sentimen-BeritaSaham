@@ -1,0 +1,74 @@
+{
+  "artifact": "post_pause_active_lane_decision",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "decision": {
+    "active_lane": "non_strategy_maintenance",
+    "active_sub_lanes": [
+      "data_governance_hardening",
+      "corporate_action_and_survivorship_documentation_refinement",
+      "evidence_archival_policy",
+      "future_reopen_intake_queue_management"
+    ]
+  },
+  "why_this_lane_is_selected_now": [
+    "it_most_directly_closes_remaining_documentation_limitations",
+    "it_produces_governance_consistent_project_progress_without_claiming_strategy_readiness_has_improved",
+    "it_does_not_require_backtest_retest_paper_trading_or_new_strategy_coding",
+    "technical_prediction_research_remains_allowed_but_is_parked_so_foundation_cleanup_can_stay_the_current_focus"
+  ],
+  "immediate_deliverables_inside_the_selected_lane": [
+    {
+      "deliverable": "output/data_governance_limitation_register.txt",
+      "purpose": "operational_documentation_backlog_for_active_data_and_governance_limitations"
+    },
+    {
+      "deliverable": "registry_and_reading_guidance_sync",
+      "purpose": "keep_new_reviewers_aligned_with_the_correct_source_of_truth_sequence"
+    },
+    {
+      "deliverable": "future_reopen_preparation_pack",
+      "purpose": "prepare_future_intake_material_without_claiming_a_governance_override_artifact_already_exists"
+    }
+  ],
+  "execution_sequence": [
+    "keep_the_strategy_source_of_truth_frozen",
+    "refine_high_priority_data_limitations",
+    "refine_artifact_discovery_and_governance_tooling",
+    "prepare_the_future_reopen_pack_without_claiming_an_override_exists",
+    "reconsider_technical_prediction_research_only_after_the_priority_documentation_backlog_is_clean"
+  ],
+  "deferred_but_still_allowed_lane": {
+    "lane": "technical_prediction_research",
+    "status": "parked_not_rejected",
+    "reason": "it_may_be_activated_later_as_a_separate_research_lane_but_is_not_the_current_operational_focus"
+  },
+  "success_criteria": [
+    "all_major_data_limitations_have_a_register_and_explicit_interpretation_boundary",
+    "new_reviewers_can_follow_the_source_of_truth_and_tooling_without_conflicting_reads",
+    "future_reopen_intake_can_be_prepared_without_opening_new_strategy_experiments"
+  ],
+  "forbidden_scope_while_this_lane_is_active": [
+    "run_new_strategy_backtest",
+    "open_retest",
+    "open_paper_trading",
+    "open_phase_c",
+    "claim_strategy_validity_has_recovered",
+    "reopen_layer2_without_newer_valid_governance_override_artifact"
+  ],
+  "evidence_files_used": [
+    "output/project_roadmap_status.txt",
+    "output/next_step_after_v3_pause_resolution.txt",
+    "output/post_pause_non_strategy_workstream.txt",
+    "output/post_pause_non_strategy_workstream.json",
+    "output/technical_prediction_research_track.txt",
+    "output/technical_prediction_research_track.json",
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/governance_artifact_registry.txt"
+  ]
+}

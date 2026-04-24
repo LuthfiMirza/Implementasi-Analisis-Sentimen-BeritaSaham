@@ -1,0 +1,212 @@
+{
+  "artifact": "governance_artifact_sync_map",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "purpose": [
+    "describe_the_main_governance_artifacts_and_their_minimum_sync_dependencies",
+    "answer_which_other_artifacts_must_be_checked_when_one_artifact_changes",
+    "reduce_wording_and_pointer_drift_without_creating_a_new_source_of_truth"
+  ],
+  "how_to_use_this_sync_map": [
+    "identify_the_artifact_that_changed",
+    "find_its_group_below",
+    "apply_the_relevant_minimum_sync_rules",
+    "if_the_change_touches_official_status_active_lane_active_limitations_or_read_order_also_check_quickstart_registry_and_toolkit_index"
+  ],
+  "core_artifact_groups": {
+    "source_of_truth": [
+      "output/project_roadmap_status.txt",
+      "output/next_step_after_v3_pause_resolution.txt",
+      "output/next_step_after_v3_pause_resolution.json",
+      "output/phase_0b_final_data_policy_closeout.txt",
+      "output/phase_0b_final_data_policy_closeout.json",
+      "output/layer2_reopen_threshold_governance_note.txt",
+      "output/layer2_reopen_threshold_governance_note.json"
+    ],
+    "operational_guidance_and_discovery": [
+      "output/governance_artifact_registry.txt",
+      "output/governance_artifact_registry.json",
+      "output/how_to_read_current_governance_artifacts.txt",
+      "output/governance_reviewer_quickstart_note.txt",
+      "output/governance_reviewer_quickstart_note.json",
+      "output/governance_artifact_sync_map.txt",
+      "output/governance_artifact_sync_map.json",
+      "output/layer2_governance_toolkit_index.json",
+      "output/governance_documentation_package_closeout.txt"
+    ],
+    "limitation_register_and_notes": [
+      "output/data_governance_limitation_register.txt",
+      "output/data_governance_limitation_register.json",
+      "output/data_governance_limitation_notes_index.txt",
+      "output/data_governance_limitation_notes_index.json",
+      "output/corporate_action_boundary_note.txt",
+      "output/corporate_action_boundary_note.json",
+      "output/survivorship_boundary_note.txt",
+      "output/survivorship_boundary_note.json",
+      "output/execution_realism_boundary_note.txt",
+      "output/execution_realism_boundary_note.json",
+      "output/portfolio_execution_aware_position_sizing_boundary_note.txt",
+      "output/portfolio_execution_aware_position_sizing_boundary_note.json"
+    ],
+    "active_lane_and_non_strategy_scope": [
+      "output/post_pause_active_lane_decision.txt",
+      "output/post_pause_active_lane_decision.json",
+      "output/post_pause_non_strategy_workstream.txt",
+      "output/post_pause_non_strategy_workstream.json",
+      "output/technical_prediction_research_track.txt",
+      "output/technical_prediction_research_track.json"
+    ],
+    "future_reopen_tooling": [
+      "output/layer2_reopen_request_template.txt",
+      "output/layer2_reopen_request_template.json",
+      "output/governance_change_intake_checklist.txt",
+      "output/governance_change_intake_checklist.json",
+      "output/layer2_reopen_decision_memo_template.txt",
+      "output/layer2_reopen_decision_memo_template.json",
+      "output/layer2_reopen_evidence_preparation_pack.txt",
+      "output/layer2_reopen_evidence_preparation_pack.json",
+      "output/governance_intake_log_policy.txt",
+      "output/layer2_governance_operator_guide.txt"
+    ],
+    "historical_supporting_context": [
+      "output/phase_b_final_closeout.txt",
+      "output/project_after_phase_b_decision.txt",
+      "output/phase_b_go_no_go_next_phase.json",
+      "output/walk_forward_validation_closeout.json",
+      "output/walk_forward_with_costs_summary.json",
+      "output/phase_2_layer_2_relative_strength_closeout.txt",
+      "output/single_variable_experiment_results.json",
+      "output/single_variable_experiment_results_v2.json",
+      "output/single_variable_experiment_results_v3.json"
+    ]
+  },
+  "minimum_sync_rules_by_artifact": [
+    {
+      "artifact_pattern": "output/data_governance_limitation_register.*",
+      "minimum_check": [
+        "output/data_governance_limitation_notes_index.*",
+        "relevant_boundary_notes",
+        "output/governance_reviewer_quickstart_note.*",
+        "output/governance_artifact_registry.*",
+        "output/how_to_read_current_governance_artifacts.txt"
+      ]
+    },
+    {
+      "artifact_pattern": "output/data_governance_limitation_notes_index.*",
+      "minimum_check": [
+        "four_boundary_notes",
+        "output/governance_reviewer_quickstart_note.*",
+        "output/layer2_governance_toolkit_index.json",
+        "output/governance_documentation_package_closeout.txt"
+      ]
+    },
+    {
+      "artifact_pattern": "boundary_note_change",
+      "minimum_check": [
+        "output/data_governance_limitation_register.*",
+        "output/data_governance_limitation_notes_index.*",
+        "output/governance_artifact_registry.*",
+        "output/how_to_read_current_governance_artifacts.txt"
+      ]
+    },
+    {
+      "artifact_pattern": "output/governance_reviewer_quickstart_note.*",
+      "minimum_check": [
+        "output/how_to_read_current_governance_artifacts.txt",
+        "output/governance_artifact_registry.*",
+        "output/layer2_governance_toolkit_index.json",
+        "output/governance_documentation_package_closeout.txt"
+      ]
+    },
+    {
+      "artifact_pattern": "output/how_to_read_current_governance_artifacts.txt",
+      "minimum_check": [
+        "output/governance_reviewer_quickstart_note.*",
+        "output/governance_artifact_registry.*",
+        "output/layer2_governance_toolkit_index.json",
+        "output/governance_documentation_package_closeout.txt"
+      ]
+    },
+    {
+      "artifact_pattern": "output/governance_artifact_registry.*",
+      "minimum_check": [
+        "output/how_to_read_current_governance_artifacts.txt",
+        "output/governance_reviewer_quickstart_note.*",
+        "output/layer2_governance_toolkit_index.json",
+        "output/governance_documentation_package_closeout.txt"
+      ]
+    },
+    {
+      "artifact_pattern": "output/post_pause_active_lane_decision.*",
+      "minimum_check": [
+        "output/governance_reviewer_quickstart_note.*",
+        "output/how_to_read_current_governance_artifacts.txt",
+        "output/governance_artifact_registry.*",
+        "output/technical_prediction_research_track.*_if_lane_interpretation_changes"
+      ]
+    },
+    {
+      "artifact_pattern": "output/post_pause_non_strategy_workstream.*_or_output/technical_prediction_research_track.*",
+      "minimum_check": [
+        "output/post_pause_active_lane_decision.*",
+        "output/governance_reviewer_quickstart_note.*",
+        "output/governance_artifact_registry.*",
+        "output/governance_documentation_package_closeout.txt"
+      ]
+    },
+    {
+      "artifact_pattern": "future_reopen_tooling_change",
+      "minimum_check": [
+        "output/governance_artifact_registry.*",
+        "output/layer2_governance_toolkit_index.json",
+        "output/governance_documentation_package_closeout.txt",
+        "output/layer2_governance_operator_guide.txt"
+      ]
+    },
+    {
+      "artifact_pattern": "source_of_truth_change",
+      "minimum_check": [
+        "output/governance_artifact_registry.*",
+        "output/how_to_read_current_governance_artifacts.txt",
+        "output/governance_reviewer_quickstart_note.*",
+        "output/data_governance_limitation_register.*_if_limitations_change",
+        "output/post_pause_active_lane_decision.*_if_lane_or_working_interpretation_changes"
+      ]
+    }
+  ],
+  "high_risk_drift_patterns_to_avoid": [
+    "the_registry_mentions_a_new_artifact_but_how_to_read_or_the_toolkit_index_does_not_point_to_it",
+    "the_quickstart_still_mentions_an_old_active_lane_after_post_pause_active_lane_decision_changes",
+    "the_limitation_register_changes_but_the_notes_index_or_boundary_notes_keep_old_priority_or_interpretation_wording",
+    "the_source_of_truth_moves_but_helper_artifacts_still_summarize_the_old_state",
+    "future_reopen_tooling_changes_but_the_package_closeout_and_registry_do_not_reflect_the_latest_toolkit",
+    "helper_artifacts_start_to_read_like_new_authority_and_drift_from_the_formal_source_of_truth"
+  ],
+  "forbidden_interpretation": [
+    "this_sync_map_is_not_a_new_source_of_truth",
+    "this_sync_map_is_not_an_approval_artifact",
+    "this_sync_map_is_not_permission_to_change_governance_state",
+    "this_sync_map_is_not_permission_for_backtest_retest_paper_trading_phase_c_or_new_strategy_coding"
+  ],
+  "evidence_pointers": [
+    "output/governance_reviewer_quickstart_note.txt",
+    "output/governance_reviewer_quickstart_note.json",
+    "output/governance_artifact_registry.txt",
+    "output/governance_artifact_registry.json",
+    "output/how_to_read_current_governance_artifacts.txt",
+    "output/governance_documentation_package_closeout.txt",
+    "output/data_governance_limitation_register.txt",
+    "output/data_governance_limitation_register.json",
+    "output/data_governance_limitation_notes_index.txt",
+    "output/data_governance_limitation_notes_index.json",
+    "output/post_pause_active_lane_decision.txt",
+    "output/post_pause_active_lane_decision.json",
+    "output/layer2_governance_toolkit_index.json",
+    "output/project_roadmap_status.txt"
+  ]
+}

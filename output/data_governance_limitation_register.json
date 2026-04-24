@@ -1,0 +1,136 @@
+{
+  "artifact": "data_governance_limitation_register",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "purpose": [
+    "summarize_active_data_and_governance_limitations_after_phase_0b_closeout",
+    "turn_scattered_limitations_into_an_operational_non_strategy_documentation_backlog",
+    "prevent_data_documentation_progress_from_being_misread_as_strategy_readiness_progress"
+  ],
+  "reading_rule": [
+    "this_register_complements_phase_0b_final_data_policy_closeout_and_does_not_replace_it",
+    "project_roadmap_status_and_phase_0b_final_data_policy_closeout_remain_higher_priority_when_conflicts_exist"
+  ],
+  "active_limitations": [
+    {
+      "limitation_id": "raw_ohlc_corporate_action_boundary",
+      "priority": "high",
+      "current_status": "documented_known_risk_not_fully_normalized",
+      "why_it_is_still_a_limitation": "atr_trailing_stop_and_candle_sensitive_logic_still_use_raw_ohlc_under_temporary_option_c_and_remain_sensitive_to_corporate_action_jumps",
+      "already_documented_in": [
+        "output/phase_0b_final_data_policy_closeout.txt",
+        "output/phase_0b_final_data_policy_closeout.json",
+        "output/project_roadmap_status.txt",
+        "output/atr_corporate_action_jump_map.csv",
+        "output/corporate_action_boundary_note.txt",
+        "output/corporate_action_boundary_note.json"
+      ],
+      "allowed_next_work": "keep_the_corporate_action_boundary_note_scope_interpretation_and_evidence_pointers_synchronized",
+      "forbidden_interpretation": "do_not_treat_ohlc_sensitive_data_as_promotion_grade_final"
+    },
+    {
+      "limitation_id": "survivorship_and_delisted_universe_gap",
+      "priority": "high",
+      "current_status": "documented_limitation_not_resolved",
+      "why_it_is_still_a_limitation": "a_survivorship_free_delisted_inclusive_universe_is_not_yet_the_final_policy",
+      "already_documented_in": [
+        "output/phase_0b_final_data_policy_closeout.txt",
+        "output/phase_0b_final_data_policy_closeout.json",
+        "output/project_roadmap_status.txt",
+        "output/survivorship_boundary_note.txt",
+        "output/survivorship_boundary_note.json"
+      ],
+      "allowed_next_work": "keep_the_active_universe_boundary_note_coverage_note_and_evidence_pointer_set_synchronized",
+      "forbidden_interpretation": "do_not_use_this_gap_as_an_automatic_reason_to_restart_strategy_experiments"
+    },
+    {
+      "limitation_id": "execution_realism_boundary",
+      "priority": "medium",
+      "current_status": "minimum_cost_policy_applied_but_not_full_execution_aware_final",
+      "why_it_is_still_a_limitation": "the_30_bps_round_trip_policy_is_sufficient_for_no_go_promotion_path_but_not_equal_to_final_execution_realism",
+      "already_documented_in": [
+        "output/phase_0b_final_data_policy_closeout.txt",
+        "output/phase_0b_final_data_policy_closeout.json",
+        "output/walk_forward_with_costs_summary.json",
+        "output/project_roadmap_status.txt",
+        "output/execution_realism_boundary_note.txt",
+        "output/execution_realism_boundary_note.json"
+      ],
+      "allowed_next_work": "keep_the_execution_realism_note_minimum_cost_evidence_pointers_and_interpretation_boundary_synchronized",
+      "forbidden_interpretation": "do_not_treat_it_as_permission_for_retest_or_paper_trading"
+    },
+    {
+      "limitation_id": "portfolio_execution_aware_position_sizing_boundary",
+      "priority": "medium",
+      "current_status": "integrated_not_final",
+      "why_it_is_still_a_limitation": "the_sizing_engine_exists_but_portfolio_realism_is_not_yet_fully_execution_aware_or_promotable",
+      "already_documented_in": [
+        "output/project_roadmap_status.txt",
+        "output/phase_0b_final_data_policy_closeout.txt",
+        "output/phase_0b_final_data_policy_closeout.json",
+        "output/portfolio_execution_aware_position_sizing_boundary_note.txt",
+        "output/portfolio_execution_aware_position_sizing_boundary_note.json"
+      ],
+      "allowed_next_work": "keep_the_sizing_realism_boundary_note_synchronized_across_governance_and_data_artifacts",
+      "forbidden_interpretation": "do_not_treat_this_as_proof_that_only_exit_or_sizing_retest_is_needed"
+    },
+    {
+      "limitation_id": "evidence_discovery_and_boundary_consistency",
+      "priority": "medium",
+      "current_status": "partially_documented_across_multiple_artifacts",
+      "why_it_is_still_a_limitation": "evidence_exists_but_is_spread_across_multiple_artifacts_and_can_be_misread_by_new_reviewers",
+      "already_documented_in": [
+        "output/governance_artifact_registry.txt",
+        "output/governance_artifact_registry.json",
+        "output/how_to_read_current_governance_artifacts.txt",
+        "output/post_pause_non_strategy_workstream.txt",
+        "output/post_pause_non_strategy_workstream.json"
+      ],
+      "allowed_next_work": "keep_registry_read_order_and_artifact_pointers_synchronized",
+      "forbidden_interpretation": "do_not_equate_discovery_cleanup_with_a_change_in_governance_state"
+    }
+  ],
+  "execution_order_inside_active_non_strategy_lane": [
+    "keep_the_source_of_truth_frozen",
+    "refine_corporate_action_and_survivorship_pointers_first",
+    "refine_realism_cost_and_portfolio_realism_boundaries_second",
+    "keep_registry_and_reading_sequence_synchronized"
+  ],
+  "completion_standard": [
+    "each_active_limitation_has_a_clear_artifact_location",
+    "each_active_limitation_has_an_explicit_interpretation_boundary",
+    "no_data_limitation_is_implicitly_treated_as_permission_for_new_strategy_experiments"
+  ],
+  "forbidden_scope": [
+    "run_new_backtest",
+    "open_retest",
+    "open_paper_trading",
+    "open_phase_c",
+    "write_new_strategy_code",
+    "reopen_layer2_without_newer_valid_governance_override_artifact"
+  ],
+  "evidence_files_used": [
+    "output/project_roadmap_status.txt",
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/phase_0b_final_data_policy_closeout.json",
+    "output/post_pause_non_strategy_workstream.txt",
+    "output/post_pause_non_strategy_workstream.json",
+    "output/walk_forward_with_costs_summary.json",
+    "output/atr_corporate_action_jump_map.csv"
+  ],
+  "specialized_boundary_notes_now_available": [
+    "output/corporate_action_boundary_note.txt",
+    "output/corporate_action_boundary_note.json",
+    "output/survivorship_boundary_note.txt",
+    "output/survivorship_boundary_note.json",
+    "output/execution_realism_boundary_note.txt",
+    "output/execution_realism_boundary_note.json",
+    "output/portfolio_execution_aware_position_sizing_boundary_note.txt",
+    "output/portfolio_execution_aware_position_sizing_boundary_note.json"
+  ]
+}

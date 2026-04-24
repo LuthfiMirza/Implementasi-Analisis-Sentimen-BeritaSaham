@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-22T00:46:39.750758+00:00",
+  "generated_at": "2026-04-24T00:00:00+00:00",
   "project_root": ".",
   "phase_summary": {
     "phase_a": {
@@ -21,12 +21,12 @@
       "total": 4
     }
   },
-  "current_focus": "phase_b_closed_data_extension_and_framework_redesign",
+  "current_focus": "managed_hold_after_documentation_hardening_closeout",
   "latest_execution_status": {
     "phase_b_status": "phase_b_closed_with_learnings_no_candidate",
     "phase_c_decision": "phase_c_no_go_yet",
     "root_problem_class": "foundation_and_signal_usability",
-    "baseline_redesign_status": "usable_for_framework_redesign_only",
+    "baseline_redesign_status": "closed_under_managed_hold_for_current_scope",
     "baseline_v3_signal_rule_status": "no_go",
     "baseline_v3_signal_rule_best_rule": "baseline_v3_ema20_trend_guard",
     "baseline_revision_status": "baseline_v2_no_go_redesign_again",
@@ -34,8 +34,20 @@
     "baseline_v2_subset_status": "keep_candidate_experimental",
     "retest_readiness_status": "belum_boleh_retest",
     "can_continue_strategy_experiments_now": "false",
-    "current_track": "stop_and_collect_more_data_then_redesign_framework",
-    "recommended_next_action": "stop_and_collect_more_data_then_redesign_framework"
+    "current_track": "managed_hold_without_new_active_lane",
+    "recommended_next_action": "maintain_managed_hold_without_new_active_lane_until_explicit_new_lane_decision_or_new_governance_facing_evidence",
+    "documentation_hardening_status": "documentation_hardening_complete_with_watchpoints",
+    "closed_lane_status": "closed_with_watchpoints_and_not_yet_replaced",
+    "next_step_status": "hold_without_new_active_lane",
+    "technical_prediction_research_status": "parked_not_rejected_not_active"
+  },
+  "governance_closeout_status": {
+    "roadmap_current_scope": "closed_under_managed_hold_for_current_scope",
+    "formal_pause_resolution": "remain_in_documented_pause",
+    "documentation_hardening_status": "documentation_hardening_complete_with_watchpoints",
+    "closed_lane_status": "closed_with_watchpoints_and_not_yet_replaced",
+    "next_step_status": "hold_without_new_active_lane",
+    "technical_prediction_research_status": "parked_not_rejected_not_active"
   },
   "phase_a_final_status": {
     "generated_at": "2026-04-22T00:46:39.743615+00:00",

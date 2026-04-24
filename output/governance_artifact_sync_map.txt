@@ -1,0 +1,122 @@
+Governance Artifact Sync Map
+============================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Purpose:
+- Menjelaskan artifact governance utama dan ketergantungan sinkronisasi minimumnya.
+- Menjawab pertanyaan: jika satu artifact berubah, artifact mana yang minimal harus ikut dicek agar wording dan pointer tidak drift.
+- Menjaga paket governance aktif tetap rapi tanpa membingkai sync map ini sebagai source-of-truth baru atau approval artifact.
+
+How to use this sync map:
+1. Tentukan artifact yang berubah.
+2. Cari artifact itu dalam kelompoknya di bawah.
+3. Ikuti minimum sync rules yang relevan.
+4. Jika perubahan menyentuh istilah status resmi, lane aktif, limitation aktif, atau urutan baca, cek juga quickstart, registry, dan toolkit index.
+
+Core artifact groups:
+1. source_of_truth
+   - `output/project_roadmap_status.txt`
+   - `output/next_step_after_v3_pause_resolution.*`
+   - `output/phase_0b_final_data_policy_closeout.*`
+   - `output/layer2_reopen_threshold_governance_note.*`
+
+2. operational_guidance_and_discovery
+   - `output/governance_artifact_registry.*`
+   - `output/how_to_read_current_governance_artifacts.txt`
+   - `output/governance_reviewer_quickstart_note.*`
+   - `output/governance_artifact_sync_map.*`
+   - `output/layer2_governance_toolkit_index.json`
+   - `output/governance_documentation_package_closeout.txt`
+
+3. limitation_register_and_notes
+   - `output/data_governance_limitation_register.*`
+   - `output/data_governance_limitation_notes_index.*`
+   - `output/corporate_action_boundary_note.*`
+   - `output/survivorship_boundary_note.*`
+   - `output/execution_realism_boundary_note.*`
+   - `output/portfolio_execution_aware_position_sizing_boundary_note.*`
+
+4. active_lane_and_non_strategy_scope
+   - `output/post_pause_active_lane_decision.*`
+   - `output/post_pause_non_strategy_workstream.*`
+   - `output/technical_prediction_research_track.*`
+
+5. future_reopen_tooling
+   - `output/layer2_reopen_request_template.*`
+   - `output/governance_change_intake_checklist.*`
+   - `output/layer2_reopen_decision_memo_template.*`
+   - `output/layer2_reopen_evidence_preparation_pack.*`
+   - `output/governance_intake_log_policy.txt`
+   - `output/layer2_governance_operator_guide.txt`
+
+6. historical_supporting_context
+   - `output/phase_b_final_closeout.txt`
+   - `output/project_after_phase_b_decision.txt`
+   - `output/phase_b_go_no_go_next_phase.json`
+   - `output/walk_forward_validation_closeout.json`
+   - `output/walk_forward_with_costs_summary.json`
+   - `output/phase_2_layer_2_relative_strength_closeout.txt`
+   - `output/single_variable_experiment_results*.json`
+
+Minimum sync rules by artifact:
+- Jika `output/data_governance_limitation_register.*` berubah:
+  cek `output/data_governance_limitation_notes_index.*`, boundary note terkait, `output/governance_reviewer_quickstart_note.*`, `output/governance_artifact_registry.*`, dan `output/how_to_read_current_governance_artifacts.txt`.
+- Jika `output/data_governance_limitation_notes_index.*` berubah:
+  cek empat boundary note, `output/governance_reviewer_quickstart_note.*`, `output/layer2_governance_toolkit_index.json`, dan `output/governance_documentation_package_closeout.txt`.
+- Jika salah satu boundary note berubah:
+  cek `output/data_governance_limitation_register.*`, `output/data_governance_limitation_notes_index.*`, `output/governance_artifact_registry.*`, dan `output/how_to_read_current_governance_artifacts.txt`.
+- Jika `output/governance_reviewer_quickstart_note.*` berubah:
+  cek `output/how_to_read_current_governance_artifacts.txt`, `output/governance_artifact_registry.*`, `output/layer2_governance_toolkit_index.json`, dan `output/governance_documentation_package_closeout.txt`.
+- Jika `output/how_to_read_current_governance_artifacts.txt` berubah:
+  cek `output/governance_reviewer_quickstart_note.*`, `output/governance_artifact_registry.*`, `output/layer2_governance_toolkit_index.json`, dan `output/governance_documentation_package_closeout.txt`.
+- Jika `output/governance_artifact_registry.*` berubah:
+  cek `output/how_to_read_current_governance_artifacts.txt`, `output/governance_reviewer_quickstart_note.*`, `output/layer2_governance_toolkit_index.json`, dan `output/governance_documentation_package_closeout.txt`.
+- Jika `output/post_pause_active_lane_decision.*` berubah:
+  cek `output/governance_reviewer_quickstart_note.*`, `output/how_to_read_current_governance_artifacts.txt`, `output/governance_artifact_registry.*`, dan jika lane aktif berubah cek juga `output/technical_prediction_research_track.*`.
+- Jika `output/post_pause_non_strategy_workstream.*` atau `output/technical_prediction_research_track.*` berubah:
+  cek `output/post_pause_active_lane_decision.*`, `output/governance_reviewer_quickstart_note.*`, `output/governance_artifact_registry.*`, dan `output/governance_documentation_package_closeout.txt`.
+- Jika artifact future reopen tooling berubah:
+  cek `output/governance_artifact_registry.*`, `output/layer2_governance_toolkit_index.json`, `output/governance_documentation_package_closeout.txt`, dan `output/layer2_governance_operator_guide.txt`.
+- Jika source-of-truth resmi berubah:
+  cek minimal `output/governance_artifact_registry.*`, `output/how_to_read_current_governance_artifacts.txt`, `output/governance_reviewer_quickstart_note.*`, `output/data_governance_limitation_register.*` bila limitation ikut berubah, dan `output/post_pause_active_lane_decision.*` bila lane/working interpretation ikut berubah.
+
+High-risk drift patterns to avoid:
+- Registry menyebut artifact baru, tetapi how-to-read atau toolkit index belum menunjuk ke artifact itu.
+- Quickstart masih menyebut lane aktif lama setelah `post_pause_active_lane_decision.*` berubah.
+- Limitation register berubah, tetapi notes index atau boundary note masih memakai wording prioritas/interpretasi lama.
+- Source-of-truth bergeser, tetapi discovery/helper artifacts masih merangkum status lama.
+- Future reopen tooling berubah, tetapi package closeout dan registry tidak menunjukkan toolkit terbaru.
+- Artifact helper dibaca seperti authority baru dan mulai berbeda wording dari source-of-truth resmi.
+
+Forbidden interpretation:
+- Sync map ini bukan source-of-truth baru.
+- Sync map ini bukan artifact approval.
+- Sync map ini bukan izin untuk mengubah governance state.
+- Sync map ini bukan izin backtest, retest, paper trading, Phase C, atau coding strategi baru.
+
+Evidence pointers:
+- output/governance_reviewer_quickstart_note.txt
+- output/governance_reviewer_quickstart_note.json
+- output/governance_artifact_registry.txt
+- output/governance_artifact_registry.json
+- output/how_to_read_current_governance_artifacts.txt
+- output/governance_documentation_package_closeout.txt
+- output/data_governance_limitation_register.txt
+- output/data_governance_limitation_register.json
+- output/data_governance_limitation_notes_index.txt
+- output/data_governance_limitation_notes_index.json
+- output/post_pause_active_lane_decision.txt
+- output/post_pause_active_lane_decision.json
+- output/layer2_governance_toolkit_index.json
+- output/project_roadmap_status.txt
+
+Bottom line:
+- Sync map ini memberi daftar cek minimum agar update kecil pada governance package tidak menyebabkan drift antar-file.
+- Authority resmi tetap berada pada source-of-truth aktif; sync map ini hanya maintenance helper untuk paket dokumentasi aktif.

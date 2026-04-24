@@ -1,0 +1,49 @@
+{
+  "artifact": "survivorship_boundary_note",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "purpose": [
+    "sharpen_the_interpretation_boundary_for_survivorship_and_delisted_universe_gap",
+    "make_the_current_active_universe_boundary_explicit",
+    "prevent_survivorship_limitations_from_being_used_as_an_automatic_ticket_for_new_strategy_experiments"
+  ],
+  "officially_frozen_now": {
+    "active_rebuild_evaluation_base": "target_50_universe",
+    "current_stack_dataset_status": "documented_and_usable_for_current_official_evaluation_scope",
+    "survivorship_free_delisted_inclusive_policy": "not_final"
+  },
+  "why_this_remains_a_limitation": [
+    "the_active_universe_is_not_yet_a_final_survivorship_free_delisted_inclusive_policy",
+    "historical_results_on_the_current_stack_must_still_be_read_with_an_explicit_coverage_boundary",
+    "this_is_a_data_quality_and_interpretation_boundary_not_a_standalone_reason_to_restart_strategy_experiments"
+  ],
+  "operational_interpretation_boundary": [
+    "the_active_universe_may_be_used_to_read_existing_closeouts_and_governance_state",
+    "the_active_universe_must_not_be_claimed_as_a_final_survivorship_free_research_grade_or_promotion_grade_policy",
+    "this_note_does_not_change_the_documented_pause_state",
+    "this_note_does_not_open_retest_paper_trading_phase_c_or_new_strategy_experiments"
+  ],
+  "allowed_maintenance_work": [
+    "keep_the_active_universe_coverage_note_synchronized_with_the_roadmap_and_phase_0b_closeout",
+    "keep_survivorship_limitations_easy_for_reviewers_to_find",
+    "clarify_that_the_unresolved_survivorship_boundary_is_an_active_limitation_not_a_new_hidden_blocker"
+  ],
+  "forbidden_interpretation": [
+    "do_not_treat_this_as_proof_that_survivorship_bias_is_solved",
+    "do_not_treat_this_as_an_automatic_reason_to_run_a_new_backtest",
+    "do_not_treat_current_stack_results_as_free_from_universe_coverage_boundary"
+  ],
+  "evidence_pointers": [
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/phase_0b_final_data_policy_closeout.json",
+    "output/project_roadmap_status.txt",
+    "output/data_governance_limitation_register.txt",
+    "output/data_governance_limitation_register.json",
+    "output/post_pause_active_lane_decision.txt"
+  ]
+}

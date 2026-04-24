@@ -1,0 +1,47 @@
+When To Reopen Conversation Checklist
+====================================
+
+Reference date:
+- 2026-04-24
+
+Tujuan:
+- Menjadi checklist praktis untuk menentukan kapan percakapan proyek ini perlu dibuka lagi.
+- Menjaga agar hold saat ini tetap terkelola dan tidak berubah menjadi eksperimen baru tanpa keputusan eksplisit.
+
+Status dasar saat ini:
+- Proyek berada pada `documented pause`.
+- Status operasional sekarang adalah `hold_without_new_active_lane`.
+- `technical_prediction_research` masih `parked_not_rejected`, belum aktif.
+
+Buka percakapan lagi jika salah satu kondisi ini terjadi:
+1. Ada keputusan eksplisit untuk mengaktifkan `technical_prediction_research`.
+   - Trigger praktis: Anda memang ingin memulai lane riset prediction sebagai lane aktif baru, bukan sekadar membahasnya secara umum.
+
+2. Ada proposal reopen Layer 2 yang benar-benar baru.
+   - Trigger praktis: Anda sudah punya novelty note, failure-mechanism memo, frozen-stack confirmation, dan draft governance-facing artifact yang lebih baru.
+
+3. Ada perubahan governance state yang nyata.
+   - Trigger praktis: ada artifact baru yang mengubah status resmi, threshold reopen, lane aktif, atau interpretasi hold saat ini.
+
+4. Ada kebutuhan memperbarui paket guidance karena drift kecil mulai muncul.
+   - Trigger praktis: wording antar-artifact mulai berbeda, pointer registry tidak sinkron, atau quickstart/how-to-read sudah tidak cocok dengan artifact terbaru.
+
+5. Ada stakeholder update yang membutuhkan ringkasan baru.
+   - Trigger praktis: memo status saat ini tidak lagi cukup untuk menjelaskan posisi proyek kepada reviewer atau pihak lain.
+
+6. Ada evidence baru yang memang mengubah alasan untuk tetap hold.
+   - Trigger praktis: bukan sekadar ide, tetapi ada bahan baru yang cukup kuat untuk meminta keputusan lane baru secara eksplisit.
+
+Jangan buka percakapan lagi hanya karena:
+- ingin “cek apakah sekarang boleh lanjut” tanpa evidence atau keputusan baru
+- ada keinginan menjalankan backtest, retest, paper trading, atau Phase C
+- merasa dokumentasi sudah rapi lalu menganggap lane baru otomatis terbuka
+- ingin mengaktifkan `technical_prediction_research` secara diam-diam tanpa keputusan eksplisit
+
+Langkah pertama saat percakapan dibuka lagi:
+- Tentukan dulu trigger-nya masuk kategori apa: aktivasi lane riset, reopen intake, maintenance sync, atau update status.
+- Setelah itu baru pilih artifact yang relevan sebagai basis diskusi, jangan mulai dari nol.
+
+Bottom line:
+- Selama tidak ada trigger nyata di atas, posisi paling sehat adalah mempertahankan managed hold.
+- Percakapan baru sebaiknya dibuka hanya jika ada alasan operasional yang jelas, bukan karena dorongan untuk “bergerak lagi” tanpa dasar baru.

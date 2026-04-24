@@ -1,0 +1,50 @@
+{
+  "artifact": "portfolio_execution_aware_position_sizing_boundary_note",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "purpose": [
+    "sharpen_the_interpretation_boundary_for_portfolio_execution_aware_position_sizing_boundary",
+    "make_explicit_that_the_current_sizing_engine_is_integrated_and_usable_but_not_fully_execution_aware_or_promotable",
+    "prevent_sizing_limitations_from_being_misread_as_proof_that_only_exit_or_sizing_retest_remains"
+  ],
+  "officially_frozen_now": {
+    "layer_4_sizing_policy": "2_percent_risk_per_trade_with_10_percent_max_position_cap",
+    "current_sizing_engine_status": "integrated_into_the_current_official_evaluation_stack",
+    "portfolio_realism_status": "integrated_not_final_not_promotion_ready"
+  },
+  "why_this_remains_a_limitation": [
+    "having_an_integrated_sizing_engine_is_not_the_same_as_having_fully_execution_aware_portfolio_realism",
+    "phase_0b_closeout_explicitly_lists_fully_execution_aware_portfolio_sizing_not_final_as_an_unfinished_boundary",
+    "the_existence_of_the_sizing_engine_does_not_change_the_failure_of_strategy_validity_or_the_closed_promotion_path"
+  ],
+  "operational_interpretation_boundary": [
+    "this_note_supports_the_reading_that_the_current_sizing_layer_is_usable_for_the_current_official_evaluation_scope",
+    "this_note_does_not_support_claims_that_portfolio_sizing_realism_is_final_or_that_only_exit_or_sizing_retest_is_left",
+    "this_note_does_not_change_the_documented_pause_state",
+    "this_note_does_not_open_retest_paper_trading_phase_c_or_new_strategy_experiments"
+  ],
+  "allowed_maintenance_work": [
+    "keep_sizing_realism_artifact_pointers_synchronized_with_phase_0b_closeout_the_limitation_register_and_the_governance_registry",
+    "explain_the_difference_between_an_integrated_sizing_engine_and_fully_execution_aware_promotable_portfolio_realism",
+    "help_new_reviewers_keep_sizing_implementation_readiness_separate_from_strategy_validity"
+  ],
+  "forbidden_interpretation": [
+    "do_not_treat_this_as_proof_that_position_sizing_realism_is_final",
+    "do_not_treat_this_as_reason_to_reopen_the_strategy_path_for_exit_or_sizing_retest_only",
+    "do_not_treat_this_as_permission_for_backtest_retest_or_paper_trading"
+  ],
+  "evidence_pointers": [
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/phase_0b_final_data_policy_closeout.json",
+    "output/project_roadmap_status.txt",
+    "output/data_governance_limitation_register.txt",
+    "output/data_governance_limitation_register.json",
+    "output/post_pause_active_lane_decision.txt",
+    "output/post_pause_active_lane_decision.json"
+  ]
+}

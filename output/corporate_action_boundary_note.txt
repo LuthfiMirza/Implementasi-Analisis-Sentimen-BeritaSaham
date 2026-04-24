@@ -1,0 +1,53 @@
+Corporate Action Boundary Note
+==============================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Purpose:
+- Menajamkan batas interpretasi untuk limitation `raw_ohlc_corporate_action_boundary`.
+- Mengubah catatan corporate-action yang sebelumnya tersebar menjadi note operasional yang mudah dirujuk reviewer.
+- Menjaga agar known risk pada raw OHLC tidak salah dibaca sebagai masalah yang sudah final-solved.
+
+What is officially frozen now:
+- Regime, return, momentum, dan EMA tetap memakai `adj_close` sebagai basis resmi.
+- ATR, trailing stop, dan candle-sensitive logic tetap memakai raw OHLC di bawah temporary policy `option C` untuk current official evaluation scope.
+- Known risk corporate action pada raw OHLC diterima untuk scope evaluasi resmi saat ini, tetapi hanya sebagai accepted known risk, bukan policy final promotion-grade.
+
+Why this remains a limitation:
+- Komponen OHLC-sensitive masih rentan terhadap corporate-action jump pada data raw.
+- `output/atr_corporate_action_jump_map.csv` sudah menunjukkan event jump material yang relevan untuk boundary ini.
+- Karena itu, boundary ini sudah documented, tetapi belum fully normalized untuk klaim finalisasi data OHLC-sensitive.
+
+Operational interpretation boundary:
+- Note ini cukup untuk menjelaskan kenapa current stack boleh dibaca sebagai documented-and-consistent dalam scope evaluasi resmi saat ini.
+- Note ini tidak cukup untuk menyatakan bahwa ATR / stop / candle-sensitive logic sudah promotion-grade final.
+- Note ini tidak mengubah documented pause.
+- Note ini tidak memberi izin untuk retest, paper trading, Phase C, atau eksperimen strategi baru.
+
+Allowed maintenance work:
+- Menjaga pointer evidence corporate-action tetap sinkron.
+- Menjaga registry dan urutan baca tetap menunjuk ke note ini bila reviewer butuh boundary OHLC-sensitive.
+- Menjelaskan scope evaluasi resmi saat ini tanpa mengubah policy frozen stack.
+
+Forbidden interpretation:
+- Jangan dibaca sebagai bukti bahwa corporate-action issue sudah solved for final promotion scope.
+- Jangan dibaca sebagai alasan bahwa hanya exit logic yang perlu diuji ulang.
+- Jangan dibaca sebagai izin membuka backtest, retest, atau paper trading.
+
+Evidence pointers:
+- output/phase_0b_final_data_policy_closeout.txt
+- output/phase_0b_final_data_policy_closeout.json
+- output/project_roadmap_status.txt
+- output/atr_corporate_action_jump_map.csv
+- output/data_governance_limitation_register.txt
+- output/data_governance_limitation_register.json
+
+Bottom line:
+- Corporate-action boundary sekarang sudah punya note operasional khusus.
+- Note ini memperjelas bahwa raw OHLC policy current stack adalah accepted known risk for current evaluation scope, bukan solved final policy.

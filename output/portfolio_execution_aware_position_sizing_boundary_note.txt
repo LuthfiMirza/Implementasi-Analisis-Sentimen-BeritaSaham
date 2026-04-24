@@ -1,0 +1,54 @@
+Portfolio Execution-Aware Position Sizing Boundary Note
+=======================================================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Purpose:
+- Menajamkan batas interpretasi untuk limitation `portfolio_execution_aware_position_sizing_boundary`.
+- Menjelaskan bahwa sizing engine current stack sudah terintegrasi dan usable, tetapi realism portfolio belum fully execution-aware dan belum promotable.
+- Menjaga agar limitation sizing tidak salah dibaca sebagai bukti bahwa yang tersisa hanya retest exit atau sizing.
+
+What is officially frozen now:
+- Layer 4 sizing policy current official stack tetap `2% risk per trade` dengan `10% max position cap`.
+- Sizing engine saat ini sudah terintegrasi sebagai bagian dari stack evaluasi resmi.
+- Current official stack tetap dibaca sebagai `integrated / not final` untuk position sizing, bukan promotion-ready portfolio realism.
+
+Why this remains a limitation:
+- Integrasi sizing engine tidak sama dengan portfolio realism yang fully execution-aware.
+- Phase 0B closeout sudah eksplisit mencatat `fully_execution_aware_portfolio_sizing_not_final` sebagai batas yang masih belum final.
+- Karena itu, existence of sizing engine tidak mengubah keputusan bahwa strategy validity tetap belum terbukti dan promotion path tetap tertutup.
+
+Operational interpretation boundary:
+- Note ini cukup untuk menjelaskan bahwa sizing layer current stack usable untuk scope evaluasi resmi saat ini.
+- Note ini tidak cukup untuk menyatakan bahwa realism sizing portfolio sudah final atau bahwa tinggal layer exit/sizing saja yang perlu diuji ulang.
+- Note ini tidak mengubah documented pause.
+- Note ini tidak memberi izin untuk retest, paper trading, Phase C, atau eksperimen strategi baru.
+
+Allowed maintenance work:
+- Menjaga pointer artifact sizing realism tetap sinkron dengan closeout Phase 0B, register limitation, dan registry governance.
+- Menjelaskan beda antara `integrated sizing engine` versus `fully execution-aware promotable portfolio realism`.
+- Menjaga agar reviewer baru tidak mencampur readiness implementasi sizing dengan strategy validity.
+
+Forbidden interpretation:
+- Jangan dibaca sebagai bukti bahwa position sizing realism sudah final.
+- Jangan dibaca sebagai alasan bahwa cukup retest exit/sizing untuk membuka kembali strategy path.
+- Jangan dibaca sebagai izin membuka backtest, retest, atau paper trading.
+
+Evidence pointers:
+- output/phase_0b_final_data_policy_closeout.txt
+- output/phase_0b_final_data_policy_closeout.json
+- output/project_roadmap_status.txt
+- output/data_governance_limitation_register.txt
+- output/data_governance_limitation_register.json
+- output/post_pause_active_lane_decision.txt
+- output/post_pause_active_lane_decision.json
+
+Bottom line:
+- Portfolio execution-aware position sizing boundary sekarang sudah punya note operasional khusus.
+- Note ini memperjelas bahwa sizing engine current stack sudah integrated dan usable, tetapi belum sama dengan fully execution-aware promotable portfolio realism.

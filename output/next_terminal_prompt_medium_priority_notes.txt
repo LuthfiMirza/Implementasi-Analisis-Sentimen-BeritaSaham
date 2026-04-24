@@ -1,0 +1,84 @@
+Gunakan workspace saat ini dan jangan ulangi analisa besar. Lanjutkan langsung implementasi dua note medium-priority yang sudah diputuskan pada paket governance/data aktif.
+
+Konteks yang sudah final:
+- Status resmi tetap `documented pause`.
+- Lane aktif saat ini = `non_strategy_maintenance`.
+- Jangan buka eksperimen strategi baru, backtest, retest, paper trading, Phase C, atau coding strategi baru.
+- Jangan sentuh `output/project_roadmap_status.txt` karena file itu sudah modified sebelumnya dan sengaja tidak disentuh.
+- Dua note high-priority sudah selesai:
+  - `output/corporate_action_boundary_note.txt`
+  - `output/corporate_action_boundary_note.json`
+  - `output/survivorship_boundary_note.txt`
+  - `output/survivorship_boundary_note.json`
+
+Target tugas sekarang:
+1. Buat dua note operasional baru untuk limitation medium-priority:
+   - `output/execution_realism_boundary_note.txt`
+   - `output/execution_realism_boundary_note.json`
+   - `output/portfolio_execution_aware_position_sizing_boundary_note.txt`
+   - `output/portfolio_execution_aware_position_sizing_boundary_note.json`
+2. Sinkronkan pointer artifact yang relevan agar dua note baru ini masuk paket baca resmi:
+   - `output/data_governance_limitation_register.txt`
+   - `output/data_governance_limitation_register.json`
+   - `output/governance_artifact_registry.txt`
+   - `output/governance_artifact_registry.json`
+   - `output/how_to_read_current_governance_artifacts.txt`
+   - `output/governance_documentation_package_closeout.txt`
+   - `output/layer2_governance_toolkit_index.json`
+3. Validasi semua JSON terkait dengan `jq empty`.
+
+Substansi yang harus dijaga:
+- `execution_realism_boundary`
+  - Intinya: policy minimum cost 30 bps sudah cukup untuk menutup promotion path saat ini, tetapi belum setara dengan fully execution-aware final realism.
+  - Jangan biarkan note ini terbaca sebagai izin retest atau paper trading.
+- `portfolio_execution_aware_position_sizing_boundary`
+  - Intinya: sizing engine sudah terintegrasi dan usable, tetapi realism portfolio belum fully execution-aware dan belum promotable.
+  - Jangan biarkan note ini terbaca sebagai bukti bahwa tinggal retest exit/sizing saja.
+
+Gaya artifact:
+- Ikuti pola note yang sudah jadi:
+  - `output/corporate_action_boundary_note.txt`
+  - `output/survivorship_boundary_note.txt`
+- Untuk `.txt`, pakai struktur yang sama:
+  - title
+  - reference date
+  - current official state
+  - purpose
+  - what is officially frozen now
+  - why this remains a limitation
+  - operational interpretation boundary
+  - allowed maintenance work
+  - forbidden interpretation
+  - evidence pointers
+  - bottom line
+- Untuk `.json`, buat versi machine-readable yang konsisten dengan pola note yang sudah ada.
+
+Evidence minimum yang boleh dipakai:
+- `output/phase_0b_final_data_policy_closeout.txt`
+- `output/phase_0b_final_data_policy_closeout.json`
+- `output/project_roadmap_status.txt` hanya dibaca, jangan diedit
+- `output/walk_forward_with_costs_summary.json`
+- `output/data_governance_limitation_register.txt`
+- `output/data_governance_limitation_register.json`
+- `output/post_pause_active_lane_decision.txt`
+- `output/post_pause_active_lane_decision.json`
+- `output/governance_artifact_registry.txt`
+- `output/governance_artifact_registry.json`
+
+Aturan kerja:
+- Jangan ulangi analisa arah proyek. Arah sudah final.
+- Jangan menyentuh file di luar scope kecuali sinkronisasi pointer yang disebut di atas.
+- Gunakan `apply_patch` untuk edit manual.
+- Setelah selesai, laporkan singkat:
+  - file baru/diubah
+  - hasil validasi JSON
+  - konfirmasi bahwa `output/project_roadmap_status.txt` tidak disentuh
+
+Mulai dengan membaca file berikut secukupnya, lalu langsung implementasi:
+- `output/data_governance_limitation_register.txt`
+- `output/data_governance_limitation_register.json`
+- `output/corporate_action_boundary_note.txt`
+- `output/survivorship_boundary_note.txt`
+- `output/phase_0b_final_data_policy_closeout.txt`
+- `output/phase_0b_final_data_policy_closeout.json`
+- `output/walk_forward_with_costs_summary.json`

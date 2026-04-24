@@ -1,0 +1,82 @@
+{
+  "artifact": "data_governance_limitation_notes_index",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "purpose": [
+    "provide_a_single_discovery_page_for_the_four_active_data_governance_boundary_notes",
+    "speed_up_reviewer_navigation_without_replacing_the_source_of_truth_or_limitation_register",
+    "keep_boundary_notes_framed_as_interpretation_clarifiers_not_governance_state_changes"
+  ],
+  "how_to_use_this_index": [
+    "read_project_roadmap_status_next_step_after_v3_pause_resolution_phase_0b_final_data_policy_closeout_and_layer2_reopen_threshold_governance_note_first",
+    "read_data_governance_limitation_register_to_confirm_active_limitations_and_priorities",
+    "use_this_index_to_select_the_relevant_boundary_note",
+    "return_to_how_to_read_current_governance_artifacts_for_the_full_reading_sequence_if_needed"
+  ],
+  "boundary_note_map": [
+    {
+      "limitation_id": "raw_ohlc_corporate_action_boundary",
+      "note_artifacts": [
+        "output/corporate_action_boundary_note.txt",
+        "output/corporate_action_boundary_note.json"
+      ],
+      "focus": "raw_ohlc_for_atr_stop_and_candle_sensitive_logic_remains_an_accepted_known_risk_for_the_current_official_evaluation_scope_not_a_final_promotion_grade_policy"
+    },
+    {
+      "limitation_id": "survivorship_and_delisted_universe_gap",
+      "note_artifacts": [
+        "output/survivorship_boundary_note.txt",
+        "output/survivorship_boundary_note.json"
+      ],
+      "focus": "the_active_current_stack_universe_is_a_documented_evaluation_base_not_a_final_survivorship_free_delisted_inclusive_policy"
+    },
+    {
+      "limitation_id": "execution_realism_boundary",
+      "note_artifacts": [
+        "output/execution_realism_boundary_note.txt",
+        "output/execution_realism_boundary_note.json"
+      ],
+      "focus": "the_30_bps_minimum_cost_policy_is_sufficient_for_no_go_but_not_equal_to_fully_execution_aware_final_realism"
+    },
+    {
+      "limitation_id": "portfolio_execution_aware_position_sizing_boundary",
+      "note_artifacts": [
+        "output/portfolio_execution_aware_position_sizing_boundary_note.txt",
+        "output/portfolio_execution_aware_position_sizing_boundary_note.json"
+      ],
+      "focus": "the_sizing_engine_is_integrated_and_usable_but_portfolio_realism_is_not_yet_fully_execution_aware_or_promotable"
+    }
+  ],
+  "shared_interpretation_guardrail": [
+    "all_four_notes_clarify_active_data_and_governance_limitation_boundaries",
+    "none_of_these_notes_open_backtest_retest_paper_trading_phase_c_or_new_strategy_experiments",
+    "none_of_these_notes_increase_strategy_readiness_progress"
+  ],
+  "relationship_to_active_lane": {
+    "active_lane_supported": "non_strategy_maintenance",
+    "active_sub_lanes_supported": [
+      "data_governance_hardening",
+      "evidence_archival_policy"
+    ],
+    "not_an_override_artifact": true,
+    "not_an_approval_path": true
+  },
+  "evidence_files_used": [
+    "output/data_governance_limitation_register.txt",
+    "output/data_governance_limitation_register.json",
+    "output/corporate_action_boundary_note.txt",
+    "output/corporate_action_boundary_note.json",
+    "output/survivorship_boundary_note.txt",
+    "output/survivorship_boundary_note.json",
+    "output/execution_realism_boundary_note.txt",
+    "output/execution_realism_boundary_note.json",
+    "output/portfolio_execution_aware_position_sizing_boundary_note.txt",
+    "output/portfolio_execution_aware_position_sizing_boundary_note.json",
+    "output/how_to_read_current_governance_artifacts.txt"
+  ]
+}

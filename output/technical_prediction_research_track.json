@@ -1,0 +1,89 @@
+{
+  "artifact": "technical_prediction_research_track",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "track_purpose": [
+    "continue_the_project_as_a_technical_prediction_research_lane_during_documented_pause",
+    "allow_progress_as_a_research_prediction_project_without_claiming_trading_strategy_validity",
+    "keep_this_track_separate_from_the_strategy_promotion_path"
+  ],
+  "allowed_prediction_questions": [
+    "short_or_medium_horizon_return_direction",
+    "breakout_or_breakdown_probability",
+    "continuation_vs_reversal_tendency",
+    "regime_conditioned_technical_signal_quality"
+  ],
+  "baseline_research_lanes_that_may_continue": [
+    {
+      "lane": "target_label_definition",
+      "scope": "define_prediction_targets_and_labels_without_opening_a_new_strategy_backtest"
+    },
+    {
+      "lane": "horizon_selection",
+      "scope": "compare_prediction_horizons_offline_such_as_1d_5d_10d_or_other_explicit_horizons"
+    },
+    {
+      "lane": "benchmark_metric_definition",
+      "scope": "define_prediction_research_metrics_instead_of_strategy_promotion_metrics"
+    },
+    {
+      "lane": "offline_feature_signal_comparison",
+      "scope": "compare_technical_features_or_signals_offline_without_modifying_the_official_strategy_stack"
+    },
+    {
+      "lane": "signal_calibration_and_ranking_quality_analysis",
+      "scope": "evaluate_calibration_bucket_hit_rate_or_signal_ranking_quality_for_research_use"
+    },
+    {
+      "lane": "model_free_baseline_benchmarking",
+      "scope": "use_simple_non_strategy_baselines_such_as_majority_class_naive_direction_or_ranking_baselines"
+    }
+  ],
+  "research_metrics_that_fit_this_track": [
+    "directional_accuracy",
+    "precision_recall_by_class",
+    "rank_correlation",
+    "calibration_or_hit_rate_by_bucket",
+    "stability_by_regime_or_time_slice"
+  ],
+  "lanes_that_remain_forbidden": [
+    "backtest_strategy_baru",
+    "retest",
+    "paper_trading",
+    "phase_c",
+    "strategy_promotion_claim",
+    "reopen_layer2_without_newer_valid_governance_override_artifact",
+    "write_new_strategy_code"
+  ],
+  "explicit_interpretation": [
+    "prediction_research_results_do_not_automatically_mean_strategy_validity_has_recovered",
+    "prediction_research_results_do_not_automatically_open_the_trading_path",
+    "prediction_research_results_do_not_automatically_open_retest_paper_trading_or_phase_c",
+    "this_track_is_a_research_lane_not_an_approval_lane",
+    "this_track_must_be_read_separately_from_the_strategy_promotion_path_that_remains_blocked"
+  ],
+  "relationship_to_active_roadmap": {
+    "project_roadmap_status_txt_remains_source_of_truth_for_strategy_state": true,
+    "post_pause_non_strategy_workstream_remains_the_general_non_strategy_umbrella": true,
+    "this_artifact_defines_a_specific_technical_prediction_research_lane_under_that_umbrella": true,
+    "strategy_readiness_progress_does_not_increase_just_because_this_track_moves": true
+  },
+  "evidence_files_used": [
+    "output/project_roadmap_status.txt",
+    "output/post_pause_non_strategy_workstream.txt",
+    "output/post_pause_non_strategy_workstream.json",
+    "output/next_step_after_v3_pause_resolution.txt",
+    "output/next_step_after_v3_pause_resolution.json",
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/phase_0b_final_data_policy_closeout.json",
+    "output/layer2_reopen_threshold_governance_note.txt",
+    "output/layer2_reopen_threshold_governance_note.json",
+    "output/governance_artifact_registry.txt",
+    "output/governance_artifact_registry.json"
+  ]
+}

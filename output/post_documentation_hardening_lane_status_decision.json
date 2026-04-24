@@ -1,0 +1,67 @@
+{
+  "artifact": "post_documentation_hardening_lane_status_decision",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "purpose": [
+    "determine_the_operational_status_of_the_non_strategy_maintenance_lane_after_the_documentation_hardening_complete_with_watchpoints_assessment",
+    "remove_ambiguity_about_whether_the_lane_should_still_be_read_as_fully_active",
+    "make_clear_that_this_is_an_operational_lane_status_decision_not_a_governance_state_change"
+  ],
+  "input_assessment_summary": {
+    "assessment_artifact": "output/documentation_hardening_completion_assessment.*",
+    "assessment_status": "documentation_hardening_complete_with_watchpoints",
+    "active_lane_success_criteria_status": "met",
+    "limitation_register_completion_standard_status": "met",
+    "active_blockers_for_documentation_hardening_closeout": "none",
+    "residual_issue_type": "watchpoints_not_blockers"
+  },
+  "decision_options_considered": [
+    {
+      "option": "still_active_but_low_intensity_maintenance_only",
+      "fit": "only_if_the_lane_still_needs_to_be_read_as_an_active_day_to_day_working_lane",
+      "risk": "it_can_make_the_lane_look_more_active_than_the_assessment_supports"
+    },
+    {
+      "option": "closed_with_watchpoints_and_not_yet_replaced",
+      "fit": "best_when_the_main_scope_is_finished_no_blocker_remains_and_no_replacement_lane_has_been_explicitly_activated",
+      "risk": "requires_a_separate_future_decision_if_a_new_active_lane_is_to_be_selected"
+    }
+  ],
+  "chosen_lane_status": "closed_with_watchpoints_and_not_yet_replaced",
+  "rationale": [
+    "the_documentation_hardening_scope_for_non_strategy_maintenance_has_been_formally_assessed_as_complete_with_watchpoints",
+    "with_no_active_blockers_remaining_the_lane_is_no_longer_most_defensibly_read_as_a_full_intensity_active_working_lane",
+    "because_no_replacement_lane_has_been_explicitly_selected_the_safest_position_is_to_close_this_lane_with_watchpoints_and_state_that_it_has_not_yet_been_replaced",
+    "technical_prediction_research_remains_parked_not_rejected_but_does_not_become_active_automatically"
+  ],
+  "watchpoint_handling_rule": [
+    "watchpoints_remain_a_light_maintenance_obligation_not_a_reason_to_reopen_the_lane_as_full_intensity_active_work",
+    "if_small_pointer_wording_or_toolkit_updates_occur_use_the_governance_artifact_sync_map_to_check_minimum_drift_controls",
+    "if_a_new_active_lane_is_to_be_opened_that_requires_a_separate_explicit_decision"
+  ],
+  "forbidden_interpretation": [
+    "this_decision_does_not_change_the_official_governance_state",
+    "this_decision_is_not_permission_to_activate_technical_prediction_research_as_the_new_active_lane",
+    "this_decision_is_not_permission_to_reopen_layer2",
+    "this_decision_is_not_permission_for_backtest_retest_paper_trading_phase_c_or_new_strategy_coding",
+    "closed_with_watchpoints_and_not_yet_replaced_does_not_mean_documented_pause_has_ended"
+  ],
+  "evidence_pointers": [
+    "output/documentation_hardening_completion_assessment.txt",
+    "output/documentation_hardening_completion_assessment.json",
+    "output/post_pause_active_lane_decision.txt",
+    "output/post_pause_active_lane_decision.json",
+    "output/governance_documentation_package_closeout.txt",
+    "output/governance_artifact_registry.txt",
+    "output/governance_artifact_registry.json",
+    "output/how_to_read_current_governance_artifacts.txt",
+    "output/technical_prediction_research_track.txt",
+    "output/technical_prediction_research_track.json",
+    "output/project_roadmap_status.txt"
+  ]
+}

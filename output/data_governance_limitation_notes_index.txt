@@ -1,0 +1,64 @@
+Data Governance Limitation Notes Index
+======================================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Purpose:
+- Menyediakan satu halaman ringkas untuk reviewer baru agar cepat melihat empat boundary note limitation data/governance aktif.
+- Mempercepat discovery path tanpa menggantikan source-of-truth, limitation register, atau closeout resmi.
+- Menjaga agar limitation notes dibaca sebagai boundary clarification, bukan perubahan governance state.
+
+How to use this index:
+1. Baca dulu `output/project_roadmap_status.txt`, `output/next_step_after_v3_pause_resolution.*`, `output/phase_0b_final_data_policy_closeout.*`, dan `output/layer2_reopen_threshold_governance_note.*`.
+2. Baca `output/data_governance_limitation_register.*` untuk melihat limitation aktif dan prioritasnya.
+3. Gunakan index ini untuk memilih boundary note yang relevan.
+4. Jika butuh urutan baca lengkap, kembali ke `output/how_to_read_current_governance_artifacts.txt`.
+
+Boundary note map:
+1. `raw_ohlc_corporate_action_boundary`
+   - note = `output/corporate_action_boundary_note.*`
+   - focus = Raw OHLC untuk ATR / stop / candle-sensitive logic masih accepted known risk untuk scope evaluasi resmi saat ini, belum final promotion-grade.
+
+2. `survivorship_and_delisted_universe_gap`
+   - note = `output/survivorship_boundary_note.*`
+   - focus = Universe aktif current stack adalah documented evaluation base, belum final survivorship-free / delisted-inclusive policy.
+
+3. `execution_realism_boundary`
+   - note = `output/execution_realism_boundary_note.*`
+   - focus = Minimum cost policy 30 bps sudah cukup untuk mendukung no-go promotion path, tetapi belum sama dengan fully execution-aware final realism.
+
+4. `portfolio_execution_aware_position_sizing_boundary`
+   - note = `output/portfolio_execution_aware_position_sizing_boundary_note.*`
+   - focus = Sizing engine sudah integrated dan usable untuk scope evaluasi resmi saat ini, tetapi realism portfolio belum fully execution-aware dan belum promotable.
+
+Shared interpretation guardrail:
+- Keempat note di atas memperjelas batas interpretasi limitation data/governance.
+- Keempat note di atas tidak membuka backtest, retest, paper trading, Phase C, atau eksperimen strategi baru.
+- Keempat note di atas tidak menaikkan strategy readiness progress.
+
+Relationship to the active lane:
+- Index ini mendukung lane aktif `non_strategy_maintenance`, khususnya sub-lane `data_governance_hardening` dan `evidence_archival_policy`.
+- Index ini bukan artifact override dan bukan approval path.
+
+Evidence files used:
+- output/data_governance_limitation_register.txt
+- output/data_governance_limitation_register.json
+- output/corporate_action_boundary_note.txt
+- output/corporate_action_boundary_note.json
+- output/survivorship_boundary_note.txt
+- output/survivorship_boundary_note.json
+- output/execution_realism_boundary_note.txt
+- output/execution_realism_boundary_note.json
+- output/portfolio_execution_aware_position_sizing_boundary_note.txt
+- output/portfolio_execution_aware_position_sizing_boundary_note.json
+- output/how_to_read_current_governance_artifacts.txt
+
+Bottom line:
+- Reviewer baru sekarang bisa membuka satu index ringkas untuk melihat seluruh boundary note limitation aktif.
+- Index ini membantu discovery, tetapi authority resmi tetap berada pada source-of-truth dan limitation register.

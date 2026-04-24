@@ -36,6 +36,66 @@ Operational governance tooling:
   reason: Panduan operasional end-to-end untuk reviewer baru; membantu menjalankan proses review, tetapi tidak mengubah governance state.
 - `output/layer2_governance_toolkit_index.json`
   reason: Peta operasional toolkit yang merangkum source-of-truth, tooling, dan examples; memudahkan discovery path, tetapi bukan artifact yang mengubah state governance.
+- `output/governance_reviewer_quickstart_note.txt`
+  reason: Quickstart satu halaman untuk reviewer baru agar cepat memahami status resmi, urutan baca, lane aktif, dan scope yang tetap blocked.
+- `output/governance_reviewer_quickstart_note.json`
+  reason: Versi machine-readable dari quickstart onboarding reviewer.
+- `output/governance_artifact_sync_map.txt`
+  reason: Peta maintenance yang menjelaskan artifact mana yang minimal harus dicek bersama agar paket governance aktif tidak drift antar-file.
+- `output/governance_artifact_sync_map.json`
+  reason: Versi machine-readable dari sync map maintenance governance package.
+- `output/documentation_hardening_completion_assessment.txt`
+  reason: Assessment formal apakah lane non-strategy maintenance sudah cukup layak ditutup sebagai documentation hardening complete atau masih menyisakan watchpoints.
+- `output/documentation_hardening_completion_assessment.json`
+  reason: Versi machine-readable dari assessment completion documentation hardening.
+- `output/post_documentation_hardening_lane_status_decision.txt`
+  reason: Keputusan operasional pasca-assessment untuk menentukan apakah lane non-strategy maintenance ditutup dengan watchpoints atau tetap dibaca sebagai low-intensity active maintenance.
+- `output/post_documentation_hardening_lane_status_decision.json`
+  reason: Versi machine-readable dari keputusan status lane pasca-documentation-hardening.
+- `output/post_lane_close_next_selection_decision.txt`
+  reason: Keputusan langkah berikut setelah lane dokumentasi ditutup, termasuk apakah proyek paling defensible berada pada managed hold atau perlu aktivasi lane yang sudah tersedia.
+- `output/post_lane_close_next_selection_decision.json`
+  reason: Versi machine-readable dari keputusan next-lane selection pasca-lane close.
+- `output/post_pause_non_strategy_workstream.txt`
+  reason: Payung lane kerja non-strategy yang boleh berjalan selama documented pause.
+- `output/post_pause_non_strategy_workstream.json`
+  reason: Versi machine-readable dari payung lane kerja non-strategy.
+- `output/technical_prediction_research_track.txt`
+  reason: Definisi lane prediction research yang tetap sah, tetapi terpisah dari strategy promotion path.
+- `output/technical_prediction_research_track.json`
+  reason: Versi machine-readable dari lane prediction research.
+- `output/data_governance_limitation_register.txt`
+  reason: Register operasional limitation data/governance aktif yang membantu merapikan backlog dokumentasi tanpa membuka eksperimen strategi baru.
+- `output/data_governance_limitation_register.json`
+  reason: Versi machine-readable dari register limitation data/governance.
+- `output/data_governance_limitation_notes_index.txt`
+  reason: Index ringkas untuk membantu reviewer baru menemukan empat boundary note limitation aktif dalam satu halaman.
+- `output/data_governance_limitation_notes_index.json`
+  reason: Versi machine-readable dari index ringkas limitation notes.
+- `output/corporate_action_boundary_note.txt`
+  reason: Note operasional khusus yang menajamkan batas interpretasi corporate-action risk pada raw OHLC.
+- `output/corporate_action_boundary_note.json`
+  reason: Versi machine-readable dari note operasional corporate-action boundary.
+- `output/survivorship_boundary_note.txt`
+  reason: Note operasional khusus yang menajamkan batas interpretasi survivorship dan delisted-universe gap.
+- `output/survivorship_boundary_note.json`
+  reason: Versi machine-readable dari note operasional survivorship boundary.
+- `output/execution_realism_boundary_note.txt`
+  reason: Note operasional khusus yang menajamkan batas interpretasi minimum cost realism yang cukup untuk no-go tetapi belum final execution-aware.
+- `output/execution_realism_boundary_note.json`
+  reason: Versi machine-readable dari note operasional execution realism boundary.
+- `output/portfolio_execution_aware_position_sizing_boundary_note.txt`
+  reason: Note operasional khusus yang menajamkan batas interpretasi portfolio sizing realism yang sudah integrated tetapi belum final.
+- `output/portfolio_execution_aware_position_sizing_boundary_note.json`
+  reason: Versi machine-readable dari note operasional portfolio sizing realism boundary.
+- `output/post_pause_active_lane_decision.txt`
+  reason: Keputusan eksplisit lane kerja aktif saat documented pause agar fokus operasional tidak ambigu.
+- `output/post_pause_active_lane_decision.json`
+  reason: Versi machine-readable dari keputusan lane aktif.
+- `output/layer2_reopen_evidence_preparation_pack.txt`
+  reason: Paket persiapan evidence pra-intake untuk future reopen Layer 2; membantu menjaga novelty dan failure mechanism discipline tanpa memberi izin eksekusi.
+- `output/layer2_reopen_evidence_preparation_pack.json`
+  reason: Versi machine-readable dari paket persiapan evidence pra-intake.
 
 Historical but still relevant supporting context:
 - `output/phase_b_final_closeout.txt`

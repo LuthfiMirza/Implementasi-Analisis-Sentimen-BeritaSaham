@@ -1,0 +1,93 @@
+Data Governance Limitation Register
+==================================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Purpose:
+- Merangkum limitation data/governance yang masih aktif setelah closeout Phase 0B.
+- Mengubah limitation yang tersebar menjadi register operasional yang bisa dirapikan tanpa membuka eksperimen strategi baru.
+- Menjaga agar progress dokumentasi data tidak dibaca sebagai kenaikan strategy readiness.
+
+Reading rule:
+- Register ini melengkapi `output/phase_0b_final_data_policy_closeout.*`, bukan menggantikannya.
+- Jika ada konflik interpretasi, `output/project_roadmap_status.txt` dan `output/phase_0b_final_data_policy_closeout.*` tetap lebih tinggi.
+
+Active limitation register:
+1. raw_ohlc_corporate_action_boundary
+   - priority = high
+   - current_status = documented_known_risk_not_fully_normalized
+   - why_it_is_still_a_limitation = ATR, trailing stop, dan candle-sensitive logic masih memakai raw OHLC temporary option C sehingga sensitif pada corporate-action jump.
+   - already_documented_in = `output/phase_0b_final_data_policy_closeout.*`, `output/project_roadmap_status.txt`, `output/atr_corporate_action_jump_map.csv`, `output/corporate_action_boundary_note.*`
+   - allowed_next_work = Jaga note corporate-action boundary, scope interpretasi, dan tautan artifact evidence tetap sinkron.
+   - forbidden_interpretation = Jangan dibaca sebagai data OHLC-sensitive sudah promotion-grade final.
+
+2. survivorship_and_delisted_universe_gap
+   - priority = high
+   - current_status = documented_limitation_not_resolved
+   - why_it_is_still_a_limitation = Universe survivorship-free / delisted-inclusive belum menjadi policy final.
+   - already_documented_in = `output/phase_0b_final_data_policy_closeout.*`, `output/project_roadmap_status.txt`, `output/survivorship_boundary_note.*`
+   - allowed_next_work = Jaga note batas interpretasi universe aktif, coverage note, dan daftar artifact limitation ini tetap sinkron.
+   - forbidden_interpretation = Jangan dibaca sebagai alasan otomatis untuk menjalankan eksperimen strategi baru.
+
+3. execution_realism_boundary
+   - priority = medium
+   - current_status = minimum_cost_policy_applied_but_not_full_execution_aware_final
+   - why_it_is_still_a_limitation = Cost policy 30 bps sudah cukup untuk no-go promotion path, tetapi belum setara realism operasional final.
+   - already_documented_in = `output/phase_0b_final_data_policy_closeout.*`, `output/walk_forward_with_costs_summary.json`, `output/project_roadmap_status.txt`, `output/execution_realism_boundary_note.*`
+   - allowed_next_work = Jaga note execution realism, pointer evidence biaya minimum, dan batas interpretasinya tetap sinkron.
+   - forbidden_interpretation = Jangan dibaca sebagai izin retest atau paper trading.
+
+4. portfolio_execution_aware_position_sizing_boundary
+   - priority = medium
+   - current_status = integrated_not_final
+   - why_it_is_still_a_limitation = Engine sizing sudah ada, tetapi realism portfolio belum fully execution-aware dan belum promotable.
+   - already_documented_in = `output/project_roadmap_status.txt`, `output/phase_0b_final_data_policy_closeout.*`, `output/portfolio_execution_aware_position_sizing_boundary_note.*`
+   - allowed_next_work = Jaga note batas sizing realism ke artifact governance/data agar tidak tertukar dengan strategy validity.
+   - forbidden_interpretation = Jangan dibaca sebagai alasan bahwa hanya layer exit atau sizing yang perlu retest.
+
+5. evidence_discovery_and_boundary_consistency
+   - priority = medium
+   - current_status = partially_documented_across_multiple_artifacts
+   - why_it_is_still_a_limitation = Evidence sudah ada, tetapi tersebar di beberapa artifact sehingga reviewer baru bisa salah baca scope limitation versus scope strategy failure.
+   - already_documented_in = `output/governance_artifact_registry.*`, `output/how_to_read_current_governance_artifacts.txt`, `output/post_pause_non_strategy_workstream.*`
+   - allowed_next_work = Rapikan registry, urutan baca, dan pointer artifact agar reviewer cepat menemukan batas interpretasi yang benar.
+   - forbidden_interpretation = Jangan anggap perapihan discovery sama dengan perubahan governance state.
+
+Execution order inside the active non-strategy lane:
+1. Pertahankan source-of-truth tetap beku.
+2. Rapikan pointer corporate-action dan survivorship sebagai limitation prioritas tinggi.
+3. Rapikan boundary realism cost dan portfolio realism sebagai limitation pendukung.
+4. Jaga registry dan reading sequence tetap sinkron dengan artifact baru.
+
+Completion standard for this register:
+- Semua limitation aktif punya lokasi artifact yang jelas.
+- Semua limitation aktif punya batas interpretasi yang eksplisit.
+- Tidak ada limitation data yang secara implisit dibaca sebagai izin eksperimen strategi baru.
+
+Forbidden scope:
+- backtest baru
+- retest
+- paper trading
+- Phase C
+- coding strategi baru
+- reopen Layer 2 tanpa override artifact governance yang lebih baru dan valid
+
+Evidence files used:
+- output/project_roadmap_status.txt
+- output/phase_0b_final_data_policy_closeout.txt
+- output/phase_0b_final_data_policy_closeout.json
+- output/post_pause_non_strategy_workstream.txt
+- output/post_pause_non_strategy_workstream.json
+- output/walk_forward_with_costs_summary.json
+- output/atr_corporate_action_jump_map.csv
+
+Bottom line:
+- Limitation data/governance utama sekarang sudah terdaftar sebagai backlog dokumentasi operasional.
+- Corporate-action boundary note, survivorship boundary note, execution realism boundary note, dan portfolio execution-aware position sizing boundary note sekarang sudah tersedia sebagai note operasional khusus.
+- Register ini menjaga kerja perapihan tetap sah di jalur non-strategy dan tidak mengubah status documented pause.

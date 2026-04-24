@@ -1,0 +1,53 @@
+Survivorship Boundary Note
+==========================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Purpose:
+- Menajamkan batas interpretasi untuk limitation `survivorship_and_delisted_universe_gap`.
+- Menjelaskan dengan eksplisit apa arti universe aktif saat ini dan apa yang belum boleh diklaim.
+- Menjaga agar limitation survivorship tidak dipakai sebagai tiket otomatis untuk membuka eksperimen strategi baru.
+
+What is officially frozen now:
+- Universe target 50 tetap menjadi basis evaluasi rebuild yang aktif.
+- Dataset aktif current stack sudah documented dan usable untuk scope evaluasi resmi saat ini.
+- Policy survivorship-free / delisted-inclusive belum menjadi policy final.
+
+Why this remains a limitation:
+- Universe aktif saat ini belum dibingkai sebagai final policy yang memasukkan saham delisted secara survivorship-free.
+- Karena itu, hasil evaluasi historis pada current stack tetap harus dibaca dengan boundary coverage yang eksplisit.
+- Limitation ini adalah batas kualitas dan interpretasi data, bukan alasan mandiri untuk mengulang jalur eksperimen strategi.
+
+Operational interpretation boundary:
+- Universe aktif saat ini boleh dipakai untuk membaca closeout dan governance state yang sudah terdokumentasi.
+- Universe aktif saat ini tidak boleh diklaim sebagai final research-grade atau promotion-grade survivorship-free universe.
+- Note ini tidak mengubah documented pause.
+- Note ini tidak membuka retest, paper trading, Phase C, atau eksperimen strategi baru.
+
+Allowed maintenance work:
+- Menjaga coverage note universe aktif tetap sinkron dengan roadmap dan closeout Phase 0B.
+- Menjaga pointer artifact yang menjelaskan limitation survivorship tetap mudah ditemukan reviewer.
+- Menjelaskan bahwa unresolved survivorship boundary tetap tercatat sebagai limitation aktif, bukan hidden blocker baru.
+
+Forbidden interpretation:
+- Jangan dibaca sebagai bukti bahwa bias survivorship sudah selesai.
+- Jangan dibaca sebagai alasan otomatis untuk menjalankan backtest baru.
+- Jangan dibaca sebagai klaim bahwa hasil evaluasi current stack sudah bebas dari boundary universe coverage.
+
+Evidence pointers:
+- output/phase_0b_final_data_policy_closeout.txt
+- output/phase_0b_final_data_policy_closeout.json
+- output/project_roadmap_status.txt
+- output/data_governance_limitation_register.txt
+- output/data_governance_limitation_register.json
+- output/post_pause_active_lane_decision.txt
+
+Bottom line:
+- Survivorship boundary sekarang sudah punya note operasional khusus.
+- Note ini memperjelas bahwa universe aktif current stack adalah documented evaluation base, bukan final survivorship-free policy.
