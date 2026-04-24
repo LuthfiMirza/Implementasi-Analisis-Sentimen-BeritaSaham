@@ -26,3 +26,7 @@ Thumbs.db
 .blackboxcli/
 .vendor-py/
 Penulisan/
+output/single_variable_experiment_runs/
+output/single_variable_experiment_runs_v2/
+output/single_variable_experiment_runs_v3/
+output/walk_forward_with_costs_run/
