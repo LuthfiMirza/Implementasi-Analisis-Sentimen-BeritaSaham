@@ -1,11 +1,11 @@
 Project Roadmap Status
 ======================
 
-Generated at: 2026-04-23
+Generated at: 2026-04-24
 Current focus: strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
 
 Progress snapshot:
-- Roadmap implementation progress: [#################---] 83%
+- Roadmap implementation progress: [#################---] 85%
 - Strategy readiness progress: [############--------] 62%
 - Note: `roadmap implementation progress` mengukur pekerjaan build/evaluation yang sudah terlaksana; `strategy readiness progress` mengukur kesiapan strategi untuk naik ke tahap berikutnya tanpa melanggar governance block.
 
@@ -13,14 +13,14 @@ Phase progress table:
 | Phase | Status | Progress | Alasan |
 | --- | --- | --- | --- |
 | Phase 0A - Evaluation Framework Redesign | Done | 100% | Framework semantics sudah dipatch dan source-of-truth readiness/governance sudah sinkron. |
-| Phase 0B - Data Audit and Repair | Partial | 85% | Core data, IHSG, indicator master, dan minimum fee/slippage policy sudah ada, tetapi final adjusted-OHLC/corporate-action policy belum final. |
+| Phase 0B - Data Audit and Repair | Closed with limitations | 100% | Artifact `output/phase_0b_final_data_policy_closeout.*` menutup Phase 0B sebagai `closed_with_documented_limitations`; data policy current stack sudah terdokumentasi, tetapi belum promotion-grade final. |
 | Phase Universe Expansion | Done | 100% | Target 50 ticker sudah dibekukan dan direbuild sebagai basis validasi. |
 | Phase 1 - Layer 1 Market Regime Filter | Done | 100% | Policy Layer 1 resmi sudah dipilih dan dibekukan. |
-| Phase 2 - Layer 2 Stock Selection / Entry Family | Partial | 75% | Jalur RS sudah ditutup, jalur alternatif usable, tetapi belum final-validation frozen. |
-| Phase 3 - Layer 3 Entry Signal Upgrade | Partial | 82% | Sudah terintegrasi dan usable sebagai optional layer, tetapi bukan default-active final policy. |
-| Phase 4 - Layer 5 Exit Management Upgrade | Partial | 25% | Pass integrasi awal selesai, tetapi exit policy masih provisional dan belum operationally final. |
-| Phase 5 - Layer 4 Position Sizing | Partial | 70% | Sizing engine sudah berjalan, tetapi realism portfolio masih belum fully final/execution-aware. |
-| Phase 6 - Walk-Forward Validation | Partial | 60% | First pass sudah selesai, tetapi stack gagal gate minimum dan belum ready untuk candidate track. |
+| Phase 2 - Layer 2 Stock Selection / Entry Family | Governance-paused | 75% | Jalur RS sudah ditutup, jalur alternatif hanya integration-frozen, tiga lever single-variable ditolak formal, dan threshold reopen sekarang dibatasi oleh `output/layer2_reopen_threshold_governance_note.*`. |
+| Phase 3 - Layer 3 Entry Signal Upgrade | Integrated / not promotable | 82% | Sudah terintegrasi dan usable sebagai optional layer, tetapi bukan default-active final policy dan tidak membuka promotion path. |
+| Phase 4 - Layer 5 Exit Management Upgrade | Integrated / provisional | 25% | Pass integrasi awal selesai, tetapi exit policy masih provisional dan tidak boleh dibaca sebagai readiness untuk promotion. |
+| Phase 5 - Layer 4 Position Sizing | Integrated / not final | 70% | Sizing engine sudah berjalan, tetapi realism portfolio masih belum fully final/execution-aware dan belum promotable. |
+| Phase 6 - Walk-Forward Validation | Closed failed / not promotable | 60% | First pass sudah selesai dan artifact closeout sudah ada, tetapi stack gagal gate minimum sehingga candidate track tetap tertutup. |
 | Phase 7 - Paper Trading | Blocked | 0% | Masih tertahan oleh governance block dan strategi belum layak dipromosikan. |
 
 Official project state:
@@ -29,13 +29,18 @@ Official project state:
 - Phase C: phase_c_no_go_yet
 - Retest readiness: belum_boleh_retest
 - Active track: stop_and_rebuild_foundation
+- Formal pause resolution: remain_in_documented_pause
 - Recommended next action: maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
 - recommended_next_action=maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
-  Note: Threshold refresh cycle `framework_governance_gate` sudah complete dan post-threshold assessment menegaskan gate tetap belum clear. Jalur resmi aktif sekarang adalah mempertahankan blocked state sampai ada evidence governance-facing baru yang benar-benar mengubah hasil threshold. Paper trading tetap blocked dan retest tetap blocked.
+  Note: Threshold refresh cycle `framework_governance_gate` sudah complete dan post-threshold assessment menegaskan gate tetap belum clear. Jalur resmi aktif sekarang adalah mempertahankan blocked state sampai ada evidence governance-facing baru yang benar-benar mengubah hasil threshold. Sinkronisasi terbaru ada di `output/next_step_after_v3_pause_resolution.*`, `output/phase_0b_final_data_policy_closeout.*`, `output/layer2_reopen_threshold_governance_note.*`, dan `output/governance_artifact_registry.*`. Paper trading tetap blocked dan retest tetap blocked.
 
 Audit documentation snapshot:
+- phase_0b_closeout: `closed_with_documented_limitations` via `output/phase_0b_final_data_policy_closeout.*`
 - atr_ohlc_policy: frozen_as_C
+- current_price_basis_policy: regime/return/momentum/EMA memakai `adj_close`; ATR/stop/candle-sensitive logic memakai raw OHLC temporary option C untuk scope evaluasi resmi saat ini
 - corporate_action_risk: 19 jump events >15% across 5/5 spot-check tickers; 16 occurred pre-2019 and 3 occurred on 2020-03-26 for BBCA, BBRI, and BMRI.
+- corporate_action_risk_position: accepted_known_risk_for_current_evaluation_scope; belum promotion-grade final untuk scope OHLC-sensitive
+- survivorship_bias_status: documented_limitation_not_resolved
 - signal_sparsity_audit: needs_attention
 - filter_overlap_risk: acceptable
 - threshold_1_evidence: Temporary ATR policy sekarang dibekukan pada opsi C, yaitu raw OHLC sementara tetap dipakai dengan corporate action risk yang sudah diketahui dan didokumentasikan eksplisit sebagai known risk.
@@ -50,12 +55,15 @@ Audit documentation snapshot:
 - layer2_hypothesis_v2_result: rejected; `entry_signal_persistence_minimum_confirmation_days` gagal karena tidak ada varian 0/1/2/3 yang lolos locked minimum criteria.
 - layer2_hypothesis_v3_result: rejected; `stock_trend_quality_gate_via_short_term_ema_slope` gagal karena baik baseline `none` maupun `ema20_today_gt_ema20_prev_day` tetap tidak lolos locked minimum criteria.
 - strategy_rebuild_pause_note: Setelah tiga single-variable lever test Layer 2 ditolak formal, jalur rebuild saat ini masuk state jeda dokumentatif; retest tetap blocked, paper trading tetap blocked, dan tidak ada range reopening pada lever yang sudah ditolak.
+- layer2_reopen_threshold_note: `output/layer2_reopen_threshold_governance_note.*` menetapkan bahwa Layer 2 tetap pause kecuali ada artifact governance-facing yang lebih baru, lever family residual yang benar-benar baru, failure mechanism yang berbeda, dan frozen-stack definition yang tetap beku.
 
 Core decision:
 - Produk dashboard, data pipeline berita, dan baseline operasional minimum sudah ada.
+- Phase 0B sekarang ditutup sebagai `closed_with_documented_limitations`; ini menutup gap dokumentasi data, bukan membuka promotion path.
 - Jalur strategi Phase B gagal sebagai strategi, bukan karena coding belum selesai.
 - Eksperimen item 5-8 tetap stop.
 - Phase C tetap tertutup.
+- Layer 2 tetap pause; backlog tidak boleh aktif otomatis tanpa artifact governance-facing yang lebih baru.
 - Arah baru proyek adalah foundation rebuild, bukan retest strategi lama.
 
 Current strategy architecture status:
@@ -80,6 +88,7 @@ Data status summary:
   - OHLCV rebuild bersih berbasis yfinance di data/stocks/*.csv untuk target 50 ticker frozen hasil Phase 2.2, ditambah 1 source legacy yang masih dipakai indikator sehingga total stock source aktif saat ini = 51
   - IHSG historis bersih di data/IHSG.csv untuk regime filter berbasis EMA200
   - Master indicator bersih di data/indicator_master/*.csv dengan basis adj_close resmi untuk regime / return / momentum / EMA
+  - Policy basis harga resmi current stack: `adj_close` untuk regime/return/momentum/EMA, raw OHLC temporary option C untuk ATR/stop/candle-sensitive logic pada scope evaluasi resmi saat ini
   - Volume harian
   - Sentimen berita harian ter-align ke trade date
   - Metadata saham dasar di data/ticker_metadata.csv
@@ -98,6 +107,7 @@ Data status summary:
   - Market cap riil operasional
   - Fee broker dan slippage final di backtest utama yang fully execution-aware
   - Position sizing portfolio yang fully execution-aware
+  - Catatan governance: limitation di atas tetap terdokumentasi, tetapi tidak menjadi alasan resmi untuk membuka eksperimen strategi baru sekarang
 
 Critical blockers before new strategy build:
 1. Framework redesign
@@ -106,8 +116,10 @@ Critical blockers before new strategy build:
    - Stretch target 4/6/8 tetap dicatat sebagai target redesign non-blocking, bukan syarat batch completion atau recheck operasional.
    - Universe split ticker panjang vs post-IPO belum dijadikan policy aktif; keputusan default yang dipakai sekarang adalah framework alignment tanpa solusi ad hoc khusus GOTO.
 2. Adjusted price audit
-   - Status Phase 0B.1/0B.2: clean raw daily dataset + adj_close/dividends/splits sudah tersedia untuk saham dan IHSG.
-   - Policy resmi sementara: regime / return / momentum memakai adj_close; ATR / stop / candle logic tetap tertahan sampai policy OHLC split-aware dibekukan.
+   - Status: phase_0b_closed_with_documented_limitations
+   - Policy resmi saat ini: regime / return / momentum memakai adj_close; ATR / stop / candle logic memakai raw OHLC under temporary option C untuk scope evaluasi resmi saat ini.
+   - Corporate-action risk diterima sebagai known risk untuk current official evaluation scope, tetapi belum boleh dibaca sebagai policy final promotion-grade.
+   - Survivorship/delisted universe tetap unresolved documented limitation.
 3. IHSG historical data
    - Status: selesai di data/IHSG.csv dan sudah lolos validasi no weekend rows, no duplicate dates, ascending dates, dan history cukup untuk EMA200.
 4. Universe definition
@@ -116,7 +128,7 @@ Critical blockers before new strategy build:
    - Universe expansion tidak lagi menjadi next action langsung.
   - Keputusan resmi sekarang sudah final untuk scope Layer 2 saat ini: `top_25pct_return_20d` tetap prototype-usable terbaik, tetapi dikunci `not_frozen_yet` setelah Phase 2.6 karena dispersion kualitas antar-slice masih terlalu lebar untuk freeze final.
   - Jalur Layer 2 Relative Strength ditutup formal; tidak ada iterasi RS tambahan tanpa alasan metodologis baru yang kuat.
-  - Planning Layer 2 alternatif memilih opsi prioritas pertama: non-cross-sectional filter dengan absolute momentum threshold dan light liquidity gate sebagai next experiment paling defensible.
+  - Planning Layer 2 alternatif secara historis pernah memilih non-cross-sectional filter dengan absolute momentum threshold dan light liquidity gate sebagai prioritas eksperimen pertama; referensi ini sekarang bersifat arsip, bukan next action aktif.
   - Eksperimen alternatif pertama selesai: varian tanpa liquidity gate eksplisit menjadi kandidat terbaik dengan `avg_delta_average_return = 0.0455`, `avg_delta_win_rate = 0.3924`, tanpa coverage collapse, sehingga usable sebagai prototype.
   - Threshold liquidity gate paling defensible dari set sempit yang diuji adalah `>= 5B IDR`, tetapi gate eksplisit yang diuji masih merusak kualitas versus varian tanpa gate.
   - Confirmation pass sempit untuk arsitektur alternatif selesai: `alt_filter_no_liquidity_gate` tetap terbaik pada full period, `>= 2.5B IDR` dan `>= 5B IDR` tidak mengalahkannya, dan freeze final alternatif tetap `False` karena kemenangan slice baru `3/6`.
@@ -162,6 +174,9 @@ Phase 0B - Data Audit and Repair
   - Dataset IHSG tersedia.
   - Universe dan asumsi biaya dibekukan.
 - Current status:
+  - Official closeout artifact: `output/phase_0b_final_data_policy_closeout.*`
+  - Phase 0B sekarang diperlakukan sebagai `closed_with_documented_limitations`, bukan `data_ready_for_promotion`.
+  - Basis harga resmi current stack sudah terdokumentasi: `adj_close` untuk regime/return/momentum/EMA, raw OHLC temporary option C untuk ATR/stop/candle-sensitive logic pada scope evaluasi resmi saat ini.
   - Phase 0B.2 complete.
   - Dataset bersih universe target 50 ticker sudah direbuild ke data/stocks/*.csv via yfinance dengan validasi no weekend rows, no duplicate dates, ascending dates, dan no mixed-frequency contamination.
   - Dataset IHSG sudah tersedia di data/IHSG.csv via yfinance ^JKSE dan siap untuk EMA200 regime filter dari sisi kualitas data.
@@ -177,7 +192,7 @@ Phase 0B - Data Audit and Repair
   - Phase 2.5 boundary cut refinement selesai pada target 50: cut `22.5%, 25%, 27.5%, 30%` berbasis `return_20d` sudah diuji pada slice yang sama, `top_25pct_return_20d` tetap terpilih sebagai kandidat terbaik, tetapi freeze final tetap `False` karena boundary refinement belum memecahkan blocker `no_boundary_cut_yet_breaks_slice_concentration_blocker`.
   - Phase 2.6 micro confirmation final pass selesai pada target 50: policy mikro `explicit deterministic tie handling + ceil cut` terpilih sebagai bentuk paling defensible dari `top_25pct_return_20d`, winner count naik menjadi `4/6`, tetapi freeze final tetap `False` dan `lock_not_frozen_yet = True` karena `candidate_avg_delta_average_return_range = 1.1379` masih terlalu lebar.
   - Closeout Layer 2 Relative Strength selesai: artifact ringkas sudah dibuat untuk menutup track ini secara formal dan memindahkan pembahasan berikutnya ke backlog opsi arsitektur Layer 2 alternatif.
-  - Planning Layer 2 alternatif selesai: opsi terbaik yang dipilih untuk next experiment adalah non-cross-sectional filter berbasis `return_20d > 0`, `close > ema50`, dan light liquidity gate sederhana tanpa ranking top-x%.
+  - Planning Layer 2 alternatif selesai: opsi prioritas eksperimen historis yang pernah dipilih adalah non-cross-sectional filter berbasis `return_20d > 0`, `close > ema50`, dan light liquidity gate sederhana tanpa ranking top-x%`; status saat ini tetap governance-paused, bukan membuka cycle eksperimen baru.
   - Eksperimen Layer 2 alternatif pertama selesai: `alt_filter_no_liquidity_gate` menjadi varian terbaik (`8507` trades, retention `85.5895`, `avg_delta_win_rate = 0.3924`, `avg_delta_average_return = 0.0455`), dan `alt_filter_liquidity_gate_5b` menjadi liquidity gate eksplisit terbaik meskipun masih quality-negative.
   - Hasil awal alternatif ini usable sebagai prototype, tetapi belum jelas lebih stabil daripada jalur RS yang ditutup karena range antar-threshold masih material (`avg_delta_average_return_range = 0.4237`).
   - Confirmation pass alternatif menunjukkan `alt_filter_no_liquidity_gate` tetap quality-positive di semua slice yang diuji, tetapi belum menang cukup konsisten terhadap comparator liquidity gate (`slice_win_count = 3/6`) untuk freeze final.
@@ -309,7 +324,7 @@ Phase Universe Expansion - Layer 2 Blocker Removal
   - Jangan buka ulang iterasi Relative Strength.
   - Layer 2 alternatif sudah cukup kuat untuk integrasi, tetapi belum final-validation frozen.
   - Layer 3 RSI14 50-70 usable sebagai integration layer, tetapi belum otomatis membuka Layer 5.
-  - Next action resmi adalah confirmation pass sempit untuk Layer 3 sebelum exit logic dibuka.
+  - Langkah resmi setelah catatan historis ini tidak lagi membuka confirmation pass tambahan; status sekarang adalah mempertahankan documented pause sampai threshold reopen governance terpenuhi.
 
 Phase 3 - Layer 3 Entry Signal Upgrade
 - Goal:
@@ -571,10 +586,10 @@ Step 11 - Walk-forward validation
 Immediate next actions:
 1. Pertahankan baseline resmi, stack resmi, dan governance block apa adanya selama jeda.
 2. Jangan buka ulang lever Layer 2 yang sudah ditolak: momentum floor, confirmation-days, atau EMA slope gate.
-3. Jangan buka hipotesis backlog lain secara otomatis sebelum ada pemilihan lever berikutnya yang terdokumentasi.
+3. Jangan buka hipotesis backlog lain secara otomatis sebelum ada artifact governance-facing baru yang memenuhi threshold reopen Layer 2.
 4. Paper trading tetap tertahan dan retest tetap tertahan.
 
-Forbidden actions until Phase 0A and 0B close:
+Forbidden actions during documented pause:
 - Jangan retest strategi Phase B lama.
 - Jangan buka item 5-8 lagi.
 - Jangan mulai Phase C.

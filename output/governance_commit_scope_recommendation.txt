@@ -1,0 +1,60 @@
+Governance Commit Scope Recommendation
+======================================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Recommended files to include in the governance/documentation commit:
+- `output/project_roadmap_status.txt`
+- `output/next_step_after_v3_pause_resolution.txt`
+- `output/next_step_after_v3_pause_resolution.json`
+- `output/phase_0b_final_data_policy_closeout.txt`
+- `output/phase_0b_final_data_policy_closeout.json`
+- `output/layer2_reopen_threshold_governance_note.txt`
+- `output/layer2_reopen_threshold_governance_note.json`
+- `output/governance_artifact_registry.txt`
+- `output/governance_artifact_registry.json`
+- `output/how_to_read_current_governance_artifacts.txt`
+- `output/layer2_reopen_request_template.txt`
+- `output/layer2_reopen_request_template.json`
+- `output/governance_change_intake_checklist.txt`
+- `output/governance_change_intake_checklist.json`
+- `output/example_layer2_reopen_request_reject_case.txt`
+- `output/example_layer2_reopen_request_hold_case.txt`
+- `output/example_layer2_reopen_review_outcomes.txt`
+- `output/layer2_reopen_decision_memo_template.txt`
+- `output/layer2_reopen_decision_memo_template.json`
+- `output/governance_intake_log_policy.txt`
+- `output/example_layer2_reopen_decision_memo_reject.txt`
+- `output/example_layer2_reopen_decision_memo_hold.txt`
+- `output/layer2_governance_operator_guide.txt`
+- `output/layer2_governance_toolkit_index.json`
+- `output/governance_documentation_package_closeout.txt`
+
+Why the files above fit one commit:
+- Mereka membentuk satu paket governance/documentation yang konsisten untuk current pause state.
+- Mereka menjelaskan state resmi, batas reopen, tooling intake/review, examples, dan closeout dokumentatif.
+- Mereka tidak membuka eksperimen baru dan tidak mengubah governance state di luar documented pause yang sudah resmi.
+
+Files/directories that need a separate decision before commit:
+- `output/single_variable_experiment_runs/`
+- `output/single_variable_experiment_runs_v2/`
+- `output/single_variable_experiment_runs_v3/`
+- `output/walk_forward_with_costs_run/`
+
+Why those should be separated:
+- Ini adalah run/output directories yang bersifat execution artifact, bukan inti paket dokumentasi governance.
+- Mereka cenderung lebih besar, lebih granular, dan lebih cocok diputuskan terpisah berdasarkan kebutuhan reproducibility atau archival policy.
+- Commit dokumentasi governance tetap lebih bersih jika tidak otomatis mencampur raw run outputs.
+
+Optional judgment call:
+- Jika tim ingin commit governance package murni dokumentatif, empat run/output directories di atas sebaiknya tidak ikut.
+- Jika tim ingin commit seluruh evidence execution juga, lebih rapi dipisah ke commit kedua yang khusus evidence/run outputs.
+
+Proposed final commit message:
+- Add Layer 2 governance pause documentation and review toolkit

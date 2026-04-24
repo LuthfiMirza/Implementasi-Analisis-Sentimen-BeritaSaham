@@ -1,0 +1,73 @@
+Layer 2 Reopen Decision Memo Template
+=====================================
+
+Reference date:
+- 2026-04-24
+
+Template purpose:
+- Dipakai reviewer untuk meninggalkan jejak keputusan formal setelah menilai satu proposal reopen Layer 2.
+- Memo ini adalah artifact decision trail, bukan izin otomatis untuk menjalankan eksperimen.
+
+Review identification:
+- review_id = [WAJIB DIISI]
+- proposal_request_id = [WAJIB DIISI]
+- reviewer_name = [WAJIB DIISI]
+- reviewer_role = [WAJIB DIISI]
+- review_date = [WAJIB DIISI]
+
+Current official state acknowledgment:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Source-of-truth read list:
+- [WAJIB DIISI]
+  - output/project_roadmap_status.txt
+  - output/next_step_after_v3_pause_resolution.*
+  - output/phase_0b_final_data_policy_closeout.*
+  - output/layer2_reopen_threshold_governance_note.*
+  - output/governance_artifact_registry.*
+  - output/how_to_read_current_governance_artifacts.txt
+  - output/layer2_reopen_request_template.*
+  - output/governance_change_intake_checklist.*
+
+Proposal summary:
+- proposal_summary = [WAJIB DIISI singkat]
+
+Assessment sections:
+- novelty_assessment = [WAJIB DIISI]
+- failure_mechanism_assessment = [WAJIB DIISI]
+- frozen_stack_integrity_assessment = [WAJIB DIISI]
+- forbidden_scope_assessment = [WAJIB DIISI]
+- governance_override_recency_assessment = [WAJIB DIISI]
+
+Final decision:
+- final_decision = [pilih satu]
+  - reject
+  - hold_in_documented_pause
+  - eligible_for_formal_review_but_not_auto_execution
+
+Explicit reasoning:
+- explicit_reasoning = [WAJIB DIISI]
+
+Required follow-up:
+- required_follow_up = [pilih satu atau setara yang konsisten]
+  - archive_as_rejected_intake
+  - hold_until_newer_override_artifact_exists
+  - none_keep_pause
+
+Mandatory decision statements:
+- decision_is_not_automatic_experiment_authorization = true
+- decision_does_not_open_retest = true
+- decision_does_not_open_paper_trading = true
+- decision_does_not_open_phase_c = true
+- decision_does_not_open_strategy_coding = true
+- decision_does_not_open_backtest_execution = true
+
+Decision rule reminders:
+- `reject` dipakai bila proposal gagal novelty, failure-mechanism separation, frozen-stack integrity, atau membuka forbidden scope.
+- `hold_in_documented_pause` dipakai bila proposal cukup disiplin tetapi belum ada newer valid governance-facing override artifact.
+- `eligible_for_formal_review_but_not_auto_execution` tetap bukan izin eksekusi; outcome ini hanya mungkin bila semua pemeriksaan lolos dan override artifact yang lebih baru memang ada.
+
+Reviewer sign-off:
+- reviewer_final_statement = [WAJIB DIISI]

@@ -1,0 +1,64 @@
+{
+  "artifact": "phase_0b_final_data_policy_closeout",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "status_resmi_phase_0b_saat_ini": "closed_with_documented_limitations",
+  "scope_audit_yang_sudah_selesai": [
+    "clean_ohlcv_universe_target_50_tickers_rebuilt_with_no_weekend_no_duplicate_ascending_dates_no_mixed_frequency_validation",
+    "ihsg_historical_dataset_available_and_sufficient_for_ema200_regime_filter",
+    "indicator_master_rebuilt_with_adj_close_policy_for_regime_return_momentum_and_ema",
+    "target_50_universe_frozen_as_the_current_rebuild_evaluation_base",
+    "minimum_realism_cost_policy_frozen_at_30_bps_round_trip",
+    "cost_applied_walk_forward_closeout_completed_once_and_sufficient_to_close_the_current_promotion_path"
+  ],
+  "keputusan_final_sementara_untuk_basis_harga_yang_dipakai_di_stack_resmi_saat_ini": {
+    "regime_return_momentum_ema": "adj_close_official_basis",
+    "atr_trailing_stop_candle_sensitive_logic": "raw_ohlc_under_temporary_option_c_for_current_official_evaluation_scope",
+    "policy_summary": "documented_and_consistent_but_not_promotion_grade_final_for_all_ohlc_sensitive_components"
+  },
+  "posisi_corporate_action_risk": {
+    "classification": "accepted_known_risk_for_current_evaluation_scope",
+    "detail": "known_and_documented_risk_accepted_for_the_current_official_evaluation_scope",
+    "still_blocking_for_scope_tertentu": [
+      "promotion_grade_finalization",
+      "final_ohlc_sensitive_policy_claims"
+    ]
+  },
+  "status_survivorship_bias_delisted_universe": {
+    "status": "documented_limitation_not_resolved",
+    "governance_interpretation": "not_a_reason_to_open_new_strategy_experiments_now"
+  },
+  "status_fee_slippage_realism": {
+    "status": "minimum_realism_policy_frozen_and_applied_once",
+    "policy": {
+      "broker_fee_bps_per_side": 10,
+      "slippage_bps_per_side": 5,
+      "round_trip_cost_bps": 30
+    },
+    "governance_interpretation": "sufficient_to_support_no_go_for_promotion_path_not_full_execution_aware_final"
+  },
+  "batas_yang_masih_belum_final_tetapi_tidak_menjadi_alasan_untuk_membuka_eksperimen_strategi_baru": [
+    "back_adjusted_ohlc_for_atr_stop_and_candle_logic_not_final",
+    "delisted_survivorship_free_universe_not_final",
+    "operational_market_cap_not_final",
+    "fully_execution_aware_fee_slippage_model_not_final",
+    "fully_execution_aware_portfolio_sizing_not_final"
+  ],
+  "keputusan_apakah_phase_0b_bisa_dianggap": "closed_with_documented_limitations",
+  "forbidden_interpretation": [
+    "do_not_conclude_data_is_now_sufficient_for_promotion_path",
+    "do_not_conclude_paper_trading_is_now_allowed",
+    "do_not_conclude_retest_is_now_allowed",
+    "do_not_conclude_strategy_validity_has_recovered"
+  ],
+  "evidence_files_used": [
+    "output/project_roadmap_status.txt",
+    "output/phase_b_final_closeout.txt",
+    "output/project_after_phase_b_decision.txt",
+    "output/phase_b_go_no_go_next_phase.json",
+    "output/walk_forward_validation_closeout.json",
+    "output/walk_forward_with_costs_summary.json",
+    "output/next_step_after_v3_pause_resolution.txt",
+    "output/next_step_after_v3_pause_resolution.json"
+  ]
+}

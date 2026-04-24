@@ -1,0 +1,60 @@
+Governance Intake Log Policy
+============================
+
+Reference date:
+- 2026-04-24
+
+Purpose:
+- Policy ini mengatur jejak artifact formal untuk setiap review proposal reopen Layer 2.
+- Tujuannya adalah membuat decision trail seragam, auditable, dan tidak ambigu.
+
+When a reviewer must create a decision memo:
+- Setiap kali proposal reopen Layer 2 selesai diperiksa dengan template request dan checklist intake.
+- Setiap kali reviewer memberi outcome final:
+  - `reject`
+  - `hold_in_documented_pause`
+  - `eligible_for_formal_review_but_not_auto_execution`
+- Tidak boleh ada proposal yang dianggap telah ditinjau tanpa memo keputusan formal.
+
+Future naming rule for real review files:
+- Pattern minimum:
+  - `output/layer2_reopen_decision_memo_<review_id>.txt`
+- Recommended pattern:
+  - `output/layer2_reopen_decision_memo_<yyyy_mm_dd>_<review_id>.txt`
+- `review_id` harus unik dan harus mereferensikan `proposal_request_id` yang ditinjau.
+
+Minimum artifacts that must be referenced:
+- output/project_roadmap_status.txt
+- output/next_step_after_v3_pause_resolution.*
+- output/phase_0b_final_data_policy_closeout.*
+- output/layer2_reopen_threshold_governance_note.*
+- output/governance_artifact_registry.*
+- output/how_to_read_current_governance_artifacts.txt
+- output/layer2_reopen_request_template.*
+- output/governance_change_intake_checklist.*
+- request artifact yang sedang ditinjau
+
+Decision-source rule:
+- Semua memo keputusan wajib merujuk source-of-truth terbaru, bukan hanya artifact historis atau superseded.
+- Jika terjadi konflik, artifact formal yang lebih baru selalu menang.
+
+No-memo no-review rule:
+- Proposal tanpa decision memo tidak boleh dianggap pernah lolos review.
+- Proposal tanpa decision memo tidak boleh dipakai sebagai basis eksperimen, retest, paper trading, Phase C, coding strategi, atau perubahan governance state.
+
+Execution-separation rule:
+- Outcome `eligible_for_formal_review_but_not_auto_execution` tetap bukan izin eksekusi.
+- Outcome itu tidak otomatis membuka:
+  - backtest
+  - retest
+  - paper trading
+  - Phase C
+  - coding strategi baru
+
+Pause-preservation rule:
+- Documented pause tetap aktif sampai ada artifact governance-facing override yang lebih baru dan valid.
+- Proposal yang rapi tetapi belum punya override artifact tetap harus berakhir pada `hold_in_documented_pause`.
+- Proposal yang disguised reopen atau melanggar scope harus berakhir pada `reject`.
+
+Operational note:
+- Artifact policy ini adalah governance tooling, bukan source-of-truth baru yang mengubah keputusan resmi.

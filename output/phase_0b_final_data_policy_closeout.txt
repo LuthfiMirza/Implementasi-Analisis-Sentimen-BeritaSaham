@@ -1,0 +1,68 @@
+Phase 0B Final Data Policy Closeout
+===================================
+
+Reference date:
+- 2026-04-24
+
+Official Phase 0B status:
+- phase_0b_status = closed_with_documented_limitations
+- rationale = Scope audit data inti yang diwajibkan roadmap sudah terdokumentasi formal, tetapi beberapa batas final operasional tetap dicatat sebagai limitation dan bukan dasar untuk promotion path.
+
+Scope audit yang sudah selesai:
+- Clean OHLCV universe target 50 ticker sudah direbuild di `data/stocks/*.csv` dengan validasi no weekend rows, no duplicate dates, ascending dates, dan no mixed-frequency contamination.
+- IHSG historis sudah tersedia di `data/IHSG.csv` dan sudah cukup untuk regime filter berbasis EMA200.
+- Master indicator sudah direbuild di `data/indicator_master/*.csv` dengan basis `adj_close` resmi untuk regime, return, momentum, dan EMA.
+- Universe target 50 sudah dibekukan dan dipakai sebagai basis evaluasi rebuild.
+- Minimum realism cost policy sudah dibekukan pada `broker_fee_bps=10` per side, `slippage_bps=5` per side, `round_trip_cost_bps=30`.
+- Cost-applied walk-forward closeout sudah ada dan cukup untuk menutup promotion path saat ini.
+
+Keputusan final sementara untuk basis harga di stack resmi saat ini:
+- Regime / return / momentum / EMA memakai `adj_close` sebagai basis resmi.
+- ATR / trailing stop / candle-sensitive logic tetap memakai raw OHLC di bawah temporary policy `option C` yang sudah dibekukan sebagai policy resmi sementara untuk current official evaluation scope.
+- Artinya, stack resmi saat ini punya price-basis policy yang terdokumentasi dan konsisten, tetapi belum promotion-grade final untuk semua komponen OHLC-sensitive.
+
+Corporate-action risk position:
+- classification = accepted_known_risk_for_current_evaluation_scope
+- detail = Risiko corporate action pada raw OHLC sudah diketahui, terdokumentasi, dan diterima sebagai known risk untuk scope evaluasi resmi saat ini.
+- scope boundary = Risiko ini belum diinterpretasikan sebagai fully solved untuk promotion-grade finalization atau untuk menyatakan data OHLC-sensitive sudah bebas masalah.
+
+Survivorship bias / delisted universe status:
+- status = documented_limitation_not_resolved
+- detail = Delisted / survivorship-free universe belum tersedia sebagai policy final, sehingga limitation ini tetap dicatat eksplisit.
+- governance interpretation = Limitation ini tidak dipakai sebagai alasan untuk membuka eksperimen strategi baru sekarang; ia tetap menjadi batas kualitas data yang harus diakui, bukan tiket untuk promotion path.
+
+Fee/slippage realism status:
+- status = minimum_realism_policy_frozen_and_applied_once
+- detail = Kebijakan biaya minimum 30 bps round-trip sudah diterapkan pada walk-forward closeout dan justru memperkuat keputusan bahwa stack resmi saat ini tidak promotable.
+- governance interpretation = Status ini cukup untuk no-go promotion path, tetapi bukan bukti bahwa execution-aware realism sudah final.
+
+Batas yang masih belum final tetapi tidak menjadi alasan untuk membuka eksperimen strategi baru:
+- Back-adjusted OHLC penuh untuk ATR / stop / candle logic belum final.
+- Delisted / survivorship-free universe belum final.
+- Market cap riil operasional belum final.
+- Fee/slippage backtest utama yang fully execution-aware belum final.
+- Position sizing portfolio yang fully execution-aware belum final.
+
+Formal closeout decision:
+- Phase 0B can be treated as `closed_with_documented_limitations`.
+- Closeout ini menutup gap dokumentasi data/audit untuk governance sync roadmap.
+- Closeout ini tidak mengubah keputusan bahwa strategi tetap gagal pada scope strategy validity dan governance consistency.
+
+Forbidden interpretation:
+- Jangan menyimpulkan data sekarang sudah cukup untuk promotion path.
+- Jangan menyimpulkan paper trading jadi boleh.
+- Jangan menyimpulkan retest jadi boleh.
+- Jangan menyimpulkan documented closeout Phase 0B sama dengan strategy validity sudah pulih.
+
+Evidence files used:
+- output/project_roadmap_status.txt
+- output/phase_b_final_closeout.txt
+- output/project_after_phase_b_decision.txt
+- output/phase_b_go_no_go_next_phase.json
+- output/walk_forward_validation_closeout.json
+- output/walk_forward_with_costs_summary.json
+- output/next_step_after_v3_pause_resolution.txt
+- output/next_step_after_v3_pause_resolution.json
+
+Bottom line:
+- Phase 0B resmi ditutup sebagai `closed_with_documented_limitations`: cukup untuk menutup gap kebijakan data pada roadmap, tidak cukup untuk membuka promotion path, retest, paper trading, atau eksperimen strategi baru.

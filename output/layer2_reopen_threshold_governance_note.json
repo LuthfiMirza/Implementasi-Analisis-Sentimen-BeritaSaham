@@ -1,0 +1,56 @@
+{
+  "artifact": "layer2_reopen_threshold_governance_note",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_state_dan_formal_pause_resolution": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_pause_resolution": "remain_in_documented_pause"
+  },
+  "kenapa_note_seleksi_lever_lama_sudah_superseded": [
+    "output/next_layer2_lever_selection_note.json_was_generated_at_2026_04_23T15_07_52Z",
+    "output/single_variable_experiment_results_v2.json_was_generated_later_at_2026_04_23T15_27_49_plus_00_00",
+    "output/single_variable_experiment_results_v3.json_was_generated_later_at_2026_04_23T16_20_10_plus_00_00",
+    "both_later_artifacts_ended_with_hypothesis_rejected_and_stack_changed_false",
+    "the_newer_roadmap_and_pause_resolution_artifacts_then_moved_the_project_into_documented_pause",
+    "therefore_the_older_lever_selection_note_no_longer_has_governance_force_to_open_a_new_layer_2_cycle_now"
+  ],
+  "daftar_lever_family_yang_tetap_tertutup": [
+    "absolute_momentum_floor_on_return_20d",
+    "entry_signal_persistence_minimum_confirmation_days",
+    "stock_trend_quality_gate_via_short_term_ema_slope"
+  ],
+  "backlog_seperti_momentum_acceleration_quality_check_tidak_boleh_diaktifkan_otomatis": true,
+  "syarat_formal_untuk_reopen_layer_2": [
+    "must_have_a_governance_facing_artifact_newer_than_the_latest_roadmap_pause_artifact_that_explicitly_overrides_documented_pause",
+    "must_have_a_residual_lever_family_that_is_methodologically_genuinely_new",
+    "must_have_an_explicit_explanation_of_a_different_failure_mechanism_than_the_rejected_paths",
+    "must_have_a_frozen_stack_definition_that_keeps_layer_1_layer_3_layer_4_layer_5_walk_forward_split_and_cost_policy_unchanged"
+  ],
+  "frozen_stack_definition_that_must_remain_unchanged": {
+    "layer_1": "ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50",
+    "layer_3": "optional_off_by_default",
+    "layer_4": "2pct_risk_per_trade_and_10pct_max_position_cap",
+    "layer_5": "atr14_x_2_5_trailing_stop_with_12_day_time_stop",
+    "walk_forward_split": "unchanged",
+    "realism_cost_policy": "30_bps_round_trip_unchanged"
+  },
+  "keputusan_eksplisit": "remain_paused_unless_those_conditions_are_met",
+  "forbidden_interpretation": [
+    "do_not_use_this_note_to_open_retest",
+    "do_not_use_this_note_to_open_paper_trading",
+    "do_not_use_this_note_to_auto_activate_backlog_hypotheses",
+    "do_not_use_this_note_to_open_layer_1_layer_3_layer_4_layer_5_or_phase_c"
+  ],
+  "evidence_files_used": [
+    "output/project_roadmap_status.txt",
+    "output/next_step_after_v3_pause_resolution.txt",
+    "output/next_step_after_v3_pause_resolution.json",
+    "output/next_layer2_lever_selection_note.json",
+    "output/single_variable_experiment_results.json",
+    "output/single_variable_experiment_results_v2.json",
+    "output/single_variable_experiment_results_v3.json",
+    "output/walk_forward_validation_closeout.json",
+    "output/walk_forward_with_costs_summary.json"
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "artifact": "layer2_reopen_request_template",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "template_purpose": [
+    "used_only_to_assess_whether_a_future_proposal_is_eligible_for_formal_governance_review",
+    "filling_the_template_does_not_authorize_experiment_execution",
+    "filling_the_template_does_not_authorize_retest_paper_trading_or_phase_c"
+  ],
+  "current_official_state_acknowledgment": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause",
+    "proposer_acknowledgment": "<required_yes_or_no>"
+  },
+  "request_header": {
+    "request_id": "<required>",
+    "request_purpose": "<required>",
+    "proposer_name": "<required>",
+    "proposer_role": "<required>",
+    "request_date": "<required>"
+  },
+  "artifact_source_of_truth_yang_sudah_dibaca": [
+    "output/project_roadmap_status.txt",
+    "output/next_step_after_v3_pause_resolution.txt",
+    "output/next_step_after_v3_pause_resolution.json",
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/phase_0b_final_data_policy_closeout.json",
+    "output/layer2_reopen_threshold_governance_note.txt",
+    "output/layer2_reopen_threshold_governance_note.json",
+    "output/governance_artifact_registry.txt",
+    "output/governance_artifact_registry.json",
+    "output/how_to_read_current_governance_artifacts.txt"
+  ],
+  "proposal_core": {
+    "proposed_residual_lever_family": "<required>",
+    "short_description": "<required>",
+    "why_this_is_methodologically_new": "<required_explicit_explanation>",
+    "why_this_is_not_a_disguised_reopen": "<required_explicit_explanation>"
+  },
+  "explicit_non_reopen_confirmation": {
+    "not_reopening_absolute_momentum_floor_on_return_20d": "<required_yes_or_no>",
+    "not_reopening_entry_signal_persistence_minimum_confirmation_days": "<required_yes_or_no>",
+    "not_reopening_stock_trend_quality_gate_via_short_term_ema_slope": "<required_yes_or_no>",
+    "not_expanding_rejected_threshold_or_range": "<required_yes_or_no>",
+    "not_relabeling_an_old_lever_with_new_words": "<required_yes_or_no>"
+  },
+  "failure_mechanism_section": {
+    "targeted_failure_mechanism": "<required>",
+    "why_targeted_failure_mechanism_differs_from_rejected_paths": "<required_explicit_explanation>",
+    "why_historical_rejections_do_not_already_cover_this_case": "<required_explicit_explanation>"
+  },
+  "frozen_stack_confirmation": {
+    "layer_1_unchanged": "<must_be_yes>",
+    "layer_1_definition": "ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50",
+    "layer_3_unchanged": "<must_be_yes>",
+    "layer_3_definition": "optional_off_by_default",
+    "layer_4_unchanged": "<must_be_yes>",
+    "layer_4_definition": "2pct_risk_per_trade_and_10pct_max_position_cap",
+    "layer_5_unchanged": "<must_be_yes>",
+    "layer_5_definition": "atr14_x_2_5_trailing_stop_with_12_day_time_stop",
+    "walk_forward_split_unchanged": "<must_be_yes>",
+    "realism_cost_policy_unchanged": "<must_be_yes>",
+    "realism_cost_policy_definition": "30_bps_round_trip"
+  },
+  "governance_facing_override_requirement": {
+    "newer_governance_facing_override_artifact_exists": "<required_yes_or_no>",
+    "override_artifact_path": "<required_if_yes>",
+    "override_artifact_generated_at": "<required_if_yes>",
+    "why_override_is_newer_than_pause_artifacts": "<required_if_yes>"
+  },
+  "scope_guardrails": {
+    "opens_retest": "<must_be_no>",
+    "opens_paper_trading": "<must_be_no>",
+    "opens_phase_c": "<must_be_no>",
+    "opens_strategy_coding": "<must_be_no>",
+    "opens_backtest_execution": "<must_be_no>",
+    "changes_non_layer2_stack_components": "<must_be_no>"
+  },
+  "explicit_governance_recommendation": {
+    "allowed_values": [
+      "reject_as_not_governance_valid_yet",
+      "eligible_for_formal_governance_review_only"
+    ],
+    "selected_value": "<required>"
+  },
+  "required_recommendation_rule": "if_novelty_failure_mechanism_difference_frozen_stack_confirmation_or_newer_override_artifact_is_missing_the_required_recommendation_is_reject_as_not_governance_valid_yet",
+  "forbidden_interpretation": [
+    "filled_template_does_not_authorize_experiment_execution",
+    "filled_template_does_not_authorize_retest",
+    "filled_template_does_not_authorize_paper_trading",
+    "filled_template_does_not_authorize_phase_c",
+    "filled_template_does_not_authorize_new_strategy_coding"
+  ]
+}

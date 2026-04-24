@@ -1,0 +1,82 @@
+Governance Change Intake Checklist
+==================================
+
+Reference date:
+- 2026-04-24
+
+Purpose:
+- Checklist ini dipakai reviewer untuk menilai apakah suatu proposal reopen Layer 2 boleh dianggap governance-valid, harus tetap ditahan dalam documented pause, atau langsung ditolak.
+- Checklist ini bukan approval untuk backtest, retest, paper trading, Phase C, atau coding strategi baru.
+
+Step 1. Source-of-truth recency check
+- Reviewer sudah membaca source-of-truth terbaru:
+  - output/project_roadmap_status.txt
+  - output/next_step_after_v3_pause_resolution.*
+  - output/phase_0b_final_data_policy_closeout.*
+  - output/layer2_reopen_threshold_governance_note.*
+  - output/governance_artifact_registry.*
+  - output/how_to_read_current_governance_artifacts.txt
+- Jika belum: result = `reject`
+
+Step 2. Artifact dependency check
+- Proposal hanya memakai artifact historical atau superseded? [ya/tidak]
+- Proposal bersandar pada `output/next_layer2_lever_selection_note.json` sebagai dasar utama? [ya/tidak]
+- Jika ya pada salah satu: result = `reject`
+
+Step 3. Lever novelty check
+- Lever yang diusulkan benar-benar residual dan baru secara metodologis? [ya/tidak]
+- Lever ini bukan cuma variasi threshold, range, persistence window, atau slope definition dari jalur yang sudah ditolak? [ya/tidak]
+- Lever ini bukan reopen tersamar dari:
+  - `absolute_momentum_floor_on_return_20d`
+  - `entry_signal_persistence_minimum_confirmation_days`
+  - `stock_trend_quality_gate_via_short_term_ema_slope`
+- Jika tidak: result = `reject`
+
+Step 4. Failure mechanism check
+- Failure mechanism yang ditarget dijelaskan eksplisit? [ya/tidak]
+- Failure mechanism itu berbeda dari jalur yang sudah ditolak? [ya/tidak]
+- Ada penjelasan kenapa evidence historis lama belum cukup menutup proposal baru ini? [ya/tidak]
+- Jika tidak: result = `reject`
+
+Step 5. Frozen-stack integrity check
+- Layer 1 unchanged? [harus ya]
+- Layer 3 unchanged? [harus ya]
+- Layer 4 unchanged? [harus ya]
+- Layer 5 unchanged? [harus ya]
+- Walk-forward split unchanged? [harus ya]
+- Realism cost policy unchanged? [harus ya]
+- Jika ada satu saja tidak: result = `reject`
+
+Step 6. Hidden scope opening check
+- Proposal diam-diam membuka retest? [ya/tidak]
+- Proposal diam-diam membuka paper trading? [ya/tidak]
+- Proposal diam-diam membuka Phase C? [ya/tidak]
+- Proposal diam-diam membuka coding strategi baru? [ya/tidak]
+- Proposal diam-diam meminta backtest execution langsung? [ya/tidak]
+- Jika ya pada salah satu: result = `reject`
+
+Step 7. Governance override recency check
+- Ada artifact governance-facing override yang memang lebih baru daripada pause artifact terbaru? [ya/tidak]
+- Path dan timestamp override artifact dicantumkan? [ya/tidak]
+- Override artifact itu benar-benar mengoverride documented pause, bukan hanya memberi ide backlog? [ya/tidak]
+- Jika tidak ada override artifact yang valid: result minimum = `hold_in_documented_pause`
+
+Step 8. Final intake outcome
+- `reject`
+  Use when proposal relies on historical/superseded artifacts, fails novelty, fails failure-mechanism separation, changes frozen stack, or opens forbidden scope.
+- `hold_in_documented_pause`
+  Use when proposal is disciplined enough to be read, but no newer valid governance-facing override exists yet.
+- `eligible_for_formal_review_but_not_auto_execution`
+  Use only when all mandatory checks pass and a newer valid governance-facing override artifact exists.
+
+Decision rule summary:
+- Default safest outcome = `hold_in_documented_pause`.
+- Escalate to `reject` when ada disguised reopen atau pelanggaran scope.
+- Escalate to `eligible_for_formal_review_but_not_auto_execution` hanya jika semua syarat novelty, failure mechanism, frozen stack, dan newer governance override terpenuhi.
+
+Forbidden interpretation:
+- Outcome `eligible_for_formal_review_but_not_auto_execution` bukan izin otomatis untuk menjalankan eksperimen.
+- Checklist lolos bukan berarti retest boleh.
+- Checklist lolos bukan berarti paper trading boleh.
+- Checklist lolos bukan berarti Phase C boleh.
+- Checklist lolos bukan berarti coding strategi baru boleh dimulai.

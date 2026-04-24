@@ -1,0 +1,89 @@
+Example Layer 2 Reopen Request: Hold Case
+=========================================
+
+Reference date:
+- 2026-04-24
+
+Purpose of this example:
+- Menunjukkan proposal yang disiplin, rapi, dan tidak terlihat sebagai disguised reopen, tetapi tetap belum boleh bergerak karena tidak ada newer governance-facing override artifact yang valid.
+
+Illustrative proposal:
+- request_id = example_hold_case_01
+- request_purpose = request formal governance review for a residual Layer 2 lever family named `cross-sectional breadth failure gate`
+- proposer_acknowledgment = ya
+- proposed_residual_lever_family = `cross-sectional breadth failure gate`
+- short_description = proposal mengusulkan family baru yang berfokus pada breadth failure di level universe harian, bukan threshold momentum saham individual, bukan persistence confirmation, dan bukan short-term slope gate
+
+Source-of-truth confirmation:
+- proposer confirms reading:
+  - output/project_roadmap_status.txt
+  - output/next_step_after_v3_pause_resolution.*
+  - output/phase_0b_final_data_policy_closeout.*
+  - output/layer2_reopen_threshold_governance_note.*
+  - output/governance_artifact_registry.*
+  - output/how_to_read_current_governance_artifacts.txt
+
+Why the proposer frames this as methodologically new:
+- Proposal tidak mengubah threshold `return_20d`.
+- Proposal tidak mengubah jumlah hari persistence.
+- Proposal tidak memakai stock-side EMA slope gate.
+- Proposal mencoba mendefinisikan failure mechanism baru pada level distribusi breadth universe, bukan kualitas sinyal per saham secara individual.
+
+Failure mechanism statement:
+- targeted_failure_mechanism = kemungkinan ada hari-hari ketika entry individual tampak lolos, tetapi konteks breadth universe terlalu rapuh untuk membuat Layer 2 selection layak
+- why_different_from_rejected_paths = usulan ini mengklaim menargetkan struktur breadth cross-sectional, bukan absolute momentum floor, bukan persistence timing, dan bukan stock trend-quality slope
+
+Frozen-stack confirmation:
+- Layer 1 unchanged = ya
+- Layer 3 unchanged = ya
+- Layer 4 unchanged = ya
+- Layer 5 unchanged = ya
+- walk-forward split unchanged = ya
+- realism cost policy unchanged = ya
+- opens_retest = tidak
+- opens_paper_trading = tidak
+- opens_phase_c = tidak
+- opens_strategy_coding = tidak
+- opens_backtest_execution = tidak
+
+Why this proposal is still not allowed to move forward now:
+1. No newer governance-facing override artifact
+- Proposal tidak menyertakan artifact override yang lebih baru daripada pause artifact terbaru.
+- Tidak ada document baru yang secara eksplisit mengoverride `remain_in_documented_pause`.
+
+2. Governance threshold is not yet met
+- Menurut `output/layer2_reopen_threshold_governance_note.*`, novelty metodologis saja belum cukup.
+- Harus ada artifact governance-facing yang lebih baru dan eksplisit mengubah status pause.
+
+3. Proper discipline is not equal to permission
+- Proposal ini cukup rapi untuk dibaca reviewer.
+- Proposal ini tidak terlihat sebagai disguised reopen.
+- Tetapi kerapihan format dan novelty framing belum mengubah state governance aktif.
+
+Checklist mapping:
+- Step 1 source-of-truth recency check:
+  Lolos.
+- Step 2 artifact dependency check:
+  Lolos, karena tidak bergantung pada artifact superseded.
+- Step 3 lever novelty check:
+  Secara ilustratif lolos cukup awal, karena family yang diusulkan bukan variasi langsung dari tiga lever yang sudah ditolak.
+- Step 4 failure mechanism check:
+  Secara ilustratif lolos cukup awal, karena proposer memberi failure mechanism berbeda.
+- Step 5 frozen-stack integrity check:
+  Lolos.
+- Step 6 hidden scope opening check:
+  Lolos.
+- Step 7 governance override recency check:
+  Gagal, karena tidak ada newer valid governance-facing override artifact.
+
+Official outcome:
+- hold_in_documented_pause
+
+Why the official outcome is not `reject`:
+- Proposal ini tidak jatuh pada disguised reopen yang jelas.
+- Proposal ini tidak membuka scope terlarang.
+- Proposal ini cukup disiplin untuk diperlakukan sebagai intake yang rapi.
+- Tetapi tanpa override artifact yang lebih baru, ia tetap tidak boleh naik ke eksekusi atau review formal aktif.
+
+Bottom line:
+- Proposal yang rapi dan novelty-aware tetap harus `hold_in_documented_pause` jika state governance resmi belum diubah oleh artifact yang lebih baru.

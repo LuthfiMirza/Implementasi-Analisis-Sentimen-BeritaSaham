@@ -1,0 +1,55 @@
+{
+  "artifact": "layer2_governance_toolkit_index",
+  "reference_date": "2026-04-24",
+  "current_official_state": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "source_of_truth_artifacts": [
+    "output/project_roadmap_status.txt",
+    "output/next_step_after_v3_pause_resolution.txt",
+    "output/next_step_after_v3_pause_resolution.json",
+    "output/phase_0b_final_data_policy_closeout.txt",
+    "output/phase_0b_final_data_policy_closeout.json",
+    "output/layer2_reopen_threshold_governance_note.txt",
+    "output/layer2_reopen_threshold_governance_note.json",
+    "output/governance_artifact_registry.txt",
+    "output/governance_artifact_registry.json",
+    "output/how_to_read_current_governance_artifacts.txt"
+  ],
+  "operational_governance_tooling_artifacts": [
+    "output/layer2_reopen_request_template.txt",
+    "output/layer2_reopen_request_template.json",
+    "output/governance_change_intake_checklist.txt",
+    "output/governance_change_intake_checklist.json",
+    "output/layer2_reopen_decision_memo_template.txt",
+    "output/layer2_reopen_decision_memo_template.json",
+    "output/governance_intake_log_policy.txt",
+    "output/layer2_governance_operator_guide.txt"
+  ],
+  "example_artifacts": [
+    "output/example_layer2_reopen_request_reject_case.txt",
+    "output/example_layer2_reopen_request_hold_case.txt",
+    "output/example_layer2_reopen_review_outcomes.txt",
+    "output/example_layer2_reopen_decision_memo_reject.txt",
+    "output/example_layer2_reopen_decision_memo_hold.txt"
+  ],
+  "basic_process_flow": [
+    "read_active_source_of_truth",
+    "check_governance_registry_and_how_to_read_note",
+    "fill_layer2_reopen_request_template",
+    "evaluate_with_governance_change_intake_checklist",
+    "compare_against_reject_and_hold_examples",
+    "write_decision_memo",
+    "store_review_artifact_according_to_governance_intake_log_policy"
+  ],
+  "forbidden_interpretation": [
+    "this_toolkit_is_not_automatic_permission_for_backtest",
+    "this_toolkit_is_not_automatic_permission_for_retest",
+    "this_toolkit_is_not_automatic_permission_for_paper_trading",
+    "this_toolkit_is_not_automatic_permission_for_phase_c",
+    "this_toolkit_is_not_automatic_permission_for_new_strategy_coding",
+    "documented_pause_remains_active_until_a_newer_valid_governance_override_artifact_exists"
+  ]
+}

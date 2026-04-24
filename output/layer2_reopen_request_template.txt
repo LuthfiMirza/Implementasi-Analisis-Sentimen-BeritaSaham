@@ -1,0 +1,100 @@
+Layer 2 Reopen Request Template
+===============================
+
+Reference date:
+- 2026-04-24
+
+Template purpose:
+- Dipakai hanya untuk menilai apakah suatu future proposal layak masuk `formal governance review`.
+- Mengisi template ini tidak berarti eksperimen otomatis boleh dimulai.
+- Mengisi template ini tidak berarti retest, paper trading, atau Phase C boleh dibuka.
+
+Current official state acknowledgment:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+- proposer_acknowledgment = [WAJIB DIISI: ya/tidak]
+
+Request header:
+- request_id = [isi]
+- request_purpose = [isi singkat]
+- proposer_name = [isi]
+- proposer_role = [isi]
+- request_date = [isi tanggal]
+
+Source-of-truth read confirmation:
+- required_source_of_truth_read = [WAJIB DIISI]
+  - output/project_roadmap_status.txt
+  - output/next_step_after_v3_pause_resolution.txt
+  - output/next_step_after_v3_pause_resolution.json
+  - output/phase_0b_final_data_policy_closeout.txt
+  - output/phase_0b_final_data_policy_closeout.json
+  - output/layer2_reopen_threshold_governance_note.txt
+  - output/layer2_reopen_threshold_governance_note.json
+  - output/governance_artifact_registry.txt
+  - output/governance_artifact_registry.json
+  - output/how_to_read_current_governance_artifacts.txt
+
+Proposal core:
+- proposed_residual_lever_family = [isi]
+- short_description = [isi]
+- why_this_is_methodologically_new = [WAJIB DIISI secara eksplisit]
+- why_this_is_not_a_disguised_reopen = [WAJIB DIISI secara eksplisit]
+
+Required explicit non-reopen confirmation:
+- not_reopening_absolute_momentum_floor_on_return_20d = [ya/tidak]
+- not_reopening_entry_signal_persistence_minimum_confirmation_days = [ya/tidak]
+- not_reopening_stock_trend_quality_gate_via_short_term_ema_slope = [ya/tidak]
+- not_expanding_rejected_threshold_or_range = [ya/tidak]
+- not_relabeling_an_old_lever_with_new_words = [ya/tidak]
+
+Failure mechanism section:
+- targeted_failure_mechanism = [isi]
+- why_targeted_failure_mechanism_differs_from_rejected_paths = [WAJIB DIISI]
+- why_historical_rejections_do_not_already_cover_this_case = [WAJIB DIISI]
+
+Frozen-stack confirmation:
+- layer_1_unchanged = [WAJIB: ya]
+- layer_1_definition = `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`
+- layer_3_unchanged = [WAJIB: ya]
+- layer_3_definition = optional off-by-default
+- layer_4_unchanged = [WAJIB: ya]
+- layer_4_definition = `2% risk per trade` and `10% max position cap`
+- layer_5_unchanged = [WAJIB: ya]
+- layer_5_definition = `ATR14 x 2.5` trailing stop with `12 days` time stop
+- walk_forward_split_unchanged = [WAJIB: ya]
+- realism_cost_policy_unchanged = [WAJIB: ya]
+- realism_cost_policy_definition = `30 bps round-trip`
+
+Governance-facing override requirement:
+- newer_governance_facing_override_artifact_exists = [ya/tidak]
+- override_artifact_path = [isi jika ada]
+- override_artifact_generated_at = [isi jika ada]
+- why_override_is_newer_than_pause_artifacts = [WAJIB jika mengklaim ya]
+
+Scope guardrails:
+- opens_retest = [harus tidak]
+- opens_paper_trading = [harus tidak]
+- opens_phase_c = [harus tidak]
+- opens_strategy_coding = [harus tidak]
+- opens_backtest_execution = [harus tidak]
+- changes_non_layer2_stack_components = [harus tidak]
+
+Explicit governance recommendation:
+- governance_recommendation = [pilih satu]
+  - reject_as_not_governance_valid_yet
+  - eligible_for_formal_governance_review_only
+
+Required recommendation rule:
+- Jika satu saja bagian novelty metodologis, failure mechanism difference, frozen-stack confirmation, atau newer override artifact tidak terpenuhi, rekomendasi wajib = `reject_as_not_governance_valid_yet`.
+
+Forbidden interpretation:
+- Template terisi bukan berarti eksperimen otomatis boleh dimulai.
+- Template terisi bukan berarti retest boleh dibuka.
+- Template terisi bukan berarti paper trading boleh dibuka.
+- Template terisi bukan berarti Phase C boleh dibuka.
+- Template terisi bukan berarti coding strategi baru boleh dilakukan.
+
+Reviewer note:
+- Template ini adalah paket intake, bukan approval.
+- Proposal hanya boleh naik ke review formal bila lolos checklist intake resmi di `output/governance_change_intake_checklist.*`.

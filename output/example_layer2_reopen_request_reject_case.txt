@@ -1,0 +1,63 @@
+Example Layer 2 Reopen Request: Reject Case
+===========================================
+
+Reference date:
+- 2026-04-24
+
+Purpose of this example:
+- Menunjukkan proposal yang terlihat formal dan rapi, tetapi sebenarnya hanya disguised reopen dari lever yang sudah ditolak.
+
+Illustrative proposal:
+- request_id = example_reject_case_01
+- request_purpose = reopen Layer 2 via `adaptive momentum quality floor`
+- proposer_acknowledgment = ya
+- proposed_residual_lever_family = `adaptive momentum quality floor`
+- short_description = gunakan floor momentum yang disesuaikan ringan terhadap distribusi return 20 hari agar sinyal lemah tersaring tanpa mengulang momentum floor lama secara literal
+- why_this_is_methodologically_new = proposal mengklaim novelty karena memakai istilah `adaptive` dan tidak menulis angka threshold lama secara eksplisit
+- targeted_failure_mechanism = mengurangi trade berkualitas rendah yang lolos saat momentum 20 hari terlalu lemah
+- frozen_stack_confirmation = semua komponen lain tetap unchanged
+- newer_governance_facing_override_artifact_exists = tidak
+- governance_recommendation_requested_by_proposer = eligible_for_formal_governance_review_only
+
+Why this proposal looks formal at first glance:
+- Ia mengakui current official state.
+- Ia menulis frozen-stack confirmation lengkap.
+- Ia tidak membuka retest, paper trading, Phase C, coding, atau backtest execution langsung.
+- Ia memakai bahasa yang terdengar baru: `adaptive`, `quality`, dan `distribution-aware`.
+
+Why it still fails and must be rejected:
+1. False novelty
+- Walaupun istilahnya diganti, inti perubahan tetap sama: menaikkan atau memodulasi threshold pada `return_20d`.
+- Ini tetap keluarga yang sama dengan `absolute_momentum_floor_on_return_20d`, hanya dibungkus dengan wording baru.
+
+2. Failure mechanism is not actually new
+- Proposal mengklaim menargetkan sinyal lemah akibat momentum 20 hari yang terlalu rendah.
+- Itu bukan failure mechanism baru; itu persis rasional inti yang sudah berada di balik jalur momentum floor yang telah diuji dan ditolak.
+
+3. Disguised range/threshold reopening
+- Kata `adaptive` di sini hanya mengubah cara memilih threshold, bukan membuka keluarga metodologi baru.
+- Secara governance, ini tetap reopen tersamar dari threshold family yang sudah ditutup.
+
+4. Incorrect recommendation request
+- Karena novelty metodologis gagal, proposal tidak berhak meminta `eligible_for_formal_governance_review_only`.
+- Sesuai template dan checklist, outcome wajib jatuh ke `reject_as_not_governance_valid_yet`.
+
+Checklist failure mapping:
+- Step 2 artifact dependency check:
+  Proposal cenderung memakai logika historis lama dan berharap wording baru cukup untuk bypass pause.
+- Step 3 lever novelty check:
+  Gagal. Ini variasi threshold/range dari jalur `absolute_momentum_floor_on_return_20d`.
+- Step 4 failure mechanism check:
+  Gagal. Failure mechanism tidak berbeda secara substantif dari jalur yang sudah ditolak.
+- Step 7 governance override recency check:
+  Tidak ada override artifact yang lebih baru, tetapi proposal sudah gagal lebih awal pada novelty sehingga outcome yang benar tetap `reject`, bukan sekadar `hold`.
+
+Official outcome:
+- reject
+
+Why the official outcome is `reject` instead of `hold_in_documented_pause`:
+- `hold_in_documented_pause` dipakai untuk proposal yang setidaknya lolos novelty dan scope discipline tetapi belum punya override artifact yang lebih baru.
+- Contoh ini tidak lolos novelty dasar; jadi ia gagal pada validitas governance, bukan hanya gagal pada recency override.
+
+Bottom line:
+- Proposal yang terlihat canggih tetapi hanya mengganti nama threshold momentum lama harus langsung `reject`.

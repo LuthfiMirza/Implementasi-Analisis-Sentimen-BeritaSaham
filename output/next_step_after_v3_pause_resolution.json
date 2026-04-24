@@ -1,0 +1,102 @@
+{
+  "artifact": "next_step_after_v3_pause_resolution",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_decision": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "latest_assessed_stack": {
+    "stack_id": "rebuild_core_without_layer3",
+    "official_stack_status": "unchanged_after_v1_v2_v3_rejections",
+    "layer_1": "ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50",
+    "layer_2": "relative_strength_closed_alternative_track_integration_frozen_not_final_validation_frozen_rejected_single_variable_levers_not_adopted",
+    "layer_3": "optional_toggle_only_default_false",
+    "layer_4": "2pct_risk_per_trade_with_10pct_max_position_cap",
+    "layer_5": "atr14_x_2_5_trailing_stop_with_provisional_12_day_time_stop",
+    "evaluation_policy": {
+      "walk_forward_split": "unchanged",
+      "realism_cost_policy": "30_bps_round_trip_unchanged"
+    },
+    "latest_official_cost_applied_holdout_snapshot": {
+      "average_return_per_trade": -0.7867,
+      "portfolio_max_drawdown_pct": 34.6411,
+      "trade_count": 461
+    }
+  },
+  "evidence_files_used": [
+    "output/project_roadmap_status.txt",
+    "output/project_after_phase_b_decision.txt",
+    "output/walk_forward_validation_closeout.json",
+    "output/phase_2_layer_2_relative_strength_closeout.txt",
+    "output/single_variable_experiment_results.json",
+    "output/single_variable_experiment_results_v2.json",
+    "output/single_variable_experiment_results_v3.json",
+    "output/next_layer2_lever_selection_note.json",
+    "output/phase_b_final_closeout.txt",
+    "output/phase_b_go_no_go_next_phase.json",
+    "output/walk_forward_with_costs_summary.json"
+  ],
+  "failure_classification": {
+    "strategy_performance": [
+      "oos_instability",
+      "entry_design",
+      "product_ready_but_strategy_invalid"
+    ],
+    "redesign_scope": [
+      "layer_2_single_variable_entry_quality_lane_exhausted_for_the_current_approved_narrow_path",
+      "no_tested_variant_passed_locked_minimum_criteria_in_v1_v2_or_v3"
+    ],
+    "product_app_readiness": "usable_enough_not_the_reason_for_pause",
+    "data_readiness": "still_partial_but_not_the_formal_basis_for_selecting_another_layer_2_lever_now",
+    "evaluation_framework_quality": "patched_and_governance_aligned_recent_rejections_are_binding",
+    "strategy_validity": "still_not_demonstrated_phase_b_no_candidate_walk_forward_no_promotion_path"
+  },
+  "why_v1_v2_v3_rejection_changes_the_decision": [
+    "The lever-selection note was generated on 2026-04-23T15:07:52Z and only justified the next Layer 2 lever choice after the first rejection.",
+    "The second experiment was rejected on 2026-04-23T15:27:49Z and the third experiment was rejected on 2026-04-23T16:20:10Z under the same locked minimum criteria.",
+    "Each v1-v3 result kept stack_changed=false, so the official assessed stack did not improve into a new promotable baseline.",
+    "The newer roadmap status then explicitly set the project state to strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection.",
+    "Because of that sequence, the earlier lever-selection note is superseded by newer formal evidence rather than extended.",
+    "The remaining backlog idea momentum_acceleration_quality_check has not been promoted by any newer formal artifact after v3, so opening it now would be an unauthorized backlog activation."
+  ],
+  "allowed_next_scope": [
+    "document_the_pause_resolution_as_the_current_official_state_sync",
+    "define_the_evidence_threshold_required_before_any_future_layer_2_selection_reopen",
+    "keep_the_current_step_limited_to_strategy_performance_redesign_scope_and_governance_consistency"
+  ],
+  "forbidden_or_premature_scopes": [
+    "reopen_absolute_momentum_floor_on_return_20d",
+    "reopen_entry_signal_persistence_minimum_confirmation_days",
+    "reopen_stock_trend_quality_gate_via_short_term_ema_slope",
+    "expand_any_rejected_range_or_slope_definition_without_new_explicit_methodology",
+    "auto_activate_backlog_hypotheses_including_momentum_acceleration_quality_check",
+    "move_scope_to_layer_1_layer_3_layer_4_or_layer_5_without_newer_formal_evidence",
+    "open_retest",
+    "open_paper_trading",
+    "run_a_new_backtest",
+    "write_a_new_strategy_implementation",
+    "reopen_phase_c_or_any_promotion_path"
+  ],
+  "decision": "remain_in_documented_pause",
+  "what_evidence_would_be_required_to_reopen_selection": [
+    "a_newer_formal_governance_facing_artifact_than_output/project_roadmap_status.txt_generated_2026_04_23_that_explicitly_overrides_the_documented_pause",
+    "a_methodologically_explicit_note_showing_one_residual_layer_2_lever_family_that_is_distinct_from_momentum_floor_persistence_confirmation_and_short_term_ema_slope_gating",
+    "a_defensible_explanation_for_why_the_new_lever_targets_a_different_failure_mechanism_and_does_not_reopen_any_rejected_path_in_disguised_form",
+    "an_explicit_frozen_stack_definition_proving_layer_1_layer_3_layer_4_layer_5_walk_forward_split_and_realism_cost_policy_stay_unchanged_during_any_future_test_planning"
+  ],
+  "what_should_remain_frozen_meanwhile": [
+    "layer_1_regime_rule_ihsg_ema50_gt_ihsg_ema200_and_ihsg_ema50_gt_prev_ihsg_ema50",
+    "relative_strength_track_closed",
+    "rejected_layer_2_single_variable_lever_families_closed",
+    "layer_3_optional_off_by_default",
+    "layer_4_2pct_risk_per_trade_with_10pct_max_position_cap",
+    "layer_5_atr14_x_2_5_trailing_stop_with_12_day_time_stop",
+    "walk_forward_split_unchanged",
+    "realism_cost_policy_unchanged",
+    "governance_blocked_state_unchanged",
+    "retest_blocked",
+    "paper_trading_blocked"
+  ]
+}

@@ -1,0 +1,92 @@
+Next Step After V3 Pause Resolution
+==================================
+
+Reference date:
+- 2026-04-24
+
+Current official decision:
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution_after_state `strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection` = remain_in_documented_pause
+
+Latest assessed stack:
+- stack_id = rebuild_core_without_layer3
+- official stack status = unchanged after v1, v2, and v3 because each experiment artifact kept `stack_changed = false`
+- Layer 1 = `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`
+- Layer 2 = Relative Strength track closed; alternative Layer 2 track remains integration-frozen but not final-validation frozen; rejected single-variable Layer 2 levers are not adopted into the official stack
+- Layer 3 = optional toggle only; default active = false
+- Layer 4 = `2% risk per trade` with `10% max position cap`
+- Layer 5 = `ATR14 x 2.5` trailing stop with provisional time stop `12 days`
+- evaluation policy = same walk-forward split and same realism cost policy `30 bps round-trip`
+- latest official cost-applied holdout snapshot = `average_return_per_trade = -0.7867`, `portfolio_max_drawdown_pct = 34.6411`, `trade_count = 461`
+
+Evidence files used:
+- output/project_roadmap_status.txt
+- output/project_after_phase_b_decision.txt
+- output/walk_forward_validation_closeout.json
+- output/phase_2_layer_2_relative_strength_closeout.txt
+- output/single_variable_experiment_results.json
+- output/single_variable_experiment_results_v2.json
+- output/single_variable_experiment_results_v3.json
+- output/next_layer2_lever_selection_note.json
+- output/phase_b_final_closeout.txt
+- output/phase_b_go_no_go_next_phase.json
+- output/walk_forward_with_costs_summary.json
+
+Failure classification:
+- strategy performance = `oos_instability` remains dominant and `entry_design` remains the highest-defensible redesign scope
+- redesign scope = approved narrow Layer 2 single-variable entry-quality lane is exhausted for now because v1, v2, and v3 all failed the same locked minimum criteria
+- product/app readiness = product is usable enough; this is not the reason the project is paused
+- data readiness = still partial, but that is not the formal basis for selecting another Layer 2 lever right now
+- evaluation framework quality = framework semantics are already patched and governance-aligned; this makes the recent rejections more binding, not easier to override
+- strategy validity = still not demonstrated; Phase B closed with no candidate, walk-forward closed failed for promotion, and no tested Layer 2 lever changed that verdict
+- governance-level label = `product_ready_but_strategy_invalid`
+
+Why v1, v2, and v3 rejection changes the decision:
+- `output/next_layer2_lever_selection_note.json` was generated on 2026-04-23 15:07:52 UTC and only justified the next lever choice after the first rejection.
+- v2 was then rejected on 2026-04-23 15:27:49 UTC and v3 was rejected on 2026-04-23 16:20:10 UTC under the same locked minimum criteria.
+- After those two newer rejections, `output/project_roadmap_status.txt` moved the project to `strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection` and explicitly set the recommended next action to maintain the governance gate block.
+- Therefore the earlier lever-selection note is now superseded by newer formal evidence rather than extended.
+- The remaining backlog idea `momentum_acceleration_quality_check` does not have newer formal promotion after v3, so opening it now would be an unauthorized backlog activation, not the current official next step.
+
+Allowed next scope:
+- keep the project in documented pause and synchronize the decision in artifact form
+- define the evidence threshold that would be required before any future Layer 2 lever selection is reopened
+- limit the current conclusion to strategy performance, redesign scope, and governance consistency
+
+Forbidden or premature scopes:
+- reopen `absolute_momentum_floor_on_return_20d`
+- reopen `entry_signal_persistence_minimum_confirmation_days`
+- reopen `stock_trend_quality_gate_via_short_term_ema_slope`
+- expand any rejected range or slope definition without a new explicit methodology artifact
+- auto-activate backlog hypotheses including `momentum_acceleration_quality_check`
+- move scope to Layer 1, Layer 3, Layer 4, or Layer 5 without newer formal evidence strong enough to justify the shift
+- open retest
+- open paper trading
+- run a new backtest
+- write a new strategy implementation
+- reopen Phase C or any promotion path
+
+Decision:
+- remain_in_documented_pause
+
+What evidence would be required to reopen selection:
+- a newer formal governance-facing artifact than the 2026-04-23 roadmap status that explicitly overrides the documented pause
+- a methodologically explicit note showing one residual Layer 2 lever family that is distinct from momentum floor, persistence confirmation, and short-term EMA slope gating
+- a defensible explanation for why that new lever targets a different failure mechanism and does not reopen any rejected path in disguised form
+- an explicit frozen-stack definition proving that Layer 1, Layer 3, Layer 4, Layer 5, walk-forward split, and realism cost policy stay unchanged during any future test planning
+
+What should remain frozen meanwhile:
+- Layer 1 regime rule stays `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`
+- Relative Strength track stays formally closed
+- rejected Layer 2 single-variable lever families stay closed
+- Layer 3 stays optional and off by default
+- Layer 4 sizing stays `2% risk per trade` with `10% max position cap`
+- Layer 5 stays `ATR14 x 2.5` trailing stop with time stop `12 days`
+- walk-forward split stays unchanged
+- realism cost policy stays unchanged
+- governance blocked state stays unchanged
+- retest stays blocked
+- paper trading stays blocked
+
+Bottom line:
+- The most defensible official next step after `strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection` is not to select another lever family now, but to remain in documented pause until a newer governance-facing artifact provides a formally justified, methodologically new Layer 2 path.

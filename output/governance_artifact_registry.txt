@@ -1,0 +1,72 @@
+Governance Artifact Registry
+============================
+
+Reference date:
+- 2026-04-24
+
+Current official decision:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_resolution = remain_in_documented_pause
+
+Reading rule:
+- Jika ada konflik, prioritaskan artifact formal yang lebih baru.
+- Untuk flow keputusan aktif saat ini, mulai dari artifact yang diklasifikasikan `current_source_of_truth`.
+- Artifact `historical_supporting_context` tetap penting untuk menjelaskan kenapa state sekarang ada, tetapi tidak boleh dipakai sendirian untuk membuka langkah baru.
+- Artifact `superseded_for_current_decision_flow` tidak boleh dipakai sebagai dasar keputusan aktif.
+
+Current source of truth:
+- `output/project_roadmap_status.txt`
+  reason: Ringkasan resmi paling aktif untuk status proyek, progress governance, current focus, dan recommended next action.
+- `output/next_step_after_v3_pause_resolution.txt`
+  reason: Resolusi formal sesudah state pause v3; menjelaskan kenapa keputusan resmi adalah tetap pause.
+- `output/next_step_after_v3_pause_resolution.json`
+  reason: Versi machine-readable dari resolusi pause yang sama; menegaskan apa yang source of truth dan apa yang dilarang.
+- `output/phase_0b_final_data_policy_closeout.txt`
+  reason: Closeout resmi untuk gap Phase 0B; menjelaskan kenapa data policy current stack dianggap closed with documented limitations, bukan promotion-ready.
+- `output/phase_0b_final_data_policy_closeout.json`
+  reason: Versi machine-readable dari closeout Phase 0B; dipakai untuk menjaga interpretasi data readiness tetap governance-consistent.
+- `output/layer2_reopen_threshold_governance_note.txt`
+  reason: Note resmi yang mendefinisikan syarat reopen Layer 2 dan menegaskan bahwa documented pause tetap aktif.
+- `output/layer2_reopen_threshold_governance_note.json`
+  reason: Versi machine-readable dari threshold reopen Layer 2; ini membatasi decision flow aktif agar tidak kembali ke hopeful experimentation.
+
+Operational governance tooling:
+- `output/layer2_governance_operator_guide.txt`
+  reason: Panduan operasional end-to-end untuk reviewer baru; membantu menjalankan proses review, tetapi tidak mengubah governance state.
+- `output/layer2_governance_toolkit_index.json`
+  reason: Peta operasional toolkit yang merangkum source-of-truth, tooling, dan examples; memudahkan discovery path, tetapi bukan artifact yang mengubah state governance.
+
+Historical but still relevant supporting context:
+- `output/phase_b_final_closeout.txt`
+  reason: Closeout formal kenapa Phase B gagal sebagai strategi dan kenapa Phase C tetap tertutup.
+- `output/project_after_phase_b_decision.txt`
+  reason: Ringkasan singkat keputusan setelah Phase B; masih relevan sebagai jembatan naratif ke foundation rebuild.
+- `output/phase_b_go_no_go_next_phase.json`
+  reason: Menjelaskan no-go ke Phase C dan must-fix governance scope sebelum eksperimen lain pernah dipertimbangkan.
+- `output/walk_forward_validation_closeout.json`
+  reason: Bukti formal bahwa stack rebuild gagal gate walk-forward dan tidak promotable; menjelaskan failure class utama.
+- `output/walk_forward_with_costs_summary.json`
+  reason: Bukti realism-cost yang memperkuat no-go promotion path dan menjaga interpretasi hasil tidak terlalu optimistis.
+- `output/phase_2_layer_2_relative_strength_closeout.txt`
+  reason: Menutup jalur RS secara formal dan menjelaskan kenapa iterasi RS tambahan tidak defensible tanpa metodologi baru.
+- `output/single_variable_experiment_results.json`
+  reason: Evidence historis rejection v1 untuk `absolute_momentum_floor_on_return_20d`; tetap relevan sebagai bukti kenapa lever itu tertutup.
+- `output/single_variable_experiment_results_v2.json`
+  reason: Evidence historis rejection v2 untuk `entry_signal_persistence_minimum_confirmation_days`; tetap relevan sebagai bukti kenapa lever itu tertutup.
+- `output/single_variable_experiment_results_v3.json`
+  reason: Evidence historis rejection v3 untuk `stock_trend_quality_gate_via_short_term_ema_slope`; memperkuat documented pause tetapi bukan artifact pembuka langkah baru.
+
+Superseded for current decision flow:
+- `output/next_layer2_lever_selection_note.json`
+  reason: Dibuat lebih awal pada 2026-04-23T15:07:52Z sebelum rejection v2 dan v3, sehingga sudah tersupersede oleh artifact yang lebih baru dan tidak lagi punya kekuatan governance untuk membuka siklus Layer 2 baru sekarang.
+
+Practical interpretation:
+- Product/app readiness tidak sama dengan strategy validity.
+- Artifact historis yang menunjukkan app usable tidak boleh dibaca sebagai bukti strategi layak promotion.
+- Status resmi aktif proyek saat ini tetap `documented pause`.
+- Reopen Layer 2 hanya boleh terjadi jika threshold governance baru yang tertulis di `output/layer2_reopen_threshold_governance_note.*` benar-benar terpenuhi.
+
+Bottom line:
+- Untuk keputusan aktif sekarang, baca dulu `output/project_roadmap_status.txt`, lalu `output/next_step_after_v3_pause_resolution.*`, `output/phase_0b_final_data_policy_closeout.*`, dan `output/layer2_reopen_threshold_governance_note.*`.
+- Gunakan artifact lainnya hanya sebagai konteks historis pendukung, kecuali `output/next_layer2_lever_selection_note.json` yang harus diperlakukan superseded untuk flow keputusan aktif.

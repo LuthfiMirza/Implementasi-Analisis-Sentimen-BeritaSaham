@@ -1,0 +1,71 @@
+Layer 2 Reopen Threshold Governance Note
+========================================
+
+Reference date:
+- 2026-04-24
+
+Current official state:
+- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
+- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- formal_pause_resolution = remain_in_documented_pause
+
+Kenapa note seleksi lever lama sudah superseded:
+- `output/next_layer2_lever_selection_note.json` dibuat pada `2026-04-23T15:07:52Z`.
+- Setelah itu ada artifact yang lebih baru:
+  - `output/single_variable_experiment_results_v2.json` pada `2026-04-23T15:27:49+00:00`
+  - `output/single_variable_experiment_results_v3.json` pada `2026-04-23T16:20:10+00:00`
+- Kedua artifact yang lebih baru itu sama-sama berakhir pada `hypothesis_rejected`, `stack_changed = false`, retest tetap blocked, dan paper trading tetap blocked.
+- Sesudah rangkaian itu, `output/project_roadmap_status.txt` dan `output/next_step_after_v3_pause_resolution.*` memindahkan status resmi ke documented pause.
+- Karena itu, note seleksi lever lama tidak lagi memiliki kekuatan governance untuk membuka langkah baru sekarang.
+
+Lever family yang tetap tertutup:
+- `absolute_momentum_floor_on_return_20d`
+- `entry_signal_persistence_minimum_confirmation_days`
+- `stock_trend_quality_gate_via_short_term_ema_slope`
+
+Backlog status:
+- `momentum_acceleration_quality_check` dan backlog sejenis tidak boleh diaktifkan otomatis.
+- Backlog hanya boleh dibuka lagi jika syarat reopen formal di bawah ini benar-benar terpenuhi.
+
+Syarat formal untuk reopen Layer 2:
+1. Harus ada artifact governance-facing yang lebih baru daripada artifact roadmap/pause terbaru yang secara eksplisit mengoverride documented pause.
+2. Harus ada residual lever family yang metodologinya benar-benar baru, bukan variasi tersamar dari momentum floor, persistence confirmation, atau short-term EMA slope gate.
+3. Harus ada penjelasan eksplisit bahwa lever baru tersebut menargetkan failure mechanism yang berbeda dari jalur yang sudah ditolak.
+4. Harus ada frozen-stack definition yang menjaga hal berikut tetap tidak berubah:
+   - Layer 1 regime rule
+   - Layer 3 default status
+   - Layer 4 sizing policy
+   - Layer 5 exit policy
+   - walk-forward split
+   - realism cost policy
+
+Frozen stack definition minimum yang harus tetap dijaga bila suatu hari reopen dipertimbangkan:
+- Layer 1 tetap `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`
+- Layer 3 tetap optional off-by-default
+- Layer 4 tetap `2% risk per trade` dan `10% max position cap`
+- Layer 5 tetap `ATR14 x 2.5` trailing stop dengan time stop `12 days`
+- Walk-forward split tetap unchanged
+- Realism cost policy tetap `30 bps round-trip`
+
+Explicit decision:
+- remain paused unless those conditions are met
+
+Forbidden interpretation:
+- Jangan pakai artifact ini untuk membuka retest.
+- Jangan pakai artifact ini untuk membuka paper trading.
+- Jangan pakai artifact ini untuk mengaktifkan backlog hypothesis secara diam-diam.
+- Jangan pakai artifact ini untuk membuka Layer 1, Layer 3, Layer 4, Layer 5, atau Phase C.
+
+Evidence files used:
+- output/project_roadmap_status.txt
+- output/next_step_after_v3_pause_resolution.txt
+- output/next_step_after_v3_pause_resolution.json
+- output/next_layer2_lever_selection_note.json
+- output/single_variable_experiment_results.json
+- output/single_variable_experiment_results_v2.json
+- output/single_variable_experiment_results_v3.json
+- output/walk_forward_validation_closeout.json
+- output/walk_forward_with_costs_summary.json
+
+Bottom line:
+- Layer 2 selection tetap pause. Reopen hanya boleh terjadi jika ada artifact governance-facing yang lebih baru, satu lever family residual yang benar-benar baru, penjelasan failure mechanism yang berbeda, dan frozen-stack definition yang menjaga scope lain tetap beku.

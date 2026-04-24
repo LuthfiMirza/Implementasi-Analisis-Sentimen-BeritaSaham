@@ -1,0 +1,65 @@
+How To Read Current Governance Artifacts
+========================================
+
+Reference date:
+- 2026-04-24
+
+Read these first:
+1. `output/project_roadmap_status.txt`
+   This is the active project-level status board and the first place to confirm the official state.
+2. `output/next_step_after_v3_pause_resolution.txt`
+   This explains why the official decision after the v3 rejection is to remain in documented pause.
+3. `output/phase_0b_final_data_policy_closeout.txt`
+   This explains the official Phase 0B closeout and what data policy is considered documented versus still limited.
+4. `output/layer2_reopen_threshold_governance_note.txt`
+   This defines the only acceptable threshold for reopening Layer 2.
+5. `output/governance_artifact_registry.txt`
+   This tells you which other artifacts are current, historical, or superseded.
+6. `output/layer2_governance_operator_guide.txt`
+   After you finish the source-of-truth pass, use this to follow the end-to-end operational review process.
+
+Read these as supporting context:
+- `output/phase_b_final_closeout.txt`
+- `output/project_after_phase_b_decision.txt`
+- `output/phase_b_go_no_go_next_phase.json`
+- `output/walk_forward_validation_closeout.json`
+- `output/walk_forward_with_costs_summary.json`
+- `output/phase_2_layer_2_relative_strength_closeout.txt`
+- `output/single_variable_experiment_results.json`
+- `output/single_variable_experiment_results_v2.json`
+- `output/single_variable_experiment_results_v3.json`
+
+Do not use these alone to open a new experiment:
+- Any single historical closeout or experiment result by itself
+- `output/next_layer2_lever_selection_note.json`
+- Any artifact that predates the documented pause resolution and is not explicitly reaffirmed by newer governance artifacts
+
+Interpretation guardrails:
+- Product/app readiness must not be treated as proof of strategy validity.
+- A usable Laravel app, working pipelines, or integrated layers do not override failed strategy evaluation.
+- The current official status is `documented pause`, not active experiment selection.
+- Phase C remains closed.
+- Retest remains blocked.
+- Paper trading remains blocked.
+
+How to interpret Layer 2 now:
+- Layer 2 is not open for normal experimentation.
+- The previously rejected lever families remain closed:
+  - `absolute_momentum_floor_on_return_20d`
+  - `entry_signal_persistence_minimum_confirmation_days`
+  - `stock_trend_quality_gate_via_short_term_ema_slope`
+- Backlog ideas are not self-activating.
+- Reopen Layer 2 is only allowed if the newer governance threshold in `output/layer2_reopen_threshold_governance_note.*` is satisfied.
+
+Simple reading sequence:
+- First confirm the official state in `output/project_roadmap_status.txt`.
+- Then confirm the formal pause logic in `output/next_step_after_v3_pause_resolution.*`.
+- Then confirm the data-policy boundary in `output/phase_0b_final_data_policy_closeout.*`.
+- Then confirm the reopen threshold in `output/layer2_reopen_threshold_governance_note.*`.
+- Then use `output/layer2_governance_operator_guide.txt` and `output/layer2_governance_toolkit_index.json` as operational tooling for the review workflow.
+- Only after that, read historical artifacts to understand why the current state exists.
+
+Bottom line:
+- If you want to know what is officially active now, use the current governance artifacts first.
+- If you want to know why the project arrived here, use the historical artifacts second.
+- If an artifact suggests a new experiment but is older than the documented pause flow, do not treat it as active authority.

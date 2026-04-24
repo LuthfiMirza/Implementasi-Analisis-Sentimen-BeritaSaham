@@ -1,0 +1,125 @@
+{
+  "artifact": "governance_change_intake_checklist",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "purpose": [
+    "used_by_reviewers_to_assess_whether_a_layer2_reopen_proposal_is_governance_valid",
+    "not_an_approval_for_backtest_retest_paper_trading_phase_c_or_strategy_coding"
+  ],
+  "checks": [
+    {
+      "step": 1,
+      "name": "source_of_truth_recency_check",
+      "questions": [
+        "has_the_reviewer_read_the_latest_source_of_truth_artifacts",
+        "has_the_reviewer_confirmed_the_current_state_is_still_documented_pause"
+      ],
+      "required_artifacts": [
+        "output/project_roadmap_status.txt",
+        "output/next_step_after_v3_pause_resolution.txt",
+        "output/next_step_after_v3_pause_resolution.json",
+        "output/phase_0b_final_data_policy_closeout.txt",
+        "output/phase_0b_final_data_policy_closeout.json",
+        "output/layer2_reopen_threshold_governance_note.txt",
+        "output/layer2_reopen_threshold_governance_note.json",
+        "output/governance_artifact_registry.txt",
+        "output/governance_artifact_registry.json",
+        "output/how_to_read_current_governance_artifacts.txt"
+      ],
+      "fail_outcome": "reject"
+    },
+    {
+      "step": 2,
+      "name": "artifact_dependency_check",
+      "questions": [
+        "does_the_proposal_rely_only_on_historical_artifacts",
+        "does_the_proposal_rely_on_superseded_artifacts",
+        "does_the_proposal_use_output/next_layer2_lever_selection_note.json_as_primary_authority"
+      ],
+      "fail_outcome": "reject"
+    },
+    {
+      "step": 3,
+      "name": "lever_novelty_check",
+      "questions": [
+        "is_the_proposed_lever_family_methodologically_genuinely_new",
+        "is_it_not_just_a_threshold_range_persistence_or_slope_variation_of_rejected_paths",
+        "is_it_not_a_disguised_reopen_of_absolute_momentum_floor_on_return_20d",
+        "is_it_not_a_disguised_reopen_of_entry_signal_persistence_minimum_confirmation_days",
+        "is_it_not_a_disguised_reopen_of_stock_trend_quality_gate_via_short_term_ema_slope"
+      ],
+      "fail_outcome": "reject"
+    },
+    {
+      "step": 4,
+      "name": "failure_mechanism_check",
+      "questions": [
+        "is_the_targeted_failure_mechanism_explicitly_explained",
+        "is_that_failure_mechanism_different_from_rejected_paths",
+        "is_there_an_explicit_explanation_for_why_historical_rejections_do_not_already_cover_this_case"
+      ],
+      "fail_outcome": "reject"
+    },
+    {
+      "step": 5,
+      "name": "frozen_stack_integrity_check",
+      "questions": [
+        "is_layer_1_unchanged",
+        "is_layer_3_unchanged",
+        "is_layer_4_unchanged",
+        "is_layer_5_unchanged",
+        "is_walk_forward_split_unchanged",
+        "is_realism_cost_policy_unchanged"
+      ],
+      "fail_outcome": "reject"
+    },
+    {
+      "step": 6,
+      "name": "hidden_scope_opening_check",
+      "questions": [
+        "does_the_proposal_open_retest",
+        "does_the_proposal_open_paper_trading",
+        "does_the_proposal_open_phase_c",
+        "does_the_proposal_open_strategy_coding",
+        "does_the_proposal_request_direct_backtest_execution"
+      ],
+      "fail_outcome": "reject"
+    },
+    {
+      "step": 7,
+      "name": "governance_override_recency_check",
+      "questions": [
+        "does_a_newer_governance_facing_override_artifact_exist",
+        "are_the_override_artifact_path_and_timestamp_provided",
+        "does_the_override_artifact_explicitly_override_documented_pause_rather_than_only_suggest_backlog_ideas"
+      ],
+      "fail_outcome": "hold_in_documented_pause"
+    }
+  ],
+  "hasil_akhir_checklist": [
+    {
+      "outcome": "reject",
+      "when_to_use": "proposal_relies_on_historical_or_superseded_artifacts_fails_novelty_fails_failure_mechanism_separation_changes_frozen_stack_or_opens_forbidden_scope"
+    },
+    {
+      "outcome": "hold_in_documented_pause",
+      "when_to_use": "proposal_is_orderly_but_no_newer_valid_governance_facing_override_artifact_exists_yet"
+    },
+    {
+      "outcome": "eligible_for_formal_review_but_not_auto_execution",
+      "when_to_use": "all_mandatory_checks_pass_and_a_newer_valid_governance_facing_override_artifact_exists"
+    }
+  ],
+  "decision_rule_summary": [
+    "default_safest_outcome_is_hold_in_documented_pause",
+    "escalate_to_reject_when_there_is_a_disguised_reopen_or_scope_violation",
+    "escalate_to_eligible_for_formal_review_but_not_auto_execution_only_when_all_checks_pass"
+  ],
+  "forbidden_interpretation": [
+    "eligible_for_formal_review_but_not_auto_execution_does_not_authorize_experiment_execution",
+    "checklist_pass_does_not_authorize_retest",
+    "checklist_pass_does_not_authorize_paper_trading",
+    "checklist_pass_does_not_authorize_phase_c",
+    "checklist_pass_does_not_authorize_strategy_coding"
+  ]
+}

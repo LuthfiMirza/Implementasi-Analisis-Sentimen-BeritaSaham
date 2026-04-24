@@ -1,0 +1,105 @@
+{
+  "artifact": "governance_artifact_registry",
+  "generated_at": "2026-04-24",
+  "reference_date": "2026-04-24",
+  "current_official_decision": {
+    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
+    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "formal_resolution": "remain_in_documented_pause"
+  },
+  "classification": {
+    "current_source_of_truth": [
+      {
+        "artifact_path": "output/project_roadmap_status.txt",
+        "reason": "active_status_summary_progress_and_recommended_next_action"
+      },
+      {
+        "artifact_path": "output/next_step_after_v3_pause_resolution.txt",
+        "reason": "formal_pause_resolution_after_v3_rejection_human_readable"
+      },
+      {
+        "artifact_path": "output/next_step_after_v3_pause_resolution.json",
+        "reason": "formal_pause_resolution_after_v3_rejection_machine_readable"
+      },
+      {
+        "artifact_path": "output/phase_0b_final_data_policy_closeout.txt",
+        "reason": "official_phase_0b_closeout_human_readable"
+      },
+      {
+        "artifact_path": "output/phase_0b_final_data_policy_closeout.json",
+        "reason": "official_phase_0b_closeout_machine_readable"
+      },
+      {
+        "artifact_path": "output/layer2_reopen_threshold_governance_note.txt",
+        "reason": "official_layer2_reopen_threshold_human_readable"
+      },
+      {
+        "artifact_path": "output/layer2_reopen_threshold_governance_note.json",
+        "reason": "official_layer2_reopen_threshold_machine_readable"
+      }
+    ],
+    "operational_governance_tooling": [
+      {
+        "artifact_path": "output/layer2_governance_operator_guide.txt",
+        "reason": "end_to_end_operator_guide_for_reviewers_not_a_governance_state_changer"
+      },
+      {
+        "artifact_path": "output/layer2_governance_toolkit_index.json",
+        "reason": "operational_map_of_the_toolkit_not_a_governance_state_changer"
+      }
+    ],
+    "historical_supporting_context": [
+      {
+        "artifact_path": "output/phase_b_final_closeout.txt",
+        "reason": "formal_closeout_for_why_phase_b_failed_and_phase_c_stays_closed"
+      },
+      {
+        "artifact_path": "output/project_after_phase_b_decision.txt",
+        "reason": "post_phase_b_bridge_summary_into_foundation_rebuild"
+      },
+      {
+        "artifact_path": "output/phase_b_go_no_go_next_phase.json",
+        "reason": "formal_no_go_to_phase_c_and_required_fix_scope"
+      },
+      {
+        "artifact_path": "output/walk_forward_validation_closeout.json",
+        "reason": "formal_walk_forward_failure_classification_and_not_promotable_decision"
+      },
+      {
+        "artifact_path": "output/walk_forward_with_costs_summary.json",
+        "reason": "realism_cost_evidence_supporting_no_go_promotion_path"
+      },
+      {
+        "artifact_path": "output/phase_2_layer_2_relative_strength_closeout.txt",
+        "reason": "formal_closeout_for_relative_strength_track_and_why_it_stopped"
+      },
+      {
+        "artifact_path": "output/single_variable_experiment_results.json",
+        "reason": "historical_rejection_evidence_v1_not_a_reopen_authorization"
+      },
+      {
+        "artifact_path": "output/single_variable_experiment_results_v2.json",
+        "reason": "historical_rejection_evidence_v2_not_a_reopen_authorization"
+      },
+      {
+        "artifact_path": "output/single_variable_experiment_results_v3.json",
+        "reason": "historical_rejection_evidence_v3_not_a_reopen_authorization"
+      }
+    ],
+    "superseded_for_current_decision_flow": [
+      {
+        "artifact_path": "output/next_layer2_lever_selection_note.json",
+        "reason": "older_than_v2_and_v3_rejections_and_no_longer_has_governance_force_to_open_a_new_cycle"
+      }
+    ]
+  },
+  "interpretation_rules": [
+    "prefer_newer_formal_artifacts_when_conflicts_exist",
+    "do_not_use_historical_supporting_context_as_a_standalone_basis_to_open_new_strategy_experiments",
+    "do_not_use_superseded_artifacts_for_current_decision_flow",
+    "operational_governance_tooling_improves_discovery_and_process_but_does_not_change_governance_state",
+    "product_app_readiness_must_not_be_equated_with_strategy_validity",
+    "documented_pause_is_the_current_active_official_status",
+    "layer2_reopen_is_allowed_only_if_the_new_governance_threshold_is_met"
+  ]
+}

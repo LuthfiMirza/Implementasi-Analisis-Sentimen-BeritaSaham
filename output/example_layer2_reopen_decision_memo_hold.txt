@@ -1,0 +1,67 @@
+Example Layer 2 Reopen Decision Memo: Hold
+==========================================
+
+Reference date:
+- 2026-04-24
+
+review_id:
+- review_example_hold_01
+
+proposal_request_id:
+- example_hold_case_01
+
+reviewer_name:
+- Example Reviewer
+
+reviewer_role:
+- Governance Intake Reviewer
+
+Source-of-truth read:
+- output/project_roadmap_status.txt
+- output/next_step_after_v3_pause_resolution.*
+- output/phase_0b_final_data_policy_closeout.*
+- output/layer2_reopen_threshold_governance_note.*
+- output/governance_artifact_registry.*
+- output/how_to_read_current_governance_artifacts.txt
+- output/layer2_reopen_request_template.*
+- output/governance_change_intake_checklist.*
+
+Proposal summary:
+- Proposal meminta review formal untuk residual Layer 2 lever family `cross-sectional breadth failure gate`.
+
+Novelty assessment:
+- Provisionally acceptable for intake.
+- Proposal tidak tampak sebagai variasi langsung dari momentum floor, persistence confirmation, atau stock-side slope gate.
+
+Failure mechanism assessment:
+- Provisionally acceptable for intake.
+- Proposal mendefinisikan failure mechanism berbeda pada level breadth universe, bukan pada threshold momentum saham individual.
+
+Frozen-stack integrity assessment:
+- Passed.
+- Layer 1, Layer 3, Layer 4, Layer 5, walk-forward split, dan realism cost policy dinyatakan tetap unchanged.
+
+Forbidden-scope assessment:
+- Passed.
+- Proposal tidak membuka retest, paper trading, Phase C, coding strategi, atau backtest execution.
+
+Governance override recency assessment:
+- Not satisfied.
+- Tidak ada artifact governance-facing override yang lebih baru dan valid yang secara eksplisit mengoverride documented pause.
+
+Final decision:
+- hold_in_documented_pause
+
+Explicit reasoning:
+- Proposal cukup disiplin dan tidak jatuh sebagai disguised reopen yang jelas.
+- Namun threshold governance untuk membuka langkah berikutnya belum terpenuhi karena belum ada override artifact yang lebih baru.
+
+Required follow-up:
+- hold_until_newer_override_artifact_exists
+
+Mandatory statement:
+- Memo ini bukan izin otomatis untuk eksperimen, retest, paper trading, Phase C, coding strategi, atau backtest execution.
+- Documented pause tetap aktif.
+
+Reviewer final statement:
+- Intake ditahan pada `hold_in_documented_pause` sampai ada artifact governance-facing override yang lebih baru dan valid.

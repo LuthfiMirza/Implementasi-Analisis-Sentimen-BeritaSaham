@@ -1,0 +1,67 @@
+Example Layer 2 Reopen Decision Memo: Reject
+============================================
+
+Reference date:
+- 2026-04-24
+
+review_id:
+- review_example_reject_01
+
+proposal_request_id:
+- example_reject_case_01
+
+reviewer_name:
+- Example Reviewer
+
+reviewer_role:
+- Governance Intake Reviewer
+
+Source-of-truth read:
+- output/project_roadmap_status.txt
+- output/next_step_after_v3_pause_resolution.*
+- output/phase_0b_final_data_policy_closeout.*
+- output/layer2_reopen_threshold_governance_note.*
+- output/governance_artifact_registry.*
+- output/how_to_read_current_governance_artifacts.txt
+- output/layer2_reopen_request_template.*
+- output/governance_change_intake_checklist.*
+
+Proposal summary:
+- Proposal meminta reopen Layer 2 melalui `adaptive momentum quality floor`.
+
+Novelty assessment:
+- Rejected.
+- Proposal tidak menunjukkan keluarga metodologi baru; inti usulan tetap memodulasi threshold `return_20d`.
+
+Failure mechanism assessment:
+- Rejected.
+- Failure mechanism yang diklaim tetap sama dengan jalur `absolute_momentum_floor_on_return_20d`, yaitu menyaring momentum 20 hari yang dianggap terlalu lemah.
+
+Frozen-stack integrity assessment:
+- Passed.
+- Proposal mengklaim Layer 1, Layer 3, Layer 4, Layer 5, walk-forward split, dan realism cost policy tetap unchanged.
+
+Forbidden-scope assessment:
+- Passed.
+- Proposal tidak secara eksplisit membuka retest, paper trading, Phase C, coding strategi, atau backtest execution.
+
+Governance override recency assessment:
+- Not satisfied.
+- Tidak ada artifact governance-facing override yang lebih baru dan valid.
+
+Final decision:
+- reject
+
+Explicit reasoning:
+- Proposal gagal pada novelty metodologis dan failure-mechanism separation.
+- Karena inti perubahan tetap keluarga momentum-floor yang sudah ditolak, proposal ini adalah disguised reopen dan tidak governance-valid.
+
+Required follow-up:
+- archive_as_rejected_intake
+
+Mandatory statement:
+- Memo ini bukan izin otomatis untuk eksperimen, retest, paper trading, Phase C, coding strategi, atau backtest execution.
+- Documented pause tetap aktif.
+
+Reviewer final statement:
+- Intake ditutup sebagai `reject` dan harus diarsipkan sebagai rejected intake tanpa perubahan pada governance state aktif.

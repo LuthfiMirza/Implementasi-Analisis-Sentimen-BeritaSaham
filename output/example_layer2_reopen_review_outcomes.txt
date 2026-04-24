@@ -1,0 +1,48 @@
+Example Review Outcomes For Layer 2 Reopen Intake
+=================================================
+
+Reference date:
+- 2026-04-24
+
+When reviewers should choose `reject`:
+- Proposal ternyata hanya variasi threshold, range, persistence wording, atau slope wording dari lever yang sudah ditolak.
+- Proposal memakai istilah baru, tetapi mekanisme intinya tetap sama dengan:
+  - `absolute_momentum_floor_on_return_20d`
+  - `entry_signal_persistence_minimum_confirmation_days`
+  - `stock_trend_quality_gate_via_short_term_ema_slope`
+- Proposal membuka scope terlarang seperti retest, paper trading, Phase C, coding strategi baru, atau backtest execution langsung.
+- Proposal bergantung pada artifact superseded seperti `output/next_layer2_lever_selection_note.json` sebagai otoritas utama.
+
+When reviewers should choose `hold_in_documented_pause`:
+- Proposal mengakui current official state secara benar.
+- Proposal tampak metodologis lebih disiplin dan tidak terlihat sebagai disguised reopen langsung.
+- Proposal menjaga Layer 1, Layer 3, Layer 4, Layer 5, walk-forward split, dan realism cost policy tetap frozen.
+- Proposal tidak membuka retest, paper trading, Phase C, coding, atau backtest execution.
+- Tetapi proposal belum menyertakan artifact governance-facing override yang lebih baru dan valid.
+
+Why `hold_in_documented_pause` is not approval:
+- Outcome ini hanya berarti proposal cukup rapi untuk tidak ditolak mentah sebagai disguised reopen.
+- Outcome ini tidak mengubah current official state.
+- Outcome ini tidak mengizinkan eksperimen, retest, paper trading, Phase C, atau coding strategi baru.
+- Outcome ini mempertahankan state resmi tetap pause sampai ada override artifact yang benar-benar lebih baru.
+
+Why a “sophisticated-looking” proposal can still be rejected:
+- Bahasa seperti `adaptive`, `quality-aware`, `dynamic`, `distribution-aware`, atau `contextual` tidak otomatis berarti metodologi baru.
+- Jika inti proposal tetap memodulasi threshold lama, jumlah hari persistence lama, atau definisi slope lama, maka itu tetap disguised reopen.
+- Reviewer harus menilai substance, bukan kosmetik bahasa.
+
+Practical difference between the two outcomes:
+- `reject`
+  Artinya proposal gagal secara governance validity dasar dan tidak layak dipertahankan sebagai jalur review.
+- `hold_in_documented_pause`
+  Artinya proposal tidak runtuh pada pemeriksaan dasar, tetapi state governance aktif belum memberi izin untuk bergerak lebih jauh.
+
+How reviewers should use the two example files:
+- Baca `output/example_layer2_reopen_request_reject_case.txt` untuk mengenali pola disguise yang harus langsung dihentikan.
+- Baca `output/example_layer2_reopen_request_hold_case.txt` untuk mengenali proposal yang cukup disiplin tetapi tetap belum boleh dijalankan.
+- Gunakan dua contoh ini bersama `output/layer2_reopen_request_template.*` dan `output/governance_change_intake_checklist.*`, bukan sebagai pengganti source-of-truth utama.
+
+Bottom line:
+- Proposal yang sekadar menyamar harus `reject`.
+- Proposal yang rapi tetapi belum punya override artifact terbaru harus `hold_in_documented_pause`.
+- Dalam kedua kasus, documented pause tetap keputusan resmi aktif.
