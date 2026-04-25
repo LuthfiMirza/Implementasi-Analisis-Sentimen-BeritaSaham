@@ -1,0 +1,157 @@
+Technical Prediction Research Active Plan
+=========================================
+
+Reference date:
+- 2026-04-25
+
+Plan status:
+- active_plan_ready
+- lane = technical_prediction_research
+- governance_position = documented_pause_on_strategy_path_with_active_non_strategy_prediction_research
+
+Purpose:
+- Menyusun plan aktif prediction research yang lebih profesional di atas baseline offline yang sudah terbukti runnable.
+- Menaikkan kualitas riset prediction tanpa mengklaim strategy validity pulih dan tanpa membuka strategy promotion path.
+
+Current baseline snapshot:
+- `output/prediction_research/model_comparison.txt`
+  - 50196 rows
+  - 10 ticker
+  - 2001-01-02 sampai 2026-04-15
+  - 93 walk-forward folds
+  - Best multi-ticker baseline saat ini masih `majority_class` dengan `acc=0.4002` dan `f1_macro=0.1893`
+- `output/prediction_research/test_model_comparison.txt`
+  - Smoke-test 1 ticker / 2024 menunjukkan pipeline runnable; `random_forest` mencapai `acc=0.4111` dan `f1_macro=0.4067`, tetapi belum cukup untuk dianggap generalizable
+- `output/prediction_research/dataset.csv`
+  - Target saat ini: `target_direction_5d`
+  - Distribusi label global:
+    - `up` = 40.38%
+    - `down` = 35.43%
+    - `flat` = 24.20%
+  - Coverage sentimen efektif sangat rendah:
+    - `news_volume_5d > 0` hanya sekitar 0.18% baris
+    - `sentiment_available_count_5d > 0` hanya sekitar 0.18% baris
+
+Key diagnosis before planning:
+1. Baseline offline prediction sudah jalan, jadi lane ini valid untuk diaktifkan.
+2. Baseline multi-ticker saat ini belum profesional karena model utama belum mengalahkan naive baseline global.
+3. Sentiment feature saat ini belum layak menjadi core driver karena coverage efektif hampir nol.
+4. Target 3-class `up/flat/down` horizon 5 hari masih terlalu mentah untuk dianggap target final profesional.
+5. Plan berikutnya harus fokus ke target design, horizon design, segmentasi, dan benchmark discipline lebih dulu daripada menaikkan kompleksitas model.
+
+Primary objective:
+- Menemukan baseline prediction teknikal yang:
+  - mengalahkan naive baseline secara konsisten,
+  - stabil lintas regime dan ticker,
+  - punya definisi target/horizon yang defensible,
+  - dan tetap dibaca sebagai research result, bukan strategy approval.
+
+Workstream 1 - Freeze baseline and scorecard
+- Tujuan:
+  - Bekukan `technical_prediction_research_v1` sebagai baseline resmi pembanding.
+- Langkah:
+  - Tetapkan scoreboard minimum: directional_accuracy, f1_macro, balanced_accuracy, confusion matrix, per-ticker stability, per-regime stability.
+  - Tambahkan baseline pembanding wajib:
+    - global majority_class
+    - regime-conditional majority_class
+    - per-ticker majority_class
+    - simple sign-of-return baseline jika relevan
+- Output target:
+  - baseline scorecard tunggal yang menjadi anchor untuk semua eksperimen berikutnya.
+
+Workstream 2 - Label and horizon redesign
+- Tujuan:
+  - Menentukan target prediction yang lebih defensible daripada 3-class 5D mentah.
+- Langkah:
+  - Uji horizon `1D`, `3D`, `5D`, `10D`.
+  - Bandingkan desain label:
+    - binary `up/down`
+    - ternary dengan `flat` threshold statis
+    - ternary dengan `flat` threshold berbasis ATR/volatility
+  - Pilih target utama berdasarkan stabilitas OOS, bukan hanya skor tertinggi satu agregat.
+- Prioritas:
+  - Jangan jadikan `target_direction_5d` current version sebagai final default sebelum pass ini selesai.
+
+Workstream 3 - Segment-aware technical baseline v2
+- Tujuan:
+  - Memisahkan problem prediction yang tercampur antara ticker lama, ticker baru, dan regime yang berbeda.
+- Langkah:
+  - Pisahkan evaluasi minimal menjadi:
+    - bull vs non-bull regime
+    - core mature ticker vs ticker dengan history pendek/post-IPO
+    - per-ticker review untuk outlier seperti GOTO
+  - Bangun baseline teknikal murni dulu tanpa mengandalkan sentiment feature.
+  - Bandingkan model sederhana lebih dulu:
+    - logistic regression
+    - tree ensemble
+    - regime-conditional heuristics
+    - per-segment majority / naive baselines
+- Prioritas:
+  - Jika satu segment butuh lane model terpisah, dokumentasikan itu sebagai segment policy research, bukan langsung dipaksa ke satu model global.
+
+Workstream 4 - Feature redesign with technical-first policy
+- Tujuan:
+  - Memperbaiki feature set agar lebih cocok untuk tugas prediction profesional.
+- Langkah:
+  - Pertahankan feature inti yang sudah berguna:
+    - `return_5d`
+    - `return_20d`
+    - `atr14_pct`
+    - `volume_ratio_20d`
+    - `price_vs_ema50`
+    - `market_regime_bullish`
+  - Tambahkan kandidat feature teknikal baru:
+    - return relative to IHSG
+    - rolling volatility regime
+    - drawdown distance from recent peak
+    - breakout / range-position features
+    - EMA slope / trend persistence
+    - cross-sectional rank features jika dihitung offline dan tetap non-strategy
+  - Parkirkan sentiment sebagai secondary experiment sampai coverage data benar-benar membaik.
+- Prioritas:
+  - Technical-first until sentiment coverage materially improves.
+
+Workstream 5 - Calibration and professional research reporting
+- Tujuan:
+  - Menggeser output dari sekadar accuracy menjadi kualitas prediksi yang bisa diaudit secara profesional.
+- Langkah:
+  - Tambahkan evaluasi:
+    - probability calibration
+    - hit-rate by score bucket
+    - top-decile vs bottom-decile ranking quality
+    - drift by period
+  - Pisahkan antara:
+    - global score
+    - bull score
+    - non-bull score
+    - per-ticker score
+  - Simpan failure slice sebagai bagian wajib closeout, bukan hanya winner summary.
+
+Explicit no-go for this active plan:
+- Jangan jadikan sentiment feature sebagai core baseline sekarang.
+- Jangan langsung mengejar model yang lebih kompleks sebelum label/horizon redesign selesai.
+- Jangan baca directional accuracy sebagai bukti strategi siap trading.
+- Jangan mengubah plan ini menjadi backtest strategi terselubung.
+
+Minimum research gates for a defensible next candidate:
+1. Harus mengalahkan baseline naive terbaik pada full sample:
+   - minimal `+2.0` poin directional_accuracy atau `+0.05` f1_macro
+2. Harus tidak kalah serempak pada bull dan non-bull regime:
+   - minimal satu metrik primer unggul di kedua regime
+3. Harus cukup stabil lintas ticker:
+   - minimal 7 dari 10 ticker menunjukkan non-negative improvement pada metrik primer
+4. Jika model probabilistik dipakai:
+   - bucket calibration atau hit-rate ranking tidak boleh acak total
+
+Recommended execution order:
+1. Freeze scorecard baseline v1
+2. Jalankan redesign label/horizon
+3. Pilih target utama
+4. Bangun technical-only baseline v2 per segment
+5. Tambahkan calibration and ranking review
+6. Baru pertimbangkan experiment sentiment terpisah jika coverage data membaik
+
+Bottom line:
+- Plan aktif prediction research yang paling defensible sekarang adalah technical-first, segment-aware, dan metric-disciplined.
+- Baseline yang sudah terbukti jalan dipakai sebagai anchor, tetapi tidak cukup kuat untuk langsung disebut profesional.
+- Prioritas berikutnya bukan “model lebih rumit”, melainkan target yang lebih tepat, benchmark yang lebih ketat, dan stabilitas lintas regime/ticker.

@@ -1,16 +1,39 @@
 {
   "artifact": "technical_prediction_research_track",
-  "generated_at": "2026-04-24",
-  "reference_date": "2026-04-24",
+  "generated_at": "2026-04-25",
+  "reference_date": "2026-04-25",
   "current_official_state": {
-    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
-    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "current_focus_state": "technical_prediction_research_active_after_documentation_hardening_closeout",
+    "official_state": "maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research",
     "formal_resolution": "remain_in_documented_pause"
   },
+  "activation_state": {
+    "lane_status": "active_non_strategy_lane",
+    "activated_on": "2026-04-25",
+    "activation_basis": [
+      "non_strategy_maintenance_has_already_been_closed_with_watchpoints",
+      "runnable_offline_prediction_research_artifacts_exist_under_output_prediction_research",
+      "the_activation_opens_a_research_lane_not_a_strategy_promotion_path"
+    ]
+  },
   "track_purpose": [
-    "continue_the_project_as_a_technical_prediction_research_lane_during_documented_pause",
+    "continue_the_project_as_an_active_technical_prediction_research_lane_during_documented_pause",
     "allow_progress_as_a_research_prediction_project_without_claiming_trading_strategy_validity",
     "keep_this_track_separate_from_the_strategy_promotion_path"
+  ],
+  "existing_baseline_assets": [
+    {
+      "artifact": "output/prediction_research/dataset.csv",
+      "purpose": "offline_prediction_research_dataset"
+    },
+    {
+      "artifact": "output/prediction_research/model_comparison.txt",
+      "purpose": "multi_ticker_walk_forward_baseline_comparison"
+    },
+    {
+      "artifact": "output/prediction_research/test_model_comparison.txt",
+      "purpose": "single_ticker_smoke_test_for_pipeline_runnability"
+    }
   ],
   "allowed_prediction_questions": [
     "short_or_medium_horizon_return_direction",
@@ -65,25 +88,25 @@
     "prediction_research_results_do_not_automatically_open_the_trading_path",
     "prediction_research_results_do_not_automatically_open_retest_paper_trading_or_phase_c",
     "this_track_is_a_research_lane_not_an_approval_lane",
-    "this_track_must_be_read_separately_from_the_strategy_promotion_path_that_remains_blocked"
+    "activating_this_track_does_not_change_the_fact_that_the_strategy_promotion_path_remains_blocked"
   ],
   "relationship_to_active_roadmap": {
     "project_roadmap_status_txt_remains_source_of_truth_for_strategy_state": true,
     "post_pause_non_strategy_workstream_remains_the_general_non_strategy_umbrella": true,
-    "this_artifact_defines_a_specific_technical_prediction_research_lane_under_that_umbrella": true,
+    "post_pause_active_lane_decision_and_post_lane_close_next_selection_decision_record_the_activation_of_this_lane": true,
     "strategy_readiness_progress_does_not_increase_just_because_this_track_moves": true
   },
   "evidence_files_used": [
     "output/project_roadmap_status.txt",
     "output/post_pause_non_strategy_workstream.txt",
     "output/post_pause_non_strategy_workstream.json",
-    "output/next_step_after_v3_pause_resolution.txt",
-    "output/next_step_after_v3_pause_resolution.json",
+    "output/post_pause_active_lane_decision.txt",
+    "output/post_pause_active_lane_decision.json",
+    "output/post_lane_close_next_selection_decision.txt",
+    "output/post_lane_close_next_selection_decision.json",
+    "output/prediction_research/model_comparison.txt",
+    "output/prediction_research/test_model_comparison.txt",
     "output/phase_0b_final_data_policy_closeout.txt",
-    "output/phase_0b_final_data_policy_closeout.json",
-    "output/layer2_reopen_threshold_governance_note.txt",
-    "output/layer2_reopen_threshold_governance_note.json",
-    "output/governance_artifact_registry.txt",
-    "output/governance_artifact_registry.json"
+    "output/layer2_reopen_threshold_governance_note.txt"
   ]
 }

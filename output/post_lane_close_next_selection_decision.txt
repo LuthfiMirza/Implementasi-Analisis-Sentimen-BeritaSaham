@@ -2,56 +2,55 @@ Post-Lane Close Next Selection Decision
 =======================================
 
 Reference date:
-- 2026-04-24
+- 2026-04-25
 
 Current official state:
-- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
-- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- current_focus_state = technical_prediction_research_active_after_documentation_hardening_closeout
+- official_state = maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research
 - formal_resolution = remain_in_documented_pause
 
 Purpose:
 - Menentukan pilihan langkah berikut yang paling defensible setelah lane `non_strategy_maintenance` ditutup sebagai `closed_with_watchpoints_and_not_yet_replaced`.
-- Membandingkan opsi next-step yang sudah tersedia tanpa otomatis mengaktifkan lane baru atau membuka eksperimen strategi baru.
-- Menegaskan bahwa artifact ini adalah next-lane selection decision, bukan override governance state dan bukan approval path.
+- Membandingkan opsi next-step yang tersedia tanpa membuka eksperimen strategi baru.
+- Menegaskan bahwa artifact ini adalah next-lane selection decision untuk lane non-strategy, bukan override strategy governance state.
 
 Current input state:
 - `output/post_documentation_hardening_lane_status_decision.*` menetapkan bahwa lane `non_strategy_maintenance` sudah ditutup dengan watchpoints dan belum digantikan.
 - `output/documentation_hardening_completion_assessment.*` menetapkan bahwa scope documentation hardening selesai dengan watchpoints, bukan blocker.
-- `technical_prediction_research` tetap `parked_not_rejected`, bukan active lane.
-- Future reopen tooling dan preparation pack sudah tersedia, tetapi semuanya tetap dibingkai sebagai non-execution governance tooling.
+- `output/prediction_research/model_comparison.*` menunjukkan baseline prediction research offline yang sudah runnable pada 10 ticker dengan 93 walk-forward folds.
+- `technical_prediction_research` sudah punya definisi lane spesifik dan sekarang paling defensible untuk diaktifkan sebagai next active lane non-strategy.
 
 Options considered:
 1. `hold_without_new_active_lane`
-   - Arti: proyek masuk managed hold state tanpa lane aktif baru sampai ada keputusan eksplisit berikutnya.
-   - Kelebihan: paling konsisten dengan documented pause, tidak memaksa aktivasi lane baru, dan tidak mengubah interpretasi governance saat ini.
-   - Risiko: progres proyek berikutnya memang sengaja ditahan sampai ada keputusan lane baru yang eksplisit.
+   - Arti: proyek tetap berada pada hold tanpa lane aktif baru.
+   - Kelebihan: paling konservatif.
+   - Risiko: menahan progres padahal lane prediction research yang governance-safe dan runnable sudah tersedia.
 
 2. `activate_technical_prediction_research_lane`
    - Arti: lane research prediction diaktifkan sebagai lane aktif baru.
-   - Kelebihan: memberi jalur kerja baru yang tetap non-strategy.
-   - Risiko: terlalu cepat mengubah active-lane reading padahal artifact yang ada baru menyebut lane ini `parked_not_rejected`, bukan direkomendasikan aktif sekarang.
+   - Kelebihan: memberi jalur kerja baru yang tetap non-strategy, sudah punya baseline runnable, dan tidak membuka strategy promotion path.
+   - Risiko: lane ini tetap harus dibaca sebagai research lane saja; aktivasinya tidak boleh disalahartikan sebagai bukti strategy validity pulih.
 
 3. `prepare_future_reopen_intake_only`
    - Arti: fokus berikutnya dibatasi pada kesiapan intake reopen di masa depan tanpa aktivasi lane riset baru.
    - Kelebihan: tetap disiplin governance.
-   - Risiko: secara praktik ini sudah banyak tercakup dalam toolkit/preparation pack yang ada, sehingga tidak paling tepat dibaca sebagai lane atau next-step status tersendiri.
+   - Risiko: terlalu pasif karena kebutuhan readiness itu sudah banyak tercakup oleh toolkit/preparation pack yang ada.
 
 Selected next-step status:
-- next_step_status = hold_without_new_active_lane
+- next_step_status = activate_technical_prediction_research_lane
 
 Rationale:
-- Setelah lane dokumentasi ditutup, belum ada evidence baru yang memaksa aktivasi lane lain secara eksplisit.
-- `technical_prediction_research` memang tetap sah sebagai opsi masa depan, tetapi artifact yang ada masih paling defensible membacanya sebagai parked lane, bukan active lane yang harus langsung dibuka.
-- Future reopen intake tooling sudah siap, tetapi itu lebih tepat dibaca sebagai readiness artifact set yang tetap available during hold, bukan sebagai next-step status aktif tersendiri.
-- Karena itu, posisi paling konsisten saat ini adalah managed hold state tanpa lane aktif baru sampai ada keputusan eksplisit lanjutan.
+- Setelah lane dokumentasi ditutup, status tanpa active lane baru tidak lagi menjadi pilihan paling produktif.
+- `technical_prediction_research` sekarang memiliki baseline artefak offline yang sudah runnable sehingga aktivasinya tidak bersifat spekulatif.
+- Aktivasi lane ini tetap aman secara governance karena tidak membuka retest, paper trading, Phase C, atau strategy coding baru.
+- Karena itu, posisi paling konsisten saat ini adalah documented pause pada strategy path, dengan lane prediction research non-strategy sebagai active lane baru.
 
 Forbidden interpretation:
-- Decision ini bukan perubahan governance state resmi.
+- Decision ini bukan perubahan governance state strategi inti; documented pause tetap aktif.
 - Decision ini bukan izin mengaktifkan eksperimen strategi baru.
-- Decision ini bukan izin membuka `technical_prediction_research` sebagai active lane secara diam-diam.
 - Decision ini bukan izin reopen Layer 2.
 - Decision ini bukan izin backtest, retest, paper trading, Phase C, atau coding strategi baru.
-- Status `hold_without_new_active_lane` tidak berarti proyek ditinggalkan; artinya proyek ditahan secara terkelola sambil menjaga documented pause tetap konsisten.
+- Aktivasi `technical_prediction_research` tidak berarti strategy validity pulih atau promotion path terbuka.
 
 Evidence pointers:
 - output/post_documentation_hardening_lane_status_decision.txt
@@ -60,15 +59,14 @@ Evidence pointers:
 - output/documentation_hardening_completion_assessment.json
 - output/post_pause_active_lane_decision.txt
 - output/post_pause_active_lane_decision.json
+- output/post_pause_non_strategy_workstream.txt
 - output/technical_prediction_research_track.txt
 - output/technical_prediction_research_track.json
-- output/layer2_reopen_evidence_preparation_pack.txt
-- output/layer2_reopen_evidence_preparation_pack.json
+- output/prediction_research/model_comparison.txt
+- output/prediction_research/test_model_comparison.txt
 - output/governance_artifact_registry.txt
-- output/governance_artifact_registry.json
-- output/how_to_read_current_governance_artifacts.txt
 - output/project_roadmap_status.txt
 
 Bottom line:
-- Next-step status paling defensible saat ini adalah `hold_without_new_active_lane`.
-- Proyek berada pada managed hold state: lane dokumentasi sudah ditutup rapi, watchpoint tetap dijaga, dan lane baru belum diaktifkan sampai ada keputusan eksplisit berikutnya.
+- Next-step status paling defensible saat ini adalah `activate_technical_prediction_research_lane`.
+- Strategy roadmap tetap paused, tetapi lane prediction research non-strategy sekarang menjadi active lane yang resmi.

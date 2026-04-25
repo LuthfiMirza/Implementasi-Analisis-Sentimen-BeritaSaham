@@ -1,57 +1,56 @@
 {
   "artifact": "post_lane_close_next_selection_decision",
-  "generated_at": "2026-04-24",
-  "reference_date": "2026-04-24",
+  "generated_at": "2026-04-25",
+  "reference_date": "2026-04-25",
   "current_official_state": {
-    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
-    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "current_focus_state": "technical_prediction_research_active_after_documentation_hardening_closeout",
+    "official_state": "maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research",
     "formal_resolution": "remain_in_documented_pause"
   },
   "purpose": [
     "determine_the_most_defensible_next_step_after_non_strategy_maintenance_was_closed_with_watchpoints_and_not_yet_replaced",
-    "compare_existing_next_step_options_without_automatically_activating_a_new_lane",
-    "make_clear_that_this_is_a_next_lane_selection_decision_not_a_governance_override"
+    "compare_existing_next_step_options_without_opening_new_strategy_experiments",
+    "make_clear_that_this_is_a_next_lane_selection_decision_for_non_strategy_scope_not_a_strategy_governance_override"
   ],
   "current_input_state": [
     "post_documentation_hardening_lane_status_decision_sets_non_strategy_maintenance_as_closed_with_watchpoints_and_not_yet_replaced",
     "documentation_hardening_completion_assessment_marks_the_documentation_scope_complete_with_watchpoints_not_blockers",
-    "technical_prediction_research_remains_parked_not_rejected_not_active",
-    "future_reopen_tooling_and_preparation_pack_exist_but_remain_non_execution_governance_tooling"
+    "prediction_research_model_comparison_artifacts_show_a_runnable_offline_baseline_across_10_tickers_and_93_walk_forward_folds",
+    "technical_prediction_research_is_now_the_most_defensible_next_active_non_strategy_lane"
   ],
   "options_considered": [
     {
       "option": "hold_without_new_active_lane",
-      "meaning": "the_project_enters_a_managed_hold_state_without_activating_a_new_lane_until_a_later_explicit_decision",
-      "strength": "most_consistent_with_documented_pause_and_with_the_absence_of_any_new_explicit_lane_activation_artifact",
-      "risk": "project_progress_is_intentionally_held_until_the_next_explicit_lane_decision"
+      "meaning": "the_project_remains_in_hold_without_a_new_active_lane",
+      "strength": "most_conservative_choice",
+      "risk": "it_holds_progress_even_though_a_governance_safe_and_runnable_prediction_lane_is_available"
     },
     {
       "option": "activate_technical_prediction_research_lane",
       "meaning": "technical_prediction_research_becomes_the_new_active_lane",
-      "strength": "would_create_a_new_non_strategy_work_lane",
-      "risk": "too_aggressive_because_existing_artifacts_only_support_parked_not_rejected_not_immediate_activation"
+      "strength": "creates_a_new_non_strategy_work_lane_with_existing_runnable_baseline_artifacts",
+      "risk": "must_be_kept_strictly_interpreted_as_research_only_not_as_strategy_validity_recovery"
     },
     {
       "option": "prepare_future_reopen_intake_only",
       "meaning": "the_next_step_focuses_only_on_future_reopen_intake_readiness_without_opening_a_research_lane",
       "strength": "stays_governance_disciplined",
-      "risk": "this_is_already_substantially_covered_by_the_existing_tooling_and_is_not_the_cleanest_next_step_status_to_select"
+      "risk": "too_passive_because_readiness_tooling_is_already_mostly_available"
     }
   ],
-  "selected_next_step_status": "hold_without_new_active_lane",
+  "selected_next_step_status": "activate_technical_prediction_research_lane",
   "rationale": [
-    "after_the_documentation_lane_closed_there_is_no_new_evidence_that_requires_immediate_activation_of_any_other_lane",
-    "technical_prediction_research_remains_a_valid_future_option_but_is_still_most_defensibly_read_as_parked_not_rejected_rather_than_as_a_lane_that_must_now_be_activated",
-    "future_reopen_tooling_is_ready_but_is_better_read_as_available_readiness_infrastructure_during_hold_not_as_the_new_active_status",
-    "the_safest_and_most_consistent_position_is_a_managed_hold_state_without_a_new_active_lane_until_a_later_explicit_decision_is_made"
+    "after_the_documentation_lane_closed_a_no_new_active_lane_posture_is_no_longer_the_most_productive_reading",
+    "technical_prediction_research_has_a_runnable_offline_baseline_so_activation_is_not_speculative",
+    "the_lane_can_move_the_project_forward_without_opening_strategy_backtests_retests_paper_trading_or_phase_c",
+    "the_most_consistent_position_is_documented_pause_on_the_strategy_path_with_prediction_research_as_the_active_non_strategy_lane"
   ],
   "forbidden_interpretation": [
-    "this_decision_does_not_change_the_official_governance_state",
+    "this_decision_does_not_change_the_core_strategy_governance_state",
     "this_decision_is_not_permission_to_activate_new_strategy_experiments",
-    "this_decision_is_not_permission_to_activate_technical_prediction_research_by_stealth",
     "this_decision_is_not_permission_to_reopen_layer2",
     "this_decision_is_not_permission_for_backtest_retest_paper_trading_phase_c_or_new_strategy_coding",
-    "hold_without_new_active_lane_does_not_mean_the_project_is_abandoned_it_means_the_project_is_in_a_managed_hold_state"
+    "activating_technical_prediction_research_does_not_mean_strategy_validity_has_recovered"
   ],
   "evidence_pointers": [
     "output/post_documentation_hardening_lane_status_decision.txt",
@@ -60,13 +59,12 @@
     "output/documentation_hardening_completion_assessment.json",
     "output/post_pause_active_lane_decision.txt",
     "output/post_pause_active_lane_decision.json",
+    "output/post_pause_non_strategy_workstream.txt",
     "output/technical_prediction_research_track.txt",
     "output/technical_prediction_research_track.json",
-    "output/layer2_reopen_evidence_preparation_pack.txt",
-    "output/layer2_reopen_evidence_preparation_pack.json",
+    "output/prediction_research/model_comparison.txt",
+    "output/prediction_research/test_model_comparison.txt",
     "output/governance_artifact_registry.txt",
-    "output/governance_artifact_registry.json",
-    "output/how_to_read_current_governance_artifacts.txt",
     "output/project_roadmap_status.txt"
   ]
 }

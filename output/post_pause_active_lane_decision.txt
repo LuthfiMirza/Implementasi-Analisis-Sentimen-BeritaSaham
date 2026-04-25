@@ -2,51 +2,48 @@ Post-Pause Active Lane Decision
 ===============================
 
 Reference date:
-- 2026-04-24
+- 2026-04-25
 
 Current official state:
-- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
-- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- current_focus_state = technical_prediction_research_active_after_documentation_hardening_closeout
+- official_state = maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research
 - formal_resolution = remain_in_documented_pause
 
 Decision:
-- active_lane = non_strategy_maintenance
+- active_lane = technical_prediction_research
 - active_sub_lanes =
-  - data_governance_hardening
-  - corporate_action_and_survivorship_documentation_refinement
-  - evidence_archival_policy
-  - future_reopen_intake_queue_management
+  - target_label_definition
+  - horizon_selection
+  - benchmark_metric_definition
+  - offline_feature_signal_comparison
+  - signal_calibration_and_ranking_quality_analysis
+  - model_free_baseline_benchmarking
 
 Why this lane is selected now:
-- Ini adalah lane yang paling langsung menutup gap limitation dokumentasi yang masih aktif.
-- Lane ini menghasilkan progres proyek yang governance-consistent tanpa mengklaim strategy readiness naik.
-- Lane ini tidak memerlukan backtest, retest, paper trading, atau coding strategi baru.
-- Lane technical prediction research tetap sah, tetapi diparkir dulu agar scope saat ini fokus pada perapihan foundation governance/data.
+- Lane `non_strategy_maintenance` sudah ditutup dengan watchpoints dan tidak lagi menjadi lane kerja utama.
+- Artefak prediction research yang runnable sudah ada di `output/prediction_research/*`, sehingga aktivasi lane ini tidak dimulai dari nol.
+- Aktivasi lane ini menjaga proyek tetap produktif tanpa membuka backtest strategi baru, retest, paper trading, atau Phase C.
+- Aktivasi ini tetap konsisten dengan documented pause karena yang dibuka adalah lane riset prediction non-strategy, bukan jalur strategy promotion.
 
 Immediate deliverables inside the selected lane:
-1. `output/data_governance_limitation_register.*`
-   - Menjadi backlog dokumentasi operasional untuk semua limitation data/governance yang masih aktif.
-2. Sinkronisasi registry dan reading guidance
-   - Menjaga reviewer baru membaca artifact dengan urutan yang benar.
-3. Persiapan queue future reopen
-   - Menyusun paket persiapan evidence agar proposal masa depan tidak langsung jatuh ke disguised reopen atau hopeful interpretation.
+1. `output/technical_prediction_research_track.*`
+   - Menjadi definisi scope resmi untuk lane prediction research yang sekarang aktif.
+2. `output/prediction_research/model_comparison.*`
+   - Menjadi baseline evaluasi offline awal yang sudah runnable dan bisa dipakai sebagai titik tolak planning berikutnya.
+3. `output/technical_prediction_research_active_plan.*`
+   - Menurunkan target label, horizon, metrik, dan baseline pembanding yang lebih presisi di atas baseline yang sudah ada.
 
 Execution sequence:
-1. Pertahankan source-of-truth strategi tetap beku.
-2. Rapikan limitation data prioritas tinggi.
-3. Rapikan artifact discovery dan governance tooling.
-4. Siapkan paket persiapan reopen tanpa mengklaim override artifact sudah ada.
-5. Evaluasi ulang apakah lane prediction research perlu diaktifkan setelah backlog dokumentasi prioritas selesai.
-
-Deferred but still allowed lane:
-- `technical_prediction_research`
-  - status = parked_not_rejected
-  - reason = boleh dipilih kemudian sebagai lane riset terpisah, tetapi bukan lane aktif sekarang.
+1. Pertahankan source-of-truth strategi tetap beku dan strategy path tetap blocked.
+2. Aktifkan lane `technical_prediction_research` secara eksplisit pada governance package.
+3. Gunakan artefak `output/prediction_research/*` yang sudah ada sebagai baseline riset offline awal.
+4. Bandingkan baseline naive/model-free, fitur teknikal, dan stabilitas hasil per regime/time-slice tanpa membuka strategy backtest baru.
+5. Susun plan aktif prediction research yang lebih tajam setelah governance sinkron.
 
 Success criteria for the active lane:
-- Semua limitation data utama punya register dan batas interpretasi yang jelas.
-- Reviewer baru bisa mengikuti source-of-truth dan tooling tanpa konflik pembacaan.
-- Future reopen intake bisa dipersiapkan tanpa membuka eksperimen strategi baru.
+- Lane aktif baru terbaca konsisten di source-of-truth dan helper artifacts.
+- Baseline prediction research yang sudah ada diperlakukan sebagai titik awal resmi, bukan eksperimen informal.
+- Planning prediction berikutnya bisa disusun tanpa melanggar documented pause di jalur strategi.
 
 Forbidden scope while this lane is active:
 - backtest strategi baru
@@ -55,17 +52,19 @@ Forbidden scope while this lane is active:
 - Phase C
 - klaim strategy validity pulih
 - reopen Layer 2 tanpa artifact governance override yang lebih baru dan valid
+- membaca hasil prediction research sebagai izin coding strategi baru
 
 Evidence files used:
 - output/project_roadmap_status.txt
-- output/next_step_after_v3_pause_resolution.txt
 - output/post_pause_non_strategy_workstream.txt
 - output/post_pause_non_strategy_workstream.json
+- output/post_lane_close_next_selection_decision.txt
 - output/technical_prediction_research_track.txt
 - output/technical_prediction_research_track.json
+- output/prediction_research/model_comparison.txt
+- output/prediction_research/test_model_comparison.txt
 - output/phase_0b_final_data_policy_closeout.txt
-- output/governance_artifact_registry.txt
 
 Bottom line:
-- Lane aktif proyek saat ini dipilih secara eksplisit sebagai `non_strategy_maintenance`.
-- Technical prediction research tetap tersedia nanti, tetapi bukan fokus operasional utama sampai limitation governance/data prioritas selesai dirapikan.
+- Lane aktif proyek saat ini dipilih secara eksplisit sebagai `technical_prediction_research`.
+- Strategy roadmap tetap paused, tetapi lane riset prediction non-strategy sekarang aktif dan menjadi fokus operasional baru.

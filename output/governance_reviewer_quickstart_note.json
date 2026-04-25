@@ -1,10 +1,10 @@
 {
   "artifact": "governance_reviewer_quickstart_note",
-  "generated_at": "2026-04-24",
-  "reference_date": "2026-04-24",
+  "generated_at": "2026-04-25",
+  "reference_date": "2026-04-25",
   "current_official_state": {
-    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
-    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "current_focus_state": "technical_prediction_research_active_after_documentation_hardening_closeout",
+    "official_state": "maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research",
     "formal_resolution": "remain_in_documented_pause"
   },
   "purpose": [
@@ -13,11 +13,11 @@
     "make_clear_that_this_quickstart_is_an_onboarding_helper_not_an_approval_artifact"
   ],
   "what_a_new_reviewer_should_know_first": [
-    "the_official_project_status_is_documented_pause_not_active_experiment_selection",
+    "the_official_project_status_is_documented_pause_on_the_strategy_path_not_active_strategy_experiment_selection",
     "the_source_of_truth_remains_in_newer_formal_artifacts_not_in_this_quickstart",
-    "the_current_active_lane_is_non_strategy_maintenance",
-    "governance_and_data_documentation_progress_is_not_the_same_as_strategy_readiness_progress",
-    "technical_prediction_research_is_parked_not_rejected_but_is_not_the_current_active_lane"
+    "the_current_active_lane_is_technical_prediction_research",
+    "prediction_research_progress_is_not_the_same_as_strategy_readiness_progress",
+    "activating_technical_prediction_research_does_not_change_the_fact_that_retest_paper_trading_and_phase_c_remain_blocked"
   ],
   "first_reading_sequence": [
     "output/project_roadmap_status.txt",
@@ -27,12 +27,14 @@
     "output/phase_0b_final_data_policy_closeout.json",
     "output/layer2_reopen_threshold_governance_note.txt",
     "output/layer2_reopen_threshold_governance_note.json",
+    "output/post_pause_active_lane_decision.txt",
+    "output/post_pause_active_lane_decision.json",
+    "output/technical_prediction_research_track.txt",
+    "output/technical_prediction_research_track.json",
     "output/data_governance_limitation_register.txt",
     "output/data_governance_limitation_register.json",
     "output/data_governance_limitation_notes_index.txt",
     "output/data_governance_limitation_notes_index.json",
-    "output/post_pause_active_lane_decision.txt",
-    "output/post_pause_active_lane_decision.json",
     "output/governance_artifact_registry.txt",
     "output/governance_artifact_registry.json",
     "output/how_to_read_current_governance_artifacts.txt"
@@ -59,7 +61,7 @@
   },
   "what_remains_blocked": [
     "new_strategy_experiments",
-    "new_backtests",
+    "new_strategy_backtests",
     "retest",
     "paper_trading",
     "phase_c",
@@ -68,16 +70,17 @@
   ],
   "common_misread_to_avoid": [
     "do_not_treat_this_quickstart_as_a_new_source_of_truth",
-    "do_not_treat_documentation_or_packaging_progress_as_proof_that_strategy_validity_has_recovered",
+    "do_not_treat_activation_of_technical_prediction_research_as_proof_that_strategy_validity_has_recovered",
+    "do_not_treat_prediction_research_results_as_an_approval_path_to_retest_or_paper_trading",
     "do_not_treat_limitation_notes_as_an_approval_path",
-    "do_not_treat_the_existence_of_technical_prediction_research_as_a_replacement_for_the_current_active_lane",
     "do_not_use_historical_or_superseded_artifacts_alone_to_open_a_new_step"
   ],
   "relationship_to_the_active_lane": {
-    "active_lane": "non_strategy_maintenance",
+    "active_lane": "technical_prediction_research",
     "supports_sub_lanes": [
-      "data_governance_hardening",
-      "evidence_archival_policy",
+      "target_label_definition",
+      "horizon_selection",
+      "benchmark_metric_definition",
       "reviewer_onboarding"
     ],
     "does_not_change_governance_state": true,
@@ -87,15 +90,14 @@
     "output/governance_artifact_registry.txt",
     "output/governance_artifact_registry.json",
     "output/how_to_read_current_governance_artifacts.txt",
-    "output/governance_documentation_package_closeout.txt",
     "output/post_pause_active_lane_decision.txt",
     "output/post_pause_active_lane_decision.json",
-    "output/data_governance_limitation_register.txt",
-    "output/data_governance_limitation_register.json",
-    "output/data_governance_limitation_notes_index.txt",
-    "output/data_governance_limitation_notes_index.json",
+    "output/post_lane_close_next_selection_decision.txt",
+    "output/post_lane_close_next_selection_decision.json",
     "output/technical_prediction_research_track.txt",
     "output/technical_prediction_research_track.json",
+    "output/data_governance_limitation_register.txt",
+    "output/data_governance_limitation_register.json",
     "output/project_roadmap_status.txt"
   ]
 }

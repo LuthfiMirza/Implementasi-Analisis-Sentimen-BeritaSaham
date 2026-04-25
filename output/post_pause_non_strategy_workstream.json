@@ -1,17 +1,21 @@
 {
   "artifact": "post_pause_non_strategy_workstream",
-  "generated_at": "2026-04-24",
-  "reference_date": "2026-04-24",
+  "generated_at": "2026-04-25",
+  "reference_date": "2026-04-25",
   "current_official_state": {
-    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
-    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "current_focus_state": "technical_prediction_research_active_after_documentation_hardening_closeout",
+    "official_state": "maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research",
     "formal_resolution": "remain_in_documented_pause"
   },
   "workstream_purpose": [
     "define_non_strategy_lanes_that_may_continue_after_the_strategy_roadmap_entered_documented_pause",
-    "allow_project_work_to_continue_without_claiming_strategy_readiness_has_improved"
+    "allow_project_work_to_continue_through_explicit_non_strategy_lanes_without_claiming_strategy_readiness_has_improved"
   ],
   "allowed_lanes_that_may_continue": [
+    {
+      "lane": "technical_prediction_research",
+      "scope": "active_non_strategy_prediction_research_for_return_direction_breakout_probability_signal_ranking_and_other_offline_prediction_questions"
+    },
     {
       "lane": "data_governance_hardening",
       "scope": "refine_data_policy_documentation_coverage_notes_and_audit_boundaries_without_opening_new_strategy_experiments"
@@ -44,20 +48,23 @@
   ],
   "explicit_interpretation": [
     "progress_in_this_workstream_must_not_be_read_as_an_increase_in_strategy_readiness_progress",
+    "activating_technical_prediction_research_does_not_mean_strategy_validity_has_recovered",
     "progress_in_this_workstream_must_not_be_read_as_an_approval_path",
-    "the_workstream_exists_to_keep_project_work_moving_without_changing_the_active_governance_state"
+    "the_workstream_exists_to_keep_project_work_moving_without_reopening_the_strategy_path"
   ],
   "relationship_to_active_roadmap": {
     "project_roadmap_status_txt_remains_source_of_truth_for_strategy_state": true,
     "this_artifact_is_not_a_replacement_for_the_strategy_roadmap": true,
-    "this_artifact_only_defines_non_strategy_lanes_allowed_during_documented_pause": true
+    "this_artifact_defines_non_strategy_lanes_allowed_during_documented_pause": true,
+    "lane_specific_activation_must_still_be_read_through_post_pause_active_lane_decision": true
   },
   "evidence_files_used": [
     "output/project_roadmap_status.txt",
+    "output/post_pause_active_lane_decision.txt",
+    "output/post_lane_close_next_selection_decision.txt",
+    "output/technical_prediction_research_track.txt",
     "output/next_step_after_v3_pause_resolution.txt",
     "output/phase_0b_final_data_policy_closeout.txt",
-    "output/layer2_reopen_threshold_governance_note.txt",
-    "output/governance_artifact_registry.txt",
-    "output/governance_documentation_package_closeout.txt"
+    "output/layer2_reopen_threshold_governance_note.txt"
   ]
 }

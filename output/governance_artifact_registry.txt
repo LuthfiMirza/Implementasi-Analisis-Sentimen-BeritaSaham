@@ -2,11 +2,11 @@ Governance Artifact Registry
 ============================
 
 Reference date:
-- 2026-04-24
+- 2026-04-25
 
 Current official decision:
-- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
-- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- current_focus_state = technical_prediction_research_active_after_documentation_hardening_closeout
+- official_state = maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research
 - formal_resolution = remain_in_documented_pause
 
 Reading rule:
@@ -53,7 +53,7 @@ Operational governance tooling:
 - `output/post_documentation_hardening_lane_status_decision.json`
   reason: Versi machine-readable dari keputusan status lane pasca-documentation-hardening.
 - `output/post_lane_close_next_selection_decision.txt`
-  reason: Keputusan langkah berikut setelah lane dokumentasi ditutup, termasuk apakah proyek paling defensible berada pada managed hold atau perlu aktivasi lane yang sudah tersedia.
+  reason: Keputusan langkah berikut setelah lane dokumentasi ditutup, termasuk aktivasi lane `technical_prediction_research` sebagai active non-strategy lane.
 - `output/post_lane_close_next_selection_decision.json`
   reason: Versi machine-readable dari keputusan next-lane selection pasca-lane close.
 - `output/post_pause_non_strategy_workstream.txt`
@@ -61,9 +61,9 @@ Operational governance tooling:
 - `output/post_pause_non_strategy_workstream.json`
   reason: Versi machine-readable dari payung lane kerja non-strategy.
 - `output/technical_prediction_research_track.txt`
-  reason: Definisi lane prediction research yang tetap sah, tetapi terpisah dari strategy promotion path.
+  reason: Definisi lane prediction research yang sekarang aktif sebagai active non-strategy lane dan tetap terpisah dari strategy promotion path.
 - `output/technical_prediction_research_track.json`
-  reason: Versi machine-readable dari lane prediction research.
+  reason: Versi machine-readable dari lane prediction research aktif.
 - `output/data_governance_limitation_register.txt`
   reason: Register operasional limitation data/governance aktif yang membantu merapikan backlog dokumentasi tanpa membuka eksperimen strategi baru.
 - `output/data_governance_limitation_register.json`
@@ -89,7 +89,7 @@ Operational governance tooling:
 - `output/portfolio_execution_aware_position_sizing_boundary_note.json`
   reason: Versi machine-readable dari note operasional portfolio sizing realism boundary.
 - `output/post_pause_active_lane_decision.txt`
-  reason: Keputusan eksplisit lane kerja aktif saat documented pause agar fokus operasional tidak ambigu.
+  reason: Keputusan eksplisit bahwa lane kerja aktif saat documented pause sekarang adalah `technical_prediction_research`.
 - `output/post_pause_active_lane_decision.json`
   reason: Versi machine-readable dari keputusan lane aktif.
 - `output/layer2_reopen_evidence_preparation_pack.txt`
@@ -124,9 +124,9 @@ Superseded for current decision flow:
 Practical interpretation:
 - Product/app readiness tidak sama dengan strategy validity.
 - Artifact historis yang menunjukkan app usable tidak boleh dibaca sebagai bukti strategi layak promotion.
-- Status resmi aktif proyek saat ini tetap `documented pause`.
+- Status resmi aktif proyek saat ini tetap `documented pause` pada strategy path, dengan `technical_prediction_research` sebagai active non-strategy lane.
 - Reopen Layer 2 hanya boleh terjadi jika threshold governance baru yang tertulis di `output/layer2_reopen_threshold_governance_note.*` benar-benar terpenuhi.
 
 Bottom line:
-- Untuk keputusan aktif sekarang, baca dulu `output/project_roadmap_status.txt`, lalu `output/next_step_after_v3_pause_resolution.*`, `output/phase_0b_final_data_policy_closeout.*`, dan `output/layer2_reopen_threshold_governance_note.*`.
+- Untuk keputusan aktif sekarang, baca dulu `output/project_roadmap_status.txt`, lalu `output/post_pause_active_lane_decision.*`, `output/technical_prediction_research_track.*`, `output/next_step_after_v3_pause_resolution.*`, `output/phase_0b_final_data_policy_closeout.*`, dan `output/layer2_reopen_threshold_governance_note.*`.
 - Gunakan artifact lainnya hanya sebagai konteks historis pendukung, kecuali `output/next_layer2_lever_selection_note.json` yang harus diperlakukan superseded untuk flow keputusan aktif.

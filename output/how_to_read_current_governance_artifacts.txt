@@ -2,7 +2,7 @@ How To Read Current Governance Artifacts
 ========================================
 
 Reference date:
-- 2026-04-24
+- 2026-04-25
 
 Read these first:
 1. `output/project_roadmap_status.txt`
@@ -27,19 +27,21 @@ Read these first:
    This sharpens the interpretation boundary for integrated-but-not-final portfolio sizing realism.
 11. `output/post_pause_active_lane_decision.txt`
    This states which allowed post-pause lane is currently selected as the operational focus.
-12. `output/governance_reviewer_quickstart_note.txt`
+12. `output/technical_prediction_research_track.txt`
+   This defines the active technical prediction research lane and the guardrails that keep it separate from the strategy path.
+13. `output/governance_reviewer_quickstart_note.txt`
    This gives new reviewers a one-page onboarding note before they branch into the wider toolkit.
-13. `output/governance_artifact_sync_map.txt`
+14. `output/governance_artifact_sync_map.txt`
    This tells maintainers which artifacts should be checked together when one part of the package changes.
-14. `output/documentation_hardening_completion_assessment.txt`
+15. `output/documentation_hardening_completion_assessment.txt`
    This tells you whether the active documentation-hardening lane is most defensibly read as complete, complete with watchpoints, or not yet complete.
-15. `output/post_documentation_hardening_lane_status_decision.txt`
+16. `output/post_documentation_hardening_lane_status_decision.txt`
    This tells you the operational status of the lane after the documentation-hardening assessment has been completed.
-16. `output/post_lane_close_next_selection_decision.txt`
+17. `output/post_lane_close_next_selection_decision.txt`
    This tells you the most defensible next-step status after the previous lane was closed.
-17. `output/governance_artifact_registry.txt`
+18. `output/governance_artifact_registry.txt`
    This tells you which other artifacts are current, historical, or superseded.
-18. `output/layer2_governance_operator_guide.txt`
+19. `output/layer2_governance_operator_guide.txt`
    After you finish the source-of-truth pass, use this to follow the end-to-end operational review process.
 
 Read these as supporting context:
@@ -61,7 +63,7 @@ Do not use these alone to open a new experiment:
 Interpretation guardrails:
 - Product/app readiness must not be treated as proof of strategy validity.
 - A usable Laravel app, working pipelines, or integrated layers do not override failed strategy evaluation.
-- The current official status is `documented pause`, not active experiment selection.
+- The current official status is `documented pause` on the strategy path, even when a non-strategy research lane is active.
 - Phase C remains closed.
 - Retest remains blocked.
 - Paper trading remains blocked.
@@ -80,6 +82,8 @@ Simple reading sequence:
 - Then confirm the formal pause logic in `output/next_step_after_v3_pause_resolution.*`.
 - Then confirm the data-policy boundary in `output/phase_0b_final_data_policy_closeout.*`.
 - Then confirm the reopen threshold in `output/layer2_reopen_threshold_governance_note.*`.
+- Then confirm the currently active non-strategy lane in `output/post_pause_active_lane_decision.*`.
+- Then confirm the scope and guardrails of that lane in `output/technical_prediction_research_track.*`.
 - Then confirm the active limitation backlog in `output/data_governance_limitation_register.*`.
 - Then read `output/data_governance_limitation_notes_index.*` if you want a single-page map before opening the specialized notes.
 - Then read the specialized boundary note that matches the limitation you are reviewing:
@@ -87,7 +91,6 @@ Simple reading sequence:
   - `output/survivorship_boundary_note.*`
   - `output/execution_realism_boundary_note.*`
   - `output/portfolio_execution_aware_position_sizing_boundary_note.*`
-- Then confirm the selected work lane in `output/post_pause_active_lane_decision.*`.
 - Then use `output/governance_reviewer_quickstart_note.*` if you want a one-page onboarding recap before moving deeper into the toolkit.
 - Then use `output/governance_artifact_sync_map.*` if you are maintaining the package and need to know which artifacts must be checked together.
 - Then use `output/documentation_hardening_completion_assessment.*` if you need the most recent closeout judgment on whether the active documentation-hardening lane is finished.
@@ -97,6 +100,6 @@ Simple reading sequence:
 - Only after that, read historical artifacts to understand why the current state exists.
 
 Bottom line:
-- If you want to know what is officially active now, use the current governance artifacts first.
+- If you want to know what is officially active now, use the current governance artifacts first, especially `output/post_pause_active_lane_decision.*` and `output/technical_prediction_research_track.*`.
 - If you want to know why the project arrived here, use the historical artifacts second.
 - If an artifact suggests a new experiment but is older than the documented pause flow, do not treat it as active authority.

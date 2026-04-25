@@ -1,10 +1,10 @@
 {
   "artifact": "governance_artifact_registry",
-  "generated_at": "2026-04-24",
-  "reference_date": "2026-04-24",
+  "generated_at": "2026-04-25",
+  "reference_date": "2026-04-25",
   "current_official_decision": {
-    "current_focus_state": "strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection",
-    "official_state": "maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack",
+    "current_focus_state": "technical_prediction_research_active_after_documentation_hardening_closeout",
+    "official_state": "maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research",
     "formal_resolution": "remain_in_documented_pause"
   },
   "classification": {
@@ -81,7 +81,7 @@
       },
       {
         "artifact_path": "output/post_lane_close_next_selection_decision.txt",
-        "reason": "decision_for_the_most_defensible_next_step_after_the_documentation_lane_was_closed_including_whether_to_hold_or_activate_an_existing_non_strategy_lane"
+        "reason": "decision_for_the_most_defensible_next_step_after_the_documentation_lane_was_closed_including_activation_of_technical_prediction_research_as_the_active_non_strategy_lane"
       },
       {
         "artifact_path": "output/post_lane_close_next_selection_decision.json",
@@ -97,11 +97,11 @@
       },
       {
         "artifact_path": "output/technical_prediction_research_track.txt",
-        "reason": "definition_of_the_prediction_research_lane_that_remains_separate_from_strategy_promotion"
+        "reason": "definition_of_the_now_active_prediction_research_lane_that_remains_separate_from_strategy_promotion"
       },
       {
         "artifact_path": "output/technical_prediction_research_track.json",
-        "reason": "machine_readable_definition_of_the_prediction_research_lane"
+        "reason": "machine_readable_definition_of_the_active_prediction_research_lane"
       },
       {
         "artifact_path": "output/data_governance_limitation_register.txt",
@@ -153,7 +153,7 @@
       },
       {
         "artifact_path": "output/post_pause_active_lane_decision.txt",
-        "reason": "explicit_choice_of_the_current_active_non_strategy_lane"
+        "reason": "explicit_choice_of_technical_prediction_research_as_the_current_active_non_strategy_lane"
       },
       {
         "artifact_path": "output/post_pause_active_lane_decision.json",
@@ -219,7 +219,7 @@
     "do_not_use_superseded_artifacts_for_current_decision_flow",
     "operational_governance_tooling_improves_discovery_and_process_but_does_not_change_governance_state",
     "product_app_readiness_must_not_be_equated_with_strategy_validity",
-    "documented_pause_is_the_current_active_official_status",
+    "documented_pause_remains_the_current_official_status_on_the_strategy_path_even_when_a_non_strategy_lane_is_active",
     "layer2_reopen_is_allowed_only_if_the_new_governance_threshold_is_met"
   ]
 }

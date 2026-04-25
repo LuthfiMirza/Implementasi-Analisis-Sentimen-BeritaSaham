@@ -1,0 +1,111 @@
+{
+  "artifact": "technical_prediction_research_active_plan",
+  "reference_date": "2026-04-25",
+  "plan_status": "active_plan_ready",
+  "lane": "technical_prediction_research",
+  "governance_position": "documented_pause_on_strategy_path_with_active_non_strategy_prediction_research",
+  "baseline_snapshot": {
+    "multi_ticker_artifact": "output/prediction_research/model_comparison.txt",
+    "dataset_rows": 50196,
+    "ticker_count": 10,
+    "date_start": "2001-01-02",
+    "date_end": "2026-04-15",
+    "fold_count": 93,
+    "current_best_multi_ticker_baseline": {
+      "model": "majority_class",
+      "accuracy": 0.4002,
+      "f1_macro": 0.1893
+    },
+    "single_ticker_smoke_test_artifact": "output/prediction_research/test_model_comparison.txt",
+    "single_ticker_smoke_test_best_model": {
+      "model": "random_forest",
+      "accuracy": 0.4111,
+      "f1_macro": 0.4067
+    },
+    "current_target": "target_direction_5d",
+    "label_distribution_pct": {
+      "up": 0.4038,
+      "down": 0.3543,
+      "flat": 0.242
+    },
+    "sentiment_coverage_pct": {
+      "news_volume_nonzero": 0.0018,
+      "sentiment_available_nonzero": 0.0018
+    }
+  },
+  "key_diagnosis": [
+    "the_offline_prediction_pipeline_is_runnable",
+    "the_current_multi_ticker_model_stack_is_not_yet_professional_grade_because_it_does_not_beat_the_best_naive_global_baseline",
+    "sentiment_features_are_not_ready_to_be_a_core_driver_due_to_near_zero_effective_coverage",
+    "the_current_3_class_5d_label_should_not_be_treated_as_the_final_professional_target",
+    "the_next_plan_should_focus_on_target_horizon_segmentation_and_benchmark_discipline_before_model_complexity"
+  ],
+  "primary_objective": "find_a_prediction_baseline_that_beats_naive_baselines_consistently_is_stable_across_regimes_and_tickers_and_has_a_defensible_target_definition",
+  "workstreams": [
+    {
+      "name": "freeze_baseline_and_scorecard",
+      "goal": "freeze_technical_prediction_research_v1_as_the_official_comparison_anchor",
+      "actions": [
+        "lock_directional_accuracy_f1_macro_balanced_accuracy_confusion_matrix_per_ticker_stability_and_per_regime_stability_as_minimum_scoreboard",
+        "add_global_majority_regime_conditional_majority_per_ticker_majority_and_simple_naive_direction_baselines"
+      ]
+    },
+    {
+      "name": "label_and_horizon_redesign",
+      "goal": "choose_a_more_defensible_target_than_the_current_raw_3_class_5d_direction_label",
+      "actions": [
+        "compare_1d_3d_5d_and_10d_horizons",
+        "compare_binary_up_down_ternary_static_flat_threshold_and_ternary_atr_based_flat_threshold_labels",
+        "select_the_primary_target_based_on_oos_stability_not_only_single_aggregate_score"
+      ]
+    },
+    {
+      "name": "segment_aware_technical_baseline_v2",
+      "goal": "separate_prediction_problems_by_regime_and_ticker_history_profile_before_chasing_a_single_global_model",
+      "actions": [
+        "evaluate_bull_vs_non_bull_regime_splits",
+        "separate_mature_tickers_from_short_history_or_post_ipo_tickers",
+        "review_outliers_such_as_goto_explicitly",
+        "run_logistic_regression_tree_ensemble_and_regime_conditional_heuristics_before_more_complex_variants"
+      ]
+    },
+    {
+      "name": "technical_first_feature_redesign",
+      "goal": "improve_features_with_a_technical_first_policy_before_reintroducing_sparse_sentiment_inputs",
+      "actions": [
+        "keep_return_5d_return_20d_atr14_pct_volume_ratio_20d_price_vs_ema50_and_market_regime_bullish_as_core_v1_features",
+        "add_market_relative_return_rolling_volatility_drawdown_distance_breakout_state_ema_slope_and_trend_persistence_features",
+        "keep_sentiment_as_a_secondary_experiment_until_coverage_materially_improves"
+      ]
+    },
+    {
+      "name": "calibration_and_professional_reporting",
+      "goal": "upgrade_evaluation_from_raw_accuracy_to_auditable_prediction_quality",
+      "actions": [
+        "add_probability_calibration_hit_rate_by_bucket_and_ranking_quality_checks",
+        "report_global_bull_non_bull_and_per_ticker_scores_separately",
+        "store_failure_slices_as_a_required_part_of_closeout"
+      ]
+    }
+  ],
+  "explicit_no_go": [
+    "do_not_make_sentiment_the_core_baseline_now",
+    "do_not_increase_model_complexity_before_label_and_horizon_redesign",
+    "do_not_read_directional_accuracy_as_proof_that_the_strategy_is_ready_for_trading",
+    "do_not_turn_this_plan_into_a_disguised_strategy_backtest"
+  ],
+  "minimum_research_gates": [
+    "beat_the_strongest_naive_full_sample_baseline_by_at_least_2_accuracy_points_or_0_05_f1_macro",
+    "show_at_least_one_primary_metric_improvement_in_both_bull_and_non_bull_regimes",
+    "show_non_negative_primary_metric_improvement_in_at_least_7_of_10_tickers",
+    "if_probability_outputs_are_used_calibration_or_bucket_hit_rate_must_not_look_random"
+  ],
+  "recommended_execution_order": [
+    "freeze_scorecard_baseline_v1",
+    "run_label_and_horizon_redesign",
+    "select_primary_target",
+    "build_segment_aware_technical_only_baseline_v2",
+    "add_calibration_and_ranking_review",
+    "consider_separate_sentiment_experiments_only_after_coverage_improves"
+  ]
+}

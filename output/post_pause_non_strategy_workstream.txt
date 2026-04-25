@@ -2,18 +2,20 @@ Post-Pause Non-Strategy Workstream
 =================================
 
 Reference date:
-- 2026-04-24
+- 2026-04-25
 
 Current official state:
-- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
-- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- current_focus_state = technical_prediction_research_active_after_documentation_hardening_closeout
+- official_state = maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research
 - formal_resolution = remain_in_documented_pause
 
 Workstream purpose:
-- Mendefinisikan lane kerja yang masih boleh berjalan setelah strategy roadmap masuk documented pause.
-- Menjaga agar proyek tetap bisa memiliki progres kerja tanpa mengklaim bahwa strategy readiness naik atau bahwa approval path sudah terbuka.
+- Mendefinisikan lane kerja non-strategy yang tetap sah setelah strategy roadmap masuk documented pause.
+- Menjaga agar proyek bisa bergerak melalui lane yang terbatas, eksplisit, dan governance-consistent tanpa mengklaim strategy readiness naik.
 
 Allowed lanes that may continue:
+- technical_prediction_research
+  - Lane riset prediction non-strategy yang aktif untuk pertanyaan arah return, breakout/breakdown probability, ranking kualitas sinyal, dan evaluasi offline lain yang tidak membuka strategy promotion path.
 - data_governance_hardening
   - Penyempurnaan dokumentasi data policy, coverage note, dan audit boundary tanpa membuka eksperimen strategi baru.
 - corporate_action_and_survivorship_documentation_refinement
@@ -36,21 +38,25 @@ Lanes that must remain blocked:
 
 Interpretation rules:
 - Progress di workstream ini tidak boleh dibaca sebagai kenaikan `strategy readiness progress`.
+- Aktivasi `technical_prediction_research` tidak boleh dibaca sebagai pemulihan strategy validity.
 - Progress di workstream ini tidak boleh dibaca sebagai approval path ke retest, paper trading, atau Phase C.
-- Workstream ini hanya menjaga kesinambungan kerja proyek di luar jalur strategi yang sedang paused.
+- Workstream ini menjaga kesinambungan kerja proyek di luar jalur strategi yang tetap paused.
 - Semua keputusan strategy-governance tetap tunduk pada source-of-truth aktif dan threshold reopen Layer 2.
 
 Relationship to the active roadmap:
 - `output/project_roadmap_status.txt` tetap menjadi source-of-truth untuk status strategi resmi.
-- Artifact ini bukan pengganti roadmap strategi; artifact ini hanya mendefinisikan lane kerja non-strategy yang masih sah selama documented pause.
+- Artifact ini bukan pengganti roadmap strategi; artifact ini mendefinisikan lane kerja non-strategy yang sah selama documented pause.
+- Lane aktif saat ini boleh diambil dari payung ini, tetapi aktivasi lane spesifik tetap harus dibaca melalui `output/post_pause_active_lane_decision.*`.
 
 Evidence files used:
 - output/project_roadmap_status.txt
+- output/post_pause_active_lane_decision.txt
+- output/post_lane_close_next_selection_decision.txt
+- output/technical_prediction_research_track.txt
 - output/next_step_after_v3_pause_resolution.txt
 - output/phase_0b_final_data_policy_closeout.txt
 - output/layer2_reopen_threshold_governance_note.txt
-- output/governance_artifact_registry.txt
-- output/governance_documentation_package_closeout.txt
 
 Bottom line:
-- Strategy roadmap tetap paused, tetapi proyek masih boleh bergerak melalui workstream non-strategy yang eksplisit, terbatas, dan tidak mengubah governance state aktif.
+- Strategy roadmap tetap paused, tetapi proyek sekarang boleh bergerak melalui lane non-strategy yang eksplisit.
+- `technical_prediction_research` sekarang sah sebagai bagian dari payung workstream ini dan boleh dibaca sebagai lane aktif bila artifact aktivasi eksplisit memang menyatakannya demikian.

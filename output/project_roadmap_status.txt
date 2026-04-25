@@ -1,14 +1,14 @@
 Project Roadmap Status
 ======================
 
-Generated at: 2026-04-24
-Current focus: managed_hold_after_documentation_hardening_closeout
+Generated at: 2026-04-25
+Current focus: technical_prediction_research_activation_on_existing_prediction_baseline
 
 Progress snapshot:
-- Current roadmap scope status: `closed_under_managed_hold_for_current_scope`
+- Current roadmap scope status: `documented_pause_with_active_non_strategy_research_lane`
 - Documentation hardening status: `complete_with_watchpoints`
 - Strategy readiness progress: [############--------] 62%
-- Note: Legacy `roadmap implementation progress` meter tidak lagi dipakai sebagai driver utama source-of-truth ini karena loop build/evaluation aktif untuk scope saat ini sudah ditutup rapi. Fokus resmi sekarang adalah managed hold, governance consistency, dan menjaga agar tidak ada interpretasi seolah active experimentation masih berjalan.
+- Note: Legacy `roadmap implementation progress` meter tidak lagi dipakai sebagai driver utama source-of-truth ini karena loop build/evaluation strategi untuk scope saat ini sudah ditutup rapi. Fokus resmi sekarang adalah `technical_prediction_research` sebagai lane non-strategy aktif di bawah documented pause, sambil menjaga agar tidak ada interpretasi seolah strategy experimentation sudah dibuka kembali.
 
 Phase progress table:
 | Phase | Status | Progress | Alasan |
@@ -17,28 +17,28 @@ Phase progress table:
 | Phase 0B - Data Audit and Repair | Closed with limitations | 100% | Artifact `output/phase_0b_final_data_policy_closeout.*` menutup Phase 0B sebagai `closed_with_documented_limitations`; data policy current stack sudah terdokumentasi, tetapi belum promotion-grade final. |
 | Phase Universe Expansion | Done | 100% | Target 50 ticker sudah dibekukan dan direbuild sebagai basis validasi. |
 | Phase 1 - Layer 1 Market Regime Filter | Done | 100% | Policy Layer 1 resmi sudah dipilih dan dibekukan. |
-| Phase 2 - Layer 2 Stock Selection / Entry Family | Governance-paused / closed for current scope | 75% | Jalur RS sudah ditutup, jalur alternatif hanya integration-frozen, tiga lever single-variable ditolak formal, dan threshold reopen sekarang dibatasi oleh `output/layer2_reopen_threshold_governance_note.*`; status ini dipertahankan di bawah managed hold, bukan active experiment queue. |
-| Phase 3 - Layer 3 Entry Signal Upgrade | Integrated historically / not promotable | 82% | Sudah terintegrasi dan usable sebagai optional layer, tetapi bukan default-active final policy, tidak membuka promotion path, dan sekarang diperlakukan sebagai frozen historical stack context di bawah managed hold. |
-| Phase 4 - Layer 5 Exit Management Upgrade | Integrated historically / provisional | 25% | Pass integrasi awal selesai, tetapi exit policy masih provisional dan tidak boleh dibaca sebagai readiness untuk promotion; summary ini dipertahankan sebagai konteks stack historis, bukan target aktif. |
-| Phase 5 - Layer 4 Position Sizing | Integrated historically / not final | 70% | Sizing engine sudah berjalan, tetapi realism portfolio masih belum fully final/execution-aware dan belum promotable; summary ini dipertahankan sebagai konteks stack historis, bukan target aktif. |
+| Phase 2 - Layer 2 Stock Selection / Entry Family | Governance-paused / closed for current scope | 75% | Jalur RS sudah ditutup, jalur alternatif hanya integration-frozen, tiga lever single-variable ditolak formal, dan threshold reopen sekarang dibatasi oleh `output/layer2_reopen_threshold_governance_note.*`; status ini dipertahankan di bawah documented pause, bukan active experiment queue. |
+| Phase 3 - Layer 3 Entry Signal Upgrade | Integrated historically / not promotable | 82% | Sudah terintegrasi dan usable sebagai optional layer, tetapi bukan default-active final policy, tidak membuka promotion path, dan sekarang diperlakukan sebagai frozen historical stack context di bawah documented pause. |
+| Phase 4 - Layer 5 Exit Management Upgrade | Integrated historically / provisional | 25% | Pass integrasi awal selesai, tetapi exit policy masih provisional dan tidak boleh dibaca sebagai readiness untuk promotion; summary ini dipertahankan sebagai konteks stack historis, bukan target aktif strategy path. |
+| Phase 5 - Layer 4 Position Sizing | Integrated historically / not final | 70% | Sizing engine sudah berjalan, tetapi realism portfolio masih belum fully final/execution-aware dan belum promotable; summary ini dipertahankan sebagai konteks stack historis, bukan target aktif strategy path. |
 | Phase 6 - Walk-Forward Validation | Closed failed / not promotable | 60% | First pass sudah selesai dan artifact closeout sudah ada, tetapi stack gagal gate minimum sehingga candidate track tetap tertutup. |
 | Phase 7 - Paper Trading | Blocked | 0% | Masih tertahan oleh governance block dan strategi belum layak dipromosikan. |
 
 Official project state:
-- Roadmap current scope: closed_under_managed_hold_for_current_scope
+- Roadmap current scope: documented_pause_with_active_non_strategy_research_lane
 - Phase A: closed_with_notes
 - Phase B: phase_b_closed_with_learnings_no_candidate
 - Phase C: phase_c_no_go_yet
 - Retest readiness: belum_boleh_retest
-- Active track: no_new_active_lane
+- Active track: technical_prediction_research
 - Documentation hardening closeout: documentation_hardening_complete_with_watchpoints
 - Closed lane status: closed_with_watchpoints_and_not_yet_replaced
-- Current operational status: hold_without_new_active_lane
-- Technical prediction research status: parked_not_rejected_not_active
+- Current operational status: technical_prediction_research_active_under_documented_pause
+- Technical prediction research status: active_non_strategy_lane
 - Formal pause resolution: remain_in_documented_pause
-- Recommended next action: maintain_managed_hold_without_new_active_lane_until_explicit_new_lane_decision_or_new_governance_facing_evidence
-- recommended_next_action=maintain_managed_hold_without_new_active_lane_until_explicit_new_lane_decision_or_new_governance_facing_evidence
-  Note: Documentation hardening package untuk current governance scope sudah complete_with_watchpoints. Lane `non_strategy_maintenance` sudah ditutup dengan watchpoints dan belum digantikan, sehingga posisi operasional resmi sekarang adalah managed hold tanpa active lane baru. `technical_prediction_research` tetap parked/not active, dan future reopen intake tooling tetap tersedia hanya sebagai readiness path, bukan execution path. Sinkronisasi terbaru ada di `output/documentation_hardening_completion_assessment.*`, `output/post_documentation_hardening_lane_status_decision.*`, `output/post_lane_close_next_selection_decision.*`, `output/technical_prediction_research_track.*`, dan `output/governance_artifact_registry.*`. Paper trading tetap blocked dan retest tetap blocked.
+- Recommended next action: execute_technical_prediction_research_lane_on_existing_prediction_baseline_without_strategy_promotion_claim
+- recommended_next_action=execute_technical_prediction_research_lane_on_existing_prediction_baseline_without_strategy_promotion_claim
+  Note: Documentation hardening package untuk current governance scope sudah complete_with_watchpoints. Lane `non_strategy_maintenance` sudah ditutup dengan watchpoints dan sekarang telah digantikan oleh `technical_prediction_research` sebagai active non-strategy lane. Aktivasi ini memakai baseline runnable di `output/prediction_research/*`, tetapi tidak mengubah fact bahwa paper trading tetap blocked, retest tetap blocked, dan strategy promotion path tetap tertutup. Sinkronisasi terbaru ada di `output/post_pause_active_lane_decision.*`, `output/post_lane_close_next_selection_decision.*`, `output/technical_prediction_research_track.*`, `output/post_pause_non_strategy_workstream.*`, dan `output/governance_artifact_registry.*`.
 
 Audit documentation snapshot:
 - phase_0b_closeout: `closed_with_documented_limitations` via `output/phase_0b_final_data_policy_closeout.*`
@@ -66,37 +66,37 @@ Audit documentation snapshot:
 Core decision:
 - Produk dashboard, data pipeline berita, dan baseline operasional minimum sudah ada.
 - Phase 0B sekarang ditutup sebagai `closed_with_documented_limitations`; ini menutup gap dokumentasi data, bukan membuka promotion path.
-- Documentation hardening untuk lane `non_strategy_maintenance` sekarang selesai dengan watchpoints; ini menutup scope governance/data hardening untuk current hold state, bukan membuka strategy path baru.
-- Lane `non_strategy_maintenance` sudah ditutup sebagai `closed_with_watchpoints_and_not_yet_replaced`.
-- Status operasional proyek saat ini adalah `hold_without_new_active_lane`.
+- Documentation hardening untuk lane `non_strategy_maintenance` sekarang selesai dengan watchpoints; ini menutup scope governance/data hardening tanpa membuka strategy path baru.
+- Lane `non_strategy_maintenance` sudah ditutup sebagai `closed_with_watchpoints_and_not_yet_replaced`, lalu digantikan oleh lane aktif `technical_prediction_research`.
+- Status operasional proyek saat ini adalah `technical_prediction_research_active_under_documented_pause`.
 - Jalur strategi Phase B gagal sebagai strategi, bukan karena coding belum selesai.
 - Eksperimen item 5-8 tetap stop.
 - Phase C tetap tertutup.
 - Layer 2 tetap pause; backlog tidak boleh aktif otomatis tanpa artifact governance-facing yang lebih baru.
-- `technical_prediction_research` tetap `parked_not_rejected`, tetapi belum aktif.
+- `technical_prediction_research` sekarang `active_non_strategy_lane`.
 - Future reopen intake/tooling tetap tersedia sebagai readiness infrastructure, bukan execution path.
-- Arah resmi proyek saat ini adalah managed hold yang tertata, bukan retest strategi lama, bukan active experimentation, dan bukan abandoned state.
+- Arah resmi proyek saat ini adalah documented pause pada strategy path dengan lane prediction research non-strategy yang aktif; ini bukan retest strategi lama, bukan active strategy experimentation, dan bukan abandoned state.
 
 Current strategy architecture status:
 - Layer 1 Market Regime Filter: 100%
-  Status: frozen_provisional_stack_context_under_managed_hold
-  Note: Layer 1 provisional core stack resmi sekarang adalah `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`. Adopsi ini tetap dipertahankan sebagai konteks stack historis/frozen di bawah managed hold; ia bukan target build aktif baru dan belum operationally ready untuk paper trading atau retest.
+  Status: frozen_provisional_stack_context_under_documented_pause
+  Note: Layer 1 provisional core stack resmi sekarang adalah `ihsg_ema50 > ihsg_ema200 AND ihsg_ema50 > prev_ihsg_ema50`. Adopsi ini tetap dipertahankan sebagai konteks stack historis/frozen di bawah documented pause; ia bukan target build aktif baru dan belum operationally ready untuk paper trading atau retest.
 - Layer 2 Alternative Eligibility Filter: 75%
   Status: governance_paused_historical_stack_context
-  Note: jalur Relative Strength sudah ditutup formal. `close > ema50` explicit sudah terbukti redundant/non-binding pada jalur signal saat ini, dan `return_20d > 0` sekarang dibuang dari stack inti secara provisional. Tiga single-variable refinement berikut pada family Layer 2 juga sudah ditolak formal: `absolute_momentum_floor_on_return_20d`, `entry_signal_persistence_minimum_confirmation_days`, dan `stock_trend_quality_gate_via_short_term_ema_slope`. Stack ini dipertahankan sebagai historical/frozen context di bawah managed hold, bukan active experiment queue.
+  Note: jalur Relative Strength sudah ditutup formal. `close > ema50` explicit sudah terbukti redundant/non-binding pada jalur signal saat ini, dan `return_20d > 0` sekarang dibuang dari stack inti secara provisional. Tiga single-variable refinement berikut pada family Layer 2 juga sudah ditolak formal: `absolute_momentum_floor_on_return_20d`, `entry_signal_persistence_minimum_confirmation_days`, dan `stock_trend_quality_gate_via_short_term_ema_slope`. Stack ini dipertahankan sebagai historical/frozen context di bawah documented pause, bukan active experiment queue.
 - Layer 3 Entry Signal: 82%
   Status: optional_historical_integration_context
   Note: integrasi `RSI14 >= 50 AND RSI14 <= 70` di atas Layer 1 + Layer 2 alternatif sudah berjalan end-to-end; layer ini tetap tercatat sebagai toggle opsional historis, tetapi sudah ditolak sebagai hipotesis aktif dan sekarang diperlakukan sebagai archived optional context, bukan workstream aktif.
 - Layer 4 Position Sizing: 70%
   Status: integrated_historical_context_not_final
-  Note: fixed fractional sizing `2% risk per trade` dengan `10% max position cap` sudah diimplementasikan pada first pass. Ringkasan ini dipertahankan sebagai konteks integrasi historis; realism portfolio tetap belum final dan bukan target aktif selama managed hold.
+  Note: fixed fractional sizing `2% risk per trade` dengan `10% max position cap` sudah diimplementasikan pada first pass. Ringkasan ini dipertahankan sebagai konteks integrasi historis; realism portfolio tetap belum final dan bukan target aktif strategy path selama documented pause.
 - Layer 5 Exit Management: 25%
-  Status: provisional_historical_stack_context_under_managed_hold
+  Status: provisional_historical_stack_context_under_documented_pause
   Note: Policy Layer 5 resmi terbaru sekarang adalah ATR trailing stop dengan `ATR14 * 2.5`, trailing logic unchanged, dan provisional time stop `12 hari`. Policy ini tetap dicatat sebagai konteks stack historis/provisional; bukan target aktif baru dan belum boleh dibaca sebagai readiness untuk promotion.
 
 Data status summary:
 - Documentation hardening note:
-  - Summary data/governance di bawah ini sekarang diperlakukan sebagai frozen context yang sudah dirapikan untuk managed hold, bukan checklist kerja aktif yang masih mengejar build berikutnya.
+  - Summary data/governance di bawah ini sekarang diperlakukan sebagai frozen context yang sudah dirapikan untuk documented pause, bukan checklist kerja aktif strategy path yang masih mengejar build berikutnya.
 - Sudah ada:
   - OHLCV rebuild bersih berbasis yfinance di data/stocks/*.csv untuk target 50 ticker frozen hasil Phase 2.2, ditambah 1 source legacy yang masih dipakai indikator sehingga total stock source aktif saat ini = 51
   - IHSG historis bersih di data/IHSG.csv untuk regime filter berbasis EMA200
@@ -122,11 +122,11 @@ Data status summary:
   - Position sizing portfolio yang fully execution-aware
   - Catatan governance: limitation di atas tetap terdokumentasi, tetapi tidak menjadi alasan resmi untuk membuka eksperimen strategi baru sekarang
 
-Current hold conditions before any future strategy reopening or lane activation:
-0. Managed hold governance posture
+Current governance conditions before any future strategy reopening:
+0. Documented pause governance posture
    - Status: active
-   - Current operational status tetap `hold_without_new_active_lane`.
-   - Aktivasi lane baru memerlukan keputusan eksplisit terpisah; `technical_prediction_research` tetap parked/not active.
+   - Current operational status sekarang `technical_prediction_research_active_under_documented_pause`.
+   - Lane non-strategy aktif saat ini adalah `technical_prediction_research`; ini tidak membuka strategy path.
    - Reopen strategy tetap memerlukan evidence governance-facing baru yang valid.
 1. Framework redesign
    - Status: phase_0a_patched
@@ -161,7 +161,7 @@ Current hold conditions before any future strategy reopening or lane activation:
   - Keputusan resmi Layer 4 first pass: `layer_4_usable_as_integration_layer = true`.
 5. Backtest realism
    - Status: minimum_realism_policy_already_applied_once
-   - Biaya transaksi dan slippage minimum sudah pernah diterapkan pada closeout resmi saat ini; refinement realism lanjutan tidak menjadi work queue aktif selama managed hold.
+   - Biaya transaksi dan slippage minimum sudah pernah diterapkan pada closeout resmi saat ini; refinement realism lanjutan tidak menjadi work queue aktif untuk strategy promotion path selama documented pause.
 
 Archived rebuild roadmap context (historical record, not active work queue):
 

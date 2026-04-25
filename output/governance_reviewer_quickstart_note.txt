@@ -2,35 +2,36 @@ Governance Reviewer Quickstart Note
 ===================================
 
 Reference date:
-- 2026-04-24
+- 2026-04-25
 
 Current official state:
-- current_focus_state = strategy_rebuild_layer2_single_variable_lever_tests_paused_after_v3_rejection
-- official_state = maintain_framework_governance_gate_blocked_until_new_governance_facing_evidence_changes_threshold_results_on_updated_provisional_core_stack
+- current_focus_state = technical_prediction_research_active_after_documentation_hardening_closeout
+- official_state = maintain_framework_governance_gate_blocked_for_strategy_path_while_allowing_active_non_strategy_prediction_research
 - formal_resolution = remain_in_documented_pause
 
 Purpose:
 - Memberi reviewer baru satu halaman orientasi cepat untuk memahami governance flow aktif dari nol.
 - Mempercepat discovery path tanpa menggantikan source-of-truth, limitation register, atau artifact closeout resmi.
-- Menegaskan bahwa quickstart ini adalah onboarding helper, bukan approval artifact dan bukan izin eksperimen baru.
+- Menegaskan bahwa quickstart ini adalah onboarding helper, bukan approval artifact dan bukan izin eksperimen strategi baru.
 
 What a new reviewer should know first:
-- Status resmi proyek saat ini adalah `documented pause`, bukan active experiment selection.
+- Status resmi proyek saat ini adalah `documented pause` pada strategy path, bukan active strategy experiment selection.
 - Source-of-truth tetap berada pada artifact resmi yang lebih baru, bukan pada quickstart ini.
-- Lane aktif saat ini adalah `non_strategy_maintenance`.
-- Progress dokumentasi governance/data tidak sama dengan kenaikan `strategy readiness progress`.
-- `technical_prediction_research` tetap boleh dibaca sebagai parked/not rejected, tetapi bukan lane aktif sekarang.
+- Lane aktif saat ini adalah `technical_prediction_research`.
+- Progress prediction research tidak sama dengan kenaikan `strategy readiness progress`.
+- Aktivasi `technical_prediction_research` tidak mengubah fact bahwa retest, paper trading, dan Phase C tetap blocked.
 
 First reading sequence:
 1. `output/project_roadmap_status.txt`
 2. `output/next_step_after_v3_pause_resolution.*`
 3. `output/phase_0b_final_data_policy_closeout.*`
 4. `output/layer2_reopen_threshold_governance_note.*`
-5. `output/data_governance_limitation_register.*`
-6. `output/data_governance_limitation_notes_index.*`
-7. `output/post_pause_active_lane_decision.*`
-8. `output/governance_artifact_registry.*`
-9. `output/how_to_read_current_governance_artifacts.txt`
+5. `output/post_pause_active_lane_decision.*`
+6. `output/technical_prediction_research_track.*`
+7. `output/data_governance_limitation_register.*`
+8. `output/data_governance_limitation_notes_index.*`
+9. `output/governance_artifact_registry.*`
+10. `output/how_to_read_current_governance_artifacts.txt`
 
 Where to look for active limitation boundaries:
 - Mulai dari `output/data_governance_limitation_register.*` untuk melihat limitation aktif dan prioritasnya.
@@ -43,7 +44,7 @@ Where to look for active limitation boundaries:
 
 What remains blocked:
 - eksperimen strategi baru
-- backtest baru
+- backtest strategi baru
 - retest
 - paper trading
 - Phase C
@@ -52,13 +53,13 @@ What remains blocked:
 
 Common misread to avoid:
 - Jangan baca quickstart ini sebagai source-of-truth baru.
-- Jangan baca progress dokumentasi atau packaging artifact sebagai bukti strategy validity pulih.
+- Jangan baca aktivasi `technical_prediction_research` sebagai bukti strategy validity pulih.
+- Jangan baca hasil prediction research sebagai approval path ke retest atau paper trading.
 - Jangan baca limitation notes sebagai approval path.
-- Jangan baca keberadaan lane `technical_prediction_research` sebagai pengganti lane aktif.
 - Jangan gunakan artifact historical atau superseded sendirian untuk membuka langkah baru.
 
 Relationship to the active lane:
-- Quickstart ini mendukung lane aktif `non_strategy_maintenance`, terutama pada sub-lane `data_governance_hardening`, `evidence_archival_policy`, dan reviewer onboarding.
+- Quickstart ini mendukung lane aktif `technical_prediction_research`, terutama pada sub-lane `target_label_definition`, `horizon_selection`, `benchmark_metric_definition`, dan reviewer onboarding.
 - Quickstart ini tidak mengubah governance state aktif.
 - Quickstart ini hanya membantu reviewer baru masuk ke flow baca yang benar lebih cepat.
 
@@ -66,15 +67,14 @@ Evidence pointers:
 - output/governance_artifact_registry.txt
 - output/governance_artifact_registry.json
 - output/how_to_read_current_governance_artifacts.txt
-- output/governance_documentation_package_closeout.txt
 - output/post_pause_active_lane_decision.txt
 - output/post_pause_active_lane_decision.json
-- output/data_governance_limitation_register.txt
-- output/data_governance_limitation_register.json
-- output/data_governance_limitation_notes_index.txt
-- output/data_governance_limitation_notes_index.json
+- output/post_lane_close_next_selection_decision.txt
+- output/post_lane_close_next_selection_decision.json
 - output/technical_prediction_research_track.txt
 - output/technical_prediction_research_track.json
+- output/data_governance_limitation_register.txt
+- output/data_governance_limitation_register.json
 - output/project_roadmap_status.txt
 
 Bottom line:
