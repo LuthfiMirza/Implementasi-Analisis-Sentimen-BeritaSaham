@@ -1,0 +1,47 @@
+BAB II
+TINJAUAN PUSTAKA
+
+2.1 Gambaran Umum Sistem
+Sistem yang dibangun dalam penelitian ini merupakan dashboard analisis sentimen berita saham Indonesia yang dikombinasikan dengan evaluasi model, ranking teknikal, backtest DSS, dan trade journal. Arsitektur utamanya menggunakan Laravel 13 sebagai aplikasi web, MySQL sebagai basis data, dan FastAPI/Python sebagai service machine learning untuk komponen prediksi arah serta relative technical strength ranking.
+
+Dalam roadmap proyek saat ini, status resmi penelitian berada pada technical_prediction_research lane. Artinya, sistem masih aktif sebagai jalur riset prediction non-strategy, tetapi belum dibuka sebagai strategy promotion path. Konsekuensinya, hasil evaluasi prediksi dan ranking tidak boleh langsung dibaca sebagai validasi strategi trading siap pakai.
+
+2.2 Landasan Teori
+Analisis sentimen adalah proses mengidentifikasi polaritas opini dari suatu teks menjadi positif, netral, atau negatif. Dalam konteks pasar modal, analisis sentimen dipakai untuk membaca persepsi pasar terhadap emiten, regulator, atau kondisi industri. Sentimen dapat membantu menjelaskan perubahan ekspektasi investor, tetapi efektivitasnya sangat bergantung pada kualitas data, relevansi berita, waktu publikasi, dan coverage artikel terhadap emiten yang dianalisis.
+
+Selain sentimen, penelitian ini juga menggunakan analisis teknikal. Analisis teknikal memanfaatkan data historis harga dan volume untuk menangkap momentum, volatilitas, dan kekuatan relatif suatu saham. Pada proyek ini, fitur teknikal yang dipakai antara lain return jangka pendek, ATR ratio, price versus EMA, regime duration, volume ratio, dan cross-sectional rank antar saham.
+
+Machine learning digunakan untuk memodelkan hubungan antara fitur teknikal atau sentimen dengan target pergerakan harga pada horizon tertentu. Pendekatan yang digunakan dalam penelitian ini meliputi logistic regression, random forest, baseline majority class, baseline acak, dan pendekatan ranking berbasis probabilitas keluaran model. Evaluasi tidak hanya memakai accuracy, tetapi juga precision, recall, F1, rank correlation, top-k precision, dan long-short spread.
+
+2.3 Landasan Empiris Proyek Saat Ini
+Hasil audit roadmap proyek menunjukkan bahwa komponen sentimen dan komponen prediksi tidak berada pada tingkat kesiapan yang sama. Jalur prediction research teknikal telah berkembang menjadi baseline ranking v5, sedangkan jalur sentimen masih lebih kuat sebagai layer informasi dan evaluasi kualitas berita daripada sebagai driver prediksi utama.
+
+Pada dataset prediction research, coverage sentimen historis sangat rendah dibanding total observasi teknikal. Karena itu, fitur sentimen belum layak dijadikan core driver model prediksi. Temuan ini konsisten dengan hasil evaluasi offline yang menunjukkan bahwa model berbasis teknikal lebih stabil daripada model yang mengandalkan sentimen sebagai sinyal utama.
+
+Dengan kondisi tersebut, sistem saat ini lebih tepat dipahami sebagai:
+1. platform agregasi berita dan audit sentimen,
+2. platform evaluasi hubungan sentimen terhadap harga,
+3. platform ranking teknikal relatif antarticker,
+4. bukan mesin rekomendasi investasi otomatis.
+
+2.4 Evaluasi Sentimen dalam Sistem
+Halaman Evaluasi Sentimen pada sistem tidak dirancang sebagai bukti bahwa sentimen sudah terbukti memprediksi return saham. Halaman tersebut terutama berfungsi untuk mengaudit konsistensi internal antara model ML dan metode rule-based. Metrik yang ditampilkan meliputi agreement rate, distribusi label, confusion matrix internal, per-class metrics internal, dan daftar disagreement artikel.
+
+Interpretasi ini penting karena agreement antara model ML dan rule-based hanya menunjukkan konsistensi pipeline klasifikasi sentimen, bukan validitas eksternal terhadap pergerakan harga pasar. Oleh sebab itu, evaluasi sentimen dalam sistem harus dibaca sebagai evaluasi kualitas label dan kualitas proses analisis, bukan sebagai validasi sinyal trading.
+
+2.5 Ranking Teknikal sebagai Fokus Riset Aktif
+Perkembangan terbaru proyek menunjukkan bahwa ranking teknikal relatif memiliki hasil yang lebih menjanjikan dibanding klasifikasi arah berbasis sentimen. Pendekatan ranking memindahkan pertanyaan dari "apakah saham ini akan naik?" menjadi "dari seluruh ticker yang tersedia pada hari yang sama, ticker mana yang relatif lebih kuat secara teknikal untuk horizon lima hari ke depan?".
+
+Dengan framing tersebut, model digunakan sebagai basket selector, bukan single stock picker. Artinya, output model lebih cocok dipakai untuk menyusun kandidat teknikal relatif daripada memberi klaim harga pasti akan naik. Posisi ini juga lebih konsisten dengan status roadmap proyek yang masih berada dalam documented pause untuk jalur strategi.
+
+2.6 Paper Trading dan Batasan Penelitian
+Walaupun sistem memiliki utilitas paper trading manual untuk mencatat snapshot dan evaluasi hasil lima hari kemudian, fitur ini tetap diposisikan sebagai tooling riset. Dalam roadmap resmi proyek, paper trading belum dibuka sebagai lane operasional otomatis. Karena itu, keberadaan command paper trading tidak boleh diartikan sebagai bukti bahwa model sudah lolos validasi strategi.
+
+Batasan utama penelitian saat ini adalah:
+1. coverage sentimen historis terhadap emiten masih rendah,
+2. evaluasi sentimen lebih kuat pada level audit pipeline daripada validasi return,
+3. ranking teknikal masih bersifat indikatif dan probabilistik,
+4. hasil prediction research tidak identik dengan rekomendasi investasi.
+
+2.7 Implikasi untuk Penelitian
+Berdasarkan kondisi roadmap dan implementasi sistem saat ini, penelitian ini lebih kuat jika diposisikan sebagai studi sistem informasi dan data-driven decision support untuk analisis saham, bukan sebagai penelitian yang mengklaim strategi trading sudah tervalidasi. Sentimen tetap relevan sebagai variabel informasi, tetapi kontribusi utamanya pada fase sekarang adalah memperkaya konteks analisis berita, bukan menjadi penentu utama model prediksi.

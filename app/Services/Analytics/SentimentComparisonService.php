@@ -30,10 +30,12 @@ class SentimentComparisonService
     {
         $period = max(7, $period);
         $prices = $this->priceSeriesService->getSeries($stock, '1d', $period + 7)->values();
+        $windowEnd = $this->resolveWindowEnd($stock, $prices, $includeMacroNews);
+        $windowStart = $windowEnd->copy()->subDays($period - 1)->startOfDay();
 
         $articles = NewsArticle::forStockContext($stock, $includeMacroNews)
             ->whereNotNull('published_at')
-            ->where('published_at', '>=', now()->subDays($period)->startOfDay())
+            ->whereBetween('published_at', [$windowStart, $windowEnd->copy()->endOfDay()])
             ->orderBy('published_at')
             ->get();
 
@@ -79,6 +81,27 @@ class SentimentComparisonService
                 $analytics['macro_regulatory_signal'] ?? []
             ),
         ];
+    }
+
+    protected function resolveWindowEnd(Stock $stock, Collection $prices, bool $includeMacroNews): Carbon
+    {
+        $latestPriceDate = $prices->last()?->price_date;
+        $latestArticleDate = NewsArticle::forStockContext($stock, $includeMacroNews)
+            ->whereNotNull('published_at')
+            ->max('published_at');
+
+        $candidates = collect([$latestPriceDate, $latestArticleDate])
+            ->filter()
+            ->map(fn ($value) => $value instanceof Carbon ? $value->copy() : Carbon::parse($value));
+
+        if ($candidates->isEmpty()) {
+            return now();
+        }
+
+        return $candidates
+            ->sortBy(fn (Carbon $date) => $date->getTimestamp())
+            ->last()
+            ->copy();
     }
 
     protected function compareCorrelations(Collection $perDate, array $perDateReturns): array

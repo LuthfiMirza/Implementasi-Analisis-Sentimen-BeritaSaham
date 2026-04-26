@@ -22,14 +22,6 @@ Schedule::command('stocks:fetch-history --days=1')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
-// PRE-MARKET PAPER TRADING: 08.30 WIB
-// Bekukan ranking harian sebelum market IDX buka
-Schedule::command('paper-trading:record-snapshot')
-    ->weekdays()
-    ->at('08:30')
-    ->timezone('Asia/Jakarta')
-    ->appendOutputTo(storage_path('logs/paper_trading_snapshot.log'));
-
 // PRE-MARKET: 08.50 WIB
 // Refresh berita pre-market
 Schedule::command('news:fetch --limit=20 --provider=rss_local')

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stock;
-use App\Services\PaperTrading\PaperTradingLogService;
+use App\Services\Prediction\ResearchRankingService;
 use App\Services\WatchlistService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -12,7 +12,7 @@ class WatchlistController extends Controller
 {
     public function __construct(
         protected WatchlistService $watchlistService,
-        protected PaperTradingLogService $paperTradingLogService,
+        protected ResearchRankingService $researchRankingService,
     ) {}
 
     public function index(Request $request)
@@ -30,7 +30,7 @@ class WatchlistController extends Controller
         $technicalRanking = Cache::remember(
             $this->technicalRankingCacheKey($request->user()?->id, $rankingCodes),
             now()->addMinutes(5),
-            fn (): array => $this->paperTradingLogService->watchlistRankingFromLatestSnapshot($rankingCodes)
+            fn (): array => $this->researchRankingService->getRanking($rankingCodes)
         );
 
         return view('watchlist.index', [

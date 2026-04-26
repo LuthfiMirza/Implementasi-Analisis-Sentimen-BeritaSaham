@@ -7,6 +7,7 @@ use App\Models\Stock;
 use App\Services\Prediction\FeatureBuilderService;
 use App\Services\Prediction\PredictionEngineManager;
 use App\Services\Stocks\PriceSeriesService;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class EvaluationReportService
@@ -28,14 +29,16 @@ class EvaluationReportService
     ): array
     {
         $period = max(3, $period);
+        $prices = $this->priceSeriesService->getSeries($stock, '1d', $period + 5)->values();
+        $windowEnd = $this->resolveWindowEnd($stock, $prices, $includeMacroNews);
+        $windowStart = $windowEnd->copy()->subDays($period - 1)->startOfDay();
 
         $articles = NewsArticle::forStockContext($stock, $includeMacroNews)
             ->whereNotNull('published_at')
-            ->where('published_at', '>=', now()->subDays($period))
+            ->whereBetween('published_at', [$windowStart, $windowEnd->copy()->endOfDay()])
             ->latest('published_at')
             ->get();
 
-        $prices = $this->priceSeriesService->getSeries($stock, '1d', $period + 5)->values();
         $analytics = $this->analyticsService->analyze(
             $stock,
             $prices,
@@ -99,6 +102,27 @@ class EvaluationReportService
                 $analytics['macro_regulatory_signal'] ?? []
             ),
         ];
+    }
+
+    protected function resolveWindowEnd(Stock $stock, Collection $prices, bool $includeMacroNews): Carbon
+    {
+        $latestPriceDate = $prices->last()?->price_date;
+        $latestArticleDate = NewsArticle::forStockContext($stock, $includeMacroNews)
+            ->whereNotNull('published_at')
+            ->max('published_at');
+
+        $candidates = collect([$latestPriceDate, $latestArticleDate])
+            ->filter()
+            ->map(fn ($value) => $value instanceof Carbon ? $value->copy() : Carbon::parse($value));
+
+        if ($candidates->isEmpty()) {
+            return now();
+        }
+
+        return $candidates
+            ->sortBy(fn (Carbon $date) => $date->getTimestamp())
+            ->last()
+            ->copy();
     }
 
     protected function sentimentStats(Collection $articles): array

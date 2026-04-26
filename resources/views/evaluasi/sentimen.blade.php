@@ -2,9 +2,9 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div class="flex items-center justify-between gap-3">
             <div>
-                <p class="text-xs uppercase text-slate-400">Evaluasi Sentimen — ML vs Rule-Based</p>
-                <h1 class="text-2xl font-bold text-slate-100">IndoBERT vs Leksikon</h1>
-                <p class="text-xs text-slate-500 mt-1">Data per {{ now()->format('d M Y') }}</p>
+                <p class="text-xs uppercase text-slate-400">Audit Konsistensi Sentimen</p>
+                <h1 class="text-2xl font-bold text-slate-100">ML vs Rule-Based Sentiment</h1>
+                <p class="text-xs text-slate-500 mt-1">Halaman ini mengukur konsistensi internal label sentimen, bukan validasi langsung terhadap return pasar.</p>
             </div>
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 rounded-full text-sm bg-slate-800 text-slate-200 border border-slate-700">
@@ -19,6 +19,14 @@
                 Belum ada artikel dengan label ML + Rule. Jalankan <code class="bg-slate-800 px-2 py-1 rounded border border-slate-700">php artisan sentiment:reanalyze --limit=20</code> setelah konfigurasi IndoBERT aktif.
             </x-panel>
         @else
+            <x-panel class="p-4 border border-amber-500/20 bg-amber-500/5">
+                <div class="text-sm text-amber-100 font-semibold">Posisi evaluasi saat ini</div>
+                <p class="text-sm text-slate-300 mt-2">
+                    Output di bawah ini menunjukkan agreement antara model ML dan rule-based, distribusi label, serta contoh disagreement.
+                    Ini berguna untuk audit kualitas pipeline sentimen, tetapi belum cukup untuk menyimpulkan bahwa sentimen sudah menjadi sinyal prediktif utama.
+                </p>
+            </x-panel>
+
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <x-panel class="p-4 space-y-2">
                     <div class="text-xs uppercase text-slate-400">Total Artikel</div>
@@ -125,7 +133,8 @@
                 </x-panel>
 
                 <x-panel class="p-4">
-                    <div class="text-sm font-semibold text-slate-200 mb-3">Per-Class Metrics (Rule as predicted, ML as truth)</div>
+                    <div class="text-sm font-semibold text-slate-200 mb-3">Per-Class Metrics Internal</div>
+                    <div class="text-xs text-slate-500 mb-3">Rule-based dibaca sebagai comparator, ML dibaca sebagai pembanding internal, bukan ground truth pasar.</div>
                     <table class="min-w-full text-sm text-slate-200">
                         <thead>
                             <tr class="text-xs text-slate-400">
@@ -199,7 +208,7 @@
             </x-panel>
 
             <div class="text-xs text-slate-500 text-center">
-                Model ML: w11wo/indonesian-roberta-base-sentiment-classifier • Rule-based: leksikon finansial ID • {{ now()->format('d M Y H:i') }}
+                Model ML: w11wo/indonesian-roberta-base-sentiment-classifier • Rule-based: leksikon finansial ID • Hasil ini adalah audit konsistensi pipeline sentimen • {{ now()->format('d M Y H:i') }}
             </div>
         @endif
     </div>

@@ -1,26 +1,33 @@
-# Sentimena – Dashboard Analisis Sentimen Berita Saham IDX
+# Sentimena – Dashboard Analisis Sentimen dan Ranking Teknikal Saham IDX
 
-Dashboard fullstack untuk skripsi Sistem Informasi: analisis sentimen berita terhadap pergerakan harga saham Indonesia (IDX). Dibangun dengan Laravel 11, Blade, TailwindCSS (dark), Alpine.js, Chart.js, dan MySQL, dengan role **admin** dan **user**, watchlist pribadi, chart harga (TradingView/internal), agregasi berita multi-sumber, **hybrid sentiment engine**, analytics harga–sentimen, baseline prediksi, serta modul admin CRUD.
+Dashboard fullstack untuk skripsi Sistem Informasi yang menggabungkan agregasi berita saham Indonesia, analisis sentimen, evaluasi model, relative technical strength ranking, backtest DSS, dan trade journal. Aplikasi utama dibangun dengan Laravel 13, Blade, TailwindCSS, Alpine.js, Chart.js, dan MySQL; komponen machine learning dijalankan melalui service Python/FastAPI untuk endpoint `/predict` dan `/rank-stocks`.
 
 ## Fitur Utama
-- Auth (Breeze) dengan role `admin` / `user`, session database.
-- Dashboard desktop-first: watchlist kiri, chart tengah (TradingView/internal Chart.js), berita & ringkasan sentimen kanan, insight otomatis.
-- Pencarian & autocomplete saham (kode/nama), default saham BBCA.
-- Watchlist pribadi tambah/hapus, sparkline sentimen mini, badge status keputusan, alert lonjakan berita negatif 24 jam.
-- Berita multi-source dengan label sentimen, summary, sumber, tautan, metode sentiment + confidence.
-- **Hybrid Sentiment Engine**: rule-based (lexicon finansial + negasi) + optional Python API + fallback; simpan meta (confidence, matched terms, reason, method, analyzed_at).
-- Analytics harga–sentimen: komposisi, tren harian, korelasi same-day & lag (H+1/H+3/H+7), event study, volume impact, weighted sentiment (sumber/headline/recency).
-- Decision Support transparan: MA5/MA20, RSI, support/resistance, breakout/breakdown, scoring berbobot (sentimen 35%, tren 30%, momentum 20%, volume berita 15%), faktor pendukung/pelemah/risiko/invalidation, narasi & skenario.
-- Baseline Prediction: feature builder harian, heuristic direction (up/flat/down) + integrasi siap Python prediction endpoint, skenario bullish/netral/bearish.
-- Admin: CRUD saham, sumber berita, artikel; pengaturan provider & mode chart; log fetch.
-- Commands & scheduler: fetch berita mock/RSS/manual, analisis sentimen, update snapshot harga.
-- Seeder demo: admin, user, 10 saham populer IDX, harga 30 hari, berita multi-sentimen, watchlist contoh.
+- Auth (Breeze) dengan role `admin` dan `user`, session database, serta modul admin CRUD.
+- Dashboard utama dengan chart harga, ringkasan berita, insight sentimen, dan polling quote live/snapshot.
+- Berita terkini multi-provider (`rss_local`, `ojk`, `newsapi`, `gnews`, `gdelt`, `finnhub`) dengan filter relevansi, quality score, dedup, dan label sentimen.
+- Watchlist pribadi dengan panel **Relative Strength Ranking (5-Day Horizon)** yang menampilkan ranking teknikal lintas ticker, score, dan label kandidat teknikal.
+- Evaluasi model, evaluasi sentimen, evaluasi sistem, dan backtest DSS untuk analisis perilaku model dan hubungan harga-sentimen.
+- Hybrid sentiment engine: rule-based + optional Python API + fallback, lengkap dengan confidence, matched terms, method, dan metadata kualitas artikel.
+- Endpoint prediksi arah (`/predict`) dan endpoint ranking lintas saham (`/rank-stocks`) untuk integrasi Laravel ke FastAPI.
+- Trade Journal untuk pencatatan trade manual, serta utilitas paper trading manual yang tetap diposisikan sebagai tooling riset non-strategy.
+
+## Modul UI Aktif
+- `Dashboard`: ringkasan pasar, chart, berita, dan insight otomatis.
+- `Berita Terkini`: listing berita hasil agregasi multi-source dengan metadata sentimen.
+- `Watchlist`: watchlist pribadi dan panel ranking teknikal v5.
+- `Prediksi`: pembacaan arah model `/predict` untuk satu ticker.
+- `Evaluasi Model`: evaluasi performa prediksi dan DSS.
+- `Evaluasi Sentimen`: evaluasi hubungan sentimen terhadap return.
+- `Backtest DSS`: simulasi historis berbasis window terbatas dan cache hasil.
+- `Evaluasi Sistem`: laporan ringkas kualitas sistem/evidence evaluasi.
+- `Trade Journal`: pencatatan trade manual dan hasil penutupan trade.
 
 ## Stack
-- PHP 8.3, Laravel 11, MySQL, Eloquent ORM
-- Blade, TailwindCSS, Alpine.js, Chart.js
-- Laravel HTTP Client, Queue (database), Scheduler
-- PHPUnit test minimal (sentiment analyzer)
+- PHP 8.3, Laravel 13, MySQL, Eloquent ORM
+- Blade, TailwindCSS, Alpine.js, Chart.js, Vite
+- Python 3, FastAPI, pandas, scikit-learn, joblib
+- Laravel HTTP Client, Queue (database), Scheduler, file cache untuk route berat
 
 ## Instalasi Lokal
 1) **Persiapan**: PHP 8.3+, MySQL, Composer, Node 18+ & npm.  
@@ -39,17 +46,16 @@ Dashboard fullstack untuk skripsi Sistem Informasi: analisis sentimen berita ter
 
 ## Konfigurasi Penting
 - `NEWS_PROVIDER` (`mock|rss|manual|newsapi|finnhub|rss_local|gdelt|ojk|multi`), `NEWS_API_KEY`, `NEWS_API_BASE_URL`
-- Default prioritas multi (disarankan): `rss_local`, `ojk`, `gnews`, `gdelt`. NewsAPI/Finnhub dapat diaktifkan manual jika diperlukan.
 - `GNEWS_API_KEY`, `GNEWS_BASE_URL`, `GNEWS_LANGUAGE`, `GNEWS_COUNTRY`
-- `NEWS_RSS_SOURCES`, `NEWS_RSS_TIMEOUT`, `NEWS_RSS_USER_AGENT` (default: CNBC market/tech/news RSS)
-- OJK macro news: `NEWS_OJK_MAX_AGE_DAYS`, `NEWS_OJK_BACKFILL_CANDIDATE_LIMIT`, `NEWS_OJK_BACKFILL_MAX_PAGES`
-- `NEWS_RELEVANCE_THRESHOLD`, `NEWS_RELEVANCE_HIGH` (banding high/medium/low)
-- `GDELT_BASE_URL` (default: https://api.gdeltproject.org/api/v2/doc/doc)
-- `NEWS_DOMAIN_BLACKLIST` / `NEWS_DOMAIN_WHITELIST` (opsional, pisah `;`/`,` untuk memaksa filter domain)
-- `STOCK_CHART_MODE` (`tradingview|internal`)
-- `TRADINGVIEW_DEFAULT_EXCHANGE` (default `IDX`)
+- `NEWS_RSS_SOURCES`, `NEWS_RSS_TIMEOUT`, `NEWS_RSS_USER_AGENT`
+- `NEWS_RELEVANCE_THRESHOLD`, `NEWS_RELEVANCE_HIGH`, `NEWS_FINAL_QUALITY_THRESHOLD`
+- `STOCK_CHART_MODE`, `TRADINGVIEW_DEFAULT_EXCHANGE`
 - Sentimen: `SENTIMENT_ENGINE=rule_based|python|hybrid`, `PYTHON_SENTIMENT_ENDPOINT`, `PYTHON_SENTIMENT_TIMEOUT`
-- Prediksi: `PREDICTION_ENGINE=baseline`, `PYTHON_PREDICTION_ENDPOINT`, `PYTHON_PREDICTION_TIMEOUT`
+- Prediksi arah: `PREDICTION_ENGINE=baseline`, `PYTHON_PREDICTION_ENDPOINT`, `PYTHON_PREDICTION_TIMEOUT`
+- Ranking teknikal: `PYTHON_RANKING_ENDPOINT`, `PREDICTION_RANKING_MODEL_DIR`, `PREDICTION_RANKING_MODEL_VERSION`
+- FastAPI model dir fallback: `PREDICTION_MODEL_DIR` untuk `/predict`
+
+`PYTHON_RANKING_ENDPOINT` secara default bisa diturunkan dari `PYTHON_PREDICTION_ENDPOINT` dengan mengganti suffix `/predict` menjadi `/rank-stocks`.
 
 ### Contoh Endpoint Python
 **Sentiment (POST ke `PYTHON_SENTIMENT_ENDPOINT`)**
@@ -80,11 +86,11 @@ Respon yang valid:
 ```json
 {
   "features": {
-    "sentiment_average": 0.2,
-    "weighted_sentiment": 0.25,
-    "ma_gap": 0.03,
-    "daily_return_lag1": 0.4,
-    "daily_return_lag3": 0.9
+    "return_5d": 0.021,
+    "return_20d": 0.084,
+    "atr_ratio": 0.031,
+    "price_vs_ema20_pct": 0.014,
+    "regime_duration": 7
   }
 }
 ```
@@ -93,13 +99,54 @@ Respon yang valid:
 {
   "predicted_direction": "up",  // wajib: up|down|flat
   "probability": 0.78,          // atau "confidence"
-  "basis": "Model eksternal",
+  "basis": "Model logistic_regression/random_forest",
   "scenario_bullish": "...",
   "scenario_neutral": "...",
   "scenario_bearish": "..."
 }
 ```
-Jika label/direction tidak valid atau API error/timeout, sistem otomatis fallback ke rule-based/hybrid untuk sentimen dan baseline untuk prediksi.
+
+**Ranking teknikal (POST ke `PYTHON_RANKING_ENDPOINT`)**
+```json
+{
+  "stocks": [
+    {
+      "ticker": "BBCA",
+      "features": {
+        "return_5d": 0.021,
+        "return_20d": 0.084,
+        "atr_ratio": 0.031,
+        "price_vs_ema20_pct": 0.014,
+        "regime_duration": 7
+      }
+    },
+    {
+      "ticker": "BBRI",
+      "features": {
+        "return_5d": 0.015,
+        "return_20d": 0.062,
+        "atr_ratio": 0.028,
+        "price_vs_ema20_pct": 0.010,
+        "regime_duration": 5
+      }
+    }
+  ]
+}
+```
+Respon yang valid:
+```json
+{
+  "ranked": [
+    { "ticker": "BBCA", "rank": 1, "score": 0.6123, "signal": "strong_candidate" },
+    { "ticker": "BBRI", "rank": 2, "score": 0.5341, "signal": "candidate" }
+  ],
+  "model_version": "v5_ranking",
+  "horizon_days": 5,
+  "generated_at": "2026-04-26"
+}
+```
+
+Sinyal ranking dibaca sebagai indikator probabilistik relative technical strength, bukan janji harga akan naik. Jika endpoint Python gagal, Laravel akan menandai ranking sebagai unavailable dan tidak memaksakan fallback ranking semu.
 
 ## Perintah CLI & Test
 - `php artisan news:fetch --limit=5` – tarik berita untuk semua saham aktif via provider konfigurasi (opsi: `--provider=newsapi|rss_local|gnews`, `--debug` untuk ringkasan skor/band).
@@ -128,11 +175,28 @@ Jika label/direction tidak valid atau API error/timeout, sistem otomatis fallbac
   - Polling frontend: dashboard akan memanggil endpoint ini tiap ~20 detik untuk memperbarui kartu harga; badge “Backend Live/Snapshot” menunjukkan sumber, “Live Chart: TradingView” tetap menjadi acuan live visual.
   - Pastikan env: `STOCK_DATA_SOURCE=live`, `LIVE_MARKET_PROVIDER=http|demo`, `MARKET_DATA_BASE_URL=...`, `MARKET_DATA_API_KEY=...`, `MARKET_DATA_TIMEOUT=8`, `FALLBACK_TO_SNAPSHOT=true`. Uji dengan `curl http://localhost/api/stocks/BBCA/quote` dan lihat `is_live`.
 
+## Ranking Teknikal dan Paper Trading
+- Ranking teknikal v5 dipakai untuk membandingkan kekuatan relatif antarticker pada horizon 5 hari, bukan untuk mengklaim rekomendasi investasi.
+- Panel watchlist menggunakan `ResearchRankingService` yang mengirim payload live ke endpoint `/rank-stocks` lalu menampilkan rank, score, dan signal `strong_candidate|candidate|neutral|avoid`.
+- Baseline research saat ini menempatkan model ranking sebagai basket selector. Precision top-3 historis yang dicantumkan di UI adalah konteks evaluasi, bukan jaminan performa live.
+- Utilitas paper trading tetap manual dan tidak dijadwalkan otomatis pada current roadmap karena strategy path masih berada dalam documented pause.
+- Snapshot paper trading harian: `php artisan paper-trading:record-snapshot --date=YYYY-MM-DD`
+- Evaluasi hasil snapshot: `php artisan paper-trading:evaluate-result --date=YYYY-MM-DD`
+- Ringkasan paper trading: `php artisan paper-trading:summarize`
+- Log paper trading disimpan di `output/paper_trading/` untuk snapshot JSON dan `results_log.csv` untuk evaluasi lintas siklus.
+
 ## Evaluasi Ilmiah (Sentimen & Prediksi)
 - Jalankan `php artisan evaluate:report BBCA --period=30` untuk ringkasan korelasi, distribusi metode sentimen (python vs fallback), tren harga/sentimen, status decision support, dan prediksi saat ini. Tambahkan `--output=nama.json` untuk menyimpan ke `storage/app/evaluations/`.
 - Analisis korelasi: lihat same-day dan lag H+1/H+3/H+7 pada laporan untuk indikasi hubungan sentimen-return.
 - Event study: cek hitungan event positif/negatif dan impact H+1/H+3/H+7 pada laporan.
-- Jika punya label ground-truth sentimen atau arah harga, Anda bisa memperluas evaluator dengan perhitungan akurasi/F1 atau hit rate prediksi menggunakan kerangka ini.
+- Jika punya label ground-truth sentimen atau arah harga, Anda bisa memperluas evaluator dengan perhitungan akurasi/F1, hit rate prediksi, atau metrik ranking seperti top-k precision dan long-short spread.
+
+## Status Riset Sentimen
+- Roadmap resmi saat ini menempatkan proyek pada `technical_prediction_research` lane, bukan strategy promotion path.
+- Evaluasi sentimen di UI saat ini terutama mengukur konsistensi internal `ML vs rule-based`, distribusi label, disagreement, dan coverage berita.
+- Untuk prediction research, fitur sentimen belum menjadi driver utama karena coverage efektif historis sangat rendah dibanding total baris dataset teknikal.
+- Implikasi praktisnya: sentimen tetap berguna untuk layer informasi, monitoring berita, dan evaluasi kualitas artikel, tetapi baseline ranking/prediction saat ini lebih bertumpu pada fitur teknikal.
+- Paper trading, retest, dan strategy promotion claim tetap tidak terbuka otomatis hanya karena hasil prediction research atau ranking membaik.
 
 ## Arsitektur Berita & Sentimen (Multi-Source)
 - **Fetcher sumber**:
