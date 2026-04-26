@@ -1,0 +1,44 @@
+{
+  "freeze_date": "2026-04-26",
+  "selected_approach": "v4b_binary_up_vs_non_up",
+  "selected_model": "random_forest",
+  "selected_scenario": "without_sentiment",
+  "selection_metric": "f1_positive",
+  "oos_accuracy": 0.579681,
+  "precision_up": 0.365645,
+  "recall_up": 0.384304,
+  "f1_up": 0.369343,
+  "label_column": "label_binary",
+  "label_definition": {
+    "positive_label": 1,
+    "positive_class_name": "up",
+    "negative_label": 0,
+    "negative_class_name": "down_or_flat",
+    "source_label": "label_v2"
+  },
+  "label_distribution": {
+    "0": 0.644294,
+    "1": 0.355706
+  },
+  "feature_columns": [
+    "return_1d",
+    "return_3d",
+    "return_5d",
+    "return_20d",
+    "atr14_pct",
+    "atr_ratio",
+    "volume_ratio_5d",
+    "volume_ratio_20d",
+    "price_vs_ema20_pct",
+    "price_vs_ema50",
+    "rsi_slope_5d",
+    "return_5d_cross_section_rank",
+    "volume_spike_flag",
+    "market_regime_bullish",
+    "regime_duration"
+  ],
+  "notes": [
+    "sentiment excluded, coverage insufficient",
+    "selected for trading-entry research because binary up detection is more actionable than flat-heavy multiclass accuracy"
+  ]
+}

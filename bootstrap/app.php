@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\RescoreNewsQualityCommand::class,
         \App\Console\Commands\RescoreNewsSentimentCommand::class,
         \App\Console\Commands\FetchStockHistoryCommand::class,
+        \App\Console\Commands\RecordPaperTradingSnapshot::class,
+        \App\Console\Commands\EvaluatePaperTradingResult::class,
+        \App\Console\Commands\SummarizePaperTrading::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

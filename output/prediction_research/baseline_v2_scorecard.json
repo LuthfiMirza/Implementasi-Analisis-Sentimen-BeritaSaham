@@ -1,0 +1,41 @@
+{
+  "freeze_date": "2026-04-26",
+  "selected_model": "logistic_regression",
+  "selected_scenario": "with_sentiment",
+  "oos_directional_accuracy": 0.406369,
+  "label_column": "label_v2",
+  "label_distribution": {
+    "counts": {
+      "down": 15370,
+      "flat": 16968,
+      "up": 17858
+    },
+    "shares": {
+      "down": 0.3062,
+      "flat": 0.338035,
+      "up": 0.355765
+    }
+  },
+  "top_5_features": [
+    {
+      "feature": "atr14_pct",
+      "score": 0.104149
+    },
+    {
+      "feature": "atr_ratio",
+      "score": 0.104149
+    },
+    {
+      "feature": "price_vs_ema20_pct",
+      "score": 0.066494
+    },
+    {
+      "feature": "return_20d",
+      "score": 0.039452
+    },
+    {
+      "feature": "regime_duration",
+      "score": 0.032985
+    }
+  ]
+}

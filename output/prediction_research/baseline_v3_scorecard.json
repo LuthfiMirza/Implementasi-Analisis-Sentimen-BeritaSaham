@@ -1,0 +1,25 @@
+{
+  "freeze_date": "2026-04-26",
+  "selected_model": "logistic_regression",
+  "selected_scenario": "without_sentiment",
+  "oos_directional_accuracy": 0.405453,
+  "label_column": "label_v2",
+  "feature_columns": [
+    "return_1d",
+    "return_3d",
+    "return_5d",
+    "return_20d",
+    "atr14_pct",
+    "atr_ratio",
+    "volume_ratio_5d",
+    "volume_ratio_20d",
+    "price_vs_ema20_pct",
+    "price_vs_ema50",
+    "rsi_slope_5d",
+    "return_5d_cross_section_rank",
+    "volume_spike_flag",
+    "market_regime_bullish",
+    "regime_duration"
+  ],
+  "notes": "sentiment excluded, coverage insufficient"
+}

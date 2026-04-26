@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stock;
+use App\Services\Prediction\ResearchRankingService;
 use App\Services\WatchlistService;
 use Illuminate\Http\Request;
 
 class WatchlistController extends Controller
 {
-    public function __construct(protected WatchlistService $watchlistService)
-    {
-    }
+    public function __construct(
+        protected WatchlistService $watchlistService,
+        protected ResearchRankingService $researchRankingService
+    ) {}
 
     public function index(Request $request)
     {
@@ -20,13 +22,18 @@ class WatchlistController extends Controller
                 $stock = $item['stock'];
                 $haystack = strtolower($stock->code.' '.$stock->company_name);
                 return str_contains($haystack, strtolower($search));
-            }));
+            }))
+            ->values();
         $stocks = Stock::orderBy('code')->get();
+        $technicalRanking = $this->researchRankingService->getRanking(
+            $items->map(fn ($item) => $item['stock']->code)->all()
+        );
 
         return view('watchlist.index', [
             'items' => $items,
             'stocks' => $stocks,
             'search' => $search,
+            'technicalRanking' => $technicalRanking,
         ]);
     }
 

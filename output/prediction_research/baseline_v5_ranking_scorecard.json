@@ -1,0 +1,126 @@
+{
+  "freeze_date": "2026-04-26",
+  "selected_model": "random_forest",
+  "task": "cross_sectional_ranking_topk",
+  "universe": [
+    "ADRO",
+    "ASII",
+    "BBCA",
+    "BBRI",
+    "BMRI",
+    "GOTO",
+    "ICBP",
+    "INDF",
+    "TLKM",
+    "UNVR"
+  ],
+  "evaluation_period": {
+    "date_start": "2001-01-02",
+    "date_end": "2026-04-15",
+    "folds": 8,
+    "fold_windows": [
+      {
+        "test_start": "2021-09-20",
+        "test_end": "2022-03-21"
+      },
+      {
+        "test_start": "2022-03-22",
+        "test_end": "2022-09-28"
+      },
+      {
+        "test_start": "2022-09-29",
+        "test_end": "2023-03-28"
+      },
+      {
+        "test_start": "2023-03-29",
+        "test_end": "2023-10-12"
+      },
+      {
+        "test_start": "2023-10-13",
+        "test_end": "2024-04-26"
+      },
+      {
+        "test_start": "2024-04-29",
+        "test_end": "2024-10-31"
+      },
+      {
+        "test_start": "2024-11-01",
+        "test_end": "2025-05-22"
+      },
+      {
+        "test_start": "2025-05-23",
+        "test_end": "2025-11-25"
+      }
+    ]
+  },
+  "metrics": {
+    "random_forest": {
+      "spearman": 0.036478,
+      "long_short_spread": 0.00261,
+      "top_1_precision": 0.519841,
+      "top_2_precision": 0.527282,
+      "top_3_precision": 0.526455,
+      "top_1_hit_rate_positive": 0.475198
+    },
+    "logistic_regression": {
+      "spearman": 0.035194,
+      "long_short_spread": 0.00236,
+      "top_1_precision": 0.484127,
+      "top_2_precision": 0.50744,
+      "top_3_precision": 0.520833,
+      "top_1_hit_rate_positive": 0.445437
+    },
+    "random_ranking": {
+      "spearman": 0.000473,
+      "long_short_spread": 0.000466,
+      "top_1_precision": 0.506944,
+      "top_2_precision": 0.507937,
+      "top_3_precision": 0.515873,
+      "top_1_hit_rate_positive": 0.49504
+    },
+    "momentum_naive": {
+      "spearman": -0.039347,
+      "long_short_spread": -0.00162,
+      "top_1_precision": 0.477183,
+      "top_2_precision": 0.482639,
+      "top_3_precision": 0.484127,
+      "top_1_hit_rate_positive": 0.463294
+    }
+  },
+  "model_vs_momentum": {
+    "selected_model_beats_momentum_in_long_short_folds": 5,
+    "selected_model_beats_momentum_folds": [
+      {
+        "fold_start": "2021-09-20",
+        "fold_end": "2022-03-21",
+        "model_long_short_spread": 0.013625,
+        "momentum_long_short_spread": 0.005296
+      },
+      {
+        "fold_start": "2022-03-22",
+        "fold_end": "2022-09-28",
+        "model_long_short_spread": 0.004106,
+        "momentum_long_short_spread": -0.00004
+      },
+      {
+        "fold_start": "2023-10-13",
+        "fold_end": "2024-04-26",
+        "model_long_short_spread": 0.002703,
+        "momentum_long_short_spread": -0.00345
+      },
+      {
+        "fold_start": "2024-11-01",
+        "fold_end": "2025-05-22",
+        "model_long_short_spread": 0.013927,
+        "momentum_long_short_spread": -0.012272
+      },
+      {
+        "fold_start": "2025-05-23",
+        "fold_end": "2025-11-25",
+        "model_long_short_spread": 0.003227,
+        "momentum_long_short_spread": -0.006025
+      }
+    ]
+  },
+  "conclusion": "ranking model adds edge over momentum naive, but the edge remains small and is better interpreted as research evidence than deploy-ready alpha"
+}
