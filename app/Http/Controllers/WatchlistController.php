@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stock;
-use App\Services\Prediction\ResearchRankingService;
+use App\Services\PaperTrading\PaperTradingLogService;
 use App\Services\WatchlistService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class WatchlistController extends Controller
 {
     public function __construct(
         protected WatchlistService $watchlistService,
-        protected ResearchRankingService $researchRankingService
+        protected PaperTradingLogService $paperTradingLogService,
     ) {}
 
     public function index(Request $request)
@@ -25,8 +26,11 @@ class WatchlistController extends Controller
             }))
             ->values();
         $stocks = Stock::orderBy('code')->get();
-        $technicalRanking = $this->researchRankingService->getRanking(
-            $items->map(fn ($item) => $item['stock']->code)->all()
+        $rankingCodes = $items->map(fn ($item) => $item['stock']->code)->all();
+        $technicalRanking = Cache::remember(
+            $this->technicalRankingCacheKey($request->user()?->id, $rankingCodes),
+            now()->addMinutes(5),
+            fn (): array => $this->paperTradingLogService->watchlistRankingFromLatestSnapshot($rankingCodes)
         );
 
         return view('watchlist.index', [
@@ -54,5 +58,17 @@ class WatchlistController extends Controller
         $this->watchlistService->remove($request->user(), $stock);
 
         return back()->with('status', "{$stock->code} dihapus dari watchlist.");
+    }
+
+    protected function technicalRankingCacheKey(?int $userId, array $codes): string
+    {
+        $normalizedCodes = collect($codes)
+            ->map(fn ($code) => strtoupper(trim((string) $code)))
+            ->filter()
+            ->sort()
+            ->values()
+            ->implode(',');
+
+        return 'watchlist:technical-ranking:user:'.($userId ?? 'guest').':'.md5($normalizedCodes);
     }
 }

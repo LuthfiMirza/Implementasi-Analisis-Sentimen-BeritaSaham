@@ -1,6 +1,8 @@
 @php
     $ranking = $technicalRanking ?? ['available' => false, 'ranked' => []];
     $entries = collect($ranking['ranked'] ?? []);
+    $excludedTickers = collect($ranking['excluded_tickers'] ?? [])->filter()->values();
+    $eligibleTickers = collect($ranking['eligible_tickers'] ?? [])->filter()->values();
 @endphp
 
 <x-panel padding="p-5" class="mb-5">
@@ -15,8 +17,18 @@
         <div class="text-xs text-slate-400">
             <div>Model: {{ $ranking['model_version'] ?? 'v5_ranking' }}</div>
             <div>Reference date: {{ $ranking['reference_date'] ?? '-' }}</div>
+            @if(!empty($ranking['snapshot_date']))
+                <div>Snapshot date: {{ $ranking['snapshot_date'] }}</div>
+            @endif
         </div>
     </div>
+
+    @if($excludedTickers->isNotEmpty())
+        <div class="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            Ranking ini hanya memakai ticker yang eligible: {{ $eligibleTickers->implode(', ') ?: '-' }}.
+            Ticker tanpa coverage feature dikeluarkan sementara: {{ $excludedTickers->implode(', ') }}.
+        </div>
+    @endif
 
     @if(($ranking['available'] ?? false) && $entries->isNotEmpty())
         <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3">

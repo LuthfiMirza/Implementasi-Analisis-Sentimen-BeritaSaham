@@ -49,8 +49,8 @@ class StockDashboardService
         $news = $this->newsAggregationService->fetchLatestArticles($stock, 10);
         $sentimentSummary = $this->sentimentSummaryService->summarize($news);
         $insight = $this->sentimentSummaryService->generateInsight($stock->code, $sentimentSummary, $priceMeta['change_pct']);
-        $watchlistInsights = $user ? $this->watchlistService->getWatchlistWithAnalytics($user, 7) : collect();
-        $alerts = $watchlistInsights->filter(fn ($row) => $row['negative_alert'])->values();
+        $watchlist = $user ? $this->watchlistService->getWatchlist($user) : collect();
+        $alerts = $user ? $this->watchlistService->getNegativeAlerts($user) : collect();
 
         return [
             'stock' => $stock,
@@ -62,8 +62,8 @@ class StockDashboardService
             'sentiment_summary' => $sentimentSummary,
             'insight' => $insight,
             'chart_mode' => $chartMode,
-            'watchlist' => $user ? $this->watchlistService->getWatchlist($user) : collect(),
-            'watchlist_insights' => $watchlistInsights,
+            'watchlist' => $watchlist,
+            'watchlist_insights' => collect(),
             'watchlist_alerts' => $alerts,
         ];
     }

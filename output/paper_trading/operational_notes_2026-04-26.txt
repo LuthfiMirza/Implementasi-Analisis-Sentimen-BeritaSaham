@@ -1,0 +1,24 @@
+Paper Trading Operational Note
+Date: 2026-04-26
+
+1. Snapshot pertama sudah tersedia:
+   - file: output/paper_trading/log_2026-04-26.json
+   - top rank: TLKM
+   - model_version: v5_ranking
+   - horizon_days: 5
+
+2. Tanggal evaluasi:
+   - 2026-05-03 jatuh pada hari Minggu dan bukan hari bursa IDX.
+   - Evaluasi paling cepat dilakukan pada Senin, 2026-05-04, setelah data harga hari itu tersedia.
+   - Command evaluasi:
+     php artisan paper-trading:evaluate-result --date=2026-04-26
+
+3. FastAPI startup:
+   - script: ./start_prediction_api.sh
+   - fungsi: menjalankan endpoint ranking/prediction lokal di 127.0.0.1:8001
+
+4. Caption implementasi untuk skripsi:
+   "Panel Technical Ranking menampilkan relative strength ranking berbasis model probabilistik dengan disclaimer eksplisit."
+
+5. Catatan data ranking:
+   - Jika histori harga BUMI dan DEWA sudah tersedia dan valid, keduanya akan masuk universe ranking pada snapshot berikutnya.
