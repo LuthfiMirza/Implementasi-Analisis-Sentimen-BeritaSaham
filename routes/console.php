@@ -130,3 +130,20 @@ Schedule::command('news:fetch --limit=50')
     ->at('09:00')
     ->timezone('Asia/Jakarta')
     ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// MAINTENANCE: Analisis ulang berita tersimpan setiap jam
+// Dipusatkan di file ini agar tidak dobel dengan definisi scheduler lain.
+Schedule::command('news:analyze')
+    ->hourly()
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// SNAPSHOT DEMO: Perbarui snapshot harga sederhana di luar jam pasar
+// Sebelumnya jadwal ini hidup di bootstrap/app.php dan efektif berjalan 23:15 WIB
+// karena timezone app masih UTC. Sekarang dieksplisitkan di source-of-truth scheduler.
+Schedule::command('stocks:update-snapshots')
+    ->dailyAt('23:15')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
