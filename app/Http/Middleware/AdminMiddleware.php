@@ -20,7 +20,7 @@ class AdminMiddleware
         }
 
         if (! $request->user()->isAdmin()) {
-            abort(403, 'Hanya admin yang dapat mengakses area ini.');
+            return redirect()->route('dashboard');
         }
 
         return $next($request);

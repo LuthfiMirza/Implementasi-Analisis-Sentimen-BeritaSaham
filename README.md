@@ -9,8 +9,20 @@ Dashboard fullstack untuk skripsi Sistem Informasi yang menggabungkan agregasi b
 - Watchlist pribadi dengan panel **Relative Strength Ranking (5-Day Horizon)** yang menampilkan ranking teknikal lintas ticker, score, dan label kandidat teknikal.
 - Evaluasi model, evaluasi sentimen, evaluasi sistem, dan backtest DSS untuk analisis perilaku model dan hubungan harga-sentimen.
 - Hybrid sentiment engine: rule-based + optional Python API + fallback, lengkap dengan confidence, matched terms, method, dan metadata kualitas artikel.
-- Endpoint prediksi arah (`/predict`) dan endpoint ranking lintas saham (`/rank-stocks`) untuk integrasi Laravel ke FastAPI.
+- Baseline Prediction & Technical Ranking: feature builder harian, walk-forward model (v1-v5, terbaik: ranking random_forest Spearman=0.037), integrasi FastAPI di `quant/prediction_api.py`, panel ranking teknikal di halaman watchlist, dan paper trading log harian otomatis.
 - Trade Journal untuk pencatatan trade manual, serta utilitas paper trading manual yang tetap diposisikan sebagai tooling riset non-strategy.
+
+## Matriks Fitur, Implementasi, dan Bukti Pengujian
+| Fitur | File Utama | Test/Artifact Bukti |
+|-------|-----------|---------------------|
+| Auth + Role | `app/Http/Middleware/AdminMiddleware.php` | `tests/Feature/AdminMiddlewareTest.php` |
+| Hybrid Sentiment | `app/Services/Sentiment/HybridSentimentAnalyzer.php` | `tests/Unit/SentimentAnalyzerTest.php` |
+| Analytics | `app/Services/Analytics/SentimentPriceAnalyticsService.php` | `tests/Feature/AnalyticsPageTest.php`, `tests/Unit/SentimentPriceAnalyticsServiceTest.php` |
+| Decision Support | `app/Services/Analytics/DecisionSupportService.php` | `tests/Unit/DecisionSupportServiceTest.php`, `tests/Feature/EvaluationReportTest.php` |
+| Ranking Teknikal | `app/Services/Prediction/ResearchRankingService.php` | `tests/Unit/ResearchRankingServiceTest.php` |
+| Paper Trading Log | `app/Services/PaperTrading/PaperTradingLogService.php` | `tests/Unit/PaperTradingLogServiceTest.php` |
+| Model Prediksi v5 | `quant/prediction_api.py` | `output/prediction_research/baseline_v5_ranking_scorecard.json` |
+| Walk-Forward Eval | `quant/train_prediction_models.py` | `output/prediction_research/model_comparison_v3.txt`, `output/prediction_research/model_comparison_v4b.txt`, `output/prediction_research/model_ranking_v5.txt` |
 
 ## Modul UI Aktif
 - `Dashboard`: ringkasan pasar, chart, berita, dan insight otomatis.

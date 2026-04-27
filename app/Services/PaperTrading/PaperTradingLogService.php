@@ -48,6 +48,11 @@ class PaperTradingLogService
 
     public function latestSnapshotPayload(): ?array
     {
+        return $this->getLatestSnapshot();
+    }
+
+    public function getLatestSnapshot(): ?array
+    {
         $files = collect(glob($this->outputDirectory().DIRECTORY_SEPARATOR.'log_*.json') ?: [])
             ->sort()
             ->values();
@@ -59,9 +64,23 @@ class PaperTradingLogService
 
         $payload = json_decode((string) File::get($path), true);
 
-        return is_array($payload) && isset($payload['rankings']) && is_array($payload['rankings'])
-            ? $payload
-            : null;
+        return $this->isValidSnapshotPayload($payload) ? $payload : null;
+    }
+
+    public function latestSnapshotVersion(): string
+    {
+        $files = collect(glob($this->outputDirectory().DIRECTORY_SEPARATOR.'log_*.json') ?: [])
+            ->sort()
+            ->values();
+
+        $path = $files->last();
+        if (! $path || ! File::exists($path)) {
+            return 'no_snapshot';
+        }
+
+        $mtime = File::lastModified($path);
+
+        return md5($path.'|'.$mtime);
     }
 
     public function watchlistRankingFromLatestSnapshot(array $stockCodes): array
@@ -246,5 +265,12 @@ class PaperTradingLogService
             'excluded_tickers' => $excludedTickers,
             'source' => 'paper_trading_snapshot',
         ];
+    }
+
+    protected function isValidSnapshotPayload(mixed $payload): bool
+    {
+        return is_array($payload)
+            && isset($payload['date'], $payload['rankings'], $payload['model_version'], $payload['horizon_days'])
+            && is_array($payload['rankings']);
     }
 }
