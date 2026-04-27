@@ -1,0 +1,935 @@
+{
+  "freeze_date": "2026-04-26",
+  "dataset_rows": 50196,
+  "universe": [
+    "ADRO",
+    "ASII",
+    "BBCA",
+    "BBRI",
+    "BMRI",
+    "GOTO",
+    "ICBP",
+    "INDF",
+    "TLKM",
+    "UNVR"
+  ],
+  "date_start": "2001-01-02",
+  "date_end": "2026-04-15",
+  "top_k": 3,
+  "fold_count": 8,
+  "evaluation_periods": [
+    {
+      "test_start": "2021-09-20",
+      "test_end": "2022-03-21"
+    },
+    {
+      "test_start": "2022-03-22",
+      "test_end": "2022-09-28"
+    },
+    {
+      "test_start": "2022-09-29",
+      "test_end": "2023-03-28"
+    },
+    {
+      "test_start": "2023-03-29",
+      "test_end": "2023-10-12"
+    },
+    {
+      "test_start": "2023-10-13",
+      "test_end": "2024-04-26"
+    },
+    {
+      "test_start": "2024-04-29",
+      "test_end": "2024-10-31"
+    },
+    {
+      "test_start": "2024-11-01",
+      "test_end": "2025-05-22"
+    },
+    {
+      "test_start": "2025-05-23",
+      "test_end": "2025-11-25"
+    }
+  ],
+  "models": [
+    {
+      "model_name": "logistic_regression",
+      "overall_metrics": {
+        "top_1_precision": 0.484127,
+        "top_2_precision": 0.50744,
+        "top_3_precision": 0.520833,
+        "spearman": 0.035194,
+        "top_1_hit_rate_positive": 0.445437,
+        "top_1_return": -0.000806,
+        "long_short_spread": 0.00236
+      },
+      "folds": [
+        {
+          "fold_start": "2021-09-20",
+          "fold_end": "2022-03-21",
+          "model_metrics": {
+            "top_1_precision": 0.595238,
+            "top_2_precision": 0.579365,
+            "top_3_precision": 0.57672,
+            "spearman": 0.069008,
+            "top_1_hit_rate_positive": 0.547619,
+            "top_1_return": 0.011507,
+            "long_short_spread": 0.001914
+          },
+          "random_metrics": {
+            "top_1_precision": 0.571429,
+            "top_2_precision": 0.543651,
+            "top_3_precision": 0.589947,
+            "spearman": -0.01961,
+            "top_1_hit_rate_positive": 0.52381,
+            "top_1_return": 0.009459,
+            "long_short_spread": 0.000366
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.563492,
+            "top_2_precision": 0.547619,
+            "top_3_precision": 0.547619,
+            "spearman": -0.017366,
+            "top_1_hit_rate_positive": 0.579365,
+            "top_1_return": 0.022923,
+            "long_short_spread": 0.005296
+          }
+        },
+        {
+          "fold_start": "2022-03-22",
+          "fold_end": "2022-09-28",
+          "model_metrics": {
+            "top_1_precision": 0.428571,
+            "top_2_precision": 0.5,
+            "top_3_precision": 0.505291,
+            "spearman": -0.064767,
+            "top_1_hit_rate_positive": 0.373016,
+            "top_1_return": -0.004584,
+            "long_short_spread": -0.005299
+          },
+          "random_metrics": {
+            "top_1_precision": 0.531746,
+            "top_2_precision": 0.547619,
+            "top_3_precision": 0.544974,
+            "spearman": 0.003621,
+            "top_1_hit_rate_positive": 0.492063,
+            "top_1_return": 0.006079,
+            "long_short_spread": 0.002191
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.571429,
+            "top_2_precision": 0.571429,
+            "top_3_precision": 0.57672,
+            "spearman": 0.015991,
+            "top_1_hit_rate_positive": 0.52381,
+            "top_1_return": 0.015208,
+            "long_short_spread": -4e-05
+          }
+        },
+        {
+          "fold_start": "2022-09-29",
+          "fold_end": "2023-03-28",
+          "model_metrics": {
+            "top_1_precision": 0.444444,
+            "top_2_precision": 0.452381,
+            "top_3_precision": 0.47619,
+            "spearman": 0.003278,
+            "top_1_hit_rate_positive": 0.373016,
+            "top_1_return": -0.028764,
+            "long_short_spread": -0.005958
+          },
+          "random_metrics": {
+            "top_1_precision": 0.52381,
+            "top_2_precision": 0.531746,
+            "top_3_precision": 0.550265,
+            "spearman": 0.088928,
+            "top_1_hit_rate_positive": 0.507937,
+            "top_1_return": 0.003719,
+            "long_short_spread": 0.006569
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.507937,
+            "top_2_precision": 0.456349,
+            "top_3_precision": 0.470899,
+            "spearman": -0.008435,
+            "top_1_hit_rate_positive": 0.47619,
+            "top_1_return": -0.004252,
+            "long_short_spread": 0.004418
+          }
+        },
+        {
+          "fold_start": "2023-03-29",
+          "fold_end": "2023-10-12",
+          "model_metrics": {
+            "top_1_precision": 0.373016,
+            "top_2_precision": 0.468254,
+            "top_3_precision": 0.521164,
+            "spearman": 0.048038,
+            "top_1_hit_rate_positive": 0.34127,
+            "top_1_return": -0.013462,
+            "long_short_spread": 0.000822
+          },
+          "random_metrics": {
+            "top_1_precision": 0.547619,
+            "top_2_precision": 0.531746,
+            "top_3_precision": 0.518519,
+            "spearman": 0.024517,
+            "top_1_hit_rate_positive": 0.492063,
+            "top_1_return": 0.003226,
+            "long_short_spread": 0.000604
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.373016,
+            "top_2_precision": 0.452381,
+            "top_3_precision": 0.47619,
+            "spearman": -0.023869,
+            "top_1_hit_rate_positive": 0.349206,
+            "top_1_return": -0.004188,
+            "long_short_spread": -0.00038
+          }
+        },
+        {
+          "fold_start": "2023-10-13",
+          "fold_end": "2024-04-26",
+          "model_metrics": {
+            "top_1_precision": 0.492063,
+            "top_2_precision": 0.492063,
+            "top_3_precision": 0.529101,
+            "spearman": 0.042016,
+            "top_1_hit_rate_positive": 0.452381,
+            "top_1_return": 0.006263,
+            "long_short_spread": 0.004989
+          },
+          "random_metrics": {
+            "top_1_precision": 0.484127,
+            "top_2_precision": 0.507937,
+            "top_3_precision": 0.486772,
+            "spearman": -0.022035,
+            "top_1_hit_rate_positive": 0.460317,
+            "top_1_return": -0.001976,
+            "long_short_spread": -0.004509
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.412698,
+            "top_2_precision": 0.440476,
+            "top_3_precision": 0.444444,
+            "spearman": -0.051209,
+            "top_1_hit_rate_positive": 0.428571,
+            "top_1_return": -0.005457,
+            "long_short_spread": -0.00345
+          }
+        },
+        {
+          "fold_start": "2024-04-29",
+          "fold_end": "2024-10-31",
+          "model_metrics": {
+            "top_1_precision": 0.412698,
+            "top_2_precision": 0.452381,
+            "top_3_precision": 0.484127,
+            "spearman": -0.008985,
+            "top_1_hit_rate_positive": 0.444444,
+            "top_1_return": -0.004118,
+            "long_short_spread": -0.000854
+          },
+          "random_metrics": {
+            "top_1_precision": 0.468254,
+            "top_2_precision": 0.492063,
+            "top_3_precision": 0.473545,
+            "spearman": -0.011371,
+            "top_1_hit_rate_positive": 0.539683,
+            "top_1_return": 0.003221,
+            "long_short_spread": 0.001808
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.52381,
+            "top_2_precision": 0.472222,
+            "top_3_precision": 0.465608,
+            "spearman": -0.027601,
+            "top_1_hit_rate_positive": 0.515873,
+            "top_1_return": 0.00762,
+            "long_short_spread": -0.000506
+          }
+        },
+        {
+          "fold_start": "2024-11-01",
+          "fold_end": "2025-05-22",
+          "model_metrics": {
+            "top_1_precision": 0.579365,
+            "top_2_precision": 0.603175,
+            "top_3_precision": 0.571429,
+            "spearman": 0.13468,
+            "top_1_hit_rate_positive": 0.539683,
+            "top_1_return": 0.017031,
+            "long_short_spread": 0.016846
+          },
+          "random_metrics": {
+            "top_1_precision": 0.468254,
+            "top_2_precision": 0.472222,
+            "top_3_precision": 0.486772,
+            "spearman": -0.007223,
+            "top_1_hit_rate_positive": 0.468254,
+            "top_1_return": -2.8e-05,
+            "long_short_spread": 0.000191
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.420635,
+            "top_2_precision": 0.420635,
+            "top_3_precision": 0.396825,
+            "spearman": -0.142038,
+            "top_1_hit_rate_positive": 0.428571,
+            "top_1_return": -0.002408,
+            "long_short_spread": -0.012272
+          }
+        },
+        {
+          "fold_start": "2025-05-23",
+          "fold_end": "2025-11-25",
+          "model_metrics": {
+            "top_1_precision": 0.547619,
+            "top_2_precision": 0.511905,
+            "top_3_precision": 0.502646,
+            "spearman": 0.058288,
+            "top_1_hit_rate_positive": 0.492063,
+            "top_1_return": 0.009677,
+            "long_short_spread": 0.006417
+          },
+          "random_metrics": {
+            "top_1_precision": 0.460317,
+            "top_2_precision": 0.436508,
+            "top_3_precision": 0.47619,
+            "spearman": -0.053045,
+            "top_1_hit_rate_positive": 0.47619,
+            "top_1_return": 0.000904,
+            "long_short_spread": -0.003493
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.444444,
+            "top_2_precision": 0.5,
+            "top_3_precision": 0.494709,
+            "spearman": -0.060249,
+            "top_1_hit_rate_positive": 0.404762,
+            "top_1_return": -0.007558,
+            "long_short_spread": -0.006025
+          }
+        }
+      ],
+      "comparators": {
+        "random_ranking": {
+          "top_1_precision": 0.506944,
+          "top_2_precision": 0.507937,
+          "top_3_precision": 0.515873,
+          "spearman": 0.000473,
+          "top_1_hit_rate_positive": 0.49504,
+          "top_1_return": 0.003076,
+          "long_short_spread": 0.000466
+        },
+        "momentum_naive": {
+          "top_1_precision": 0.477183,
+          "top_2_precision": 0.482639,
+          "top_3_precision": 0.484127,
+          "spearman": -0.039347,
+          "top_1_hit_rate_positive": 0.463294,
+          "top_1_return": 0.002736,
+          "long_short_spread": -0.00162
+        }
+      }
+    },
+    {
+      "model_name": "random_forest",
+      "overall_metrics": {
+        "top_1_precision": 0.519841,
+        "top_2_precision": 0.527282,
+        "top_3_precision": 0.526455,
+        "spearman": 0.036478,
+        "top_1_hit_rate_positive": 0.475198,
+        "top_1_return": 0.00046,
+        "long_short_spread": 0.00261
+      },
+      "folds": [
+        {
+          "fold_start": "2021-09-20",
+          "fold_end": "2022-03-21",
+          "model_metrics": {
+            "top_1_precision": 0.68254,
+            "top_2_precision": 0.646825,
+            "top_3_precision": 0.637566,
+            "spearman": 0.157965,
+            "top_1_hit_rate_positive": 0.587302,
+            "top_1_return": 0.018114,
+            "long_short_spread": 0.013625
+          },
+          "random_metrics": {
+            "top_1_precision": 0.571429,
+            "top_2_precision": 0.543651,
+            "top_3_precision": 0.589947,
+            "spearman": -0.01961,
+            "top_1_hit_rate_positive": 0.52381,
+            "top_1_return": 0.009459,
+            "long_short_spread": 0.000366
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.563492,
+            "top_2_precision": 0.547619,
+            "top_3_precision": 0.547619,
+            "spearman": -0.017366,
+            "top_1_hit_rate_positive": 0.579365,
+            "top_1_return": 0.022923,
+            "long_short_spread": 0.005296
+          }
+        },
+        {
+          "fold_start": "2022-03-22",
+          "fold_end": "2022-09-28",
+          "model_metrics": {
+            "top_1_precision": 0.492063,
+            "top_2_precision": 0.527778,
+            "top_3_precision": 0.529101,
+            "spearman": -0.009657,
+            "top_1_hit_rate_positive": 0.444444,
+            "top_1_return": 0.008542,
+            "long_short_spread": 0.004106
+          },
+          "random_metrics": {
+            "top_1_precision": 0.531746,
+            "top_2_precision": 0.547619,
+            "top_3_precision": 0.544974,
+            "spearman": 0.003621,
+            "top_1_hit_rate_positive": 0.492063,
+            "top_1_return": 0.006079,
+            "long_short_spread": 0.002191
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.571429,
+            "top_2_precision": 0.571429,
+            "top_3_precision": 0.57672,
+            "spearman": 0.015991,
+            "top_1_hit_rate_positive": 0.52381,
+            "top_1_return": 0.015208,
+            "long_short_spread": -4e-05
+          }
+        },
+        {
+          "fold_start": "2022-09-29",
+          "fold_end": "2023-03-28",
+          "model_metrics": {
+            "top_1_precision": 0.5,
+            "top_2_precision": 0.511905,
+            "top_3_precision": 0.518519,
+            "spearman": -0.012363,
+            "top_1_hit_rate_positive": 0.452381,
+            "top_1_return": -0.019628,
+            "long_short_spread": -0.009077
+          },
+          "random_metrics": {
+            "top_1_precision": 0.52381,
+            "top_2_precision": 0.531746,
+            "top_3_precision": 0.550265,
+            "spearman": 0.088928,
+            "top_1_hit_rate_positive": 0.507937,
+            "top_1_return": 0.003719,
+            "long_short_spread": 0.006569
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.507937,
+            "top_2_precision": 0.456349,
+            "top_3_precision": 0.470899,
+            "spearman": -0.008435,
+            "top_1_hit_rate_positive": 0.47619,
+            "top_1_return": -0.004252,
+            "long_short_spread": 0.004418
+          }
+        },
+        {
+          "fold_start": "2023-03-29",
+          "fold_end": "2023-10-12",
+          "model_metrics": {
+            "top_1_precision": 0.460317,
+            "top_2_precision": 0.480159,
+            "top_3_precision": 0.484127,
+            "spearman": 0.014249,
+            "top_1_hit_rate_positive": 0.396825,
+            "top_1_return": -0.008863,
+            "long_short_spread": -0.002376
+          },
+          "random_metrics": {
+            "top_1_precision": 0.547619,
+            "top_2_precision": 0.531746,
+            "top_3_precision": 0.518519,
+            "spearman": 0.024517,
+            "top_1_hit_rate_positive": 0.492063,
+            "top_1_return": 0.003226,
+            "long_short_spread": 0.000604
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.373016,
+            "top_2_precision": 0.452381,
+            "top_3_precision": 0.47619,
+            "spearman": -0.023869,
+            "top_1_hit_rate_positive": 0.349206,
+            "top_1_return": -0.004188,
+            "long_short_spread": -0.00038
+          }
+        },
+        {
+          "fold_start": "2023-10-13",
+          "fold_end": "2024-04-26",
+          "model_metrics": {
+            "top_1_precision": 0.492063,
+            "top_2_precision": 0.519841,
+            "top_3_precision": 0.510582,
+            "spearman": 0.047785,
+            "top_1_hit_rate_positive": 0.47619,
+            "top_1_return": -0.00443,
+            "long_short_spread": 0.002703
+          },
+          "random_metrics": {
+            "top_1_precision": 0.484127,
+            "top_2_precision": 0.507937,
+            "top_3_precision": 0.486772,
+            "spearman": -0.022035,
+            "top_1_hit_rate_positive": 0.460317,
+            "top_1_return": -0.001976,
+            "long_short_spread": -0.004509
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.412698,
+            "top_2_precision": 0.440476,
+            "top_3_precision": 0.444444,
+            "spearman": -0.051209,
+            "top_1_hit_rate_positive": 0.428571,
+            "top_1_return": -0.005457,
+            "long_short_spread": -0.00345
+          }
+        },
+        {
+          "fold_start": "2024-04-29",
+          "fold_end": "2024-10-31",
+          "model_metrics": {
+            "top_1_precision": 0.34127,
+            "top_2_precision": 0.452381,
+            "top_3_precision": 0.468254,
+            "spearman": -0.048276,
+            "top_1_hit_rate_positive": 0.34127,
+            "top_1_return": -0.010094,
+            "long_short_spread": -0.005256
+          },
+          "random_metrics": {
+            "top_1_precision": 0.468254,
+            "top_2_precision": 0.492063,
+            "top_3_precision": 0.473545,
+            "spearman": -0.011371,
+            "top_1_hit_rate_positive": 0.539683,
+            "top_1_return": 0.003221,
+            "long_short_spread": 0.001808
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.52381,
+            "top_2_precision": 0.472222,
+            "top_3_precision": 0.465608,
+            "spearman": -0.027601,
+            "top_1_hit_rate_positive": 0.515873,
+            "top_1_return": 0.00762,
+            "long_short_spread": -0.000506
+          }
+        },
+        {
+          "fold_start": "2024-11-01",
+          "fold_end": "2025-05-22",
+          "model_metrics": {
+            "top_1_precision": 0.690476,
+            "top_2_precision": 0.607143,
+            "top_3_precision": 0.589947,
+            "spearman": 0.129745,
+            "top_1_hit_rate_positive": 0.634921,
+            "top_1_return": 0.015615,
+            "long_short_spread": 0.013927
+          },
+          "random_metrics": {
+            "top_1_precision": 0.468254,
+            "top_2_precision": 0.472222,
+            "top_3_precision": 0.486772,
+            "spearman": -0.007223,
+            "top_1_hit_rate_positive": 0.468254,
+            "top_1_return": -2.8e-05,
+            "long_short_spread": 0.000191
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.420635,
+            "top_2_precision": 0.420635,
+            "top_3_precision": 0.396825,
+            "spearman": -0.142038,
+            "top_1_hit_rate_positive": 0.428571,
+            "top_1_return": -0.002408,
+            "long_short_spread": -0.012272
+          }
+        },
+        {
+          "fold_start": "2025-05-23",
+          "fold_end": "2025-11-25",
+          "model_metrics": {
+            "top_1_precision": 0.5,
+            "top_2_precision": 0.472222,
+            "top_3_precision": 0.473545,
+            "spearman": 0.012379,
+            "top_1_hit_rate_positive": 0.468254,
+            "top_1_return": 0.004423,
+            "long_short_spread": 0.003227
+          },
+          "random_metrics": {
+            "top_1_precision": 0.460317,
+            "top_2_precision": 0.436508,
+            "top_3_precision": 0.47619,
+            "spearman": -0.053045,
+            "top_1_hit_rate_positive": 0.47619,
+            "top_1_return": 0.000904,
+            "long_short_spread": -0.003493
+          },
+          "momentum_metrics": {
+            "top_1_precision": 0.444444,
+            "top_2_precision": 0.5,
+            "top_3_precision": 0.494709,
+            "spearman": -0.060249,
+            "top_1_hit_rate_positive": 0.404762,
+            "top_1_return": -0.007558,
+            "long_short_spread": -0.006025
+          }
+        }
+      ],
+      "comparators": {
+        "random_ranking": {
+          "top_1_precision": 0.506944,
+          "top_2_precision": 0.507937,
+          "top_3_precision": 0.515873,
+          "spearman": 0.000473,
+          "top_1_hit_rate_positive": 0.49504,
+          "top_1_return": 0.003076,
+          "long_short_spread": 0.000466
+        },
+        "momentum_naive": {
+          "top_1_precision": 0.477183,
+          "top_2_precision": 0.482639,
+          "top_3_precision": 0.484127,
+          "spearman": -0.039347,
+          "top_1_hit_rate_positive": 0.463294,
+          "top_1_return": 0.002736,
+          "long_short_spread": -0.00162
+        }
+      }
+    }
+  ],
+  "selected_model": {
+    "model_name": "random_forest",
+    "overall_metrics": {
+      "top_1_precision": 0.519841,
+      "top_2_precision": 0.527282,
+      "top_3_precision": 0.526455,
+      "spearman": 0.036478,
+      "top_1_hit_rate_positive": 0.475198,
+      "top_1_return": 0.00046,
+      "long_short_spread": 0.00261
+    },
+    "folds": [
+      {
+        "fold_start": "2021-09-20",
+        "fold_end": "2022-03-21",
+        "model_metrics": {
+          "top_1_precision": 0.68254,
+          "top_2_precision": 0.646825,
+          "top_3_precision": 0.637566,
+          "spearman": 0.157965,
+          "top_1_hit_rate_positive": 0.587302,
+          "top_1_return": 0.018114,
+          "long_short_spread": 0.013625
+        },
+        "random_metrics": {
+          "top_1_precision": 0.571429,
+          "top_2_precision": 0.543651,
+          "top_3_precision": 0.589947,
+          "spearman": -0.01961,
+          "top_1_hit_rate_positive": 0.52381,
+          "top_1_return": 0.009459,
+          "long_short_spread": 0.000366
+        },
+        "momentum_metrics": {
+          "top_1_precision": 0.563492,
+          "top_2_precision": 0.547619,
+          "top_3_precision": 0.547619,
+          "spearman": -0.017366,
+          "top_1_hit_rate_positive": 0.579365,
+          "top_1_return": 0.022923,
+          "long_short_spread": 0.005296
+        }
+      },
+      {
+        "fold_start": "2022-03-22",
+        "fold_end": "2022-09-28",
+        "model_metrics": {
+          "top_1_precision": 0.492063,
+          "top_2_precision": 0.527778,
+          "top_3_precision": 0.529101,
+          "spearman": -0.009657,
+          "top_1_hit_rate_positive": 0.444444,
+          "top_1_return": 0.008542,
+          "long_short_spread": 0.004106
+        },
+        "random_metrics": {
+          "top_1_precision": 0.531746,
+          "top_2_precision": 0.547619,
+          "top_3_precision": 0.544974,
+          "spearman": 0.003621,
+          "top_1_hit_rate_positive": 0.492063,
+          "top_1_return": 0.006079,
+          "long_short_spread": 0.002191
+        },
+        "momentum_metrics": {
+          "top_1_precision": 0.571429,
+          "top_2_precision": 0.571429,
+          "top_3_precision": 0.57672,
+          "spearman": 0.015991,
+          "top_1_hit_rate_positive": 0.52381,
+          "top_1_return": 0.015208,
+          "long_short_spread": -4e-05
+        }
+      },
+      {
+        "fold_start": "2022-09-29",
+        "fold_end": "2023-03-28",
+        "model_metrics": {
+          "top_1_precision": 0.5,
+          "top_2_precision": 0.511905,
+          "top_3_precision": 0.518519,
+          "spearman": -0.012363,
+          "top_1_hit_rate_positive": 0.452381,
+          "top_1_return": -0.019628,
+          "long_short_spread": -0.009077
+        },
+        "random_metrics": {
+          "top_1_precision": 0.52381,
+          "top_2_precision": 0.531746,
+          "top_3_precision": 0.550265,
+          "spearman": 0.088928,
+          "top_1_hit_rate_positive": 0.507937,
+          "top_1_return": 0.003719,
+          "long_short_spread": 0.006569
+        },
+        "momentum_metrics": {
+          "top_1_precision": 0.507937,
+          "top_2_precision": 0.456349,
+          "top_3_precision": 0.470899,
+          "spearman": -0.008435,
+          "top_1_hit_rate_positive": 0.47619,
+          "top_1_return": -0.004252,
+          "long_short_spread": 0.004418
+        }
+      },
+      {
+        "fold_start": "2023-03-29",
+        "fold_end": "2023-10-12",
+        "model_metrics": {
+          "top_1_precision": 0.460317,
+          "top_2_precision": 0.480159,
+          "top_3_precision": 0.484127,
+          "spearman": 0.014249,
+          "top_1_hit_rate_positive": 0.396825,
+          "top_1_return": -0.008863,
+          "long_short_spread": -0.002376
+        },
+        "random_metrics": {
+          "top_1_precision": 0.547619,
+          "top_2_precision": 0.531746,
+          "top_3_precision": 0.518519,
+          "spearman": 0.024517,
+          "top_1_hit_rate_positive": 0.492063,
+          "top_1_return": 0.003226,
+          "long_short_spread": 0.000604
+        },
+        "momentum_metrics": {
+          "top_1_precision": 0.373016,
+          "top_2_precision": 0.452381,
+          "top_3_precision": 0.47619,
+          "spearman": -0.023869,
+          "top_1_hit_rate_positive": 0.349206,
+          "top_1_return": -0.004188,
+          "long_short_spread": -0.00038
+        }
+      },
+      {
+        "fold_start": "2023-10-13",
+        "fold_end": "2024-04-26",
+        "model_metrics": {
+          "top_1_precision": 0.492063,
+          "top_2_precision": 0.519841,
+          "top_3_precision": 0.510582,
+          "spearman": 0.047785,
+          "top_1_hit_rate_positive": 0.47619,
+          "top_1_return": -0.00443,
+          "long_short_spread": 0.002703
+        },
+        "random_metrics": {
+          "top_1_precision": 0.484127,
+          "top_2_precision": 0.507937,
+          "top_3_precision": 0.486772,
+          "spearman": -0.022035,
+          "top_1_hit_rate_positive": 0.460317,
+          "top_1_return": -0.001976,
+          "long_short_spread": -0.004509
+        },
+        "momentum_metrics": {
+          "top_1_precision": 0.412698,
+          "top_2_precision": 0.440476,
+          "top_3_precision": 0.444444,
+          "spearman": -0.051209,
+          "top_1_hit_rate_positive": 0.428571,
+          "top_1_return": -0.005457,
+          "long_short_spread": -0.00345
+        }
+      },
+      {
+        "fold_start": "2024-04-29",
+        "fold_end": "2024-10-31",
+        "model_metrics": {
+          "top_1_precision": 0.34127,
+          "top_2_precision": 0.452381,
+          "top_3_precision": 0.468254,
+          "spearman": -0.048276,
+          "top_1_hit_rate_positive": 0.34127,
+          "top_1_return": -0.010094,
+          "long_short_spread": -0.005256
+        },
+        "random_metrics": {
+          "top_1_precision": 0.468254,
+          "top_2_precision": 0.492063,
+          "top_3_precision": 0.473545,
+          "spearman": -0.011371,
+          "top_1_hit_rate_positive": 0.539683,
+          "top_1_return": 0.003221,
+          "long_short_spread": 0.001808
+        },
+        "momentum_metrics": {
+          "top_1_precision": 0.52381,
+          "top_2_precision": 0.472222,
+          "top_3_precision": 0.465608,
+          "spearman": -0.027601,
+          "top_1_hit_rate_positive": 0.515873,
+          "top_1_return": 0.00762,
+          "long_short_spread": -0.000506
+        }
+      },
+      {
+        "fold_start": "2024-11-01",
+        "fold_end": "2025-05-22",
+        "model_metrics": {
+          "top_1_precision": 0.690476,
+          "top_2_precision": 0.607143,
+          "top_3_precision": 0.589947,
+          "spearman": 0.129745,
+          "top_1_hit_rate_positive": 0.634921,
+          "top_1_return": 0.015615,
+          "long_short_spread": 0.013927
+        },
+        "random_metrics": {
+          "top_1_precision": 0.468254,
+          "top_2_precision": 0.472222,
+          "top_3_precision": 0.486772,
+          "spearman": -0.007223,
+          "top_1_hit_rate_positive": 0.468254,
+          "top_1_return": -2.8e-05,
+          "long_short_spread": 0.000191
+        },
+        "momentum_metrics": {
+          "top_1_precision": 0.420635,
+          "top_2_precision": 0.420635,
+          "top_3_precision": 0.396825,
+          "spearman": -0.142038,
+          "top_1_hit_rate_positive": 0.428571,
+          "top_1_return": -0.002408,
+          "long_short_spread": -0.012272
+        }
+      },
+      {
+        "fold_start": "2025-05-23",
+        "fold_end": "2025-11-25",
+        "model_metrics": {
+          "top_1_precision": 0.5,
+          "top_2_precision": 0.472222,
+          "top_3_precision": 0.473545,
+          "spearman": 0.012379,
+          "top_1_hit_rate_positive": 0.468254,
+          "top_1_return": 0.004423,
+          "long_short_spread": 0.003227
+        },
+        "random_metrics": {
+          "top_1_precision": 0.460317,
+          "top_2_precision": 0.436508,
+          "top_3_precision": 0.47619,
+          "spearman": -0.053045,
+          "top_1_hit_rate_positive": 0.47619,
+          "top_1_return": 0.000904,
+          "long_short_spread": -0.003493
+        },
+        "momentum_metrics": {
+          "top_1_precision": 0.444444,
+          "top_2_precision": 0.5,
+          "top_3_precision": 0.494709,
+          "spearman": -0.060249,
+          "top_1_hit_rate_positive": 0.404762,
+          "top_1_return": -0.007558,
+          "long_short_spread": -0.006025
+        }
+      }
+    ],
+    "comparators": {
+      "random_ranking": {
+        "top_1_precision": 0.506944,
+        "top_2_precision": 0.507937,
+        "top_3_precision": 0.515873,
+        "spearman": 0.000473,
+        "top_1_hit_rate_positive": 0.49504,
+        "top_1_return": 0.003076,
+        "long_short_spread": 0.000466
+      },
+      "momentum_naive": {
+        "top_1_precision": 0.477183,
+        "top_2_precision": 0.482639,
+        "top_3_precision": 0.484127,
+        "spearman": -0.039347,
+        "top_1_hit_rate_positive": 0.463294,
+        "top_1_return": 0.002736,
+        "long_short_spread": -0.00162
+      }
+    }
+  },
+  "momentum_outperformed_folds": [
+    {
+      "fold_start": "2021-09-20",
+      "fold_end": "2022-03-21",
+      "model_long_short_spread": 0.013625,
+      "momentum_long_short_spread": 0.005296
+    },
+    {
+      "fold_start": "2022-03-22",
+      "fold_end": "2022-09-28",
+      "model_long_short_spread": 0.004106,
+      "momentum_long_short_spread": -4e-05
+    },
+    {
+      "fold_start": "2023-10-13",
+      "fold_end": "2024-04-26",
+      "model_long_short_spread": 0.002703,
+      "momentum_long_short_spread": -0.00345
+    },
+    {
+      "fold_start": "2024-11-01",
+      "fold_end": "2025-05-22",
+      "model_long_short_spread": 0.013927,
+      "momentum_long_short_spread": -0.012272
+    },
+    {
+      "fold_start": "2025-05-23",
+      "fold_end": "2025-11-25",
+      "model_long_short_spread": 0.003227,
+      "momentum_long_short_spread": -0.006025
+    }
+  ],
+  "conclusion": "ranking model adds edge over momentum naive"
+}

@@ -1,0 +1,15 @@
+Ranking Model Evaluation
+========================
+
+Dataset rows: 50196
+Universe: ADRO, ASII, BBCA, BBRI, BMRI, GOTO, ICBP, INDF, TLKM, UNVR
+Date range: 2001-01-02 -> 2026-04-15
+Walk-forward folds: 8
+Top-k: 3
+
+Model metrics:
+- logistic_regression: spearman=0.0352, long_short=0.0024, top3_precision=0.5208, top1_hit=0.4454
+- random_forest: spearman=0.0365, long_short=0.0026, top3_precision=0.5265, top1_hit=0.4752
+
+Best ranking model: random_forest
+Conclusion: ranking model adds edge over momentum naive

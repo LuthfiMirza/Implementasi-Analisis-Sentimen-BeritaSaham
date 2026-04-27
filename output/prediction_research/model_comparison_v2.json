@@ -1,0 +1,989 @@
+{
+  "dataset_rows": 50196,
+  "ticker_count": 10,
+  "date_start": "2001-01-02",
+  "date_end": "2026-04-15",
+  "label_column": "label_v2",
+  "feature_set": "v2",
+  "label_distribution": {
+    "counts": {
+      "down": 15370,
+      "flat": 16968,
+      "up": 17858
+    },
+    "shares": {
+      "down": 0.3062,
+      "flat": 0.338035,
+      "up": 0.355765
+    }
+  },
+  "fold_count": 8,
+  "folds": [
+    {
+      "train_end": "2021-09-17",
+      "test_start": "2021-09-20",
+      "test_end": "2022-03-21"
+    },
+    {
+      "train_end": "2022-03-21",
+      "test_start": "2022-03-22",
+      "test_end": "2022-09-28"
+    },
+    {
+      "train_end": "2022-09-28",
+      "test_start": "2022-09-29",
+      "test_end": "2023-03-28"
+    },
+    {
+      "train_end": "2023-03-28",
+      "test_start": "2023-03-29",
+      "test_end": "2023-10-12"
+    },
+    {
+      "train_end": "2023-10-12",
+      "test_start": "2023-10-13",
+      "test_end": "2024-04-26"
+    },
+    {
+      "train_end": "2024-04-26",
+      "test_start": "2024-04-29",
+      "test_end": "2024-10-31"
+    },
+    {
+      "train_end": "2024-10-31",
+      "test_start": "2024-11-01",
+      "test_end": "2025-05-22"
+    },
+    {
+      "train_end": "2025-05-22",
+      "test_start": "2025-05-23",
+      "test_end": "2025-11-25"
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario_name": "with_sentiment",
+      "feature_columns": [
+        "return_1d",
+        "return_3d",
+        "return_5d",
+        "return_20d",
+        "atr14_pct",
+        "atr_ratio",
+        "volume_ratio_5d",
+        "volume_ratio_20d",
+        "price_vs_ema20_pct",
+        "price_vs_ema50",
+        "rsi_slope_5d",
+        "return_5d_cross_section_rank",
+        "volume_spike_flag",
+        "market_regime_bullish",
+        "regime_duration",
+        "sentiment_average_5d",
+        "weighted_sentiment_5d",
+        "news_volume_5d",
+        "sentiment_average_5d_x_regime",
+        "weighted_sentiment_5d_x_regime"
+      ],
+      "models": [
+        {
+          "model_name": "logistic_regression",
+          "scenario_name": "with_sentiment",
+          "feature_columns": [
+            "return_1d",
+            "return_3d",
+            "return_5d",
+            "return_20d",
+            "atr14_pct",
+            "atr_ratio",
+            "volume_ratio_5d",
+            "volume_ratio_20d",
+            "price_vs_ema20_pct",
+            "price_vs_ema50",
+            "rsi_slope_5d",
+            "return_5d_cross_section_rank",
+            "volume_spike_flag",
+            "market_regime_bullish",
+            "regime_duration",
+            "sentiment_average_5d",
+            "weighted_sentiment_5d",
+            "news_volume_5d",
+            "sentiment_average_5d_x_regime",
+            "weighted_sentiment_5d_x_regime"
+          ],
+          "fold_metrics": [
+            {
+              "accuracy": 0.4126984126984127,
+              "directional_accuracy": 0.4126984126984127,
+              "f1_down": 0.20168067226890757,
+              "f1_flat": 0.5824345146379045,
+              "f1_up": 0.1700404858299595,
+              "f1_macro": 0.3180518909122572
+            },
+            {
+              "accuracy": 0.42158516020236086,
+              "directional_accuracy": 0.42158516020236086,
+              "f1_down": 0.3003533568904594,
+              "f1_flat": 0.56,
+              "f1_up": 0.2607260726072607,
+              "f1_macro": 0.37369314316590674
+            },
+            {
+              "accuracy": 0.423015873015873,
+              "directional_accuracy": 0.423015873015873,
+              "f1_down": 0.23376623376623376,
+              "f1_flat": 0.5636623748211731,
+              "f1_up": 0.2607204116638079,
+              "f1_macro": 0.35271634008373826
+            },
+            {
+              "accuracy": 0.4626984126984127,
+              "directional_accuracy": 0.4626984126984127,
+              "f1_down": 0.2620967741935484,
+              "f1_flat": 0.6242622950819672,
+              "f1_up": 0.1683366733466934,
+              "f1_macro": 0.3515652475407363
+            },
+            {
+              "accuracy": 0.4126984126984127,
+              "directional_accuracy": 0.4126984126984127,
+              "f1_down": 0.2533589251439539,
+              "f1_flat": 0.5588035350101972,
+              "f1_up": 0.16287878787878787,
+              "f1_macro": 0.325013749344313
+            },
+            {
+              "accuracy": 0.38412698412698415,
+              "directional_accuracy": 0.38412698412698415,
+              "f1_down": 0.3121951219512195,
+              "f1_flat": 0.5073245952197378,
+              "f1_up": 0.19407894736842105,
+              "f1_macro": 0.3378662215131261
+            },
+            {
+              "accuracy": 0.3682539682539683,
+              "directional_accuracy": 0.3682539682539683,
+              "f1_down": 0.38722966014418125,
+              "f1_flat": 0.36435124508519,
+              "f1_up": 0.3486005089058524,
+              "f1_macro": 0.36672713804507456
+            },
+            {
+              "accuracy": 0.36587301587301585,
+              "directional_accuracy": 0.36587301587301585,
+              "f1_down": 0.3400713436385256,
+              "f1_flat": 0.42843232716650437,
+              "f1_up": 0.3006134969325153,
+              "f1_macro": 0.3563723892458484
+            }
+          ],
+          "mean_metrics": {
+            "accuracy": 0.406369,
+            "directional_accuracy": 0.406369,
+            "f1_down": 0.286344,
+            "f1_flat": 0.523659,
+            "f1_up": 0.233249,
+            "f1_macro": 0.347751
+          },
+          "insights": {
+            "type": "coefficients",
+            "top_features": [
+              [
+                "atr14_pct",
+                0.10414876206385422
+              ],
+              [
+                "atr_ratio",
+                0.10414876206385422
+              ],
+              [
+                "price_vs_ema20_pct",
+                0.06649361855736476
+              ],
+              [
+                "return_20d",
+                0.039452473247687934
+              ],
+              [
+                "regime_duration",
+                0.032984611762795345
+              ]
+            ]
+          }
+        },
+        {
+          "model_name": "random_forest",
+          "scenario_name": "with_sentiment",
+          "feature_columns": [
+            "return_1d",
+            "return_3d",
+            "return_5d",
+            "return_20d",
+            "atr14_pct",
+            "atr_ratio",
+            "volume_ratio_5d",
+            "volume_ratio_20d",
+            "price_vs_ema20_pct",
+            "price_vs_ema50",
+            "rsi_slope_5d",
+            "return_5d_cross_section_rank",
+            "volume_spike_flag",
+            "market_regime_bullish",
+            "regime_duration",
+            "sentiment_average_5d",
+            "weighted_sentiment_5d",
+            "news_volume_5d",
+            "sentiment_average_5d_x_regime",
+            "weighted_sentiment_5d_x_regime"
+          ],
+          "fold_metrics": [
+            {
+              "accuracy": 0.42239858906525574,
+              "directional_accuracy": 0.42239858906525574,
+              "f1_down": 0.2504970178926441,
+              "f1_flat": 0.5602094240837696,
+              "f1_up": 0.3069466882067851,
+              "f1_macro": 0.37255104339439965
+            },
+            {
+              "accuracy": 0.4123102866779089,
+              "directional_accuracy": 0.4123102866779089,
+              "f1_down": 0.29545454545454547,
+              "f1_flat": 0.5265151515151515,
+              "f1_up": 0.34285714285714286,
+              "f1_macro": 0.3882756132756133
+            },
+            {
+              "accuracy": 0.3984126984126984,
+              "directional_accuracy": 0.3984126984126984,
+              "f1_down": 0.2604340567612688,
+              "f1_flat": 0.533852140077821,
+              "f1_up": 0.25471698113207547,
+              "f1_macro": 0.3496677259903884
+            },
+            {
+              "accuracy": 0.4753968253968254,
+              "directional_accuracy": 0.4753968253968254,
+              "f1_down": 0.3079777365491651,
+              "f1_flat": 0.629399585921325,
+              "f1_up": 0.22556390977443608,
+              "f1_macro": 0.38764707741497545
+            },
+            {
+              "accuracy": 0.3968253968253968,
+              "directional_accuracy": 0.3968253968253968,
+              "f1_down": 0.27586206896551724,
+              "f1_flat": 0.5247678018575851,
+              "f1_up": 0.25,
+              "f1_macro": 0.35020995694103413
+            },
+            {
+              "accuracy": 0.3595238095238095,
+              "directional_accuracy": 0.3595238095238095,
+              "f1_down": 0.3319946452476573,
+              "f1_flat": 0.4568627450980392,
+              "f1_up": 0.2549800796812749,
+              "f1_macro": 0.3479458233423238
+            },
+            {
+              "accuracy": 0.3825396825396825,
+              "directional_accuracy": 0.3825396825396825,
+              "f1_down": 0.45454545454545453,
+              "f1_flat": 0.2563237774030354,
+              "f1_up": 0.37292464878671777,
+              "f1_macro": 0.3612646269117359
+            },
+            {
+              "accuracy": 0.3682539682539683,
+              "directional_accuracy": 0.3682539682539683,
+              "f1_down": 0.4234592445328032,
+              "f1_flat": 0.34815756035578144,
+              "f1_up": 0.31361760660247595,
+              "f1_macro": 0.3617448038303535
+            }
+          ],
+          "mean_metrics": {
+            "accuracy": 0.401958,
+            "directional_accuracy": 0.401958,
+            "f1_down": 0.325028,
+            "f1_flat": 0.479511,
+            "f1_up": 0.290201,
+            "f1_macro": 0.364913
+          },
+          "insights": {
+            "type": "feature_importances",
+            "top_features": [
+              [
+                "atr_ratio",
+                0.20522120512750344
+              ],
+              [
+                "atr14_pct",
+                0.1726277978323311
+              ],
+              [
+                "regime_duration",
+                0.08969340747623551
+              ],
+              [
+                "return_3d",
+                0.08392538383552807
+              ],
+              [
+                "price_vs_ema50",
+                0.07377350693592426
+              ]
+            ]
+          }
+        },
+        {
+          "model_name": "majority_class",
+          "scenario_name": "with_sentiment",
+          "feature_columns": [
+            "return_1d",
+            "return_3d",
+            "return_5d",
+            "return_20d",
+            "atr14_pct",
+            "atr_ratio",
+            "volume_ratio_5d",
+            "volume_ratio_20d",
+            "price_vs_ema20_pct",
+            "price_vs_ema50",
+            "rsi_slope_5d",
+            "return_5d_cross_section_rank",
+            "volume_spike_flag",
+            "market_regime_bullish",
+            "regime_duration",
+            "sentiment_average_5d",
+            "weighted_sentiment_5d",
+            "news_volume_5d",
+            "sentiment_average_5d_x_regime",
+            "weighted_sentiment_5d_x_regime"
+          ],
+          "fold_metrics": [
+            {
+              "accuracy": 0.3412698412698413,
+              "directional_accuracy": 0.3412698412698413,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.5088757396449705,
+              "f1_macro": 0.16962524654832348
+            },
+            {
+              "accuracy": 0.33642495784148396,
+              "directional_accuracy": 0.33642495784148396,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.5034700315457413,
+              "f1_macro": 0.16782334384858044
+            },
+            {
+              "accuracy": 0.30793650793650795,
+              "directional_accuracy": 0.30793650793650795,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.470873786407767,
+              "f1_macro": 0.156957928802589
+            },
+            {
+              "accuracy": 0.2920634920634921,
+              "directional_accuracy": 0.2920634920634921,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.4520884520884521,
+              "f1_macro": 0.1506961506961507
+            },
+            {
+              "accuracy": 0.319047619047619,
+              "directional_accuracy": 0.319047619047619,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.48375451263537905,
+              "f1_macro": 0.16125150421179302
+            },
+            {
+              "accuracy": 0.373015873015873,
+              "directional_accuracy": 0.373015873015873,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.5433526011560693,
+              "f1_macro": 0.18111753371868977
+            },
+            {
+              "accuracy": 0.33015873015873015,
+              "directional_accuracy": 0.33015873015873015,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.4964200477326969,
+              "f1_macro": 0.1654733492442323
+            },
+            {
+              "accuracy": 0.3253968253968254,
+              "directional_accuracy": 0.3253968253968254,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.49101796407185627,
+              "f1_macro": 0.16367265469061876
+            }
+          ],
+          "mean_metrics": {
+            "accuracy": 0.328164,
+            "directional_accuracy": 0.328164,
+            "f1_down": 0.0,
+            "f1_flat": 0.0,
+            "f1_up": 0.493732,
+            "f1_macro": 0.164577
+          },
+          "insights": {
+            "type": "none",
+            "top_features": []
+          }
+        }
+      ]
+    },
+    {
+      "scenario_name": "without_sentiment",
+      "feature_columns": [
+        "return_1d",
+        "return_3d",
+        "return_5d",
+        "return_20d",
+        "atr14_pct",
+        "atr_ratio",
+        "volume_ratio_5d",
+        "volume_ratio_20d",
+        "price_vs_ema20_pct",
+        "price_vs_ema50",
+        "rsi_slope_5d",
+        "return_5d_cross_section_rank",
+        "volume_spike_flag",
+        "market_regime_bullish",
+        "regime_duration"
+      ],
+      "models": [
+        {
+          "model_name": "logistic_regression",
+          "scenario_name": "without_sentiment",
+          "feature_columns": [
+            "return_1d",
+            "return_3d",
+            "return_5d",
+            "return_20d",
+            "atr14_pct",
+            "atr_ratio",
+            "volume_ratio_5d",
+            "volume_ratio_20d",
+            "price_vs_ema20_pct",
+            "price_vs_ema50",
+            "rsi_slope_5d",
+            "return_5d_cross_section_rank",
+            "volume_spike_flag",
+            "market_regime_bullish",
+            "regime_duration"
+          ],
+          "fold_metrics": [
+            {
+              "accuracy": 0.4126984126984127,
+              "directional_accuracy": 0.4126984126984127,
+              "f1_down": 0.20168067226890757,
+              "f1_flat": 0.5824345146379045,
+              "f1_up": 0.1700404858299595,
+              "f1_macro": 0.3180518909122572
+            },
+            {
+              "accuracy": 0.42158516020236086,
+              "directional_accuracy": 0.42158516020236086,
+              "f1_down": 0.3003533568904594,
+              "f1_flat": 0.56,
+              "f1_up": 0.2607260726072607,
+              "f1_macro": 0.37369314316590674
+            },
+            {
+              "accuracy": 0.423015873015873,
+              "directional_accuracy": 0.423015873015873,
+              "f1_down": 0.23376623376623376,
+              "f1_flat": 0.5636623748211731,
+              "f1_up": 0.2607204116638079,
+              "f1_macro": 0.35271634008373826
+            },
+            {
+              "accuracy": 0.4626984126984127,
+              "directional_accuracy": 0.4626984126984127,
+              "f1_down": 0.2620967741935484,
+              "f1_flat": 0.6242622950819672,
+              "f1_up": 0.1683366733466934,
+              "f1_macro": 0.3515652475407363
+            },
+            {
+              "accuracy": 0.4126984126984127,
+              "directional_accuracy": 0.4126984126984127,
+              "f1_down": 0.2533589251439539,
+              "f1_flat": 0.5588035350101972,
+              "f1_up": 0.16287878787878787,
+              "f1_macro": 0.325013749344313
+            },
+            {
+              "accuracy": 0.38412698412698415,
+              "directional_accuracy": 0.38412698412698415,
+              "f1_down": 0.3121951219512195,
+              "f1_flat": 0.5073245952197378,
+              "f1_up": 0.19407894736842105,
+              "f1_macro": 0.3378662215131261
+            },
+            {
+              "accuracy": 0.3682539682539683,
+              "directional_accuracy": 0.3682539682539683,
+              "f1_down": 0.38722966014418125,
+              "f1_flat": 0.36435124508519,
+              "f1_up": 0.3486005089058524,
+              "f1_macro": 0.36672713804507456
+            },
+            {
+              "accuracy": 0.36587301587301585,
+              "directional_accuracy": 0.36587301587301585,
+              "f1_down": 0.3400713436385256,
+              "f1_flat": 0.42843232716650437,
+              "f1_up": 0.3006134969325153,
+              "f1_macro": 0.3563723892458484
+            }
+          ],
+          "mean_metrics": {
+            "accuracy": 0.406369,
+            "directional_accuracy": 0.406369,
+            "f1_down": 0.286344,
+            "f1_flat": 0.523659,
+            "f1_up": 0.233249,
+            "f1_macro": 0.347751
+          },
+          "insights": {
+            "type": "coefficients",
+            "top_features": [
+              [
+                "atr14_pct",
+                0.10409516632873443
+              ],
+              [
+                "atr_ratio",
+                0.10409516632873443
+              ],
+              [
+                "price_vs_ema20_pct",
+                0.06549038184464577
+              ],
+              [
+                "return_20d",
+                0.039261789181221855
+              ],
+              [
+                "regime_duration",
+                0.03297753349861916
+              ]
+            ]
+          }
+        },
+        {
+          "model_name": "random_forest",
+          "scenario_name": "without_sentiment",
+          "feature_columns": [
+            "return_1d",
+            "return_3d",
+            "return_5d",
+            "return_20d",
+            "atr14_pct",
+            "atr_ratio",
+            "volume_ratio_5d",
+            "volume_ratio_20d",
+            "price_vs_ema20_pct",
+            "price_vs_ema50",
+            "rsi_slope_5d",
+            "return_5d_cross_section_rank",
+            "volume_spike_flag",
+            "market_regime_bullish",
+            "regime_duration"
+          ],
+          "fold_metrics": [
+            {
+              "accuracy": 0.43033509700176364,
+              "directional_accuracy": 0.43033509700176364,
+              "f1_down": 0.2664015904572565,
+              "f1_flat": 0.5659722222222222,
+              "f1_up": 0.3099510603588907,
+              "f1_macro": 0.3807749576794564
+            },
+            {
+              "accuracy": 0.4173693086003373,
+              "directional_accuracy": 0.4173693086003373,
+              "f1_down": 0.30033003300330036,
+              "f1_flat": 0.5291902071563088,
+              "f1_up": 0.3494318181818182,
+              "f1_macro": 0.3929840194471424
+            },
+            {
+              "accuracy": 0.4007936507936508,
+              "directional_accuracy": 0.4007936507936508,
+              "f1_down": 0.26755852842809363,
+              "f1_flat": 0.5309597523219814,
+              "f1_up": 0.26031746031746034,
+              "f1_macro": 0.3529452470225118
+            },
+            {
+              "accuracy": 0.476984126984127,
+              "directional_accuracy": 0.476984126984127,
+              "f1_down": 0.3142329020332717,
+              "f1_flat": 0.63216011042098,
+              "f1_up": 0.2188679245283019,
+              "f1_macro": 0.38842031232751784
+            },
+            {
+              "accuracy": 0.4031746031746032,
+              "directional_accuracy": 0.4031746031746032,
+              "f1_down": 0.29015544041450775,
+              "f1_flat": 0.5254237288135594,
+              "f1_up": 0.2581648522550544,
+              "f1_macro": 0.3579146738277072
+            },
+            {
+              "accuracy": 0.3619047619047619,
+              "directional_accuracy": 0.3619047619047619,
+              "f1_down": 0.34610303830911493,
+              "f1_flat": 0.4577603143418468,
+              "f1_up": 0.24697986577181208,
+              "f1_macro": 0.3502810728075913
+            },
+            {
+              "accuracy": 0.3825396825396825,
+              "directional_accuracy": 0.3825396825396825,
+              "f1_down": 0.4514991181657848,
+              "f1_flat": 0.26174496644295303,
+              "f1_up": 0.37468354430379747,
+              "f1_macro": 0.3626425429708451
+            },
+            {
+              "accuracy": 0.3682539682539683,
+              "directional_accuracy": 0.3682539682539683,
+              "f1_down": 0.42167487684729066,
+              "f1_flat": 0.3464968152866242,
+              "f1_up": 0.31666666666666665,
+              "f1_macro": 0.3616127862668605
+            }
+          ],
+          "mean_metrics": {
+            "accuracy": 0.405169,
+            "directional_accuracy": 0.405169,
+            "f1_down": 0.332244,
+            "f1_flat": 0.481214,
+            "f1_up": 0.291883,
+            "f1_macro": 0.368447
+          },
+          "insights": {
+            "type": "feature_importances",
+            "top_features": [
+              [
+                "atr14_pct",
+                0.19307724922084463
+              ],
+              [
+                "atr_ratio",
+                0.1853873277781288
+              ],
+              [
+                "regime_duration",
+                0.08555159769586897
+              ],
+              [
+                "return_3d",
+                0.08512834044319299
+              ],
+              [
+                "price_vs_ema50",
+                0.07372649202486974
+              ]
+            ]
+          }
+        },
+        {
+          "model_name": "majority_class",
+          "scenario_name": "without_sentiment",
+          "feature_columns": [
+            "return_1d",
+            "return_3d",
+            "return_5d",
+            "return_20d",
+            "atr14_pct",
+            "atr_ratio",
+            "volume_ratio_5d",
+            "volume_ratio_20d",
+            "price_vs_ema20_pct",
+            "price_vs_ema50",
+            "rsi_slope_5d",
+            "return_5d_cross_section_rank",
+            "volume_spike_flag",
+            "market_regime_bullish",
+            "regime_duration"
+          ],
+          "fold_metrics": [
+            {
+              "accuracy": 0.3412698412698413,
+              "directional_accuracy": 0.3412698412698413,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.5088757396449705,
+              "f1_macro": 0.16962524654832348
+            },
+            {
+              "accuracy": 0.33642495784148396,
+              "directional_accuracy": 0.33642495784148396,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.5034700315457413,
+              "f1_macro": 0.16782334384858044
+            },
+            {
+              "accuracy": 0.30793650793650795,
+              "directional_accuracy": 0.30793650793650795,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.470873786407767,
+              "f1_macro": 0.156957928802589
+            },
+            {
+              "accuracy": 0.2920634920634921,
+              "directional_accuracy": 0.2920634920634921,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.4520884520884521,
+              "f1_macro": 0.1506961506961507
+            },
+            {
+              "accuracy": 0.319047619047619,
+              "directional_accuracy": 0.319047619047619,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.48375451263537905,
+              "f1_macro": 0.16125150421179302
+            },
+            {
+              "accuracy": 0.373015873015873,
+              "directional_accuracy": 0.373015873015873,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.5433526011560693,
+              "f1_macro": 0.18111753371868977
+            },
+            {
+              "accuracy": 0.33015873015873015,
+              "directional_accuracy": 0.33015873015873015,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.4964200477326969,
+              "f1_macro": 0.1654733492442323
+            },
+            {
+              "accuracy": 0.3253968253968254,
+              "directional_accuracy": 0.3253968253968254,
+              "f1_down": 0.0,
+              "f1_flat": 0.0,
+              "f1_up": 0.49101796407185627,
+              "f1_macro": 0.16367265469061876
+            }
+          ],
+          "mean_metrics": {
+            "accuracy": 0.328164,
+            "directional_accuracy": 0.328164,
+            "f1_down": 0.0,
+            "f1_flat": 0.0,
+            "f1_up": 0.493732,
+            "f1_macro": 0.164577
+          },
+          "insights": {
+            "type": "none",
+            "top_features": []
+          }
+        }
+      ]
+    }
+  ],
+  "selected_model": {
+    "model_name": "logistic_regression",
+    "scenario_name": "with_sentiment",
+    "feature_columns": [
+      "return_1d",
+      "return_3d",
+      "return_5d",
+      "return_20d",
+      "atr14_pct",
+      "atr_ratio",
+      "volume_ratio_5d",
+      "volume_ratio_20d",
+      "price_vs_ema20_pct",
+      "price_vs_ema50",
+      "rsi_slope_5d",
+      "return_5d_cross_section_rank",
+      "volume_spike_flag",
+      "market_regime_bullish",
+      "regime_duration",
+      "sentiment_average_5d",
+      "weighted_sentiment_5d",
+      "news_volume_5d",
+      "sentiment_average_5d_x_regime",
+      "weighted_sentiment_5d_x_regime"
+    ],
+    "mean_metrics": {
+      "accuracy": 0.406369,
+      "directional_accuracy": 0.406369,
+      "f1_down": 0.286344,
+      "f1_flat": 0.523659,
+      "f1_up": 0.233249,
+      "f1_macro": 0.347751
+    },
+    "insights": {
+      "type": "coefficients",
+      "top_features": [
+        [
+          "atr14_pct",
+          0.10414876206385422
+        ],
+        [
+          "atr_ratio",
+          0.10414876206385422
+        ],
+        [
+          "price_vs_ema20_pct",
+          0.06649361855736476
+        ],
+        [
+          "return_20d",
+          0.039452473247687934
+        ],
+        [
+          "regime_duration",
+          0.032984611762795345
+        ]
+      ]
+    }
+  },
+  "sentiment_contribution": {
+    "directional_accuracy_delta": 0.0,
+    "best_no_sentiment_model": {
+      "model_name": "logistic_regression",
+      "scenario_name": "without_sentiment",
+      "feature_columns": [
+        "return_1d",
+        "return_3d",
+        "return_5d",
+        "return_20d",
+        "atr14_pct",
+        "atr_ratio",
+        "volume_ratio_5d",
+        "volume_ratio_20d",
+        "price_vs_ema20_pct",
+        "price_vs_ema50",
+        "rsi_slope_5d",
+        "return_5d_cross_section_rank",
+        "volume_spike_flag",
+        "market_regime_bullish",
+        "regime_duration"
+      ],
+      "fold_metrics": [
+        {
+          "accuracy": 0.4126984126984127,
+          "directional_accuracy": 0.4126984126984127,
+          "f1_down": 0.20168067226890757,
+          "f1_flat": 0.5824345146379045,
+          "f1_up": 0.1700404858299595,
+          "f1_macro": 0.3180518909122572
+        },
+        {
+          "accuracy": 0.42158516020236086,
+          "directional_accuracy": 0.42158516020236086,
+          "f1_down": 0.3003533568904594,
+          "f1_flat": 0.56,
+          "f1_up": 0.2607260726072607,
+          "f1_macro": 0.37369314316590674
+        },
+        {
+          "accuracy": 0.423015873015873,
+          "directional_accuracy": 0.423015873015873,
+          "f1_down": 0.23376623376623376,
+          "f1_flat": 0.5636623748211731,
+          "f1_up": 0.2607204116638079,
+          "f1_macro": 0.35271634008373826
+        },
+        {
+          "accuracy": 0.4626984126984127,
+          "directional_accuracy": 0.4626984126984127,
+          "f1_down": 0.2620967741935484,
+          "f1_flat": 0.6242622950819672,
+          "f1_up": 0.1683366733466934,
+          "f1_macro": 0.3515652475407363
+        },
+        {
+          "accuracy": 0.4126984126984127,
+          "directional_accuracy": 0.4126984126984127,
+          "f1_down": 0.2533589251439539,
+          "f1_flat": 0.5588035350101972,
+          "f1_up": 0.16287878787878787,
+          "f1_macro": 0.325013749344313
+        },
+        {
+          "accuracy": 0.38412698412698415,
+          "directional_accuracy": 0.38412698412698415,
+          "f1_down": 0.3121951219512195,
+          "f1_flat": 0.5073245952197378,
+          "f1_up": 0.19407894736842105,
+          "f1_macro": 0.3378662215131261
+        },
+        {
+          "accuracy": 0.3682539682539683,
+          "directional_accuracy": 0.3682539682539683,
+          "f1_down": 0.38722966014418125,
+          "f1_flat": 0.36435124508519,
+          "f1_up": 0.3486005089058524,
+          "f1_macro": 0.36672713804507456
+        },
+        {
+          "accuracy": 0.36587301587301585,
+          "directional_accuracy": 0.36587301587301585,
+          "f1_down": 0.3400713436385256,
+          "f1_flat": 0.42843232716650437,
+          "f1_up": 0.3006134969325153,
+          "f1_macro": 0.3563723892458484
+        }
+      ],
+      "mean_metrics": {
+        "accuracy": 0.406369,
+        "directional_accuracy": 0.406369,
+        "f1_down": 0.286344,
+        "f1_flat": 0.523659,
+        "f1_up": 0.233249,
+        "f1_macro": 0.347751
+      },
+      "insights": {
+        "type": "coefficients",
+        "top_features": [
+          [
+            "atr14_pct",
+            0.10409516632873443
+          ],
+          [
+            "atr_ratio",
+            0.10409516632873443
+          ],
+          [
+            "price_vs_ema20_pct",
+            0.06549038184464577
+          ],
+          [
+            "return_20d",
+            0.039261789181221855
+          ],
+          [
+            "regime_duration",
+            0.03297753349861916
+          ]
+        ]
+      }
+    }
+  }
+}

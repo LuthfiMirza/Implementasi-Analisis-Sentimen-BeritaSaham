@@ -1,0 +1,50 @@
+{
+    "date": "2026-04-26",
+    "reference_date": "2026-04-22",
+    "rankings": [
+        {
+            "ticker": "BUMI",
+            "rank": 1,
+            "score": 0.5467,
+            "signal": "candidate",
+            "price_at_snapshot": 216
+        },
+        {
+            "ticker": "DEWA",
+            "rank": 2,
+            "score": 0.5334,
+            "signal": "candidate",
+            "price_at_snapshot": 486
+        },
+        {
+            "ticker": "TLKM",
+            "rank": 3,
+            "score": 0.5004,
+            "signal": "candidate",
+            "price_at_snapshot": 2810
+        },
+        {
+            "ticker": "BBCA",
+            "rank": 4,
+            "score": 0.4758,
+            "signal": "neutral",
+            "price_at_snapshot": 6050
+        },
+        {
+            "ticker": "ASII",
+            "rank": 5,
+            "score": 0.4746,
+            "signal": "neutral",
+            "price_at_snapshot": 6325
+        },
+        {
+            "ticker": "BBRI",
+            "rank": 6,
+            "score": 0.4265,
+            "signal": "neutral",
+            "price_at_snapshot": 3070
+        }
+    ],
+    "model_version": "v5_ranking",
+    "horizon_days": 5
+}

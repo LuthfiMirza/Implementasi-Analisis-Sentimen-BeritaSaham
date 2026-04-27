@@ -1,0 +1,33 @@
+Prediction Model Comparison
+===========================
+
+Dataset rows: 50196
+Tickers: 10
+Date range: 2001-01-02 -> 2026-04-15
+Label column: label_v2
+Feature set: v2
+Walk-forward folds: 8
+
+Label distribution:
+  - down: 15370 (30.62%)
+  - flat: 16968 (33.80%)
+  - up: 17858 (35.58%)
+
+Scenario results:
+- with_sentiment
+  - logistic_regression: acc=0.4064, f1_macro=0.3478, dir_acc=0.4064
+  - random_forest: acc=0.4020, f1_macro=0.3649, dir_acc=0.4020
+  - majority_class: acc=0.3282, f1_macro=0.1646, dir_acc=0.3282
+- without_sentiment
+  - logistic_regression: acc=0.4064, f1_macro=0.3478, dir_acc=0.4064
+  - random_forest: acc=0.4052, f1_macro=0.3684, dir_acc=0.4052
+  - majority_class: acc=0.3282, f1_macro=0.1646, dir_acc=0.3282
+
+Selected deployment model: logistic_regression (with_sentiment)
+Sentiment contribution delta vs best no-sentiment: 0.0000
+Top model features:
+  - atr14_pct: 0.104149
+  - atr_ratio: 0.104149
+  - price_vs_ema20_pct: 0.066494
+  - return_20d: 0.039452
+  - regime_duration: 0.032985

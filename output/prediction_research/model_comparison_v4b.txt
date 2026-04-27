@@ -1,0 +1,39 @@
+Prediction Model Comparison
+===========================
+
+Dataset rows: 50196
+Tickers: 10
+Date range: 2001-01-02 -> 2026-04-15
+Label column: label_binary
+Class labels: 0, 1
+Feature set: v2
+Scenario filter: without_sentiment
+Selection metric: f1_positive
+Positive label: 1
+Sentiment start date: none
+Walk-forward folds: 8
+
+Label distribution:
+  - 0: 32341 (64.43%)
+  - 1: 17855 (35.57%)
+
+Scenario results:
+- without_sentiment
+  - random_forest: acc=0.5797, f1_macro=0.5245, dir_acc=0.5797, precision_pos=0.3656, recall_pos=0.3843, f1_pos=0.3693
+  - random_baseline: acc=0.5465, f1_macro=0.4976, dir_acc=0.5465, precision_pos=0.3263, recall_pos=0.3584, f1_pos=0.3412
+  - logistic_regression: acc=0.6110, f1_macro=0.5246, dir_acc=0.6110, precision_pos=0.3788, recall_pos=0.3089, f1_pos=0.3282
+  - majority_class: acc=0.6718, f1_macro=0.4017, dir_acc=0.6718, precision_pos=0.0000, recall_pos=0.0000, f1_pos=0.0000
+
+Selected deployment model: random_forest (without_sentiment) on f1_positive=0.3693
+Sentiment contribution delta vs best no-sentiment: n/a
+Top model features:
+  - return_3d: 0.117713
+  - regime_duration: 0.116287
+  - return_5d: 0.096109
+  - atr14_pct: 0.095605
+  - atr_ratio: 0.092923
+  - price_vs_ema50: 0.081019
+  - price_vs_ema20_pct: 0.078391
+  - return_20d: 0.066488
+  - return_1d: 0.060778
+  - volume_ratio_5d: 0.058308
