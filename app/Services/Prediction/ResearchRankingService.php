@@ -40,16 +40,43 @@ class ResearchRankingService
             ->filter(fn ($stock) => $stock instanceof Stock)
             ->values();
 
-        if ($orderedStocks->count() < 2) {
-            return $this->unavailable('Ticker yang tersedia belum cukup untuk dibandingkan.');
+        $excludedTickers = $orderedStocks
+            ->filter(fn (Stock $stock): bool => $this->featureService->seriesForStock($stock)->isEmpty())
+            ->map(fn (Stock $stock): string => strtoupper($stock->code))
+            ->values()
+            ->all();
+
+        $eligibleStocks = $orderedStocks
+            ->reject(fn (Stock $stock): bool => in_array(strtoupper($stock->code), $excludedTickers, true))
+            ->values();
+
+        $eligibleTickers = $eligibleStocks
+            ->map(fn (Stock $stock): string => strtoupper($stock->code))
+            ->values()
+            ->all();
+
+        if ($eligibleStocks->count() < 2) {
+            return $this->unavailable(
+                'Ticker yang tersedia belum cukup untuk dibandingkan.',
+                null,
+                $codes->all(),
+                $eligibleTickers,
+                $excludedTickers
+            );
         }
 
-        $referenceDate = $this->resolveCommonReferenceDate($orderedStocks);
+        $referenceDate = $this->resolveCommonReferenceDate($eligibleStocks);
         if (! $referenceDate) {
-            return $this->unavailable('Tanggal referensi bersama untuk universe ini belum tersedia.');
+            return $this->unavailable(
+                'Tanggal referensi bersama untuk universe ini belum tersedia.',
+                null,
+                $codes->all(),
+                $eligibleTickers,
+                $excludedTickers
+            );
         }
 
-        $payloadStocks = $orderedStocks->map(function (Stock $stock) use ($referenceDate): array {
+        $payloadStocks = $eligibleStocks->map(function (Stock $stock) use ($referenceDate): array {
             $features = $this->featureService->buildForDate($stock, collect(), $referenceDate);
 
             return [
@@ -65,6 +92,9 @@ class ResearchRankingService
 
         $result['reference_date'] = $referenceDate->toDateString();
         $result['available'] = true;
+        $result['requested_tickers'] = $codes->all();
+        $result['eligible_tickers'] = $eligibleTickers;
+        $result['excluded_tickers'] = $excludedTickers;
 
         return $result;
     }
@@ -133,7 +163,13 @@ class ResearchRankingService
         return $latestCommonDate ? Carbon::parse($latestCommonDate) : null;
     }
 
-    protected function unavailable(string $message, ?Carbon $referenceDate = null): array
+    protected function unavailable(
+        string $message,
+        ?Carbon $referenceDate = null,
+        array $requestedTickers = [],
+        array $eligibleTickers = [],
+        array $excludedTickers = [],
+    ): array
     {
         return [
             'available' => false,
@@ -143,6 +179,9 @@ class ResearchRankingService
             'horizon_days' => 5,
             'generated_at' => now()->toDateString(),
             'reference_date' => $referenceDate?->toDateString(),
+            'requested_tickers' => $requestedTickers,
+            'eligible_tickers' => $eligibleTickers,
+            'excluded_tickers' => $excludedTickers,
         ];
     }
 

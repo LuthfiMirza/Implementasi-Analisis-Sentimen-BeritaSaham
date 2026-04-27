@@ -19,6 +19,7 @@ class ExportPredictionResearchDatasetCommand extends Command
         {--end-date= : Optional latest reference date}
         {--horizon=5 : Prediction horizon in trading days}
         {--threshold=0.01 : Flat/up/down threshold in decimal return terms}
+        {--threshold-v2=0.015 : Label v2 threshold in decimal return terms}
         {--min-history=60 : Minimum history rows before a sample is emitted}
         {--include-macro-news : Include macro/global news via forStockContext scope}';
 
@@ -36,6 +37,7 @@ class ExportPredictionResearchDatasetCommand extends Command
         $perTickerDir = base_path((string) $this->option('per-ticker-dir'));
         $horizon = max(1, (int) $this->option('horizon'));
         $threshold = max(0.0, (float) $this->option('threshold'));
+        $thresholdV2 = max(0.0, (float) $this->option('threshold-v2'));
         $minHistory = max(20, (int) $this->option('min-history'));
         $startDate = $this->option('start-date') ? Carbon::parse((string) $this->option('start-date'))->toDateString() : null;
         $endDate = $this->option('end-date') ? Carbon::parse((string) $this->option('end-date'))->toDateString() : null;
@@ -105,6 +107,7 @@ class ExportPredictionResearchDatasetCommand extends Command
                     'reference_date' => $referenceDate,
                     'future_return_5d' => round($futureReturn, 6),
                     'target_direction_5d' => $this->labelDirection($futureReturn, $threshold),
+                    'label_v2' => $this->labelDirection($futureReturn, $thresholdV2),
                 ], $this->orderedFeatureColumns($features));
             }
 
@@ -114,7 +117,6 @@ class ExportPredictionResearchDatasetCommand extends Command
                 continue;
             }
 
-            $this->writeCsv($perTickerDir.DIRECTORY_SEPARATOR.$stock->code.'.csv', $tickerRows);
             array_push($combinedRows, ...$tickerRows);
             $exportedTickers++;
             $this->info(sprintf('Exported %s prediction dataset (%d rows).', $stock->code, count($tickerRows)));
@@ -125,8 +127,12 @@ class ExportPredictionResearchDatasetCommand extends Command
             return self::FAILURE;
         }
 
+        $combinedRows = $this->applyCrossSectionalReturnRanks($combinedRows);
         usort($combinedRows, fn (array $left, array $right): int => [$left['reference_date'], $left['ticker']] <=> [$right['reference_date'], $right['ticker']]);
         $this->writeCsv($outputPath, $combinedRows);
+        foreach (collect($combinedRows)->groupBy('ticker') as $ticker => $rows) {
+            $this->writeCsv($perTickerDir.DIRECTORY_SEPARATOR.$ticker.'.csv', $rows->values()->all());
+        }
 
         $this->info(sprintf('Combined dataset written to %s (%d rows, %d tickers, %d skipped).', $outputPath, count($combinedRows), $exportedTickers, $skippedTickers));
 
@@ -150,7 +156,23 @@ class ExportPredictionResearchDatasetCommand extends Command
 
     protected function hasMissingCoreFeature(array $features): bool
     {
-        foreach (['return_5d', 'return_20d', 'atr14_pct', 'volume_ratio_20d', 'price_vs_ema50', 'market_regime_bullish'] as $required) {
+        foreach ([
+            'return_1d',
+            'return_3d',
+            'return_5d',
+            'return_20d',
+            'atr14_pct',
+            'atr_ratio',
+            'volume_ratio_5d',
+            'volume_ratio_20d',
+            'price_vs_ema20_pct',
+            'price_vs_ema50',
+            'rsi_slope_5d',
+            'volume_spike_flag',
+            'market_regime_bullish',
+            'regime_duration',
+            'has_sentiment_data',
+        ] as $required) {
             if (! array_key_exists($required, $features) || $features[$required] === null) {
                 return true;
             }
@@ -196,5 +218,51 @@ class ExportPredictionResearchDatasetCommand extends Command
         if (! is_dir($path)) {
             mkdir($path, 0777, true);
         }
+    }
+
+    protected function applyCrossSectionalReturnRanks(array $rows): array
+    {
+        $groupedIndexes = [];
+        foreach ($rows as $index => $row) {
+            $groupedIndexes[$row['reference_date']][] = $index;
+        }
+
+        foreach ($groupedIndexes as $indexes) {
+            $returnBuckets = [];
+            foreach ($indexes as $index) {
+                $returnBuckets[] = [
+                    'index' => $index,
+                    'return_5d' => (float) ($rows[$index]['return_5d'] ?? 0.0),
+                ];
+            }
+
+            usort($returnBuckets, fn (array $left, array $right): int => $left['return_5d'] <=> $right['return_5d']);
+            $count = count($returnBuckets);
+            if ($count === 1) {
+                $rows[$returnBuckets[0]['index']]['return_5d_cross_section_rank'] = 0.5;
+                continue;
+            }
+
+            $position = 0;
+            while ($position < $count) {
+                $tieEnd = $position;
+                while (
+                    $tieEnd + 1 < $count
+                    && abs($returnBuckets[$tieEnd + 1]['return_5d'] - $returnBuckets[$position]['return_5d']) < 0.0000001
+                ) {
+                    $tieEnd++;
+                }
+
+                $averageRank = ($position + $tieEnd) / 2;
+                $normalizedRank = round($averageRank / ($count - 1), 6);
+                for ($cursor = $position; $cursor <= $tieEnd; $cursor++) {
+                    $rows[$returnBuckets[$cursor]['index']]['return_5d_cross_section_rank'] = $normalizedRank;
+                }
+
+                $position = $tieEnd + 1;
+            }
+        }
+
+        return $rows;
     }
 }
