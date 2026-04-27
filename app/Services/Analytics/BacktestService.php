@@ -5,6 +5,9 @@ namespace App\Services\Analytics;
 use App\Models\NewsArticle;
 use App\Models\Stock;
 use App\Models\StockPrice;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 
 class BacktestService
 {
@@ -26,7 +29,8 @@ class BacktestService
         int $step = 5,
         float $threshold = 1.0,
         bool $includeMacroNews = true,
-        ?bool $macroRegulatorySignal = null
+        ?bool $macroRegulatorySignal = null,
+        int $maxWindows = 80
     ): array {
         $allPrices = StockPrice::where('stock_id', $stock->id)
             ->where('interval_type', '1d')
@@ -37,23 +41,31 @@ class BacktestService
             return ['error' => 'Data tidak cukup untuk backtest'];
         }
 
+        $n = $allPrices->count();
+        $lastWindowIndex = $n - $forward;
+        $firstWindowIndex = $this->firstWindowIndex($lookback, $lastWindowIndex, $step, $maxWindows);
+
+        $firstSignalDate = $this->toCarbon($allPrices[$firstWindowIndex - 1]->price_date);
+        $lastSignalDate = $this->toCarbon($allPrices[$lastWindowIndex - 1]->price_date);
+        $articleStart = $firstSignalDate->copy()->subDays($lookback + 7)->startOfDay();
+        $articleEnd = $lastSignalDate->copy()->endOfDay();
+
         $allArticles = NewsArticle::forStockContext($stock, $includeMacroNews)
+            ->whereNotNull('published_at')
+            ->whereBetween('published_at', [$articleStart, $articleEnd])
             ->orderBy('published_at', 'asc')
             ->get();
+        $articlesByDate = $allArticles
+            ->filter(fn ($article) => $article->published_at !== null)
+            ->groupBy(fn ($article) => $article->published_at->toDateString());
 
         $results = [];
-        $n = $allPrices->count();
 
-        for ($i = $lookback; $i <= $n - $forward; $i += $step) {
+        for ($i = $firstWindowIndex; $i <= $lastWindowIndex; $i += $step) {
             $windowPrices = $allPrices->slice($i - $lookback, $lookback)->values();
             $signalDate = $windowPrices->last()->price_date;
 
-            $windowArticles = $allArticles
-                ->filter(fn ($a) => $a->published_at && $a->published_at <= $signalDate)
-                ->sortByDesc('published_at')
-                ->take(50)
-                ->sortBy('published_at')
-                ->values();
+            $windowArticles = $this->windowArticlesForDate($articlesByDate, $signalDate, $lookback);
 
             try {
                 $analytics = $this->analyticsService->analyze(
@@ -159,7 +171,7 @@ class BacktestService
                 'average_attention_score' => $averageRegulatoryAttention,
             ],
             'results' => $results,
-            'params' => compact('lookback', 'forward', 'step', 'threshold', 'includeMacroNews', 'macroRegulatorySignal'),
+            'params' => compact('lookback', 'forward', 'step', 'threshold', 'includeMacroNews', 'macroRegulatorySignal', 'maxWindows'),
         ];
     }
 
@@ -169,7 +181,8 @@ class BacktestService
         int $step = 5,
         float $threshold = 1.0,
         bool $includeMacroNews = true,
-        ?bool $macroRegulatorySignal = null
+        ?bool $macroRegulatorySignal = null,
+        int $maxWindows = 40
     ): array {
         $stocks = Stock::where('is_active', true)->get();
         $allResults = [];
@@ -187,7 +200,8 @@ class BacktestService
                 $step,
                 $threshold,
                 $includeMacroNews,
-                $macroRegulatorySignal
+                $macroRegulatorySignal,
+                $maxWindows
             );
             if (isset($result['error'])) {
                 continue;
@@ -208,6 +222,38 @@ class BacktestService
         $summary['overall_accuracy'] = $total > 0 ? round($summary['total_correct'] / $total * 100, 1) : 0;
 
         return compact('summary', 'allResults');
+    }
+
+    protected function firstWindowIndex(int $lookback, int $lastWindowIndex, int $step, int $maxWindows): int
+    {
+        if ($maxWindows <= 0) {
+            return $lookback;
+        }
+
+        return max($lookback, $lastWindowIndex - (($maxWindows - 1) * $step));
+    }
+
+    protected function windowArticlesForDate(Collection $articlesByDate, CarbonInterface|string $signalDate, int $lookback, int $limit = 50): Collection
+    {
+        $signal = $this->toCarbon($signalDate)->endOfDay();
+        $start = $signal->copy()->subDays($lookback)->startOfDay();
+        $dates = [];
+
+        for ($cursor = $start->copy(); $cursor->lte($signal); $cursor->addDay()) {
+            $dates[] = $cursor->toDateString();
+        }
+
+        return collect($dates)
+            ->flatMap(fn (string $date) => $articlesByDate->get($date, collect()))
+            ->sortByDesc('published_at')
+            ->take($limit)
+            ->sortBy('published_at')
+            ->values();
+    }
+
+    protected function toCarbon(CarbonInterface|string $value): Carbon
+    {
+        return $value instanceof CarbonInterface ? Carbon::parse($value) : Carbon::parse($value);
     }
 
     protected function pearsonCorrelation(array $x, array $y): float

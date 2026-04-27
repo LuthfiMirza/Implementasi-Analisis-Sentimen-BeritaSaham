@@ -9,7 +9,7 @@
             <a href="{{ route('backtest.all') }}" class="text-xs text-sky-400 hover:underline">Lihat semua saham →</a>
         </div>
 
-        <form method="GET" class="glass-card border border-slate-800 rounded-2xl p-4 grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
+        <form method="GET" class="glass-card border border-slate-800 rounded-2xl p-4 grid grid-cols-1 md:grid-cols-6 gap-4 text-sm">
             <div>
                 <label class="text-xs text-slate-400">Saham</label>
                 <select name="code" class="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-slate-100">
@@ -42,10 +42,22 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="text-xs text-slate-400">Max Windows</label>
+                <select name="max_windows" class="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-slate-100">
+                    @foreach([5,10,20] as $mw)
+                        <option value="{{ $mw }}" @selected(($maxWindows ?? 10) == $mw)>{{ $mw }} window terbaru</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="flex items-end">
                 <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold">Jalankan</button>
             </div>
         </form>
+
+        <div class="text-xs text-slate-500">
+            Mode web dipangkas ke window terbaru agar halaman cepat dimuat. Gunakan nilai lebih besar hanya jika memang perlu audit history yang lebih panjang.
+        </div>
 
         @if(isset($result['error']))
             <x-panel class="p-6 text-center text-amber-300 border border-amber-500/40 bg-amber-500/10">

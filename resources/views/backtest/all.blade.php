@@ -25,6 +25,10 @@
             </x-panel>
         </div>
 
+        <div class="text-xs text-slate-500">
+            Halaman agregat memakai window terbaru agar evaluasi web tetap responsif.
+        </div>
+
         <x-panel class="p-0 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm text-slate-200">
@@ -51,7 +55,7 @@
                                 </td>
                                 <td class="px-4 py-2 text-sky-300">{{ $row['correlation'] }}</td>
                                 <td class="px-4 py-2">
-                                    <a href="{{ route('backtest.index', ['code' => $row['code'], 'forward' => $forward, 'threshold' => $threshold]) }}"
+                                    <a href="{{ route('backtest.index', ['code' => $row['code'], 'forward' => $forward, 'threshold' => $threshold, 'max_windows' => $maxWindows ?? 5]) }}"
                                        class="text-xs text-sky-400 hover:underline">Lihat</a>
                                 </td>
                             </tr>
