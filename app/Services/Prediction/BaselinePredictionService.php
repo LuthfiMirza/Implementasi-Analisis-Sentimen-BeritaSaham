@@ -33,6 +33,37 @@ class BaselinePredictionService
         return $this->baselineHeuristic($features);
     }
 
+    /**
+     * Produce a compact baseline prediction from normalized technical features.
+     *
+     * @return array<string, mixed>
+     */
+    public function predictFromFeatures(array $features): array
+    {
+        $return5d = (float) ($features['return_5d'] ?? 0);
+        $priceVsEma20 = (float) ($features['price_vs_ema20_pct'] ?? $features['price_vs_ema20'] ?? 0);
+
+        if ($return5d > 0.01 && $priceVsEma20 > 0) {
+            $direction = 'up';
+            $probability = 0.62;
+        } elseif ($return5d < -0.01 && $priceVsEma20 < 0) {
+            $direction = 'down';
+            $probability = 0.58;
+        } else {
+            $direction = 'flat';
+            $probability = 0.45;
+        }
+
+        return [
+            'predicted_direction' => $direction,
+            'probability' => $probability,
+            'basis' => 'baseline_heuristic_v1',
+            'scenario_bullish' => 'Momentum harga jangka pendek bertahan di atas tren EMA20.',
+            'scenario_neutral' => 'Sinyal teknikal belum cukup kuat untuk arah naik atau turun.',
+            'scenario_bearish' => 'Momentum harga melemah dan posisi relatif terhadap EMA20 negatif.',
+        ];
+    }
+
     protected function predictViaPython(array $features): ?array
     {
         if (! $this->pythonEndpoint) {

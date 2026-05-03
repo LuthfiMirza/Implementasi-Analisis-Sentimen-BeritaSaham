@@ -76,18 +76,23 @@ class StockController extends Controller
 
     protected function validateData(Request $request, ?int $ignoreId = null): array
     {
+        if ($request->filled('name') && ! $request->filled('company_name')) {
+            $request->merge(['company_name' => $request->input('name')]);
+        }
+
         $data = $request->validate([
             'code' => ['required', 'string', 'max:10', 'unique:stocks,code'.($ignoreId ? ','.$ignoreId : '')],
-            'company_name' => ['required', 'string'],
+            'company_name' => ['required', 'string', 'max:255'],
             'sector' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
-            'exchange' => ['required', 'string'],
+            'exchange' => ['nullable', 'string'],
             'tradingview_symbol' => ['nullable', 'string'],
             'yahoo_symbol' => ['nullable', 'string'],
             'is_active' => ['boolean'],
         ]);
 
         $data['is_active'] = $request->boolean('is_active', true);
+        $data['exchange'] = $data['exchange'] ?: 'IDX';
 
         return $data;
     }

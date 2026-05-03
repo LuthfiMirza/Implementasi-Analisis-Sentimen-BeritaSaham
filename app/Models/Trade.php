@@ -3,26 +3,31 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Trade extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'user_id', 'stock_id', 'signal_quality',
+        'user_id', 'stock_id', 'ticker', 'direction', 'signal_quality',
         'entry_price', 'entry_zone_low', 'entry_zone_high',
         'stop_loss', 'target_1', 'target_2', 'rr_ratio',
-        'lot_size', 'position_value',
+        'lot_size', 'quantity', 'position_value',
         'dss_score', 'dss_status', 'dss_prediction',
         'dss_confidence', 'sentiment_avg', 'indicators_snapshot',
-        'status', 'entry_date', 'exit_date', 'exit_price',
+        'status', 'entry_date', 'trade_date', 'exit_date', 'closed_at', 'exit_price',
         'holding_days', 'result', 'pnl_per_share',
-        'pnl_total', 'pnl_percent', 'actual_rr', 'notes',
+        'pnl_total', 'pnl', 'pnl_percent', 'actual_rr', 'notes',
     ];
 
     protected $casts = [
         'entry_date' => 'date',
+        'trade_date' => 'date',
         'exit_date' => 'date',
+        'closed_at' => 'datetime',
         'indicators_snapshot' => 'array',
         'entry_price' => 'float',
         'stop_loss' => 'float',
@@ -30,6 +35,7 @@ class Trade extends Model
         'target_2' => 'float',
         'exit_price' => 'float',
         'pnl_total' => 'float',
+        'pnl' => 'float',
         'pnl_percent' => 'float',
         'rr_ratio' => 'float',
         'actual_rr' => 'float',

@@ -20,7 +20,7 @@ class AdminMiddleware
         }
 
         if (! $request->user()->isAdmin()) {
-            return redirect()->route('dashboard');
+            abort(403);
         }
 
         return $next($request);

@@ -31,12 +31,18 @@
                         ['label' => 'Berita Terkini', 'route' => 'news.index', 'href' => route('news.index'), 'icon' => 'M4 6h16M4 10h16M4 14h10m-4 4h4'],
                         ['label' => 'Watchlist', 'route' => 'watchlist.index', 'href' => route('watchlist.index'), 'icon' => 'M5 4h14a1 1 0 011 1v10a1 1 0 01-.553.894l-6.894 3.447a1 1 0 01-.894 0L4.765 15.96A1 1 0 014 15V5a1 1 0 011-1z'],
                         ['label' => 'Prediksi', 'route' => 'analytics.index', 'href' => route('analytics.index'), 'icon' => 'M3 17l6-6 4 4 8-8'],
+                        ['label' => 'Predictions', 'route' => 'predictions.index', 'href' => route('predictions.index'), 'icon' => 'M11 3h2v18h-2zM4 13h2v8H4zM18 8h2v13h-2z'],
                         ['label' => 'Evaluasi Model', 'route' => 'evaluasi.index', 'href' => route('evaluasi.index'), 'icon' => 'M9 17v-6h6v6m-7 4h8a2 2 0 002-2v-8l-5-5H9a2 2 0 00-2 2v11a2 2 0 002 2z'],
                         ['label' => 'Evaluasi Sentimen', 'route' => 'evaluasi.sentimen', 'href' => route('evaluasi.sentimen'), 'icon' => 'M12 8c1.656 0 3-1.567 3-3.5S13.656 1 12 1 9 2.567 9 4.5 10.344 8 12 8zm0 0v6m0 0l-4 9m4-9l4 9'],
                         ['label' => 'Backtest DSS', 'route' => 'backtest.index', 'href' => route('backtest.index'), 'icon' => 'M4 12h16m-8-8v16'],
                         ['label' => 'Evaluasi Sistem', 'route' => 'evaluation.index', 'href' => route('evaluation.index'), 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
                         ['label' => 'Trade Journal', 'route' => 'trades.index', 'href' => route('trades.index'), 'icon' => 'M9 7h6m-6 4h6m-9 4h12M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z'],
+                        ['label' => 'Journal Baru', 'route' => 'trade-journal.*', 'href' => route('trade-journal.index'), 'icon' => 'M6 4h12v16H6zM9 8h6M9 12h6M9 16h3'],
                     ];
+                    if (auth()->user()?->isAdmin()) {
+                        $nav[] = ['label' => 'Admin Users', 'route' => 'admin.users.*', 'href' => route('admin.users.index'), 'icon' => 'M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m0-4a4 4 0 100-8 4 4 0 000 8zm8 0a3 3 0 100-6 3 3 0 000 6z'];
+                        $nav[] = ['label' => 'Admin Stocks', 'route' => 'admin.stocks.*', 'href' => route('admin.stocks.index'), 'icon' => 'M4 19V5m0 14h16M8 17V9m4 8V7m4 10v-5'];
+                    }
                 @endphp
                 @foreach($nav as $item)
                     @php $active = request()->routeIs($item['route']); @endphp

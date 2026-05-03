@@ -62,4 +62,19 @@ return [
         'python_endpoint' => env('PYTHON_SENTIMENT_ENDPOINT'),
     ],
 
+    'python_prediction' => [
+        'endpoint' => env('PYTHON_PREDICTION_ENDPOINT', 'http://localhost:8001/predict'),
+        'timeout' => env('PYTHON_PREDICTION_TIMEOUT', 5),
+    ],
+
+    'python_ranking' => [
+        'endpoint' => env('PYTHON_RANKING_ENDPOINT', 'http://localhost:8001/rank-stocks'),
+        'timeout' => env('PYTHON_RANKING_TIMEOUT', 5),
+    ],
+
+    'python_sentiment' => [
+        'endpoint' => env('PYTHON_SENTIMENT_ENDPOINT', 'http://localhost:8001/sentiment'),
+        'timeout' => env('PYTHON_SENTIMENT_TIMEOUT', 5),
+    ],
+
 ];
