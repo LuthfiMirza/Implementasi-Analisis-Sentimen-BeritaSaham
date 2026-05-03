@@ -2,37 +2,44 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class AdminMiddlewareTest extends TestCase
 {
-    use RefreshDatabase;
-
-    public function test_admin_user_can_access_admin_dashboard(): void
+    public function test_guest_cannot_access_admin_routes(): void
     {
-        $admin = User::factory()->admin()->create();
-
-        $response = $this->actingAs($admin)->get('/admin');
-
-        $response->assertOk();
-        $response->assertSeeText('Pengaturan Sistem');
+        // Admin CRUD pages must first pass Laravel auth.
+        $this->get('/admin/stocks')->assertRedirect('/login');
     }
 
-    public function test_regular_user_is_redirected_from_admin_dashboard(): void
+    public function test_user_cannot_access_admin_routes(): void
     {
-        $user = User::factory()->create(['role' => 'user']);
-
-        $response = $this->actingAs($user)->get('/admin');
-
-        $response->assertRedirect(route('dashboard'));
+        // Requirement: regular users should receive 403 for admin-only URLs.
+        $this->actingAsUser()->get('/admin/stocks')->assertForbidden();
     }
 
-    public function test_guest_is_redirected_to_login_from_admin_dashboard(): void
+    public function test_admin_can_access_admin_crud_routes(): void
     {
-        $response = $this->get('/admin');
+        $this->actingAsAdmin();
 
-        $response->assertRedirect(route('login'));
+        // Admin role must pass the admin middleware for CRUD entry pages.
+        $this->get('/admin')->assertOk();
+        $this->get('/admin/stocks')->assertOk();
+        $this->get('/admin/news-sources')->assertOk();
+        $this->get('/admin/news-articles')->assertOk();
+    }
+
+    public function test_role_middleware_passes_for_user_pages(): void
+    {
+        $stock = $this->seedStock('BBCA');
+        $this->seedPriceSeries($stock);
+        $this->seedArticle($stock);
+
+        $this->actingAsUser();
+
+        // User routes should require auth but not admin role.
+        $this->get('/dashboard')->assertOk();
+        $this->get('/news')->assertOk();
+        $this->get('/watchlist')->assertOk();
     }
 }

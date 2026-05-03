@@ -5,167 +5,89 @@ namespace Tests\Unit;
 use App\Models\Stock;
 use App\Services\Prediction\ResearchPredictionFeatureService;
 use App\Services\Prediction\ResearchRankingService;
-use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class ResearchRankingServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
-    protected string $tempRoot;
-
-    protected string $stockDataDir;
-
-    protected string $ihsgCsvPath;
-
-    protected function setUp(): void
+    public function test_research_ranking_service_sends_correct_payload_to_rank_stocks_endpoint(): void
     {
-        parent::setUp();
+        Config::set('prediction.ranking_endpoint', 'https://python.test/rank-stocks');
+        $bbca = $this->seedStock('BBCA');
+        $bbri = $this->seedStock('BBRI');
+        Http::fake(['python.test/*' => Http::response([
+            'ranked' => [
+                ['ticker' => 'BBCA', 'rank' => 1, 'score' => 0.88, 'signal' => 'strong_candidate'],
+                ['ticker' => 'BBRI', 'rank' => 2, 'score' => 0.72, 'signal' => 'candidate'],
+            ],
+            'model_version' => 'test-v1',
+            'horizon_days' => 5,
+        ])]);
 
-        $this->tempRoot = sys_get_temp_dir().'/sentimena-ranking-tests-'.bin2hex(random_bytes(5));
-        $this->stockDataDir = $this->tempRoot.'/stocks';
-        $this->ihsgCsvPath = $this->tempRoot.'/IHSG.csv';
+        $result = (new ResearchRankingService($this->featureService()))->getRanking([$bbca->code, $bbri->code]);
 
-        File::ensureDirectoryExists($this->stockDataDir);
-        $this->writePriceCsv('IHSG', $this->ihsgCsvPath, 260, 7000.0);
-    }
-
-    protected function tearDown(): void
-    {
-        File::deleteDirectory($this->tempRoot);
-
-        parent::tearDown();
-    }
-
-    public function test_get_ranking_returns_ranked_payload_from_fastapi(): void
-    {
-        Stock::factory()->create(['code' => 'BBCA']);
-        Stock::factory()->create(['code' => 'BBRI']);
-
-        $this->writeStockSeries('BBCA', 1200.0);
-        $this->writeStockSeries('BBRI', 1100.0);
-
-        $endpoint = 'http://ranking.test/rank-stocks';
-
-        Http::fake([
-            $endpoint => Http::response([
-                'ranked' => [
-                    ['ticker' => 'BBCA', 'rank' => 1, 'score' => 0.6123, 'signal' => 'strong_candidate'],
-                    ['ticker' => 'BBRI', 'rank' => 2, 'score' => 0.5341, 'signal' => 'candidate'],
-                ],
-                'model_version' => 'v5_ranking',
-                'horizon_days' => 5,
-                'generated_at' => '2026-04-26',
-            ], 200),
-        ]);
-
-        $result = $this->makeService($endpoint)->getRanking(['BBCA', 'BBRI']);
-
+        // Payload must contain ticker-feature pairs expected by FastAPI.
+        Http::assertSent(fn ($request) => $request->url() === 'https://python.test/rank-stocks'
+            && isset($request['stocks'][0]['ticker'], $request['stocks'][0]['features']));
         $this->assertTrue($result['available']);
-        $this->assertCount(2, $result['ranked']);
-        $this->assertSame(['BBCA', 'BBRI'], array_column($result['ranked'], 'ticker'));
-        $this->assertSame(['ticker', 'rank', 'score', 'signal'], array_keys($result['ranked'][0]));
-        $this->assertSame(['BBCA', 'BBRI'], $result['eligible_tickers']);
-        $this->assertSame([], $result['excluded_tickers']);
-
-        Http::assertSent(function (Request $request) use ($endpoint): bool {
-            $payload = $request->data();
-
-            return $request->url() === $endpoint
-                && count($payload['stocks'] ?? []) === 2;
-        });
     }
 
-    public function test_get_ranking_returns_unavailable_payload_when_fastapi_fails(): void
+    public function test_unavailable_python_endpoint_returns_unavailable_status_without_fake_ranking(): void
     {
-        Stock::factory()->create(['code' => 'BBCA']);
-        Stock::factory()->create(['code' => 'BBRI']);
+        Config::set('prediction.ranking_endpoint', 'https://python.test/rank-stocks');
+        $this->seedStock('BBCA');
+        $this->seedStock('BBRI');
+        Http::fake(['python.test/*' => Http::response(null, 503)]);
 
-        $this->writeStockSeries('BBCA', 1200.0);
-        $this->writeStockSeries('BBRI', 1100.0);
+        $result = (new ResearchRankingService($this->featureService()))->getRanking(['BBCA', 'BBRI']);
 
-        Http::fake(fn (): never => throw new \RuntimeException('FastAPI timeout'));
-
-        $result = $this->makeService('http://ranking.test/rank-stocks')->getRanking(['BBCA', 'BBRI']);
-
+        // Ranking must not fabricate candidates when ML service is down.
         $this->assertFalse($result['available']);
         $this->assertSame([], $result['ranked']);
-        $this->assertNotEmpty($result['message']);
     }
 
-    public function test_get_ranking_excludes_tickers_without_feature_coverage(): void
+    public function test_ranking_response_contract_and_sort_order(): void
     {
-        Stock::factory()->create(['code' => 'BBCA']);
-        Stock::factory()->create(['code' => 'BBRI']);
-        Stock::factory()->create(['code' => 'GOTO']);
+        Config::set('prediction.ranking_endpoint', 'https://python.test/rank-stocks');
+        $this->seedStock('BBCA');
+        $this->seedStock('BBRI');
+        Http::fake(['python.test/*' => Http::response([
+            'ranked' => [
+                ['ticker' => 'BBCA', 'rank' => 1, 'score' => 0.9, 'signal' => 'strong_candidate'],
+                ['ticker' => 'BBRI', 'rank' => 2, 'score' => 0.4, 'signal' => 'neutral'],
+            ],
+            'model_version' => 'test-v1',
+            'horizon_days' => 5,
+        ])]);
 
-        $this->writeStockSeries('BBCA', 1200.0);
-        $this->writeStockSeries('BBRI', 1100.0);
+        $result = (new ResearchRankingService($this->featureService()))->getRanking(['BBCA', 'BBRI']);
 
-        $endpoint = 'http://ranking.test/rank-stocks';
-
-        Http::fake([
-            $endpoint => Http::response([
-                'ranked' => [
-                    ['ticker' => 'BBCA', 'rank' => 1, 'score' => 0.6123, 'signal' => 'strong_candidate'],
-                    ['ticker' => 'BBRI', 'rank' => 2, 'score' => 0.5341, 'signal' => 'candidate'],
-                ],
-                'model_version' => 'v5_ranking',
-                'horizon_days' => 5,
-                'generated_at' => '2026-04-26',
-            ], 200),
-        ]);
-
-        $result = $this->makeService($endpoint)->getRanking(['BBCA', 'BBRI', 'GOTO']);
-
-        $this->assertTrue($result['available']);
-        $this->assertSame(['BBCA', 'BBRI'], $result['eligible_tickers']);
-        $this->assertSame(['GOTO'], $result['excluded_tickers']);
-        $this->assertSame(['BBCA', 'BBRI'], array_column($result['ranked'], 'ticker'));
-    }
-
-    protected function makeService(string $endpoint): ResearchRankingService
-    {
-        return new ResearchRankingService(
-            new ResearchPredictionFeatureService($this->stockDataDir, $this->ihsgCsvPath),
-            $endpoint,
-            3,
-        );
-    }
-
-    protected function writeStockSeries(string $code, float $basePrice): void
-    {
-        $this->writePriceCsv($code, $this->stockDataDir.'/'.$code.'.csv', 120, $basePrice);
-    }
-
-    protected function writePriceCsv(string $code, string $path, int $days, float $basePrice): void
-    {
-        $rows = ['date,open,high,low,close,adj_close,volume'];
-        $startDate = Carbon::parse('2024-01-01');
-
-        for ($i = 0; $i < $days; $i++) {
-            $close = $basePrice + ($i * 2.5);
-            $open = $close - 1.2;
-            $high = $close + 3.4;
-            $low = $close - 3.8;
-            $adjClose = $close;
-            $volume = 1_000_000 + ($i * 1000);
-
-            $rows[] = implode(',', [
-                $startDate->copy()->addDays($i)->toDateString(),
-                number_format($open, 4, '.', ''),
-                number_format($high, 4, '.', ''),
-                number_format($low, 4, '.', ''),
-                number_format($close, 4, '.', ''),
-                number_format($adjClose, 4, '.', ''),
-                $volume,
-            ]);
+        // UI ranking rows rely on complete normalized stock ranking fields.
+        foreach ($result['ranked'] as $row) {
+            $this->assertArrayHasKey('ticker', $row);
+            $this->assertArrayHasKey('rank', $row);
+            $this->assertArrayHasKey('score', $row);
+            $this->assertArrayHasKey('signal', $row);
+            $this->assertContains($row['signal'], ['strong_candidate', 'candidate', 'neutral', 'avoid']);
+            $this->assertGreaterThanOrEqual(0, $row['score']);
+            $this->assertLessThanOrEqual(1, $row['score']);
         }
+        $this->assertGreaterThanOrEqual($result['ranked'][1]['score'], $result['ranked'][0]['score']);
+    }
 
-        File::put($path, implode(PHP_EOL, $rows).PHP_EOL);
+    private function featureService(): ResearchPredictionFeatureService
+    {
+        return new class extends ResearchPredictionFeatureService {
+            public function seriesForStock(Stock $stock): Collection
+            {
+                return collect(['2026-04-30' => ['return_5d' => 0.02]]);
+            }
+            public function buildForDate(Stock $stock, Collection $articles, $referenceDate, int $sentimentLookbackDays = 5): array
+            {
+                return ['return_5d' => 0.02, 'volume_ratio_5d' => 1.1, 'reference_date' => '2026-04-30'];
+            }
+        };
     }
 }

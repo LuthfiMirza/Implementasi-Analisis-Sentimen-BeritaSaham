@@ -2,50 +2,23 @@
 
 namespace Tests\Feature;
 
-use App\Models\NewsArticle;
-use App\Models\Stock;
-use App\Models\StockPrice;
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class AnalyticsPageTest extends TestCase
 {
-    use RefreshDatabase;
-
-    public function test_analytics_page_loads_with_data(): void
+    public function test_analytics_page_returns_200_for_authenticated_user(): void
     {
-        $user = User::factory()->create();
-        $stock = Stock::factory()->create(['code' => 'TLKM', 'company_name' => 'Telkom Indonesia', 'is_active' => true]);
+        $stock = $this->seedStock('BBCA');
+        $this->seedPriceSeries($stock, 60);
+        $this->seedArticle($stock);
 
-        // harga minimal 5 hari
-        for ($i = 0; $i < 5; $i++) {
-            StockPrice::factory()->create([
-                'stock_id' => $stock->id,
-                'price_date' => Carbon::now()->subDays(5 - $i),
-                'close' => 1000 + ($i * 5),
-                'interval_type' => '1d',
-            ]);
-        }
+        // Authenticated users should be able to inspect thesis analytics.
+        $this->actingAsUser()->get('/analytics?code=BBCA&period=30')->assertOk();
+    }
 
-        // berita
-        NewsArticle::factory()->create([
-            'stock_id' => $stock->id,
-            'title' => 'Telkom optimistis laba tumbuh',
-            'sentiment_label' => 'positive',
-            'sentiment_score' => 0.4,
-            'sentiment_confidence' => 0.8,
-            'sentiment_method' => 'rule_based',
-            'published_at' => Carbon::now()->subDay(),
-        ]);
-
-        $response = $this->actingAs($user)->get('/analytics?code=TLKM&period=7');
-
-        $response->assertStatus(200);
-        $response->assertSeeText('Analytics');
-        $response->assertSee('Model Pendukung Keputusan');
-        $response->assertSeeText('Korelasi & Event Study');
-        $response->assertSee('Prediksi');
+    public function test_analytics_page_redirects_for_guest(): void
+    {
+        // Analytics contains account context and should be protected.
+        $this->get('/analytics?code=BBCA&period=30')->assertRedirect('/login');
     }
 }

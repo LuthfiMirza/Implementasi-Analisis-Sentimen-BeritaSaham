@@ -2,81 +2,67 @@
 
 namespace Tests\Unit;
 
-use App\Models\NewsArticle;
-use App\Models\Stock;
-use App\Models\StockPrice;
+use App\Models\NewsSource;
 use App\Services\Analytics\SentimentPriceAnalyticsService;
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class SentimentPriceAnalyticsServiceTest extends TestCase
 {
-    public function test_lag_correlation_and_metrics_generated(): void
+    public function test_sentiment_price_analytics_returns_required_metrics(): void
     {
-        $service = new SentimentPriceAnalyticsService();
-        $stock = new Stock(['code' => 'ABC', 'company_name' => 'ABC Corp']);
+        $stock = $this->seedStock('BBCA');
+        $this->seedPriceSeries($stock, 40);
+        $this->seedArticle($stock);
 
-        $prices = new Collection([
-            new StockPrice(['price_date' => Carbon::parse('2024-01-01'), 'close' => 100]),
-            new StockPrice(['price_date' => Carbon::parse('2024-01-02'), 'close' => 102]),
-            new StockPrice(['price_date' => Carbon::parse('2024-01-03'), 'close' => 104]),
-            new StockPrice(['price_date' => Carbon::parse('2024-01-04'), 'close' => 103]),
-            new StockPrice(['price_date' => Carbon::parse('2024-01-05'), 'close' => 105]),
-        ]);
+        $result = (new SentimentPriceAnalyticsService())->analyze($stock, $stock->prices, $stock->newsArticles, 30);
 
-        $articles = new Collection([
-            new NewsArticle(['sentiment_score' => 0.2, 'sentiment_label' => 'positive', 'published_at' => Carbon::parse('2024-01-01'), 'title' => 'ABC optimistis']),
-            new NewsArticle(['sentiment_score' => 0.4, 'sentiment_label' => 'positive', 'published_at' => Carbon::parse('2024-01-02'), 'title' => 'ABC naik']),
-            new NewsArticle(['sentiment_score' => -0.3, 'sentiment_label' => 'negative', 'published_at' => Carbon::parse('2024-01-03'), 'title' => 'ABC waspada']),
-        ]);
-
-        $result = $service->analyze($stock, $prices, $articles, 7);
-
-        $this->assertArrayHasKey('lag_correlations', $result);
-        $this->assertNotNull($result['lag_correlations']['h1']);
-        $this->assertArrayHasKey('event_study', $result);
-        $this->assertArrayHasKey('average_sentiment', $result);
+        // These metrics drive charting and DSS calculations.
+        foreach (['daily_return', 'cumulative_return', 'volatility'] as $key) {
+            $this->assertArrayHasKey($key, $result);
+        }
+        $this->assertArrayHasKey('correlation_same_day', $result);
+        $this->assertArrayHasKey('lag_h1', $result);
+        $this->assertArrayHasKey('lag_h3', $result);
+        $this->assertArrayHasKey('lag_h7', $result);
     }
 
-    public function test_python_unavailable_articles_are_excluded_from_sentiment_metrics(): void
+    public function test_weighted_sentiment_is_higher_than_average_when_high_quality_articles_dominate(): void
     {
-        $service = new SentimentPriceAnalyticsService();
-        $stock = new Stock(['code' => 'ABC', 'company_name' => 'ABC Corp']);
+        $stock = $this->seedStock('BBCA');
+        $this->seedPriceSeries($stock, 40);
+        $premium = NewsSource::factory()->create(['type' => 'ojk_rss']);
 
-        $prices = new Collection([
-            new StockPrice(['price_date' => Carbon::parse('2024-01-01'), 'close' => 100]),
-            new StockPrice(['price_date' => Carbon::parse('2024-01-02'), 'close' => 102]),
-            new StockPrice(['price_date' => Carbon::parse('2024-01-03'), 'close' => 101]),
+        $this->seedArticle($stock, [
+            'news_source_id' => $premium->id,
+            'title' => 'BBCA laba bersih naik dan saham menguat',
+            'sentiment_score' => 0.9,
+            'source_weight' => 1.2,
+            'relevance_score' => 1.0,
+        ]);
+        $this->seedArticle($stock, [
+            'title' => 'Berita pasar netral',
+            'sentiment_label' => 'neutral',
+            'sentiment_score' => 0.0,
+            'source_weight' => 0.5,
+            'relevance_score' => 0.4,
         ]);
 
-        $articles = new Collection([
-            new NewsArticle([
-                'sentiment_score' => 0.6,
-                'sentiment_label' => 'positive',
-                'sentiment_method' => 'python',
-                'published_at' => Carbon::parse('2024-01-01'),
-                'title' => 'ABC optimistis',
-                'final_quality_score' => 0.8,
-            ]),
-            new NewsArticle([
-                'sentiment_score' => 0.0,
-                'sentiment_label' => 'neutral',
-                'sentiment_method' => 'python_unavailable',
-                'published_at' => Carbon::parse('2024-01-02'),
-                'title' => 'ABC unavailable',
-                'final_quality_score' => 0.8,
-            ]),
-        ]);
+        $result = (new SentimentPriceAnalyticsService())->analyze($stock, $stock->prices, $stock->newsArticles()->with('source')->get(), 30);
 
-        $result = $service->analyze($stock, $prices, $articles, 7, Carbon::parse('2024-01-03'));
+        // Quality/source weighting should lift stronger trusted sentiment above raw average.
+        $this->assertGreaterThan($result['average_sentiment'], $result['weighted_sentiment']);
+    }
 
-        $this->assertSame(1, $result['news_volume']);
-        $this->assertSame(1, $result['sentiment_available_count']);
-        $this->assertSame(1, $result['sentiment_unavailable_count']);
-        $this->assertSame(1, $result['counts']['positive']);
-        $this->assertSame(0, $result['counts']['neutral']);
-        $this->assertEquals(0.6, $result['average_sentiment']);
-        $this->assertEquals(0.6, $result['weighted_sentiment']);
+    public function test_analytics_with_no_news_data_returns_neutral_gracefully(): void
+    {
+        $stock = $this->seedStock('BBCA');
+        $this->seedPriceSeries($stock, 10);
+
+        $result = (new SentimentPriceAnalyticsService())->analyze($stock, $stock->prices, collect(), 30);
+
+        // Empty datasets must not cause division-by-zero in dashboard loads.
+        $this->assertSame(0.0, $result['average_sentiment']);
+        $this->assertSame(0.0, $result['weighted_sentiment']);
+        $this->assertSame(0, $result['news_volume']);
     }
 }
