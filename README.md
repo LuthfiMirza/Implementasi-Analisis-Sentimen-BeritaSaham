@@ -30,7 +30,7 @@ Dashboard fullstack untuk skripsi Sistem Informasi yang menggabungkan agregasi b
 - `Watchlist`: watchlist pribadi dan panel ranking teknikal v5.
 - `Prediksi`: pembacaan arah model `/predict` untuk satu ticker.
 - `Evaluasi Model`: evaluasi performa prediksi dan DSS.
-- `Evaluasi Sentimen`: evaluasi hubungan sentimen terhadap return.
+- `Audit Sentimen`: audit konsistensi label IndoBERT terhadap baseline rule-based; bukan klaim akurasi return.
 - `Backtest DSS`: simulasi historis berbasis window terbatas dan cache hasil.
 - `Evaluasi Sistem`: laporan ringkas kualitas sistem/evidence evaluasi.
 - `Trade Journal`: pencatatan trade manual dan hasil penutupan trade.
@@ -205,7 +205,7 @@ Sinyal ranking dibaca sebagai indikator probabilistik relative technical strengt
 
 ## Status Riset Sentimen
 - Roadmap resmi saat ini menempatkan proyek pada `technical_prediction_research` lane, bukan strategy promotion path.
-- Evaluasi sentimen di UI saat ini terutama mengukur konsistensi internal `ML vs rule-based`, distribusi label, disagreement, dan coverage berita.
+- Audit sentimen di UI saat ini terutama mengukur konsistensi internal IndoBERT terhadap baseline rule-based, distribusi label, disagreement, dan coverage berita.
 - Untuk prediction research, fitur sentimen belum menjadi driver utama karena coverage efektif historis sangat rendah dibanding total baris dataset teknikal.
 - Implikasi praktisnya: sentimen tetap berguna untuk layer informasi, monitoring berita, dan evaluasi kualitas artikel, tetapi baseline ranking/prediction saat ini lebih bertumpu pada fitur teknikal.
 - Paper trading, retest, dan strategy promotion claim tetap tidak terbuka otomatis hanya karena hasil prediction research atau ranking membaik.

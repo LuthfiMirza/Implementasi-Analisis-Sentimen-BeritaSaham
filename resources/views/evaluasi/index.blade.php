@@ -7,7 +7,7 @@
                 <p class="text-sm text-slate-400">Tanggal: {{ now()->format('d M Y') }}</p>
                 <p class="text-xs text-slate-500 mt-1">Diperbarui: {{ now()->format('d M Y H:i') }} WIB</p>
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('evaluasi.sentimen') }}" class="text-xs text-sky-400 hover:underline">Evaluasi Sentimen ML →</a>
+                    <a href="{{ route('evaluasi.sentimen') }}" class="text-xs text-sky-400 hover:underline">Audit Sentimen →</a>
                     <a href="{{ route('backtest.all') }}" class="text-xs text-amber-400 hover:underline">Backtest DSS →</a>
                 </div>
             </div>
@@ -78,7 +78,7 @@
 
             @if(($summary['ml_total'] ?? 0) > 0)
                 <x-panel class="p-4 space-y-2">
-                    <div class="text-xs uppercase text-slate-400">ML vs Rule-Based</div>
+                    <div class="text-xs uppercase text-slate-400">Audit Sentimen</div>
                     <div class="text-lg font-bold text-purple-400">{{ $summary['ml_agree_rate'] }}% agreement</div>
                     <div class="text-sm text-slate-400">{{ $summary['ml_total'] }} artikel dianalisis ML</div>
                 </x-panel>

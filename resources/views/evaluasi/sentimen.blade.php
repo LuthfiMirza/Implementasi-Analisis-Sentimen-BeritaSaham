@@ -3,8 +3,8 @@
         <div class="flex items-center justify-between gap-3">
             <div>
                 <p class="text-xs uppercase text-slate-400">Audit Konsistensi Sentimen</p>
-                <h1 class="text-2xl font-bold text-slate-100">ML vs Rule-Based Sentiment</h1>
-                <p class="text-xs text-slate-500 mt-1">Halaman ini mengukur konsistensi internal label sentimen, bukan validasi langsung terhadap return pasar.</p>
+                <h1 class="text-2xl font-bold text-slate-100">Audit Konsistensi Label Sentimen</h1>
+                <p class="text-xs text-slate-500 mt-1">Halaman ini mengaudit label IndoBERT terhadap baseline rule-based, bukan validasi akurasi final atau return pasar.</p>
             </div>
             <div class="flex items-center gap-3">
                 <span class="px-3 py-1 rounded-full text-sm bg-slate-800 text-slate-200 border border-slate-700">
@@ -16,14 +16,14 @@
 
         @if(!empty($empty))
             <x-panel class="p-6 text-center text-slate-300">
-                Belum ada artikel dengan label ML + Rule. Jalankan <code class="bg-slate-800 px-2 py-1 rounded border border-slate-700">php artisan sentiment:reanalyze --limit=20</code> setelah konfigurasi IndoBERT aktif.
+                Belum ada artikel dengan label IndoBERT dan baseline audit. Jalankan <code class="bg-slate-800 px-2 py-1 rounded border border-slate-700">php artisan sentiment:reanalyze --limit=20</code> setelah konfigurasi IndoBERT aktif.
             </x-panel>
         @else
             <x-panel class="p-4 border border-amber-500/20 bg-amber-500/5">
                 <div class="text-sm text-amber-100 font-semibold">Posisi evaluasi saat ini</div>
                 <p class="text-sm text-slate-300 mt-2">
-                    Output di bawah ini menunjukkan agreement antara model ML dan rule-based, distribusi label, serta contoh disagreement.
-                    Ini berguna untuk audit kualitas pipeline sentimen, tetapi belum cukup untuk menyimpulkan bahwa sentimen sudah menjadi sinyal prediktif utama.
+                    Output di bawah ini menunjukkan konsistensi label IndoBERT terhadap baseline rule-based, distribusi label, serta contoh disagreement.
+                    IndoBERT tetap menjadi metode utama sistem; rule-based hanya dipakai sebagai pembanding internal dan bukan dasar prediksi final.
                 </p>
             </x-panel>
 
@@ -31,7 +31,7 @@
                 <x-panel class="p-4 space-y-2">
                     <div class="text-xs uppercase text-slate-400">Total Artikel</div>
                     <div class="text-3xl font-bold text-slate-100">{{ $total }}</div>
-                    <div class="text-sm text-slate-400">Dengan label ML & Rule</div>
+                    <div class="text-sm text-slate-400">Dengan label IndoBERT & baseline</div>
                 </x-panel>
                 <x-panel class="p-4 space-y-2">
                     <div class="text-xs uppercase text-slate-400">Agreement Rate</div>
@@ -47,7 +47,7 @@
                     <div class="text-sm text-slate-400">Artikel dengan label berbeda</div>
                 </x-panel>
                 <x-panel class="p-4 space-y-2">
-                    <div class="text-xs uppercase text-slate-400">Avg ML Confidence</div>
+                    <div class="text-xs uppercase text-slate-400">Avg IndoBERT Confidence</div>
                     <div class="text-3xl font-bold text-sky-400">{{ round($avgMlConfidence * 100, 1) }}%</div>
                     <div class="text-sm text-slate-400">Rata-rata probabilitas tertinggi</div>
                 </x-panel>
@@ -79,8 +79,8 @@
 
                 <x-panel class="p-4 space-y-3">
                     <div class="flex items-center justify-between">
-                        <div class="text-sm font-semibold text-slate-200">Distribusi Rule-Based</div>
-                        <div class="text-xs text-slate-500">Lexicon</div>
+                        <div class="text-sm font-semibold text-slate-200">Distribusi Baseline Rule-Based</div>
+                        <div class="text-xs text-slate-500">Baseline audit</div>
                     </div>
                     @php $ruleTotal = max(1, array_sum($ruleDist)); @endphp
                     @foreach($ruleDist as $label => $count)
@@ -103,12 +103,12 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <x-panel class="p-4">
-                    <div class="text-sm font-semibold text-slate-200 mb-3">Confusion Matrix (Rule → ML)</div>
+                    <div class="text-sm font-semibold text-slate-200 mb-3">Matriks Audit (Baseline → IndoBERT)</div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm text-slate-200">
                             <thead>
                                 <tr>
-                                    <th class="px-2 py-2 text-left text-xs text-slate-400">Rule \\ ML</th>
+                                    <th class="px-2 py-2 text-left text-xs text-slate-400">Baseline \\ IndoBERT</th>
                                     @foreach($labels as $ml)
                                         <th class="px-2 py-2 text-center capitalize text-xs text-slate-400">{{ $ml }}</th>
                                     @endforeach
@@ -134,7 +134,7 @@
 
                 <x-panel class="p-4">
                     <div class="text-sm font-semibold text-slate-200 mb-3">Per-Class Metrics Internal</div>
-                    <div class="text-xs text-slate-500 mb-3">Rule-based dibaca sebagai comparator, ML dibaca sebagai pembanding internal, bukan ground truth pasar.</div>
+                    <div class="text-xs text-slate-500 mb-3">Baseline rule-based hanya comparator internal. IndoBERT adalah metode utama, dan metrik ini bukan ground truth pasar.</div>
                     <table class="min-w-full text-sm text-slate-200">
                         <thead>
                             <tr class="text-xs text-slate-400">
@@ -187,7 +187,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <div class="text-sm font-semibold text-slate-200">Contoh Disagreement (Top 10)</div>
-                        <div class="text-xs text-slate-500">Urut confidence ML tertinggi</div>
+                        <div class="text-xs text-slate-500">Urut confidence IndoBERT tertinggi</div>
                     </div>
                     <a href="{{ route('news.index') }}" class="text-xs text-sky-400 hover:underline">Lihat Artikel →</a>
                 </div>
@@ -196,8 +196,8 @@
                         <div class="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5">
                             <div class="text-sm font-semibold text-slate-100 mb-1">{{ $art->title }}</div>
                             <div class="flex items-center gap-2 text-xs">
-                                <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-200">ML: {{ $art->ml_sentiment_label }} ({{ round(($art->ml_confidence ?? 0) * 100, 1) }}%)</span>
-                                <span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-200">Rule: {{ $art->rule_sentiment_label }}</span>
+                                <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-200">IndoBERT: {{ $art->ml_sentiment_label }} ({{ round(($art->ml_confidence ?? 0) * 100, 1) }}%)</span>
+                                <span class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-200">Baseline: {{ $art->rule_sentiment_label }}</span>
                             </div>
                             <p class="text-xs text-slate-400 mt-2 line-clamp-2">{{ $art->summary ?? $art->content_snippet }}</p>
                         </div>
@@ -208,7 +208,7 @@
             </x-panel>
 
             <div class="text-xs text-slate-500 text-center">
-                Model ML: w11wo/indonesian-roberta-base-sentiment-classifier • Rule-based: leksikon finansial ID • Hasil ini adalah audit konsistensi pipeline sentimen • {{ now()->format('d M Y H:i') }}
+                Metode utama: IndoBERT w11wo/indonesian-roberta-base-sentiment-classifier • Baseline audit: leksikon finansial ID • Rule-based bukan dasar prediksi final • {{ now()->format('d M Y H:i') }}
             </div>
         @endif
     </div>
