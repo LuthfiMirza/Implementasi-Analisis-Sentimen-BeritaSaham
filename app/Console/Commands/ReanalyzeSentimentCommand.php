@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\NewsArticle;
 use App\Models\Stock;
+use App\Services\Sentiment\RuleBasedSentimentAnalyzer;
 use App\Services\Sentiment\SentimentEngineManager;
 use Illuminate\Console\Command;
 
@@ -16,6 +17,7 @@ class ReanalyzeSentimentCommand extends Command
     public function handle(SentimentEngineManager $engineManager): int
     {
         $analyzer = $engineManager->getAnalyzer();
+        $baselineAnalyzer = new RuleBasedSentimentAnalyzer();
         $code = strtoupper($this->option('stock') ?: '');
         $limit = (int) $this->option('limit');
         $force = (bool) $this->option('force');
@@ -61,16 +63,17 @@ class ReanalyzeSentimentCommand extends Command
             $processed = $mlUsed = $fallback = $agree = $disagree = 0;
 
             foreach ($articles as $article) {
-                $analysis = $analyzer->analyze(
-                    $article->summary ?? $article->content_snippet ?? $article->title,
-                    [
-                        'title' => $article->title,
-                        'summary' => $article->summary,
-                        'body' => $article->full_text ?? $article->content_snippet,
-                        'language' => $article->language ?? 'id',
-                        'stock_code' => $stock->code,
-                    ]
-                );
+                $text = $article->summary ?? $article->content_snippet ?? $article->title;
+                $context = [
+                    'title' => $article->title,
+                    'summary' => $article->summary,
+                    'body' => $article->full_text ?? $article->content_snippet,
+                    'language' => $article->language ?? 'id',
+                    'stock_code' => $stock->code,
+                ];
+
+                $analysis = $analyzer->analyze($text, $context);
+                $baseline = $baselineAnalyzer->analyze($text, $context);
 
                 $article->sentiment_label = $analysis['label'] ?? $article->sentiment_label;
                 $article->sentiment_score = $analysis['score'] ?? $article->sentiment_score;
@@ -88,8 +91,8 @@ class ReanalyzeSentimentCommand extends Command
                 $article->ml_prob_positive = $analysis['ml_prob_positive'] ?? $article->ml_prob_positive;
                 $article->ml_prob_neutral = $analysis['ml_prob_neutral'] ?? $article->ml_prob_neutral;
                 $article->ml_prob_negative = $analysis['ml_prob_negative'] ?? $article->ml_prob_negative;
-                $article->rule_sentiment_label = $analysis['rule_label'] ?? $article->rule_sentiment_label;
-                $article->rule_sentiment_score = $analysis['rule_score'] ?? $article->rule_sentiment_score;
+                $article->rule_sentiment_label = $analysis['rule_label'] ?? $baseline['label'] ?? $article->rule_sentiment_label;
+                $article->rule_sentiment_score = $analysis['rule_score'] ?? $baseline['score'] ?? $article->rule_sentiment_score;
                 $article->ml_rule_agree = isset($article->ml_sentiment_label, $article->rule_sentiment_label)
                     ? $article->ml_sentiment_label === $article->rule_sentiment_label
                     : $article->ml_rule_agree;
