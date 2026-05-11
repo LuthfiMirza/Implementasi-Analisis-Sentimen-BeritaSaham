@@ -27,6 +27,11 @@ class NewsController extends Controller
         $quality = $request->query('quality');
         $relevanceBand = $request->query('relevance');
         $sort = $request->query('sort', 'quality');
+        $allowedSorts = ['quality', 'date_desc', 'date_asc', 'recent', 'sentiment', 'relevance'];
+
+        if (! in_array($sort, $allowedSorts, true)) {
+            $sort = 'quality';
+        }
 
         $query = NewsArticle::with(['stock', 'source']);
 
@@ -80,8 +85,10 @@ class NewsController extends Controller
         ];
         if ($sort === 'sentiment') {
             $query->orderByDesc('sentiment_score')->orderByDesc('sentiment_confidence');
-        } elseif ($sort === 'recent') {
-            $query->latest('published_at');
+        } elseif (in_array($sort, ['recent', 'date_desc'], true)) {
+            $query->orderByDesc('published_at')->orderByDesc('id');
+        } elseif ($sort === 'date_asc') {
+            $query->orderBy('published_at')->orderBy('id');
         } elseif ($sort === 'relevance') {
             $query->orderByDesc('relevance_score')->orderByDesc('published_at');
         } else {

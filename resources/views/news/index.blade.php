@@ -10,7 +10,7 @@
                             {{ $articles->total() }} artikel
                         </span>
                     </h1>
-                    <p class="text-sm text-slate-400">Filter emiten, sentimen, tanggal, sumber, metode, kualitas, dan urutkan berdasarkan kualitas tertinggi.</p>
+                    <p class="text-sm text-slate-400">Filter emiten, sentimen, tanggal, sumber, metode, kualitas, dan urutkan berdasarkan kualitas atau tanggal berita.</p>
                 </div>
                 <form method="GET" class="w-full">
                     <div class="space-y-3 w-full">
@@ -39,7 +39,8 @@
 
                             <select name="sort" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
                                 <option value="quality" @selected(($filters['sort'] ?? 'quality') === 'quality')>Sort: Kualitas</option>
-                                <option value="recent" @selected(($filters['sort'] ?? '') === 'recent')>Sort: Terbaru</option>
+                                <option value="date_desc" @selected(in_array(($filters['sort'] ?? ''), ['date_desc', 'recent'], true))>Sort: Tanggal Terbaru</option>
+                                <option value="date_asc" @selected(($filters['sort'] ?? '') === 'date_asc')>Sort: Tanggal Terlama</option>
                                 <option value="sentiment" @selected(($filters['sort'] ?? '') === 'sentiment')>Sort: Sentimen</option>
                             </select>
 
