@@ -2,6 +2,113 @@
 
 Dashboard fullstack untuk skripsi Sistem Informasi yang menggabungkan agregasi berita saham Indonesia, analisis sentimen, evaluasi model, relative technical strength ranking, backtest DSS, dan trade journal. Aplikasi utama dibangun dengan Laravel 13, Blade, TailwindCSS, Alpine.js, Chart.js, dan MySQL; komponen machine learning dijalankan melalui service Python/FastAPI untuk endpoint `/predict` dan `/rank-stocks`.
 
+## Konteks Skripsi
+Proyek ini merupakan implementasi sistem untuk penelitian skripsi bertema **analisis sentimen berita saham dan pemanfaatannya sebagai pendukung keputusan investasi pada saham IDX**. Fokus utama penelitian adalah membangun aplikasi yang mampu mengumpulkan berita saham, memberi label sentimen, menghubungkan sentimen dengan data harga, lalu menyajikan hasilnya dalam bentuk dashboard, evaluasi, dan simulasi pendukung keputusan.
+
+Secara akademik, sistem ini dapat diposisikan sebagai:
+- **Objek penelitian**: aplikasi dashboard analisis sentimen berita saham Indonesia.
+- **Masalah yang dikaji**: investor membutuhkan ringkasan berita, sentimen, dan indikator teknikal agar proses pemantauan saham lebih terstruktur.
+- **Pendekatan solusi**: kombinasi agregasi berita multi-sumber, hybrid sentiment engine, analisis hubungan sentimen-harga, ranking teknikal, dan backtest terbatas.
+- **Output penelitian**: sistem web, hasil evaluasi sentimen, laporan evaluasi model, backtest DSS, serta artefak eksperimen pada folder `output/`.
+
+## Tujuan Penelitian
+1. Merancang dan membangun aplikasi web untuk mengelola berita, data saham, watchlist, evaluasi, dan trade journal.
+2. Mengimplementasikan analisis sentimen berbasis hybrid rule-based dan optional Python API untuk berita saham Indonesia.
+3. Menguji hubungan antara sentimen berita dan pergerakan harga menggunakan korelasi, lag analysis, event study, dan backtest DSS.
+4. Menyediakan panel ranking teknikal sebagai alat bantu riset untuk memantau kandidat saham berdasarkan horizon jangka pendek.
+
+## Batasan Penelitian
+- Sistem ditujukan untuk kebutuhan riset dan edukasi, **bukan rekomendasi investasi final**.
+- Kualitas hasil sangat bergantung pada kelengkapan data berita, harga saham, konfigurasi sumber berita, dan periode pengujian.
+- Model prediksi/ranking teknikal masih bersifat baseline penelitian; hasil evaluasi tidak boleh dianggap sebagai jaminan profit.
+- Integrasi Python/FastAPI bersifat opsional karena aplikasi Laravel tetap memiliki fallback baseline saat service Python tidak aktif.
+
+## Catatan Kesiapan Skripsi
+- README ini sudah memuat fitur, stack, instalasi, konfigurasi, command evaluasi, arsitektur, dan narasi pendukung skripsi.
+- Bagian yang sebaiknya dilengkapi sebelum sidang: screenshot halaman utama, diagram arsitektur, ERD/database schema, flowchart proses analisis sentimen, contoh hasil evaluasi, dan penjelasan dataset/periode data yang dipakai.
+- Jika digunakan untuk lampiran skripsi, sertakan artifact dari `output/`, contoh command evaluasi, serta tabel hasil uji yang sesuai dengan bab pengujian.
+
+## Preview Aplikasi
+Bagian ini disiapkan untuk menampilkan screenshot utama aplikasi pada README dan lampiran skripsi. Simpan file gambar di folder `docs/screenshots/`, lalu sesuaikan nama file pada markdown berikut.
+
+> Catatan: jika gambar belum muncul, pastikan file screenshot sudah disimpan sesuai nama path yang ditulis di bawah.
+
+### 1. Dashboard Utama
+Menampilkan ringkasan saham, grafik harga, berita terbaru, dan insight sentimen.
+
+![Preview Dashboard](docs/screenshots/01-dashboard.png)
+
+### 2. Berita Terkini dan Hasil Sentimen
+Menampilkan daftar berita saham dari berbagai sumber beserta label sentimen, confidence, dan metadata relevansi.
+
+![Preview Berita](docs/screenshots/02-berita-sentimen.png)
+
+### 3. Watchlist dan Ranking Teknikal
+Menampilkan daftar saham pilihan pengguna serta panel relative strength ranking untuk horizon jangka pendek.
+
+![Preview Watchlist](docs/screenshots/03-watchlist-ranking.png)
+
+### 4. Prediksi dan Analisis Saham
+Menampilkan analisis harga, sentimen, indikator pendukung keputusan, skenario, dan prediksi indikatif untuk saham yang dipilih.
+
+![Preview Prediksi](docs/screenshots/04-prediksi-analytics.png)
+
+Bagian prediksi dapat dibuat menjadi beberapa screenshot tambahan karena memuat komponen utama penelitian dan sistem pendukung keputusan:
+
+#### 4.1 Trading Signal dan Position Sizing
+Menampilkan status sinyal, kualitas sinyal, entry zone, stop loss, target 2R/3R, risk/reward ratio, ukuran posisi, dan level kunci seperti VWAP, MA20, support, dan resistance.
+
+![Preview Trading Signal](docs/screenshots/04a-prediksi-trading-signal.png)
+
+#### 4.2 Indikator Teknikal Lanjutan
+Menampilkan indikator MACD, Bollinger Bands, Stochastic, OBV, ADX, ATR, VWAP, dan pola candlestick untuk menjelaskan dasar teknikal dari sinyal yang muncul.
+
+![Preview Indikator Teknikal](docs/screenshots/04b-prediksi-indikator-teknikal.png)
+
+#### 4.3 Faktor Pendukung, Risiko, dan Invalidation Rules
+Menampilkan faktor pendukung, faktor pelemah, risk factors, serta aturan invalidasi agar hasil analisis tidak hanya menampilkan prediksi, tetapi juga alasan dan batasan risikonya.
+
+![Preview Risk Analysis](docs/screenshots/04c-prediksi-risk-analysis.png)
+
+### 5. Evaluasi Model dan Analisis Sentimen
+Menampilkan hasil evaluasi sentimen, hubungan sentimen-harga, korelasi lag, dan laporan pendukung penelitian.
+
+![Preview Evaluasi](docs/screenshots/05-evaluasi-model.png)
+
+### 6. Backtest DSS
+Menampilkan simulasi historis Decision Support System untuk melihat performa sinyal pada periode tertentu.
+
+![Preview Backtest](docs/screenshots/06-backtest-dss.png)
+
+### 7. Trade Journal
+Menampilkan pencatatan transaksi manual sebagai pendukung dokumentasi aktivitas riset/paper trading.
+
+![Preview Trade Journal](docs/screenshots/07-trade-journal.png)
+
+## Susunan Screenshot untuk Skripsi
+Gunakan urutan berikut agar dokumentasi README dan bab implementasi skripsi lebih rapi:
+
+| No | Nama File | Halaman | Tujuan Dokumentasi |
+|----|-----------|---------|--------------------|
+| 1 | `01-dashboard.png` | Dashboard | Bukti ringkasan pasar, berita, dan insight sentimen |
+| 2 | `02-berita-sentimen.png` | Berita Terkini | Bukti agregasi berita dan pelabelan sentimen |
+| 3 | `03-watchlist-ranking.png` | Watchlist | Bukti watchlist dan ranking teknikal |
+| 4 | `04-prediksi-analytics.png` | Prediksi | Bukti analisis harga, sentimen, skenario, dan prediksi indikatif |
+| 4a | `04a-prediksi-trading-signal.png` | Prediksi | Bukti trading signal, entry zone, stop loss, target, dan position sizing |
+| 4b | `04b-prediksi-indikator-teknikal.png` | Prediksi | Bukti indikator teknikal lanjutan seperti MACD, BB, ADX, ATR, VWAP, dan candlestick |
+| 4c | `04c-prediksi-risk-analysis.png` | Prediksi | Bukti faktor pendukung, faktor pelemah, risk factors, dan invalidation rules |
+| 5 | `05-evaluasi-model.png` | Evaluasi | Bukti pengujian model/sentimen |
+| 6 | `06-backtest-dss.png` | Backtest DSS | Bukti simulasi historis sistem pendukung keputusan |
+| 7 | `07-trade-journal.png` | Trade Journal | Bukti pencatatan aktivitas trading/paper trading |
+
+### Cara Membuat Screenshot
+1. Jalankan aplikasi Laravel dan Vite: `php artisan serve` lalu `npm run dev`.
+2. Login menggunakan akun demo atau akun hasil seeder.
+3. Buka halaman sesuai urutan tabel di atas.
+4. Ambil screenshot dengan ukuran browser konsisten, misalnya desktop 1366x768.
+5. Simpan hasil screenshot ke folder `docs/screenshots/` dengan nama file sesuai tabel.
+6. Refresh README preview di editor/GitHub untuk memastikan semua gambar tampil.
+
 ## Fitur Utama
 - Auth (Breeze) dengan role `admin` dan `user`, session database, serta modul admin CRUD.
 - Dashboard utama dengan chart harga, ringkasan berita, insight sentimen, dan polling quote live/snapshot.

@@ -16,6 +16,7 @@ use App\Http\Controllers\TradeJournalController;
 use App\Http\Controllers\BacktestController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\WatchlistController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,7 @@ Route::get('/', fn () => redirect()->route('dashboard'));
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/universal-search', SearchController::class)->name('search.universal');
     Route::get('/stocks/search', [StockController::class, 'search'])->name('stocks.search');
     Route::get('/stocks/{code}', [StockController::class, 'show'])->name('stocks.show');
     Route::get('/watchlist', [WatchlistController::class, 'index'])->name('watchlist.index');

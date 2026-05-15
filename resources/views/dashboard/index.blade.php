@@ -300,7 +300,7 @@
                             </div>
 
                             <div class="news-list-shell overflow-hidden flex-1">
-                                <div class="max-h-[520px] overflow-y-auto" id="newsContainer">
+                                <div class="dashboard-news-scroll max-h-[520px] overflow-y-auto" id="newsContainer">
                                     <div id="serverArticles">
                                         @forelse($news as $article)
                                             @php

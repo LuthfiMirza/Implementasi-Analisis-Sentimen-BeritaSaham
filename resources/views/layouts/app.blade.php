@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="trade-dark-ui" x-data="appShell()">
+<body class="trade-dark-ui" x-data="appShell()" x-init="$store.universalSearch.init()">
     <div class="min-h-screen flex app-shell">
         {{-- Sidebar --}}
         <aside class="app-sidebar hidden lg:flex lg:flex-col fixed inset-y-0" :class="desktopSidebarOpen ? 'app-sidebar-expanded' : 'app-sidebar-collapsed'">
@@ -31,13 +31,11 @@
                         ['label' => 'Berita Terkini', 'route' => 'news.index', 'href' => route('news.index'), 'icon' => 'M4 6h16M4 10h16M4 14h10m-4 4h4'],
                         ['label' => 'Watchlist', 'route' => 'watchlist.index', 'href' => route('watchlist.index'), 'icon' => 'M5 4h14a1 1 0 011 1v10a1 1 0 01-.553.894l-6.894 3.447a1 1 0 01-.894 0L4.765 15.96A1 1 0 014 15V5a1 1 0 011-1z'],
                         ['label' => 'Prediksi', 'route' => 'analytics.index', 'href' => route('analytics.index'), 'icon' => 'M3 17l6-6 4 4 8-8'],
-                        ['label' => 'Predictions', 'route' => 'predictions.index', 'href' => route('predictions.index'), 'icon' => 'M11 3h2v18h-2zM4 13h2v8H4zM18 8h2v13h-2z'],
                         ['label' => 'Evaluasi Model', 'route' => 'evaluasi.index', 'href' => route('evaluasi.index'), 'icon' => 'M9 17v-6h6v6m-7 4h8a2 2 0 002-2v-8l-5-5H9a2 2 0 00-2 2v11a2 2 0 002 2z'],
                         ['label' => 'Audit Sentimen', 'route' => 'evaluasi.sentimen', 'href' => route('evaluasi.sentimen'), 'icon' => 'M12 8c1.656 0 3-1.567 3-3.5S13.656 1 12 1 9 2.567 9 4.5 10.344 8 12 8zm0 0v6m0 0l-4 9m4-9l4 9'],
                         ['label' => 'Backtest DSS', 'route' => 'backtest.index', 'href' => route('backtest.index'), 'icon' => 'M4 12h16m-8-8v16'],
                         ['label' => 'Evaluasi Sistem', 'route' => 'evaluation.index', 'href' => route('evaluation.index'), 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
                         ['label' => 'Trade Journal', 'route' => 'trades.index', 'href' => route('trades.index'), 'icon' => 'M9 7h6m-6 4h6m-9 4h12M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z'],
-                        ['label' => 'Journal Baru', 'route' => 'trade-journal.*', 'href' => route('trade-journal.index'), 'icon' => 'M6 4h12v16H6zM9 8h6M9 12h6M9 16h3'],
                     ];
                     if (auth()->user()?->isAdmin()) {
                         $nav[] = ['label' => 'Admin Users', 'route' => 'admin.users.*', 'href' => route('admin.users.index'), 'icon' => 'M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m0-4a4 4 0 100-8 4 4 0 000 8zm8 0a3 3 0 100-6 3 3 0 000 6z'];
@@ -127,27 +125,142 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
-                    <div class="flex-1 relative" x-data x-on:click.away="$store.stockSearch.results=[]">
-                        <div class="app-search px-4">
+                    <div class="flex-1 relative" x-data x-on:click.away="$store.universalSearch.close()">
+                        <div class="app-search universal-search-trigger px-4" :class="$store.universalSearch.isOpen ? 'universal-search-trigger-active' : ''">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.2-5.2m0 0a7 7 0 1 0-9.9-9.9 7 7 0 0 0 9.9 9.9Z"/>
                             </svg>
-                            <input type="text" x-model="$store.stockSearch.query" x-on:input.debounce.300ms="$store.stockSearch.search()" placeholder="Cari kode/nama saham IDX..."
-                                   class="app-search-input focus:outline-none px-3 flex-1">
-                            <div x-show="$store.stockSearch.loading" class="topbar-loading">Loading...</div>
+                            <input type="text"
+                                   x-ref="universalSearchInput"
+                                   x-model="$store.universalSearch.query"
+                                   x-on:focus="$store.universalSearch.open()"
+                                   x-on:input.debounce.300ms="$store.universalSearch.search()"
+                                   x-on:keydown.escape.prevent="$store.universalSearch.close()"
+                                   x-on:keydown.arrow-down.prevent="$store.universalSearch.move(1)"
+                                   x-on:keydown.arrow-up.prevent="$store.universalSearch.move(-1)"
+                                   x-on:keydown.enter.prevent="$store.universalSearch.openSelected()"
+                                   placeholder="Cari saham, berita, halaman, atau aksi cepat..."
+                                   class="app-search-input focus:outline-none px-3 flex-1"
+                                   data-universal-search-input>
+                            <button type="button"
+                                    x-show="$store.universalSearch.query.length"
+                                    x-on:click="$store.universalSearch.clear()"
+                                    class="universal-search-clear"
+                                    aria-label="Bersihkan pencarian">
+                                ×
+                            </button>
+                            <div x-show="$store.universalSearch.isLoading" class="universal-search-spinner" aria-label="Loading"></div>
+                            <kbd x-show="!$store.universalSearch.isLoading" class="universal-search-shortcut hidden sm:inline-flex">Ctrl K</kbd>
                         </div>
-                        <div x-show="$store.stockSearch.results.length" class="app-search-results absolute mt-2 w-full overflow-hidden">
-                            <template x-for="item in $store.stockSearch.results" :key="item.id">
-                                <a :href="`/stocks/${item.code}`" class="app-search-result block px-4 py-2">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <div class="font-semibold" x-text="item.code"></div>
-                                            <div class="text-[11px] text-slate-400" x-text="item.company_name"></div>
+                        <div x-show="$store.universalSearch.isOpen"
+                             x-transition:enter="universal-search-enter"
+                             x-transition:enter-start="universal-search-enter-start"
+                             x-transition:enter-end="universal-search-enter-end"
+                             x-transition:leave="universal-search-leave"
+                             x-transition:leave-start="universal-search-leave-start"
+                             x-transition:leave-end="universal-search-leave-end"
+                             class="universal-search-panel absolute mt-2 w-full overflow-hidden"
+                             x-cloak>
+                            <div class="universal-search-header">
+                                <div>
+                                    <div class="universal-search-heading">Universal Search</div>
+                                    <div class="universal-search-description">Cari saham, berita, halaman, atau aksi cepat.</div>
+                                </div>
+                                <div class="universal-search-hint hidden sm:block">Contoh: BBCA, TLKM, evaluasi, backtest</div>
+                            </div>
+
+                            <div class="universal-search-section">
+                                <div class="universal-search-section-title" x-text="$store.universalSearch.query.length ? 'Mencari Untuk' : 'Filter Berdasarkan'"></div>
+                                <div class="universal-search-chip-row">
+                                    <template x-for="filter in $store.universalSearch.filters" :key="filter.key">
+                                        <button type="button"
+                                                class="universal-search-chip"
+                                                :class="$store.universalSearch.activeFilters.includes(filter.key) ? 'universal-search-chip-active' : ''"
+                                                x-on:click="$store.universalSearch.toggleFilter(filter.key)">
+                                            <span x-text="filter.label"></span><span x-show="$store.universalSearch.query.length && $store.universalSearch.activeFilters.includes(filter.key)">×</span>
+                                        </button>
+                                    </template>
+                                    <button type="button" x-show="$store.universalSearch.query.length" class="universal-search-chip universal-search-chip-muted" x-on:click="$store.universalSearch.resetFilters()">Tambah filter</button>
+                                </div>
+                            </div>
+
+                            <template x-if="!$store.universalSearch.query.length">
+                                <div>
+                                    <div class="universal-search-section">
+                                        <div class="universal-search-section-title">Rekomendasi</div>
+                                        <div class="universal-search-chip-row">
+                                            <template x-for="item in $store.universalSearch.quickChips" :key="item.label">
+                                                <button type="button" class="universal-search-chip universal-search-chip-active" x-on:click="$store.universalSearch.useQuickChip(item)">
+                                                    <span x-text="item.label"></span>
+                                                </button>
+                                            </template>
                                         </div>
-                                        <span class="text-[11px] text-slate-500" x-text="item.sector ?? ''"></span>
                                     </div>
-                                </a>
+
+                                    <div class="universal-search-section" x-show="$store.universalSearch.history.length">
+                                        <div class="universal-search-section-head">
+                                            <div class="universal-search-section-title">Riwayat</div>
+                                            <button type="button" class="universal-search-link" x-on:click="$store.universalSearch.clearHistory()">Hapus riwayat</button>
+                                        </div>
+                                        <template x-for="(item, index) in $store.universalSearch.history" :key="`history-${index}-${item.url}`">
+                                            <button type="button" class="universal-search-item" x-on:click="$store.universalSearch.openItem(item)">
+                                                <div class="universal-search-icon" :class="$store.universalSearch.iconClass(item.type)" x-text="$store.universalSearch.iconFor(item.type)"></div>
+                                                <div class="min-w-0 flex-1 text-left">
+                                                    <div class="universal-search-title" x-text="item.title"></div>
+                                                    <div class="universal-search-subtitle" x-text="item.subtitle"></div>
+                                                </div>
+                                                <span class="universal-search-badge" x-text="item.label"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+
+                                    <div class="universal-search-section">
+                                        <div class="universal-search-section-title">Aksi Cepat</div>
+                                        <template x-for="(item, index) in $store.universalSearch.defaultActions" :key="`default-${index}-${item.url}`">
+                                            <button type="button" class="universal-search-item" x-on:click="$store.universalSearch.openItem(item)">
+                                                <div class="universal-search-icon" :class="$store.universalSearch.iconClass(item.type)" x-text="$store.universalSearch.iconFor(item.type)"></div>
+                                                <div class="min-w-0 flex-1 text-left">
+                                                    <div class="universal-search-title" x-text="item.title"></div>
+                                                    <div class="universal-search-subtitle" x-text="item.subtitle"></div>
+                                                </div>
+                                                <span class="universal-search-badge">Aksi</span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
                             </template>
+
+                            <template x-if="$store.universalSearch.query.length">
+                                <div>
+                                    <div x-show="$store.universalSearch.isLoading" class="universal-search-state">Mencari hasil...</div>
+                                    <div x-show="$store.universalSearch.error" class="universal-search-state universal-search-state-error">Gagal memuat hasil. Coba lagi.</div>
+                                    <div x-show="!$store.universalSearch.isLoading && !$store.universalSearch.error && !$store.universalSearch.hasResults()" class="universal-search-empty">
+                                        <div class="text-2xl mb-2">⌕</div>
+                                        <div class="font-semibold">Tidak ada hasil untuk "<span x-text="$store.universalSearch.query"></span>"</div>
+                                        <p>Coba cari kode saham seperti BBCA, TLKM, ASII, nama perusahaan, judul berita, atau nama halaman.</p>
+                                    </div>
+                                    <template x-for="section in $store.universalSearch.sections" :key="section.key">
+                                        <div class="universal-search-section" x-show="$store.universalSearch.results[section.key]?.length">
+                                            <div class="universal-search-section-title" x-text="section.label"></div>
+                                            <template x-for="item in $store.universalSearch.results[section.key]" :key="`${item.type}-${item.url}-${item.title}`">
+                                                <button type="button" class="universal-search-item" :class="$store.universalSearch.isSelected(item) ? 'universal-search-item-active' : ''" x-on:click="$store.universalSearch.openItem(item)">
+                                                    <div class="universal-search-icon" :class="$store.universalSearch.iconClass(item.type)" x-text="$store.universalSearch.iconFor(item.type)"></div>
+                                                    <div class="min-w-0 flex-1 text-left">
+                                                        <div class="universal-search-title" x-html="$store.universalSearch.highlightMatch(item.title)"></div>
+                                                        <div class="universal-search-subtitle" x-html="$store.universalSearch.highlightMatch(item.subtitle)"></div>
+                                                    </div>
+                                                    <span class="universal-search-badge" x-text="item.meta || item.label"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            <div class="universal-search-footer">
+                                <span>↑↓ Pilih</span>
+                                <span>Enter Buka</span>
+                                <span>Esc Tutup</span>
+                            </div>
                         </div>
                     </div>
                     <div class="hidden md:flex items-center gap-3 text-[11px]" x-data="marketClock()" x-init="start()">
