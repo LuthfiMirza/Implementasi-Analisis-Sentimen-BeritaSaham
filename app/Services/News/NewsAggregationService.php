@@ -130,6 +130,20 @@ class NewsAggregationService
         return $this->persistRawArticles($stock, $rawArticles, $stats, 'ojk_rss');
     }
 
+    public function persistHistoricalArticles(Stock $stock, array $articles, string $providerKey): array
+    {
+        $rawArticles = collect($articles)->map(function ($item) use ($providerKey) {
+            $item['provider'] = $item['provider'] ?? $providerKey;
+            return $item;
+        });
+
+        $stats = $this->baseStats();
+        $stats['raw'] = $rawArticles->count();
+        $stats['by_provider'][$providerKey] = $rawArticles->count();
+
+        return $this->persistRawArticles($stock, $rawArticles, $stats, $providerKey);
+    }
+
     protected function baseStats(): array
     {
         return [

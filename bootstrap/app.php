@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\ExportPhaseARealDataCommand::class,
         \App\Console\Commands\SyncLivePricesCommand::class,
         \App\Console\Commands\NewsCoverageReportCommand::class,
+        \App\Console\Commands\BackfillHistoricalNewsCommand::class,
         \App\Console\Commands\RescoreNewsQualityCommand::class,
         \App\Console\Commands\RescoreNewsSentimentCommand::class,
         \App\Console\Commands\FetchStockHistoryCommand::class,
