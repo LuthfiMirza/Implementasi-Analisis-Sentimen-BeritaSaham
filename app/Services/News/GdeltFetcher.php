@@ -59,4 +59,50 @@ class GdeltFetcher implements NewsFetcherInterface
             })
             ->all();
     }
+
+    public function fetchHistorical(string $query, Carbon $from, Carbon $to, int $maxRecords = 250): array
+    {
+        $baseUrl = env('GDELT_BASE_URL', 'https://api.gdeltproject.org/api/v2/doc/doc');
+        $response = Http::get($baseUrl, [
+            'query' => $query.' AND (sourcelang:indonesia OR sourcelang:english)',
+            'startdatetime' => $from->copy()->utc()->format('YmdHis'),
+            'enddatetime' => $to->copy()->utc()->format('YmdHis'),
+            'maxrecords' => min($maxRecords, 250),
+            'format' => 'json',
+            'sort' => 'datedesc',
+        ]);
+
+        if (! $response->successful()) {
+            Log::warning('GDELT historical request failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'from' => $from->toDateTimeString(),
+                'to' => $to->toDateTimeString(),
+            ]);
+            return [];
+        }
+
+        $articles = data_get($response->json(), 'articles', []);
+        if (! is_array($articles)) {
+            return [];
+        }
+
+        return collect($articles)->map(function ($item) {
+            $title = $item['title'] ?? 'Berita historis GDELT';
+
+            return [
+                'title' => $title,
+                'slug' => Str::slug($title).'-'.Str::random(4),
+                'source_name' => $item['sourceCommonName'] ?? 'GDELT',
+                'source_url' => $item['url'] ?? null,
+                'published_at' => isset($item['seendate']) ? Carbon::parse($item['seendate']) : Carbon::now(),
+                'summary' => $item['excerpt'] ?? null,
+                'content_snippet' => $item['snippet'] ?? null,
+                'provider' => 'gdelt',
+                'sentiment_label' => null,
+                'sentiment_score' => null,
+                'raw_payload' => $item,
+            ];
+        })->all();
+    }
 }

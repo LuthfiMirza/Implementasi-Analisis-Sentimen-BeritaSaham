@@ -140,6 +140,89 @@ class NewsApiFetcher implements NewsFetcherInterface
     }
 
     /**
+     * NewsAPI free/dev plans commonly restrict Everything historical access.
+     * Provider rejections are logged with the response body instead of failing silently.
+     */
+    public function fetchHistorical(Stock $stock, Carbon $from, Carbon $to, int $limit = 100): array
+    {
+        $baseUrl = config('services.news.api_base_url', env('NEWS_API_BASE_URL'));
+        $apiKey = config('services.news.api_key', env('NEWS_API_KEY'));
+        $language = config('services.news.language', env('NEWS_API_LANGUAGE', 'id'));
+        $timeout = config('services.news.timeout', env('NEWS_API_TIMEOUT', 8));
+        $userAgent = config('services.news.user_agent', env('NEWS_API_USER_AGENT', 'SentimenaNews/1.0'));
+
+        if (! $baseUrl || ! $apiKey) {
+            return [];
+        }
+
+        $articles = [];
+        $pageSize = min($limit, 100);
+        foreach ($this->buildQueries($stock) as $query) {
+            $page = 1;
+            do {
+                $params = [
+                    'q' => $query,
+                    'language' => $language,
+                    'searchIn' => 'title,description,content',
+                    'sortBy' => 'publishedAt',
+                    'from' => $from->toIso8601String(),
+                    'to' => $to->toIso8601String(),
+                    'pageSize' => $pageSize,
+                    'page' => $page,
+                ];
+
+                try {
+                    $response = Http::withHeaders([
+                        'X-Api-Key' => $apiKey,
+                        'User-Agent' => $userAgent,
+                        'Accept' => 'application/json',
+                    ])->timeout($timeout)->get($baseUrl, $params);
+                } catch (\Throwable $e) {
+                    Log::warning('NewsAPI historical request exception', ['error' => $e->getMessage(), 'params' => $params]);
+                    break;
+                }
+
+                if (! $response->successful()) {
+                    Log::warning('NewsAPI historical request failed; plan may not support requested date range', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                        'params' => $params,
+                    ]);
+                    break;
+                }
+
+                $json = $response->json();
+                $pageArticles = is_array($json['articles'] ?? null) ? $json['articles'] : [];
+                $articles = array_merge($articles, $pageArticles);
+                $totalResults = (int) ($json['totalResults'] ?? count($pageArticles));
+                $page++;
+            } while (count($articles) < $limit && ($page - 1) * $pageSize < $totalResults);
+        }
+
+        return collect($articles)
+            ->unique(fn ($item) => $item['url'] ?? md5(($item['title'] ?? '').($item['publishedAt'] ?? '')))
+            ->sortByDesc('publishedAt')
+            ->take($limit)
+            ->map(function ($item) use ($stock) {
+                $title = $item['title'] ?? 'Berita '.$stock->code;
+
+                return [
+                    'title' => $title,
+                    'slug' => Str::slug($title).'-'.Str::random(4),
+                    'source_name' => data_get($item, 'source.name'),
+                    'source_url' => $item['url'] ?? null,
+                    'published_at' => isset($item['publishedAt']) ? Carbon::parse($item['publishedAt']) : Carbon::now(),
+                    'summary' => $item['description'] ?? null,
+                    'content_snippet' => $item['content'] ?? null,
+                    'provider' => 'newsapi',
+                    'sentiment_label' => null,
+                    'sentiment_score' => null,
+                    'raw_payload' => $item,
+                ];
+            })->values()->all();
+    }
+
+    /**
      * Bangun query pendek untuk NewsAPI agar tidak memicu queryTooLong.
      * - Prioritas: alias utama (kode + nama pendek) + subset konteks.
      * - Truncation jika masih > 480 chars.

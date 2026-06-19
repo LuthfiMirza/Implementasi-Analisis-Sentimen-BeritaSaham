@@ -21,16 +21,38 @@ class FinnhubNewsFetcher implements NewsFetcherInterface
         }
 
         $symbol = $stock->code.(Str::endsWith($stock->code, '.JK') ? '' : '.JK');
-        $to = Carbon::now()->toDateString();
-        $from = Carbon::now()->subDays(7)->toDateString();
+        $to = Carbon::now();
+        $from = Carbon::now()->subDays(7);
 
-        $cacheKey = "finnhub-news-{$symbol}-{$from}-{$to}-{$limit}";
+        return collect($this->fetchHistorical($symbol, $from, $to, $limit))
+            ->take($limit)
+            ->all();
+    }
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($baseUrl, $apiKey, $symbol, $from, $to, $limit, $stock) {
+    public function fetchHistorical(string $symbol, Carbon $from, Carbon $to, int $limit = 100): array
+    {
+        $apiKey = config('services.finnhub.api_key', env('FINNHUB_API_KEY'));
+        $baseUrl = config('services.finnhub.news_base_url', env('FINNHUB_BASE_URL', 'https://finnhub.io/api/v1/company-news'));
+
+        if (! $apiKey || ! $baseUrl) {
+            return [];
+        }
+
+        $symbol = Str::endsWith($symbol, '.JK') ? $symbol : $symbol.'.JK';
+        $stockCode = Str::before($symbol, '.JK');
+        $allArticles = collect();
+
+        foreach ($this->monthlyChunks($from, $to) as [$chunkFrom, $chunkTo]) {
+            $fromString = $chunkFrom->toDateString();
+            $toString = $chunkTo->toDateString();
+
+            $cacheKey = "finnhub-news-{$symbol}-{$fromString}-{$toString}-{$limit}";
+
+            $articles = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($baseUrl, $apiKey, $symbol, $fromString, $toString) {
             $response = Http::get($baseUrl, [
                 'symbol' => $symbol,
-                'from' => $from,
-                'to' => $to,
+                'from' => $fromString,
+                'to' => $toString,
                 'token' => $apiKey,
             ]);
 
@@ -47,28 +69,48 @@ class FinnhubNewsFetcher implements NewsFetcherInterface
                 return [];
             }
 
-            return collect($articles)
-                ->sortByDesc('datetime')
-                ->take($limit)
-                ->map(function ($item) use ($stock) {
-                    $title = $item['headline'] ?? 'Berita '.$stock->code;
-                    $slug = Str::slug($title).'-'.Str::random(4);
+            return $articles;
+            });
 
-                    return [
-                        'provider' => 'finnhub',
-                        'title' => $title,
-                        'slug' => $slug,
-                        'source_name' => $item['source'] ?? 'Finnhub',
-                        'source_url' => $item['url'] ?? null,
-                        'published_at' => isset($item['datetime']) ? Carbon::createFromTimestamp($item['datetime']) : Carbon::now(),
-                        'summary' => $item['summary'] ?? null,
-                        'content_snippet' => $item['summary'] ?? null,
-                        'sentiment_label' => null,
-                        'sentiment_score' => null,
-                        'raw_payload' => $item,
-                    ];
-                })
-                ->all();
-        });
+            $allArticles = $allArticles->merge($articles);
+        }
+
+        return $allArticles
+            ->sortByDesc('datetime')
+            ->take($limit)
+            ->map(function ($item) use ($stockCode) {
+                $title = $item['headline'] ?? 'Berita '.$stockCode;
+                $slug = Str::slug($title).'-'.Str::random(4);
+
+                return [
+                    'provider' => 'finnhub',
+                    'title' => $title,
+                    'slug' => $slug,
+                    'source_name' => $item['source'] ?? 'Finnhub',
+                    'source_url' => $item['url'] ?? null,
+                    'published_at' => isset($item['datetime']) ? Carbon::createFromTimestamp($item['datetime']) : Carbon::now(),
+                    'summary' => $item['summary'] ?? null,
+                    'content_snippet' => $item['summary'] ?? null,
+                    'sentiment_label' => null,
+                    'sentiment_score' => null,
+                    'raw_payload' => $item,
+                ];
+            })
+            ->all();
+    }
+
+    protected function monthlyChunks(Carbon $from, Carbon $to): array
+    {
+        $chunks = [];
+        $cursor = $from->copy()->startOfDay();
+        $end = $to->copy()->endOfDay();
+
+        while ($cursor->lte($end)) {
+            $chunkEnd = $cursor->copy()->endOfMonth()->min($end);
+            $chunks[] = [$cursor->copy(), $chunkEnd->copy()];
+            $cursor = $chunkEnd->copy()->addDay()->startOfDay();
+        }
+
+        return $chunks;
     }
 }
