@@ -1,0 +1,60 @@
+V6A Technical Direction Prediction Model
+========================================
+
+Scope: offline prediction research only; no P&L, backtest, entry/exit, stop-loss, or strategy promotion logic.
+Primary selection metric: macro F1. Secondary metric: directional_accuracy.
+Feature set: v2 without sentiment. Models: logistic_regression, random_forest plus random/majority baselines.
+Walk-forward policy: min_train_days=252, test_window_days=126, latest 8 folds; scaling remains inside model pipeline.
+
+Dataset rows: 50196
+Tickers: 10
+Date range: 2001-01-02 -> 2026-04-15
+Baseline comparator: model_comparison_v4a logistic_regression directional_accuracy=0.4055
+
+Label/Horizon Comparison
+------------------------
+label,horizon,down_share,flat_share,up_share,best_model,macro_f1,directional_accuracy,majority_macro_f1,majority_directional_accuracy,fold_macro_f1_std
+v2_fixed_1_5pct,1,0.1896,0.6121,0.1983,random_forest,0.4005,0.5359,0.2637,0.6567,0.0217
+v6_atr_k_0.5,1,0.2101,0.5683,0.2217,random_forest,0.3646,0.4141,0.2436,0.5760,0.0143
+v6_atr_k_0.75,1,0.1227,0.7374,0.1399,random_baseline,0.3346,0.5891,0.2856,0.7494,0.0175
+v2_fixed_1_5pct,3,0.2772,0.4134,0.3095,random_forest,0.3917,0.4465,0.2064,0.4514,0.0145
+v6_atr_k_0.5,3,0.2987,0.3703,0.3310,random_forest,0.3528,0.3555,0.1844,0.3827,0.0149
+v6_atr_k_0.75,3,0.2239,0.5175,0.2586,random_forest,0.3454,0.3633,0.2332,0.5383,0.0208
+v2_fixed_1_5pct,5,0.3061,0.3382,0.3557,random_forest,0.3673,0.4050,0.1646,0.3282,0.0162
+v6_atr_k_0.5,5,0.3238,0.3011,0.3751,random_forest,0.3509,0.3538,0.1754,0.3577,0.0243
+v6_atr_k_0.75,5,0.2602,0.4296,0.3102,random_forest,0.3450,0.3495,0.2044,0.4425,0.0323
+v2_fixed_1_5pct,10,0.3340,0.2514,0.4146,random_baseline,0.3267,0.3420,0.1872,0.3911,0.0114
+v6_atr_k_0.5,10,0.3476,0.2221,0.4303,logistic_regression,0.3543,0.3832,0.1947,0.4134,0.0212
+v6_atr_k_0.75,10,0.2982,0.3232,0.3786,logistic_regression,0.3585,0.3704,0.1783,0.3660,0.0321
+
+Best V6A Candidate
+-------------------
+Label column: label_v2_h1d
+Model: random_forest
+Macro F1: 0.4005
+Directional accuracy: 0.5359
+Delta vs v4a directional_accuracy: +0.1304
+Delta vs majority macro F1: +0.1368
+Delta vs majority directional_accuracy: -0.1208
+
+Ticker Volatility Consistency Snapshot
+--------------------------------------
+ticker,median_atr14_pct,label_v2_h5d_flat_share,label_v6_atr0_5_h5d_flat_share,label_v6_atr0_75_h5d_flat_share
+BBCA,0.0216,0.4251,0.3241,0.4491
+UNVR,0.0235,0.3830,0.3090,0.4424
+TLKM,0.0241,0.3626,0.3006,0.4432
+BBRI,0.0262,0.3179,0.2802,0.3961
+ASII,0.0265,0.2931,0.2669,0.3850
+INDF,0.0266,0.3519,0.3126,0.4483
+BMRI,0.0274,0.3134,0.2918,0.4140
+ICBP,0.0282,0.3645,0.3348,0.4716
+ADRO,0.0350,0.2447,0.2824,0.4037
+GOTO,0.0499,0.1696,0.3170,0.4654
+
+Assessment
+----------
+V6A improves macro F1 versus trivial majority and improves directional accuracy versus v4a, but the best fixed-metric candidate can still trail majority-class directional accuracy on imbalanced horizons; treat this as a classification research baseline, not strategy evidence.
+
+Recommendation
+--------------
+Use the best V6A technical-only configuration as the official comparison baseline for V6B only if V6B reports the same fixed metrics and remains in the offline prediction lane. Do not promote either V6A or V6B into trading/backtest scope without new governance approval.
