@@ -1,0 +1,17 @@
+{
+    "generated_at": "2026-06-16T12:02:25+07:00",
+    "requested_range": {
+        "from": null,
+        "to": null
+    },
+    "fetched_count": 10,
+    "saved_count": 0,
+    "updated_count": 10,
+    "skipped_count": 0,
+    "filtered_count": 10,
+    "skipped_dedup_count": 0,
+    "final_article_count": 80,
+    "backfill_status": "ready",
+    "blocker_reason": null,
+    "next_action": "none"
+}
