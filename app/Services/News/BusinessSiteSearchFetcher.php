@@ -336,15 +336,27 @@ class BusinessSiteSearchFetcher implements NewsFetcherInterface
 
     protected function extractPublishedAt(string $text): ?Carbon
     {
-        if (preg_match('/(\d{1,2}\s+[A-Za-z]+\s+\d{4})/', $text, $matches) === 1) {
+        if (preg_match('/(\d{1,2}\s+[A-Za-z]+\s+\d{4})(?:,?\s+(\d{1,2})[.:](\d{2}))?/u', $text, $matches) === 1) {
             try {
-                return Carbon::parse($matches[1], 'Asia/Jakarta');
+                $dateText = $this->normalizeIndonesianDate($matches[1]);
+                $timeText = isset($matches[2], $matches[3]) ? sprintf(' %02d:%02d', $matches[2], $matches[3]) : '';
+
+                return Carbon::parse($dateText.$timeText, 'Asia/Jakarta');
             } catch (\Throwable) {
                 return null;
             }
         }
 
         return null;
+    }
+
+    protected function normalizeIndonesianDate(string $dateText): string
+    {
+        return str_ireplace(
+            ['Januari', 'Februari', 'Maret', 'Mei', 'Juni', 'Juli', 'Agustus', 'Oktober', 'Desember'],
+            ['January', 'February', 'March', 'May', 'June', 'July', 'August', 'October', 'December'],
+            $dateText
+        );
     }
 
     protected function prioritizeDateCoverage(Collection $articles, int $limit): Collection
