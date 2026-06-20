@@ -3,11 +3,11 @@ OJK Backfill Report
 
 - requested_from=n/a
 - requested_to=n/a
-- fetched_count=10
+- fetched_count=9
 - saved_count=0
-- updated_count=10
+- updated_count=9
 - skipped_count=0
-- final_article_count=80
+- final_article_count=81
 - backfill_status=ready
 - blocker_reason=none
 - next_action=none
