@@ -63,14 +63,24 @@ class GdeltFetcher implements NewsFetcherInterface
     public function fetchHistorical(string $query, Carbon $from, Carbon $to, int $maxRecords = 250): array
     {
         $baseUrl = env('GDELT_BASE_URL', 'https://api.gdeltproject.org/api/v2/doc/doc');
-        $response = Http::get($baseUrl, [
-            'query' => $query.' AND (sourcelang:indonesia OR sourcelang:english)',
-            'startdatetime' => $from->copy()->utc()->format('YmdHis'),
-            'enddatetime' => $to->copy()->utc()->format('YmdHis'),
-            'maxrecords' => min($maxRecords, 250),
-            'format' => 'json',
-            'sort' => 'datedesc',
-        ]);
+        try {
+            $response = Http::timeout((int) config('news.gdelt.timeout', 20))->get($baseUrl, [
+                'query' => $query.' AND (sourcelang:indonesia OR sourcelang:english)',
+                'startdatetime' => $from->copy()->utc()->format('YmdHis'),
+                'enddatetime' => $to->copy()->utc()->format('YmdHis'),
+                'maxrecords' => min($maxRecords, 250),
+                'format' => 'json',
+                'sort' => 'datedesc',
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('GDELT historical request exception', [
+                'error' => $e->getMessage(),
+                'from' => $from->toDateTimeString(),
+                'to' => $to->toDateTimeString(),
+            ]);
+
+            return [];
+        }
 
         if (! $response->successful()) {
             Log::warning('GDELT historical request failed', [

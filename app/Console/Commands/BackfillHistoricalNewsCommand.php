@@ -3,9 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Models\Stock;
+use App\Services\News\BusinessSiteSearchFetcher;
 use App\Services\News\FinnhubNewsFetcher;
 use App\Services\News\GdeltFetcher;
 use App\Services\News\GNewsFetcher;
+use App\Services\News\GoogleNewsRssFetcher;
 use App\Services\News\NewsAggregationService;
 use App\Services\News\NewsApiFetcher;
 use App\Services\News\StockKeywordMapper;
@@ -106,11 +108,34 @@ class BackfillHistoricalNewsCommand extends Command
     {
         return match ($source) {
             'gdelt' => (new GdeltFetcher($mapper))->fetchHistorical($mapper->queryString($stock), $from, $to, min($limit, 250)),
+            'google_news_rss' => $this->filterArticlesByDate((new GoogleNewsRssFetcher($mapper))->fetchForStock($stock, $limit), $from, $to),
+            'business_site_search' => $this->filterArticlesByDate((new BusinessSiteSearchFetcher($mapper))->fetchForStock($stock, $limit), $from, $to),
             'newsapi' => (new NewsApiFetcher($mapper))->fetchHistorical($stock, $from, $to, $limit),
             'gnews' => (new GNewsFetcher($mapper))->fetchHistorical($stock, $from, $to, $limit),
             'finnhub' => (new FinnhubNewsFetcher())->fetchHistorical($stock->code, $from, $to, $limit),
             default => tap([], fn () => $this->warn("Source {$source} belum punya date-range fetcher; hanya dihitung pada dry-run.")),
         };
+    }
+
+    protected function filterArticlesByDate(array $articles, Carbon $from, Carbon $to): array
+    {
+        return collect($articles)
+            ->filter(function (array $article) use ($from, $to) {
+                $publishedAt = $article['published_at'] ?? null;
+                if (! $publishedAt) {
+                    return false;
+                }
+
+                try {
+                    $date = $publishedAt instanceof Carbon ? $publishedAt : Carbon::parse($publishedAt);
+                } catch (\Throwable) {
+                    return false;
+                }
+
+                return $date->betweenIncluded($from, $to);
+            })
+            ->values()
+            ->all();
     }
 
     protected function resolveStocks(array $tickers, bool $dryRun)
