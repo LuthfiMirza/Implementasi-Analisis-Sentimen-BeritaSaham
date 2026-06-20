@@ -116,7 +116,7 @@ Gunakan urutan berikut agar dokumentasi README dan bab implementasi skripsi lebi
 - Watchlist pribadi dengan panel **Relative Strength Ranking (5-Day Horizon)** yang menampilkan ranking teknikal lintas ticker, score, dan label kandidat teknikal.
 - Evaluasi model, evaluasi sentimen, evaluasi sistem, dan backtest DSS untuk analisis perilaku model dan hubungan harga-sentimen.
 - Hybrid sentiment engine: rule-based + optional Python API + fallback, lengkap dengan confidence, matched terms, method, dan metadata kualitas artikel.
-- Baseline Prediction & Technical Ranking: feature builder harian, walk-forward model (v1-v5, terbaik: ranking random_forest Spearman=0.037), integrasi FastAPI di `quant/prediction_api.py`, panel ranking teknikal di halaman watchlist, dan paper trading log harian otomatis.
+- Baseline Prediction & Technical Ranking: feature builder harian, walk-forward model (v1-v5, terbaik: ranking random_forest Spearman=0.037), baseline directional prediction V6A horizon 5D label threshold 1.5% dengan model `random_forest`, integrasi FastAPI di `quant/prediction_api.py`, panel ranking teknikal di halaman watchlist, dan paper trading log harian otomatis.
 - Trade Journal untuk pencatatan trade manual, serta utilitas paper trading manual yang tetap diposisikan sebagai tooling riset non-strategy.
 
 ## Matriks Fitur, Implementasi, dan Bukti Pengujian
@@ -129,7 +129,7 @@ Gunakan urutan berikut agar dokumentasi README dan bab implementasi skripsi lebi
 | Ranking Teknikal | `app/Services/Prediction/ResearchRankingService.php` | `tests/Unit/ResearchRankingServiceTest.php` |
 | Paper Trading Log | `app/Services/PaperTrading/PaperTradingLogService.php` | `tests/Unit/PaperTradingLogServiceTest.php` |
 | Model Prediksi v5 | `quant/prediction_api.py` | `output/prediction_research/baseline_v5_ranking_scorecard.json` |
-| Walk-Forward Eval | `quant/train_prediction_models.py` | `output/prediction_research/model_comparison_v3.txt`, `output/prediction_research/model_comparison_v4b.txt`, `output/prediction_research/model_ranking_v5.txt` |
+| Walk-Forward Eval | `quant/train_prediction_models.py` | `output/prediction_research/model_comparison_v3.txt`, `output/prediction_research/model_comparison_v4b.txt`, `output/prediction_research/model_ranking_v5.txt`, `output/prediction_research/v6a_baseline_decision.md` |
 
 ## Modul UI Aktif
 - `Dashboard`: ringkasan pasar, chart, berita, dan insight otomatis.
@@ -308,6 +308,7 @@ Sinyal ranking dibaca sebagai indikator probabilistik relative technical strengt
 - Jalankan `php artisan evaluate:report BBCA --period=30` untuk ringkasan korelasi, distribusi metode sentimen (python vs fallback), tren harga/sentimen, status decision support, dan prediksi saat ini. Tambahkan `--output=nama.json` untuk menyimpan ke `storage/app/evaluations/`.
 - Analisis korelasi: lihat same-day dan lag H+1/H+3/H+7 pada laporan untuk indikasi hubungan sentimen-return.
 - Event study: cek hitungan event positif/negatif dan impact H+1/H+3/H+7 pada laporan.
+- Baseline directional prediction resmi V6A: horizon 5D, label threshold 1.5%, model `random_forest`; lihat `output/prediction_research/v6a_baseline_decision.md` untuk detail keputusan dan pembanding majority baseline.
 - Jika punya label ground-truth sentimen atau arah harga, Anda bisa memperluas evaluator dengan perhitungan akurasi/F1, hit rate prediksi, atau metrik ranking seperti top-k precision dan long-short spread.
 
 ## Status Riset Sentimen
