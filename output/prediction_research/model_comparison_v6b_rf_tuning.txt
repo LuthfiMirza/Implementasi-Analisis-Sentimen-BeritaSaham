@@ -1,0 +1,67 @@
+V6B Random Forest Complexity Follow-up
+=======================================
+
+Dataset: output/prediction_research/dataset_v6b_10ticker.csv
+Subset: 2025-10-01 to 2026-04-15
+Label: label_v2 (5D fixed threshold 1.5%)
+Scope: random_forest parameter comparison only; V6B main report is unchanged.
+
+Variant Summary
+---------------
+variant,sentiment_wins_both_count,sentiment_f1_win_count,sentiment_accuracy_win_count,mean_macro_f1,mean_directional_accuracy,delta_mean_f1_vs_original,delta_mean_accuracy_vs_original
+original_depth8_leaf20_trees160,1,1,1,0.3454,0.4197,+0.0000,+0.0000
+simple_depth4_leaf40_trees160,3,3,3,0.3431,0.4002,-0.0023,-0.0195
+simple_depth5_leaf30_trees160,0,0,0,0.3418,0.4101,-0.0036,-0.0097
+simple_depth5_leaf30_trees50,0,0,0,0.3512,0.4140,+0.0058,-0.0057
+
+Complete Results
+----------------
+variant,min_train_days,test_window_days,scenario,macro_f1,directional_accuracy,fold_count,avg_train_rows,avg_test_rows,params
+original_depth8_leaf20_trees160,40,10,technical_only,0.3557,0.4188,8,750.00,100.00,trees=160;depth=8;leaf=20
+original_depth8_leaf20_trees160,40,10,technical_plus_sentiment,0.3450,0.4163,8,750.00,100.00,trees=160;depth=8;leaf=20
+original_depth8_leaf20_trees160,60,10,technical_only,0.3333,0.4083,6,850.00,100.00,trees=160;depth=8;leaf=20
+original_depth8_leaf20_trees160,60,10,technical_plus_sentiment,0.3196,0.4033,6,850.00,100.00,trees=160;depth=8;leaf=20
+original_depth8_leaf20_trees160,60,20,technical_only,0.3513,0.4217,3,800.00,200.00,trees=160;depth=8;leaf=20
+original_depth8_leaf20_trees160,60,20,technical_plus_sentiment,0.3675,0.4500,3,800.00,200.00,trees=160;depth=8;leaf=20
+simple_depth4_leaf40_trees160,40,10,technical_only,0.3394,0.3950,8,750.00,100.00,trees=160;depth=4;leaf=40
+simple_depth4_leaf40_trees160,40,10,technical_plus_sentiment,0.3494,0.4062,8,750.00,100.00,trees=160;depth=4;leaf=40
+simple_depth4_leaf40_trees160,60,10,technical_only,0.3222,0.3817,6,850.00,100.00,trees=160;depth=4;leaf=40
+simple_depth4_leaf40_trees160,60,10,technical_plus_sentiment,0.3389,0.4000,6,850.00,100.00,trees=160;depth=4;leaf=40
+simple_depth4_leaf40_trees160,60,20,technical_only,0.3459,0.4017,3,800.00,200.00,trees=160;depth=4;leaf=40
+simple_depth4_leaf40_trees160,60,20,technical_plus_sentiment,0.3631,0.4167,3,800.00,200.00,trees=160;depth=4;leaf=40
+simple_depth5_leaf30_trees160,40,10,technical_only,0.3524,0.4125,8,750.00,100.00,trees=160;depth=5;leaf=30
+simple_depth5_leaf30_trees160,40,10,technical_plus_sentiment,0.3302,0.3962,8,750.00,100.00,trees=160;depth=5;leaf=30
+simple_depth5_leaf30_trees160,60,10,technical_only,0.3336,0.4033,6,850.00,100.00,trees=160;depth=5;leaf=30
+simple_depth5_leaf30_trees160,60,10,technical_plus_sentiment,0.3129,0.3883,6,850.00,100.00,trees=160;depth=5;leaf=30
+simple_depth5_leaf30_trees160,60,20,technical_only,0.3669,0.4300,3,800.00,200.00,trees=160;depth=5;leaf=30
+simple_depth5_leaf30_trees160,60,20,technical_plus_sentiment,0.3546,0.4300,3,800.00,200.00,trees=160;depth=5;leaf=30
+simple_depth5_leaf30_trees50,40,10,technical_only,0.3562,0.4138,8,750.00,100.00,trees=50;depth=5;leaf=30
+simple_depth5_leaf30_trees50,40,10,technical_plus_sentiment,0.3504,0.4037,8,750.00,100.00,trees=50;depth=5;leaf=30
+simple_depth5_leaf30_trees50,60,10,technical_only,0.3350,0.4067,6,850.00,100.00,trees=50;depth=5;leaf=30
+simple_depth5_leaf30_trees50,60,10,technical_plus_sentiment,0.3272,0.3917,6,850.00,100.00,trees=50;depth=5;leaf=30
+simple_depth5_leaf30_trees50,60,20,technical_only,0.3762,0.4417,3,800.00,200.00,trees=50;depth=5;leaf=30
+simple_depth5_leaf30_trees50,60,20,technical_plus_sentiment,0.3621,0.4267,3,800.00,200.00,trees=50;depth=5;leaf=30
+
+Sentiment Lift
+--------------
+variant,min_train_days,test_window_days,delta_macro_f1,delta_directional_accuracy,sentiment_wins_both_metrics
+original_depth8_leaf20_trees160,40,10,-0.0107,-0.0025,False
+original_depth8_leaf20_trees160,60,10,-0.0137,-0.0050,False
+original_depth8_leaf20_trees160,60,20,+0.0162,+0.0283,True
+simple_depth4_leaf40_trees160,40,10,+0.0100,+0.0112,True
+simple_depth4_leaf40_trees160,60,10,+0.0166,+0.0183,True
+simple_depth4_leaf40_trees160,60,20,+0.0172,+0.0150,True
+simple_depth5_leaf30_trees160,40,10,-0.0222,-0.0163,False
+simple_depth5_leaf30_trees160,60,10,-0.0206,-0.0150,False
+simple_depth5_leaf30_trees160,60,20,-0.0123,+0.0000,False
+simple_depth5_leaf30_trees50,40,10,-0.0058,-0.0100,False
+simple_depth5_leaf30_trees50,60,10,-0.0078,-0.0150,False
+simple_depth5_leaf30_trees50,60,20,-0.0141,-0.0150,False
+
+Assessment
+----------
+Overfitting hypothesis is partially supported: at least one simpler RF variant makes sentiment lift more consistent without a large aggregate metric penalty. Best candidate: simple_depth4_leaf40_trees160.
+
+Recommendation
+--------------
+Use simple_depth4_leaf40_trees160 as the RF candidate for any V6B robustness follow-up; keep original V6B report unchanged.
