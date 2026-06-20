@@ -1,0 +1,58 @@
+V6B Sentiment Contribution Study
+=================================
+
+Dataset: output/prediction_research/dataset_v6b_10ticker.csv
+Subset: 2025-10-01 to 2026-04-15
+Label: label_v2 (5D fixed threshold 1.5%)
+Models: logistic_regression, random_forest
+Metric policy: macro F1 primary, directional_accuracy secondary
+Governance: classification research only; no strategy/backtest/P&L metrics.
+
+Subset Label Distribution
+-------------------------
+label,count,share,full_dataset_reference_share
+down,448,0.3500,0.3560
+flat,376,0.2938,0.3380
+up,456,0.3563,0.3060
+
+Complete Results
+----------------
+min_train_days,test_window_days,scenario,algorithm,macro_f1,directional_accuracy,fold_count,avg_train_rows,avg_test_rows,limit_warning
+40,10,technical_only,logistic_regression,0.3057,0.4025,8,750.00,100.00,
+40,10,technical_only,random_forest,0.3557,0.4188,8,750.00,100.00,
+40,10,technical_plus_sentiment,logistic_regression,0.3249,0.4125,8,750.00,100.00,
+40,10,technical_plus_sentiment,random_forest,0.3450,0.4163,8,750.00,100.00,
+60,10,technical_only,logistic_regression,0.3104,0.4117,6,850.00,100.00,
+60,10,technical_only,random_forest,0.3333,0.4083,6,850.00,100.00,
+60,10,technical_plus_sentiment,logistic_regression,0.3314,0.4200,6,850.00,100.00,
+60,10,technical_plus_sentiment,random_forest,0.3196,0.4033,6,850.00,100.00,
+60,20,technical_only,logistic_regression,0.3516,0.4400,3,800.00,200.00,
+60,20,technical_only,random_forest,0.3513,0.4217,3,800.00,200.00,
+60,20,technical_plus_sentiment,logistic_regression,0.3671,0.4450,3,800.00,200.00,
+60,20,technical_plus_sentiment,random_forest,0.3675,0.4500,3,800.00,200.00,
+
+Technical + Sentiment vs Technical Only
+----------------------------------------
+min_train_days,test_window_days,algorithm,delta_macro_f1,delta_directional_accuracy,sentiment_wins_both_metrics
+40,10,logistic_regression,+0.0192,+0.0100,True
+40,10,random_forest,-0.0107,-0.0025,False
+60,10,logistic_regression,+0.0210,+0.0083,True
+60,10,random_forest,-0.0137,-0.0050,False
+60,20,logistic_regression,+0.0155,+0.0050,True
+60,20,random_forest,+0.0162,+0.0283,True
+
+Subset Technical-Only vs V6A Official Baseline
+-----------------------------------------------
+V6A official baseline is full-period 25-year context and is not an apples-to-apples V6B comparator.
+It is included only to assess whether this 6-month subset behaves like a special market regime.
+scenario,algorithm,min_train_days,test_window_days,subset_macro_f1,subset_directional_accuracy,delta_macro_f1_vs_v6a,delta_directional_accuracy_vs_v6a
+technical_only,logistic_regression,40,10,0.3057,0.4025,-0.0616,-0.0025
+technical_only,random_forest,40,10,0.3557,0.4188,-0.0116,+0.0138
+technical_only,logistic_regression,60,10,0.3104,0.4117,-0.0569,+0.0067
+technical_only,random_forest,60,10,0.3333,0.4083,-0.0340,+0.0033
+technical_only,logistic_regression,60,20,0.3516,0.4400,-0.0157,+0.0350
+technical_only,random_forest,60,20,0.3513,0.4217,-0.0160,+0.0167
+
+Assessment
+----------
+Sentiment contribution is mostly positive, but not fully consistent across all settings and algorithms. Treat as promising but not definitive.
