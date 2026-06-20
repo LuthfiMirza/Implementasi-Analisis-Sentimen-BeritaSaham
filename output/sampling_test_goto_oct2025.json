@@ -1,0 +1,59 @@
+{
+    "ticker": "GOTO",
+    "company_name": "GoTo Gojek Tokopedia",
+    "target_month": "2025-10",
+    "target_range": {
+        "from": "2025-10-01",
+        "to": "2025-10-31"
+    },
+    "estimated_requests": {
+        "google_news_rss": 6,
+        "business_site_search_limited": 2,
+        "total": 8
+    },
+    "google_news_rss": {
+        "raw_count": 100,
+        "filtered_oct_2025_count": 3,
+        "filtered_articles": [
+            {
+                "title": "Kinerja Membaik, GoTo Cetak Pendapatan Naik 14% di September 2025 - Bloomberg Technoz",
+                "published_at": "2025-10-29 09:56:24",
+                "source_name": "Bloomberg Technoz",
+                "source_url": "https://news.google.com/rss/articles/e13b550b9c556475f47ce64ee67f133b"
+            },
+            {
+                "title": "Dukung Komitmen Presiden Prabowo, GoTo Siap Perkuat Ekosistem Ride-Hailing di Indonesia - Kompas.com",
+                "published_at": "2025-10-21 07:00:00",
+                "source_name": "Kompas.com",
+                "source_url": "https://news.google.com/rss/articles/632f44983a971e1fd6c25ec65eb63410"
+            },
+            {
+                "title": "Siapa Pemegang Saham dan Manajemen Kunci GoTo Saat ini? - Inilah.com",
+                "published_at": "2025-10-08 07:00:00",
+                "source_name": "Inilah.com",
+                "source_url": "https://news.google.com/rss/articles/CBMia0FVX3lxTFBzNWF4cnpweGtKME02R3lCS3FQM3pLREN1Y1FreXVZa2REZ21SZjViU05CYnpoSmxoc0NyeEdxdFBxa1NIckNSVnROM0tfNl84d2ZSa3ZhN1lGbGVsOWhRSzNEbkRPNE5zOHFN?oc=5"
+            }
+        ]
+    },
+    "business_site_search": {
+        "limited_urls": [
+            {
+                "site": "Bisnis.com Search",
+                "url": "https://search.bisnis.com/?q=GoTo+Gojek+Tokopedia",
+                "status": 403,
+                "parsed_count": 0,
+                "error": null
+            },
+            {
+                "site": "Katadata Search",
+                "url": "https://search.katadata.co.id/search?q=GoTo+Gojek+Tokopedia",
+                "status": 200,
+                "parsed_count": 0,
+                "error": null
+            }
+        ],
+        "raw_count": 0,
+        "filtered_oct_2025_count": 0,
+        "filtered_articles": []
+    }
+}
