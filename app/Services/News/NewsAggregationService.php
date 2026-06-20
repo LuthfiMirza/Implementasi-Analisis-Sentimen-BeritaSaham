@@ -26,10 +26,14 @@ use App\Services\Sentiment\SentimentEngineManager;
 use App\Models\SystemSetting;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class NewsAggregationService
 {
+    private const NEWS_ARTICLE_SLUG_MAX_LENGTH = 220;
+    private const NEWS_ARTICLE_STRING_MAX_LENGTH = 255;
+
     /**
      * @var array<string, NewsFetcherInterface>
      */
@@ -274,118 +278,130 @@ class NewsAggregationService
         $scoredArticles = $scoredArticles->sortByDesc('final_quality_score')->values();
 
         foreach ($scoredArticles as $rawArticle) {
-            if ($this->deduper->shouldSkip($rawArticle)) {
-                $stats['skipped_dedup']++;
-                continue;
-            }
-
-            if (! $this->isRelevant($rawArticle, $keywords)) {
-                $stats['dropped_irrelevant']++;
-                continue;
-            }
-
-            $title = $rawArticle['title'] ?? 'Berita '.$stock->code;
-            $slug = Str::slug($rawArticle['slug'] ?? $title) ?: Str::random(8);
-            $summary = $rawArticle['summary'] ?? $title;
-            $analysis = $this->analyzer->analyze($summary, [
-                'title' => $title,
-                'summary' => $summary,
-                'body' => $rawArticle['full_text'] ?? $rawArticle['content_snippet'] ?? null,
-                'language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
-            ]);
-            $sourceUrl = $rawArticle['source_url'] ?? null;
-
-            // Pastikan slug unik jika sudah ada, tapi gunakan source_url sebagai key utama jika tersedia.
-            if ($sourceUrl) {
-                $match = ['source_url' => $sourceUrl];
-            } else {
-                if (NewsArticle::where('slug', $slug)->exists()) {
-                    $slug .= '-'.Str::random(4);
+            try {
+                if ($this->deduper->shouldSkip($rawArticle)) {
+                    $stats['skipped_dedup']++;
+                    continue;
                 }
-                $match = ['slug' => $slug];
-            }
 
-            $finalQuality = $rawArticle['final_quality_score'] ?? $rawArticle['relevance_score'] ?? null;
-            $qualityBand = $rawArticle['quality_band'] ?? null;
-            if (! $qualityBand && $finalQuality !== null) {
-                $qualityBand = $finalQuality >= (float) config('news.quality_high', 0.7)
-                    ? 'high'
-                    : (($finalQuality >= (float) config('news.quality_medium', 0.5)) ? 'medium' : 'low');
-            }
+                if (! $this->isRelevant($rawArticle, $keywords)) {
+                    $stats['dropped_irrelevant']++;
+                    continue;
+                }
 
-            $providerValue = $rawArticle['provider'] ?? $providerKey ?? 'unknown';
-            if ($providerValue === 'api') {
-                $providerValue = 'newsapi_legacy';
-            }
-            if (! $providerValue) {
-                $providerValue = 'unknown';
-            }
-            $source = $this->resolveSource($providerValue);
+                $title = $rawArticle['title'] ?? 'Berita '.$stock->code;
+                $slug = $this->normalizeArticleSlug($rawArticle['slug'] ?? $title);
+                $storedTitle = Str::limit($title, self::NEWS_ARTICLE_STRING_MAX_LENGTH, '');
+                $summary = $rawArticle['summary'] ?? $title;
+                $analysis = $this->analyzer->analyze($summary, [
+                    'title' => $title,
+                    'summary' => $summary,
+                    'body' => $rawArticle['full_text'] ?? $rawArticle['content_snippet'] ?? null,
+                    'language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
+                ]);
+                $sourceUrl = $this->normalizeArticleSourceUrl($rawArticle['source_url'] ?? null, $slug);
 
-            $model = NewsArticle::updateOrCreate($match, [
-                'slug' => $slug,
-                'stock_id' => $this->shouldStoreGlobally($rawArticle) ? null : $stock->id,
-                'news_source_id' => $source?->id,
-                'source_provider' => $providerValue,
-                'source_weight' => $rawArticle['source_weight'] ?? null,
-                'title' => $title,
-                'source_url' => $sourceUrl ?? 'https://news.local/'.$slug,
-                'published_at' => $rawArticle['published_at'] ?? Carbon::now(),
-                'summary' => $summary,
-                'content_snippet' => $rawArticle['content_snippet'] ?? null,
-                'full_text' => $rawArticle['full_text'] ?? null,
-                'sentiment_label' => $rawArticle['sentiment_label'] ?? $analysis['label'],
-                'sentiment_score' => $rawArticle['sentiment_score'] ?? $analysis['score'],
-                'sentiment_confidence' => $rawArticle['sentiment_confidence'] ?? $analysis['confidence'] ?? null,
-                'sentiment_method' => $rawArticle['sentiment_method'] ?? $analysis['method'] ?? 'python_unavailable',
-                'ml_sentiment_label' => $rawArticle['ml_sentiment_label'] ?? $analysis['ml_label'] ?? null,
-                'ml_sentiment_score' => $rawArticle['ml_sentiment_score'] ?? $analysis['ml_score'] ?? null,
-                'ml_confidence' => $rawArticle['ml_confidence'] ?? $analysis['ml_confidence'] ?? null,
-                'ml_prob_positive' => $rawArticle['ml_prob_positive'] ?? $analysis['ml_prob_positive'] ?? null,
-                'ml_prob_neutral' => $rawArticle['ml_prob_neutral'] ?? $analysis['ml_prob_neutral'] ?? null,
-                'ml_prob_negative' => $rawArticle['ml_prob_negative'] ?? $analysis['ml_prob_negative'] ?? null,
-                'rule_sentiment_label' => $rawArticle['rule_sentiment_label'] ?? $analysis['rule_label'] ?? null,
-                'rule_sentiment_score' => $rawArticle['rule_sentiment_score'] ?? $analysis['rule_score'] ?? null,
-                'ml_rule_agree' => $rawArticle['ml_rule_agree']
-                    ?? (isset($analysis['ml_label'], $analysis['rule_label']) ? $analysis['ml_label'] === $analysis['rule_label'] : null),
-                'relevance_score' => $rawArticle['relevance_score'] ?? null,
-                'relevance_band' => $rawArticle['relevance_band'] ?? null,
-                'entity_match_score' => $rawArticle['entity_match_score'] ?? null,
-                'market_context_score' => $rawArticle['market_context_score'] ?? null,
-                'language_score' => $rawArticle['language_score'] ?? null,
-                'final_quality_score' => $finalQuality,
-                'quality_band' => $qualityBand,
-                'matched_keywords' => $rawArticle['matched_keywords'] ?? null,
-                'quality_flags' => $rawArticle['quality_flags'] ?? null,
-                'sentiment_meta' => [
-                    'matched_positive_terms' => $analysis['matched_positive_terms'] ?? [],
-                    'matched_negative_terms' => $analysis['matched_negative_terms'] ?? [],
-                    'reason_summary' => $analysis['reason_summary'] ?? null,
-                    'python_status' => $analysis['python_status'] ?? null,
-                ],
-                'analyzed_at' => Carbon::now(),
-                'language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
-                'detected_language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
-                'raw_payload' => $rawArticle['raw_payload'] ?? null,
-                'fetched_at' => Carbon::now(),
-            ]);
+                // Pastikan slug unik jika sudah ada, tapi gunakan source_url sebagai key utama jika tersedia.
+                if ($sourceUrl) {
+                    $match = ['source_url' => $sourceUrl];
+                } else {
+                    if (NewsArticle::where('slug', $slug)->exists()) {
+                        $slug = $this->appendSlugSuffix($slug, Str::random(4));
+                    }
+                    $match = ['slug' => $slug];
+                }
 
-            if ($finalQuality !== null) {
-                $stats['kept_score_sum'] += $finalQuality;
-                $stats['kept_score_count']++;
-            }
-            if ($qualityBand === 'high') {
-                $stats['band_high']++;
-            } elseif ($qualityBand === 'medium') {
-                $stats['band_medium']++;
-            } else {
-                $stats['band_low']++;
-            }
-            $stats['kept_relevance_sum'] += $rawArticle['relevance_score'] ?? 0;
-            $stats['kept_entity_sum'] += $rawArticle['entity_match_score'] ?? 0;
-            $stats['kept_market_sum'] += $rawArticle['market_context_score'] ?? 0;
+                $finalQuality = $rawArticle['final_quality_score'] ?? $rawArticle['relevance_score'] ?? null;
+                $qualityBand = $rawArticle['quality_band'] ?? null;
+                if (! $qualityBand && $finalQuality !== null) {
+                    $qualityBand = $finalQuality >= (float) config('news.quality_high', 0.7)
+                        ? 'high'
+                        : (($finalQuality >= (float) config('news.quality_medium', 0.5)) ? 'medium' : 'low');
+                }
 
-            $model->wasRecentlyCreated ? $stats['saved']++ : $stats['updated']++;
+                $providerValue = $rawArticle['provider'] ?? $providerKey ?? 'unknown';
+                if ($providerValue === 'api') {
+                    $providerValue = 'newsapi_legacy';
+                }
+                if (! $providerValue) {
+                    $providerValue = 'unknown';
+                }
+                $source = $this->resolveSource($providerValue);
+
+                $model = NewsArticle::updateOrCreate($match, [
+                    'slug' => $slug,
+                    'stock_id' => $this->shouldStoreGlobally($rawArticle) ? null : $stock->id,
+                    'news_source_id' => $source?->id,
+                    'source_provider' => $providerValue,
+                    'source_weight' => $rawArticle['source_weight'] ?? null,
+                    'title' => $storedTitle,
+                    'source_url' => $sourceUrl,
+                    'published_at' => $rawArticle['published_at'] ?? Carbon::now(),
+                    'summary' => $summary,
+                    'content_snippet' => $rawArticle['content_snippet'] ?? null,
+                    'full_text' => $rawArticle['full_text'] ?? null,
+                    'sentiment_label' => $rawArticle['sentiment_label'] ?? $analysis['label'],
+                    'sentiment_score' => $rawArticle['sentiment_score'] ?? $analysis['score'],
+                    'sentiment_confidence' => $rawArticle['sentiment_confidence'] ?? $analysis['confidence'] ?? null,
+                    'sentiment_method' => $rawArticle['sentiment_method'] ?? $analysis['method'] ?? 'python_unavailable',
+                    'ml_sentiment_label' => $rawArticle['ml_sentiment_label'] ?? $analysis['ml_label'] ?? null,
+                    'ml_sentiment_score' => $rawArticle['ml_sentiment_score'] ?? $analysis['ml_score'] ?? null,
+                    'ml_confidence' => $rawArticle['ml_confidence'] ?? $analysis['ml_confidence'] ?? null,
+                    'ml_prob_positive' => $rawArticle['ml_prob_positive'] ?? $analysis['ml_prob_positive'] ?? null,
+                    'ml_prob_neutral' => $rawArticle['ml_prob_neutral'] ?? $analysis['ml_prob_neutral'] ?? null,
+                    'ml_prob_negative' => $rawArticle['ml_prob_negative'] ?? $analysis['ml_prob_negative'] ?? null,
+                    'rule_sentiment_label' => $rawArticle['rule_sentiment_label'] ?? $analysis['rule_label'] ?? null,
+                    'rule_sentiment_score' => $rawArticle['rule_sentiment_score'] ?? $analysis['rule_score'] ?? null,
+                    'ml_rule_agree' => $rawArticle['ml_rule_agree']
+                        ?? (isset($analysis['ml_label'], $analysis['rule_label']) ? $analysis['ml_label'] === $analysis['rule_label'] : null),
+                    'relevance_score' => $rawArticle['relevance_score'] ?? null,
+                    'relevance_band' => $rawArticle['relevance_band'] ?? null,
+                    'entity_match_score' => $rawArticle['entity_match_score'] ?? null,
+                    'market_context_score' => $rawArticle['market_context_score'] ?? null,
+                    'language_score' => $rawArticle['language_score'] ?? null,
+                    'final_quality_score' => $finalQuality,
+                    'quality_band' => $qualityBand,
+                    'matched_keywords' => $rawArticle['matched_keywords'] ?? null,
+                    'quality_flags' => $rawArticle['quality_flags'] ?? null,
+                    'sentiment_meta' => [
+                        'matched_positive_terms' => $analysis['matched_positive_terms'] ?? [],
+                        'matched_negative_terms' => $analysis['matched_negative_terms'] ?? [],
+                        'reason_summary' => $analysis['reason_summary'] ?? null,
+                        'python_status' => $analysis['python_status'] ?? null,
+                    ],
+                    'analyzed_at' => Carbon::now(),
+                    'language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
+                    'detected_language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
+                    'raw_payload' => $rawArticle['raw_payload'] ?? null,
+                    'fetched_at' => Carbon::now(),
+                ]);
+
+                if ($finalQuality !== null) {
+                    $stats['kept_score_sum'] += $finalQuality;
+                    $stats['kept_score_count']++;
+                }
+                if ($qualityBand === 'high') {
+                    $stats['band_high']++;
+                } elseif ($qualityBand === 'medium') {
+                    $stats['band_medium']++;
+                } else {
+                    $stats['band_low']++;
+                }
+                $stats['kept_relevance_sum'] += $rawArticle['relevance_score'] ?? 0;
+                $stats['kept_entity_sum'] += $rawArticle['entity_match_score'] ?? 0;
+                $stats['kept_market_sum'] += $rawArticle['market_context_score'] ?? 0;
+
+                $model->wasRecentlyCreated ? $stats['saved']++ : $stats['updated']++;
+            } catch (\Throwable $e) {
+                $stats['failed']++;
+                Log::warning('News article persist failed; skipping article and continuing batch', [
+                    'error' => $e->getMessage(),
+                    'stock' => $stock->code ?? null,
+                    'provider' => $rawArticle['provider'] ?? $providerKey ?? 'unknown',
+                    'title' => Str::limit((string) ($rawArticle['title'] ?? ''), 180),
+                    'source_url' => $rawArticle['source_url'] ?? null,
+                ]);
+            }
         }
 
         return $stats;
@@ -574,6 +590,40 @@ class NewsAggregationService
                 'config_json' => ['seeded' => true],
             ]
         );
+    }
+
+    protected function normalizeArticleSlug(string $value): string
+    {
+        $slug = Str::slug($value) ?: Str::random(8);
+
+        if (mb_strlen($slug) <= self::NEWS_ARTICLE_SLUG_MAX_LENGTH) {
+            return $slug;
+        }
+
+        return $this->appendSlugSuffix($slug, substr(sha1($value), 0, 10));
+    }
+
+    protected function appendSlugSuffix(string $slug, string $suffix): string
+    {
+        $suffix = trim($suffix, '-');
+        $suffixLength = mb_strlen($suffix) + 1;
+        $baseLength = max(1, self::NEWS_ARTICLE_SLUG_MAX_LENGTH - $suffixLength);
+
+        return rtrim(Str::limit($slug, $baseLength, ''), '-').'-'.$suffix;
+    }
+
+    protected function normalizeArticleSourceUrl(?string $sourceUrl, string $slug): string
+    {
+        $sourceUrl = trim((string) $sourceUrl);
+        if ($sourceUrl === '') {
+            return 'https://news.local/'.$slug;
+        }
+
+        if (mb_strlen($sourceUrl) <= self::NEWS_ARTICLE_STRING_MAX_LENGTH) {
+            return $sourceUrl;
+        }
+
+        return 'https://news.local/external-'.substr(sha1($sourceUrl), 0, 24);
     }
 
     protected function isMacroRegulatory(array $rawArticle): bool

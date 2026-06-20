@@ -17,6 +17,16 @@ class GoogleNewsRssFetcher implements NewsFetcherInterface
 
     public function fetchForStock(Stock $stock, int $limit = 10): array
     {
+        return $this->fetchCurrentSearch($stock, $limit, false) ?? [];
+    }
+
+    public function fetchHistorical(Stock $stock, Carbon $from, Carbon $to, int $limit = 10): ?array
+    {
+        return $this->filterArticlesByDate($this->fetchCurrentSearch($stock, $limit, true), $from, $to);
+    }
+
+    protected function fetchCurrentSearch(Stock $stock, int $limit, bool $failWhenAllRequestsFail): ?array
+    {
         $baseUrl = (string) config('news.google_news_rss.base_url', 'https://news.google.com/rss/search');
         $hl = (string) config('news.google_news_rss.hl', 'id');
         $gl = (string) config('news.google_news_rss.gl', 'ID');
@@ -25,6 +35,7 @@ class GoogleNewsRssFetcher implements NewsFetcherInterface
         $userAgent = (string) config('news.google_news_rss.user_agent', config('news.rss_user_agent', 'SentimenaBot/1.0 (+https://sentimena.app)'));
 
         $articles = collect();
+        $successfulRequests = 0;
         foreach ($this->buildQueries($stock) as $query) {
             try {
                 $response = Http::withHeaders([
@@ -49,11 +60,41 @@ class GoogleNewsRssFetcher implements NewsFetcherInterface
                 continue;
             }
 
+            $successfulRequests++;
             $articles = $articles->merge($this->parseFeed($response->body(), $stock, $query));
+        }
+
+        if ($failWhenAllRequestsFail && $successfulRequests === 0) {
+            return null;
         }
 
         return $this->prioritizeDateCoverage($articles, $limit)
             ->unique(fn ($item) => $item['source_url'] ?? md5(($item['title'] ?? '').($item['published_at'] ?? '')))
+            ->values()
+            ->all();
+    }
+
+    protected function filterArticlesByDate(?array $articles, Carbon $from, Carbon $to): ?array
+    {
+        if ($articles === null) {
+            return null;
+        }
+
+        return collect($articles)
+            ->filter(function (array $article) use ($from, $to) {
+                $publishedAt = $article['published_at'] ?? null;
+                if (! $publishedAt) {
+                    return false;
+                }
+
+                try {
+                    $date = $publishedAt instanceof Carbon ? $publishedAt : Carbon::parse($publishedAt);
+                } catch (\Throwable) {
+                    return false;
+                }
+
+                return $date->betweenIncluded($from, $to);
+            })
             ->values()
             ->all();
     }

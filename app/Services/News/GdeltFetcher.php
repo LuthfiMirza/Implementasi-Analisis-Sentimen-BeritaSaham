@@ -60,7 +60,7 @@ class GdeltFetcher implements NewsFetcherInterface
             ->all();
     }
 
-    public function fetchHistorical(string $query, Carbon $from, Carbon $to, int $maxRecords = 250): array
+    public function fetchHistorical(string $query, Carbon $from, Carbon $to, int $maxRecords = 250): ?array
     {
         $baseUrl = env('GDELT_BASE_URL', 'https://api.gdeltproject.org/api/v2/doc/doc');
         try {
@@ -79,7 +79,7 @@ class GdeltFetcher implements NewsFetcherInterface
                 'to' => $to->toDateTimeString(),
             ]);
 
-            return [];
+            return null;
         }
 
         if (! $response->successful()) {
@@ -89,7 +89,7 @@ class GdeltFetcher implements NewsFetcherInterface
                 'from' => $from->toDateTimeString(),
                 'to' => $to->toDateTimeString(),
             ]);
-            return [];
+            return null;
         }
 
         $articles = data_get($response->json(), 'articles', []);

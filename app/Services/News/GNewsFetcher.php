@@ -92,7 +92,7 @@ class GNewsFetcher implements NewsFetcherInterface
     }
 
     /** Provider plans may reject older from/to ranges; failures are logged explicitly. */
-    public function fetchHistorical(Stock $stock, Carbon $from, Carbon $to, int $limit = 100): array
+    public function fetchHistorical(Stock $stock, Carbon $from, Carbon $to, int $limit = 100): ?array
     {
         $apiKey = config('services.gnews.api_key', env('GNEWS_API_KEY'));
         $baseUrl = config('services.gnews.api_base_url', env('GNEWS_BASE_URL', 'https://gnews.io/api/v4/search'));
@@ -101,7 +101,7 @@ class GNewsFetcher implements NewsFetcherInterface
         $timeout = config('services.gnews.timeout', env('GNEWS_TIMEOUT', 8));
 
         if (! $apiKey) {
-            return [];
+            return null;
         }
 
         $articles = collect();
@@ -121,7 +121,7 @@ class GNewsFetcher implements NewsFetcherInterface
                 ]);
             } catch (\Throwable $e) {
                 Log::warning('GNews historical request exception', ['error' => $e->getMessage(), 'query' => $query]);
-                continue;
+                return null;
             }
 
             if (! $response->successful()) {
@@ -132,7 +132,7 @@ class GNewsFetcher implements NewsFetcherInterface
                     'from' => $from->toDateString(),
                     'to' => $to->toDateString(),
                 ]);
-                continue;
+                return null;
             }
 
             $articles = $articles->merge($response->json('articles') ?? []);

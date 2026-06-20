@@ -29,13 +29,13 @@ class FinnhubNewsFetcher implements NewsFetcherInterface
             ->all();
     }
 
-    public function fetchHistorical(string $symbol, Carbon $from, Carbon $to, int $limit = 100): array
+    public function fetchHistorical(string $symbol, Carbon $from, Carbon $to, int $limit = 100): ?array
     {
         $apiKey = config('services.finnhub.api_key', env('FINNHUB_API_KEY'));
         $baseUrl = config('services.finnhub.news_base_url', env('FINNHUB_BASE_URL', 'https://finnhub.io/api/v1/company-news'));
 
         if (! $apiKey || ! $baseUrl) {
-            return [];
+            return null;
         }
 
         $symbol = Str::endsWith($symbol, '.JK') ? $symbol : $symbol.'.JK';
@@ -49,28 +49,49 @@ class FinnhubNewsFetcher implements NewsFetcherInterface
             $cacheKey = "finnhub-news-{$symbol}-{$fromString}-{$toString}-{$limit}";
 
             $articles = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($baseUrl, $apiKey, $symbol, $fromString, $toString) {
-            $response = Http::get($baseUrl, [
-                'symbol' => $symbol,
-                'from' => $fromString,
-                'to' => $toString,
-                'token' => $apiKey,
-            ]);
+                try {
+                    $response = Http::get($baseUrl, [
+                        'symbol' => $symbol,
+                        'from' => $fromString,
+                        'to' => $toString,
+                        'token' => $apiKey,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('Finnhub news request exception', [
+                        'error' => $e->getMessage(),
+                    ]);
 
-            if (! $response->successful()) {
-                Log::warning('Finnhub news request failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-                return [];
-            }
+                    return null;
+                }
 
-            $articles = $response->json();
-            if (! is_array($articles)) {
-                return [];
-            }
+                if (! $response->successful()) {
+                    Log::warning('Finnhub news request failed', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                    ]);
 
-            return $articles;
+                    return null;
+                }
+
+                $articles = $response->json();
+                if (! is_array($articles)) {
+                    return [];
+                }
+
+                return $articles;
             });
+
+            if ($articles === null) {
+                Cache::forget($cacheKey);
+
+                Log::warning('Finnhub historical chunk failed; will retry on next run', [
+                    'symbol' => $symbol,
+                    'from' => $fromString,
+                    'to' => $toString,
+                ]);
+
+                return null;
+            }
 
             $allArticles = $allArticles->merge($articles);
         }

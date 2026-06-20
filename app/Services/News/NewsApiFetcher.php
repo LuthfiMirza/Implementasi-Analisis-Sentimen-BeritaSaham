@@ -143,7 +143,7 @@ class NewsApiFetcher implements NewsFetcherInterface
      * NewsAPI free/dev plans commonly restrict Everything historical access.
      * Provider rejections are logged with the response body instead of failing silently.
      */
-    public function fetchHistorical(Stock $stock, Carbon $from, Carbon $to, int $limit = 100): array
+    public function fetchHistorical(Stock $stock, Carbon $from, Carbon $to, int $limit = 100): ?array
     {
         $baseUrl = config('services.news.api_base_url', env('NEWS_API_BASE_URL'));
         $apiKey = config('services.news.api_key', env('NEWS_API_KEY'));
@@ -152,12 +152,16 @@ class NewsApiFetcher implements NewsFetcherInterface
         $userAgent = config('services.news.user_agent', env('NEWS_API_USER_AGENT', 'SentimenaNews/1.0'));
 
         if (! $baseUrl || ! $apiKey) {
-            return [];
+            return null;
         }
 
         $articles = [];
         $pageSize = min($limit, 100);
         foreach ($this->buildQueries($stock) as $query) {
+            if (count($articles) >= $limit) {
+                break;
+            }
+
             $page = 1;
             do {
                 $params = [
@@ -179,7 +183,7 @@ class NewsApiFetcher implements NewsFetcherInterface
                     ])->timeout($timeout)->get($baseUrl, $params);
                 } catch (\Throwable $e) {
                     Log::warning('NewsAPI historical request exception', ['error' => $e->getMessage(), 'params' => $params]);
-                    break;
+                    return null;
                 }
 
                 if (! $response->successful()) {
@@ -188,7 +192,7 @@ class NewsApiFetcher implements NewsFetcherInterface
                         'body' => $response->body(),
                         'params' => $params,
                     ]);
-                    break;
+                    return null;
                 }
 
                 $json = $response->json();
