@@ -163,6 +163,29 @@ class NewsAggregationServiceTest extends TestCase
         $this->assertNotNull($article->analyzed_at);
     }
 
+    public function test_very_long_title_is_saved_with_database_safe_slug_without_crashing(): void
+    {
+        $stock = $this->seedStock('GOTO', ['company_name' => 'GoTo Gojek Tokopedia Tbk']);
+        $longTitle = 'GOTO GoTo Gojek Tokopedia mencatat penguatan saham dan ekspansi ekosistem digital '.str_repeat('dengan pertumbuhan pendapatan dan efisiensi operasional berkelanjutan ', 8);
+        $service = $this->serviceWithArticles([
+            $this->rawArticle($stock, [
+                'title' => $longTitle,
+                'summary' => $longTitle,
+                'source_url' => 'https://kontan.test/goto-long-title',
+                'direct_keyword_hits' => ['GOTO'],
+            ]),
+        ]);
+
+        $stats = $service->refreshFromProvider($stock, 10, ['fake']);
+        $article = NewsArticle::firstOrFail();
+
+        $this->assertSame(1, $stats['saved']);
+        $this->assertSame(0, $stats['failed']);
+        $this->assertLessThanOrEqual(255, mb_strlen($article->title));
+        $this->assertLessThanOrEqual(220, mb_strlen($article->slug));
+        $this->assertStringContainsString(substr(sha1($longTitle), 0, 10), $article->slug);
+    }
+
     private function rawArticle(Stock $stock, array $overrides = []): array
     {
         return array_merge([
