@@ -79,4 +79,66 @@ class BacktestServiceTest extends TestCase
         $this->assertTrue($withMacro['params']['includeMacroNews']);
         $this->assertFalse($withoutMacro['params']['includeMacroNews']);
     }
+
+    public function test_backtest_uses_canonical_prices_when_duplicate_trade_dates_exist(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'DEWA', 'company_name' => 'Darma Henwa']);
+        $startDate = Carbon::parse('2026-03-01', 'Asia/Jakarta');
+
+        for ($i = 0; $i < 40; $i++) {
+            $date = $startDate->copy()->addDays($i);
+            $close = 400 + $i;
+            StockPrice::factory()->create([
+                'stock_id' => $stock->id,
+                'price_date' => $date,
+                'open' => $close - 2,
+                'high' => $close + 5,
+                'low' => $close - 5,
+                'close' => $close,
+                'volume' => 900_000_000,
+                'interval_type' => '1d',
+                'source' => null,
+            ]);
+
+            if ($i >= 30 && $i <= 35) {
+                StockPrice::factory()->create([
+                    'stock_id' => $stock->id,
+                    'price_date' => $date->copy()->setTime(15, 0),
+                    'open' => 45,
+                    'high' => 50,
+                    'low' => 40,
+                    'close' => 47.21,
+                    'volume' => 2_000_000,
+                    'interval_type' => '1d',
+                    'source' => 'seed',
+                ]);
+            }
+        }
+
+        $dss = new class extends DecisionSupportService
+        {
+            public function __construct()
+            {
+            }
+
+            public function analyze(\App\Models\Stock $stock, Collection $prices, Collection $articles, ?array $analytics = null): array
+            {
+                return [
+                    'prediction' => 'up',
+                    'prediction_confidence' => 0.6,
+                    'final_score' => 0.7,
+                    'sentiment_average' => 0.0,
+                ];
+            }
+        };
+
+        $service = new BacktestService($dss);
+        $result = $service->runForStock($stock, 30, 5, 1, 1.0, false, null, 4);
+
+        $this->assertArrayNotHasKey('error', $result);
+        $this->assertCount(4, $result['results']);
+        foreach ($result['results'] as $row) {
+            $this->assertLessThan(5.0, abs($row['actual_return']));
+        }
+    }
 }
