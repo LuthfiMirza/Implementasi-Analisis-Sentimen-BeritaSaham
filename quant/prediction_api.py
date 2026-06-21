@@ -27,6 +27,7 @@ app = FastAPI(title="Laravel Prediction API", version="1.0.0")
 
 class PredictionRequest(BaseModel):
     features: dict[str, object] = Field(default_factory=dict)
+    model_variant: str = Field(default="technical")
 
 
 class RankingStockRequest(BaseModel):
@@ -110,18 +111,95 @@ def score_to_signal(score: float) -> str:
 
 store = PredictionModelStore(DEFAULT_MODEL_DIRS)
 store.load()
+production_model_dir = Path(os.environ.get("PREDICTION_PRODUCTION_MODEL_DIR", "storage/app/prediction"))
+production_stores = {
+    "technical": PredictionModelStore([production_model_dir]),
+    "technical_sentiment": PredictionModelStore([production_model_dir]),
+}
+production_stores["technical"].model_path = production_model_dir / "model_technical_v6a.joblib"
+production_stores["technical"].metadata_path = production_model_dir / "model_technical_v6a_metadata.json"
+production_stores["technical_sentiment"].model_path = production_model_dir / "model_technical_sentiment_v6b.joblib"
+production_stores["technical_sentiment"].metadata_path = production_model_dir / "model_technical_sentiment_v6b_metadata.json"
+
+
+def load_named_store(store: PredictionModelStore) -> None:
+    model_path = store.model_path
+    metadata_path = store.metadata_path
+    store.model = None
+    store.metadata = None
+    if model_path is None or metadata_path is None:
+        return
+    if not model_path.is_file() or not metadata_path.is_file():
+        return
+    try:
+        store.model = joblib.load(model_path)
+        with metadata_path.open("r", encoding="utf-8") as handle:
+            store.metadata = json.load(handle)
+    except Exception:
+        store.model = None
+        store.metadata = None
+
+
+for production_store in production_stores.values():
+    load_named_store(production_store)
 ranking_store = PredictionModelStore([DEFAULT_RANKING_MODEL_DIR])
 ranking_store.load()
+
+
+SENTIMENT_FEATURE_COLUMNS = [
+    "has_sentiment_data",
+    "sentiment_average_5d",
+    "weighted_sentiment_5d",
+    "news_volume_5d",
+    "sentiment_average_5d_x_regime",
+    "weighted_sentiment_5d_x_regime",
+]
+
+
+def is_missing(value: object) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, str) and value.strip() == "":
+        return True
+    return False
+
+
+def sentiment_availability(features: dict[str, object]) -> tuple[bool, list[str]]:
+    missing = [column for column in SENTIMENT_FEATURE_COLUMNS if is_missing(features.get(column))]
+    has_flag = features.get("has_sentiment_data")
+    volume = features.get("news_volume_5d")
+    try:
+        has_data = int(has_flag) == 1
+    except (TypeError, ValueError):
+        has_data = False
+    try:
+        has_volume = float(volume) > 0
+    except (TypeError, ValueError):
+        has_volume = False
+    if not has_data:
+        missing.append("has_sentiment_data=0")
+    if not has_volume:
+        missing.append("news_volume_5d<=0")
+    return len(missing) == 0, sorted(set(missing))
 
 
 @app.get("/health")
 def health() -> dict[str, object]:
     ready = store.model is not None and store.metadata is not None
     ranking_ready = ranking_store.model is not None and ranking_store.metadata is not None
+    production_ready = {
+        variant: production_store.model is not None and production_store.metadata is not None
+        for variant, production_store in production_stores.items()
+    }
     return {
         "status": "ok" if ready else "model_missing",
         "model_ready": ready,
         "model_path": str(store.model_path) if store.model_path else None,
+        "production_models_ready": production_ready,
+        "production_model_paths": {
+            variant: str(production_store.model_path) if production_store.model_path else None
+            for variant, production_store in production_stores.items()
+        },
         "ranking_model_ready": ranking_ready,
         "ranking_model_path": str(ranking_store.model_path) if ranking_store.model_path else None,
     }
@@ -129,18 +207,41 @@ def health() -> dict[str, object]:
 
 @app.post("/predict")
 def predict(payload: PredictionRequest) -> dict[str, object]:
-    store.ensure_ready()
-    assert store.metadata is not None
-    assert store.model is not None
+    model_variant = payload.model_variant
+    if model_variant not in production_stores:
+        raise HTTPException(status_code=422, detail=f"Unsupported model_variant: {model_variant}")
 
-    feature_columns = list(store.metadata["feature_columns"])
+    selected_store = production_stores[model_variant]
+    if selected_store.model is None or selected_store.metadata is None:
+        if model_variant == "technical" and store.model is not None and store.metadata is not None:
+            selected_store = store
+        else:
+            raise HTTPException(status_code=503, detail=f"Prediction model is not ready for variant: {model_variant}")
+
+    assert selected_store.metadata is not None
+    assert selected_store.model is not None
+
+    if model_variant == "technical_sentiment":
+        has_sentiment, missing_sentiment = sentiment_availability(payload.features)
+        if not has_sentiment:
+            return {
+                "predicted_direction": None,
+                "probability": None,
+                "confidence": None,
+                "model_variant": model_variant,
+                "has_sufficient_sentiment_data": False,
+                "message": "Data sentimen tidak memadai untuk saham ini pada tanggal ini, gunakan model Technical.",
+                "missing_sentiment_features": missing_sentiment,
+            }
+
+    feature_columns = list(selected_store.metadata["feature_columns"])
     row = {column: payload.features.get(column) for column in feature_columns}
     frame = pd.DataFrame([row], columns=feature_columns)
 
-    raw_direction = store.model.predict(frame)[0]
+    raw_direction = selected_store.model.predict(frame)[0]
     predicted_direction = normalize_direction(raw_direction)
-    probabilities = store.model.predict_proba(frame)[0]
-    classes = list(store.model.classes_)
+    probabilities = selected_store.model.predict_proba(frame)[0]
+    classes = list(selected_store.model.classes_)
     probability_map = {normalize_direction(label): float(probabilities[idx]) for idx, label in enumerate(classes)}
     probability = probability_map.get(predicted_direction, max(probability_map.values()))
 
@@ -149,7 +250,7 @@ def predict(payload: PredictionRequest) -> dict[str, object]:
     feature_columns_lower = {str(column).lower() for column in feature_columns}
     uses_sentiment = any("sentiment" in column for column in feature_columns_lower)
     basis = (
-        f"Model {store.metadata['selected_model']['model_name']} memakai return_5d, return_20d, "
+        f"Model {selected_store.metadata['selected_model']['model_name']} memakai return_5d, return_20d, "
         f"ATR14, volume ratio, price-vs-EMA50, dan regime {regime}."
     )
     if uses_sentiment:
@@ -166,11 +267,14 @@ def predict(payload: PredictionRequest) -> dict[str, object]:
         "predicted_direction": predicted_direction,
         "probability": round(probability, 4),
         "confidence": round(probability, 4),
+        "model_variant": model_variant,
+        "model_version": selected_store.metadata.get("model_version"),
+        "has_sufficient_sentiment_data": True if model_variant == "technical_sentiment" else None,
         "basis": basis,
         "scenario_bullish": scenario_bullish,
         "scenario_neutral": scenario_neutral,
         "scenario_bearish": scenario_bearish,
-        "model_name": store.metadata["selected_model"]["model_name"],
+        "model_name": selected_store.metadata["selected_model"]["model_name"],
         "feature_columns": feature_columns,
     }
 

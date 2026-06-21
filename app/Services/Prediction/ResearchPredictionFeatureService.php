@@ -65,7 +65,7 @@ class ResearchPredictionFeatureService
         return [
             'prediction_feature_version' => 'technical_prediction_research_v2',
             'prediction_target_horizon_days' => 5,
-            'prediction_label_threshold' => 0.01,
+            'prediction_label_threshold' => 0.015,
             'return_1d' => $row['return_1d'] ?? null,
             'return_3d' => $row['return_3d'] ?? null,
             'return_5d' => $row['return_5d'] ?? null,
