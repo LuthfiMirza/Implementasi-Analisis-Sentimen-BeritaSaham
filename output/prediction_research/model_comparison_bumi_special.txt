@@ -1,0 +1,13 @@
+BUMI Special Volatile Stock Prediction Research
+===============================================
+
+Scope: prediction research only; no strategy, P&L, or trading recommendation.
+Data path: canonical DB price selection matching StockPrice canonical source priority.
+
+Dataset rows: 2718
+Date range: 2001-06-30 -> 2026-06-16
+
+Evaluation Results
+------------------
+experiment,label_distribution,best_model,macro_f1,directional_accuracy,majority_macro_f1,random_macro_f1,assessment
+bumi_fixed_2_7pct,{"down": 0.354984, "flat": 0.348448, "up": 0.296569},random_forest,0.3742,0.4216,0.1541,0.3309,meaningful: best=random_forest macro_f1=0.3742, directional_accuracy=0.4216, delta_macro_f1_vs_majority=+0.2201.

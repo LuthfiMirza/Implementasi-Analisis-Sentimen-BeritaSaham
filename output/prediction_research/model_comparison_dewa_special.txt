@@ -1,0 +1,26 @@
+DEWA Special Volatile Stock Prediction Research
+===============================================
+
+Scope: prediction research only; no strategy, P&L, or trading recommendation.
+Data path: canonical DB price selection matching StockPrice canonical source priority.
+
+Dataset rows: 2643
+Date range: 2007-09-30 -> 2026-06-16
+
+DEWA Stale 5D Characterization
+-----------------------------
+Stale rows/share: 1511/2638 (0.5728)
+Average volume stale vs moving: 31410879.81 vs 1049030736.56
+Longest stale runs:
+- 2018-03-27 -> 2021-01-07: 717 rows
+- 2021-01-26 -> 2022-02-18: 270 rows
+- 2012-06-30 -> 2016-09-22: 150 rows
+- 2017-06-06 -> 2017-12-22: 145 rows
+- 2023-03-07 -> 2023-05-23: 47 rows
+
+Evaluation Results
+------------------
+experiment,label_distribution,best_model,macro_f1,directional_accuracy,majority_macro_f1,random_macro_f1,assessment
+dewa_move_0_5pct,{"move": 0.416291, "no_move": 0.583709},logistic_regression,0.5751,0.8532,0.1544,0.3763,meaningful: best=logistic_regression macro_f1=0.5751, directional_accuracy=0.8532, delta_macro_f1_vs_majority=+0.4207.
+dewa_atr0_5_h5d,{"down": 0.124437, "flat": 0.729022, "up": 0.146541},logistic_regression,0.3264,0.4067,0.2188,0.2887,meaningful: best=logistic_regression macro_f1=0.3264, directional_accuracy=0.4067, delta_macro_f1_vs_majority=+0.1076.
+dewa_atr0_75_h5d,{"down": 0.091691, "flat": 0.794924, "up": 0.113385},random_baseline,0.2877,0.5466,0.2546,0.2877,no_clear_signal: best comparator is random_baseline macro_f1=0.2877, directional_accuracy=0.5466; learned models did not beat trivial baseline cleanly.
