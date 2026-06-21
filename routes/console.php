@@ -147,3 +147,13 @@ Schedule::command('stocks:update-snapshots')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// WEEKLY ML RETRAIN: model khusus saham volatil BUMI/DEWA.
+// Aman/idempotent: command skip otomatis jika belum ada data baru sejak training terakhir.
+Schedule::command('prediction:retrain-volatile')
+    ->weekly()
+    ->mondays()
+    ->at('16:30')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
