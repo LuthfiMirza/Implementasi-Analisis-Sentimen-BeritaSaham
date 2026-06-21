@@ -5,17 +5,21 @@ namespace App\Services\Analytics;
 use App\Models\NewsArticle;
 use App\Models\Stock;
 use App\Models\StockPrice;
+use App\Services\Prediction\FeatureBuilderService;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 
 class BacktestService
 {
     public function __construct(
         protected DecisionSupportService $dss,
         protected ?SentimentPriceAnalyticsService $analyticsService = null,
+        protected ?FeatureBuilderService $featureBuilderService = null,
     ) {
         $this->analyticsService ??= new SentimentPriceAnalyticsService();
+        $this->featureBuilderService ??= new FeatureBuilderService();
     }
 
     /**
@@ -61,6 +65,7 @@ class BacktestService
             ->groupBy(fn ($article) => $article->published_at->toDateString());
 
         $results = [];
+        $regimeResults = [];
 
         for ($i = $firstWindowIndex; $i <= $lastWindowIndex; $i += $step) {
             $windowPrices = $allPrices->slice($i - $lookback, $lookback)->values();
@@ -78,6 +83,10 @@ class BacktestService
                     $macroRegulatorySignal
                 );
                 $result = $this->dss->analyze($stock, $windowPrices, $windowArticles, $analytics);
+                $features = array_merge(
+                    $this->featureBuilderService->build($stock, $windowPrices, $windowArticles, $analytics, $lookback, $signalDate),
+                    $this->technicalFeaturesForIndex($stock, $allPrices, $i - 1)
+                );
             } catch (\Throwable $e) {
                 continue;
             }
@@ -88,15 +97,41 @@ class BacktestService
                 ? round(($exitPrice - $entryPrice) / $entryPrice * 100, 2)
                 : 0;
 
+            $activeThreshold = $this->effectiveDirectionalThreshold($stock, $features ?? [], $threshold);
             $actualDirection = match (true) {
-                $actualReturn > $threshold => 'up',
-                $actualReturn < -$threshold => 'down',
+                $actualReturn > $activeThreshold => 'up',
+                $actualReturn < -$activeThreshold => 'down',
                 default => 'flat',
             };
 
             $prediction = $result['prediction'] ?? 'flat';
             $confidence = $result['prediction_confidence'] ?? 0;
             $finalScore = $result['final_score'] ?? 0;
+            $modelSource = 'dss_legacy';
+            if (isset($features)) {
+                $specialPrediction = $this->specialPredictionForBacktest($stock, $features);
+                if ($specialPrediction !== null) {
+                    $prediction = strtolower((string) ($specialPrediction['predicted_direction'] ?? $prediction));
+                    $confidence = (float) ($specialPrediction['probability'] ?? $specialPrediction['confidence'] ?? $confidence);
+                    $finalScore = $confidence * 100;
+                    $modelSource = (string) ($specialPrediction['model_source'] ?? $specialPrediction['model_variant'] ?? 'special_model');
+                }
+
+                $regimePrediction = $this->regimePredictionForBacktest($stock, $features);
+                if ($regimePrediction !== null) {
+                    $actualRegime = abs($actualReturn) > 0.5 ? 'move' : 'no_move';
+                    $predictedRegime = strtolower((string) ($regimePrediction['predicted_regime'] ?? 'no_move'));
+                    $regimeResults[] = [
+                        'date' => $signalDate?->format('Y-m-d'),
+                        'prediction' => $predictedRegime,
+                        'actual_regime' => $actualRegime,
+                        'actual_return' => $actualReturn,
+                        'is_correct' => $predictedRegime === $actualRegime,
+                        'confidence' => round((float) ($regimePrediction['probability'] ?? $regimePrediction['confidence'] ?? 0), 3),
+                        'model_source' => 'dewa_regime',
+                    ];
+                }
+            }
             $sentimentAvg = $result['sentiment_average'] ?? 0;
             $macroSignal = is_array($result['macro_regulatory_signal'] ?? null)
                 ? $result['macro_regulatory_signal']
@@ -110,6 +145,8 @@ class BacktestService
                 'is_correct' => $prediction === $actualDirection,
                 'confidence' => round($confidence, 3),
                 'final_score' => round($finalScore, 2),
+                'model_source' => $modelSource,
+                'active_threshold' => round($activeThreshold, 4),
                 'sentiment_avg' => round($sentimentAvg, 4),
                 'entry_price' => $entryPrice,
                 'exit_price' => $exitPrice,
@@ -173,6 +210,203 @@ class BacktestService
             ],
             'results' => $results,
             'params' => compact('lookback', 'forward', 'step', 'threshold', 'includeMacroNews', 'macroRegulatorySignal', 'maxWindows'),
+            'special_models' => $this->summarizeRegimeResults($regimeResults),
+        ];
+    }
+
+    protected function effectiveDirectionalThreshold(Stock $stock, array $features, float $defaultThreshold): float
+    {
+        return match ($stock->code) {
+            'BUMI' => 2.7,
+            'DEWA' => max(0.0, ((float) ($features['atr14_pct'] ?? 0.0)) * 100 * 0.5),
+            default => $defaultThreshold,
+        };
+    }
+
+    protected function technicalFeaturesForIndex(Stock $stock, Collection $prices, int $signalIndex): array
+    {
+        $slice = $prices->slice(0, $signalIndex + 1)->values();
+        $closes = $slice->pluck('close')->map(fn ($value) => (float) $value)->values();
+        $highs = $slice->pluck('high')->map(fn ($value) => (float) $value)->values();
+        $lows = $slice->pluck('low')->map(fn ($value) => (float) $value)->values();
+        $volumes = $slice->pluck('volume')->map(fn ($value) => (float) ($value ?? 0))->values();
+        $lastClose = (float) $closes->last();
+
+        return [
+            'ticker' => $stock->code,
+            'stock' => $stock->code,
+            'return_1d' => $this->decimalReturn($closes, 1),
+            'return_3d' => $this->decimalReturn($closes, 3),
+            'return_5d' => $this->decimalReturn($closes, 5),
+            'return_20d' => $this->decimalReturn($closes, 20),
+            'atr14_pct' => $this->atrPct($highs, $lows, $closes, 14),
+            'atr_ratio' => $this->atrPct($highs, $lows, $closes, 14),
+            'volume_ratio_5d' => $this->volumeRatio($volumes, 5, 20),
+            'volume_ratio_20d' => $this->volumeRatioCurrent($volumes, 20),
+            'price_vs_ema20_pct' => $this->priceVsEma($closes, 20),
+            'price_vs_ema50' => $this->priceVsEma($closes, 50),
+            'rsi_slope_5d' => $this->rsiSlope($closes, 14, 5),
+            'return_5d_cross_section_rank' => 0.5,
+            'volume_spike_flag' => $this->volumeSpikeFlag($volumes, 20),
+            'market_regime_bullish' => null,
+            'regime_duration' => null,
+            'last_close' => $lastClose,
+        ];
+    }
+
+    protected function decimalReturn(Collection $closes, int $lag): ?float
+    {
+        if ($closes->count() <= $lag) {
+            return null;
+        }
+        $current = (float) $closes->last();
+        $previous = (float) $closes[$closes->count() - $lag - 1];
+        return $previous > 0 ? round(($current / $previous) - 1, 6) : null;
+    }
+
+    protected function atrPct(Collection $highs, Collection $lows, Collection $closes, int $period): ?float
+    {
+        if ($closes->count() <= $period) {
+            return null;
+        }
+        $ranges = [];
+        for ($index = $closes->count() - $period; $index < $closes->count(); $index++) {
+            $prevClose = (float) $closes[$index - 1];
+            $ranges[] = max(
+                (float) $highs[$index] - (float) $lows[$index],
+                abs((float) $highs[$index] - $prevClose),
+                abs((float) $lows[$index] - $prevClose)
+            );
+        }
+        $lastClose = (float) $closes->last();
+        return $lastClose > 0 ? round((array_sum($ranges) / count($ranges)) / $lastClose, 6) : null;
+    }
+
+    protected function volumeRatio(Collection $volumes, int $shortWindow, int $longWindow): ?float
+    {
+        if ($volumes->count() < $longWindow) {
+            return null;
+        }
+        $short = $volumes->take(-$shortWindow)->avg();
+        $long = $volumes->take(-$longWindow)->avg();
+        return $long > 0 ? round($short / $long, 6) : null;
+    }
+
+    protected function volumeRatioCurrent(Collection $volumes, int $window): ?float
+    {
+        if ($volumes->count() < $window) {
+            return null;
+        }
+        $average = $volumes->take(-$window)->avg();
+        return $average > 0 ? round(((float) $volumes->last()) / $average, 6) : null;
+    }
+
+    protected function priceVsEma(Collection $closes, int $span): ?float
+    {
+        if ($closes->count() < $span) {
+            return null;
+        }
+        $multiplier = 2 / ($span + 1);
+        $ema = (float) $closes->first();
+        foreach ($closes->slice(1) as $close) {
+            $ema = (((float) $close - $ema) * $multiplier) + $ema;
+        }
+        return $ema > 0 ? round(((float) $closes->last() / $ema) - 1, 6) : null;
+    }
+
+    protected function rsiSlope(Collection $closes, int $period, int $lag): ?float
+    {
+        if ($closes->count() <= $period + $lag) {
+            return null;
+        }
+        $current = $this->rsiFromCloses($closes, $period, $closes->count() - 1);
+        $previous = $this->rsiFromCloses($closes, $period, $closes->count() - 1 - $lag);
+        return $current !== null && $previous !== null ? round($current - $previous, 6) : null;
+    }
+
+    protected function rsiFromCloses(Collection $closes, int $period, int $endIndex): ?float
+    {
+        if ($endIndex < $period) {
+            return null;
+        }
+        $gains = [];
+        $losses = [];
+        for ($index = $endIndex - $period + 1; $index <= $endIndex; $index++) {
+            $change = (float) $closes[$index] - (float) $closes[$index - 1];
+            if ($change > 0) {
+                $gains[] = $change;
+            } elseif ($change < 0) {
+                $losses[] = abs($change);
+            }
+        }
+        $avgGain = count($gains) ? array_sum($gains) / count($gains) : 0.0;
+        $avgLoss = count($losses) ? array_sum($losses) / count($losses) : 0.0;
+        if ($avgLoss == 0.0) {
+            return 70.0;
+        }
+        $rs = $avgGain / $avgLoss;
+        return 100 - (100 / (1 + $rs));
+    }
+
+    protected function volumeSpikeFlag(Collection $volumes, int $window): ?float
+    {
+        if ($volumes->count() < $window) {
+            return null;
+        }
+        $average = $volumes->take(-$window)->avg();
+        return (float) $volumes->last() > ($average * 2) ? 1.0 : 0.0;
+    }
+
+    protected function specialPredictionForBacktest(Stock $stock, array $features): ?array
+    {
+        $variant = match ($stock->code) {
+            'BUMI' => 'bumi_technical',
+            'DEWA' => 'dewa_technical',
+            default => null,
+        };
+
+        return $variant ? $this->postPrediction($features, $variant) : null;
+    }
+
+    protected function regimePredictionForBacktest(Stock $stock, array $features): ?array
+    {
+        return $stock->code === 'DEWA' ? $this->postPrediction($features, 'dewa_regime') : null;
+    }
+
+    protected function postPrediction(array $features, string $variant): ?array
+    {
+        $endpoint = (string) config('services.python_prediction.endpoint');
+        if ($endpoint === '') {
+            return null;
+        }
+
+        try {
+            $response = Http::timeout((int) config('services.python_prediction.timeout', 5))
+                ->post($endpoint, ['features' => $features, 'model_variant' => $variant]);
+
+            return $response->successful() && is_array($response->json()) ? $response->json() : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    protected function summarizeRegimeResults(array $rows): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $total = count($rows);
+        $correct = count(array_filter($rows, fn ($row) => (bool) $row['is_correct']));
+
+        return [
+            'dewa_regime' => [
+                'label_type' => 'move_vs_no_move',
+                'total' => $total,
+                'correct' => $correct,
+                'accuracy' => round($correct / $total * 100, 1),
+                'results' => $rows,
+            ],
         ];
     }
 

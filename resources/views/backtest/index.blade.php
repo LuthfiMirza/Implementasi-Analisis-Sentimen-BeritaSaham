@@ -57,6 +57,9 @@
 
         <div class="text-xs text-slate-500">
             Mode web dipangkas ke window terbaru agar halaman cepat dimuat. Gunakan nilai lebih besar hanya jika memang perlu audit history yang lebih panjang.
+            @if(in_array($stock->code, ['BUMI', 'DEWA'], true))
+                Untuk {{ $stock->code }}, backtest memakai model khusus per-saham dan threshold riset yang sudah divalidasi; input threshold bebas di form tidak menjadi acuan utama untuk model khusus ini.
+            @endif
         </div>
 
         @if(isset($result['error']))
@@ -121,6 +124,7 @@
                                 <th class="px-4 py-3 text-left">Return {{ $forward }}d</th>
                                 <th class="px-4 py-3 text-left">Score</th>
                                 <th class="px-4 py-3 text-left">Conf</th>
+                                <th class="px-4 py-3 text-left">Model</th>
                                 <th class="px-4 py-3 text-left">Benar?</th>
                             </tr>
                         </thead>
@@ -134,9 +138,13 @@
                                     <td class="px-4 py-2">{{ $row['date'] }}</td>
                                     <td class="px-4 py-2">
                                         <span class="{{ $predClass }} font-semibold">
-                                            @if($row['prediction'] === 'up') ▲ UP
-                                            @elseif($row['prediction'] === 'down') ▼ DOWN
-                                            @else → FLAT @endif
+                                            @if($row['prediction'] === 'up')
+                                                ▲ UP
+                                            @elseif($row['prediction'] === 'down')
+                                                ▼ DOWN
+                                            @else
+                                                → FLAT
+                                            @endif
                                         </span>
                                     </td>
                                     <td class="px-4 py-2">{{ strtoupper($row['actual_direction']) }}</td>
@@ -145,6 +153,7 @@
                                     </td>
                                     <td class="px-4 py-2">{{ $row['final_score'] }}</td>
                                     <td class="px-4 py-2">{{ round($row['confidence'] * 100, 1) }}%</td>
+                                    <td class="px-4 py-2 text-xs text-slate-400">{{ $row['model_source'] ?? 'dss_legacy' }}</td>
                                     <td class="px-4 py-2">{{ $row['is_correct'] ? '✅' : '❌' }}</td>
                                 </tr>
                             @endforeach
@@ -152,6 +161,47 @@
                     </table>
                 </div>
             </x-panel>
+
+            @if(! empty($result['special_models']['dewa_regime'] ?? null))
+                @php
+                    $regime = $result['special_models']['dewa_regime'];
+                @endphp
+                <x-panel class="p-0 overflow-hidden border-purple-500/30">
+                    <div class="p-4 border-b border-slate-800">
+                        <h2 class="font-semibold text-slate-100">Deteksi Rezim DEWA — Move vs No-Move</h2>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Model ini mendeteksi apakah DEWA cenderung bergerak signifikan (&gt;0.5%) atau tidak. Ini bukan prediksi arah up/down/flat.
+                        </p>
+                        <div class="text-sm text-purple-200 mt-2">Akurasi regime: {{ $regime['accuracy'] }}% ({{ $regime['correct'] }}/{{ $regime['total'] }})</div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm text-slate-200">
+                            <thead class="bg-slate-900 text-xs uppercase text-slate-400">
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Tanggal</th>
+                                    <th class="px-4 py-3 text-left">Prediksi Rezim</th>
+                                    <th class="px-4 py-3 text-left">Aktual Rezim</th>
+                                    <th class="px-4 py-3 text-left">Return {{ $forward }}d</th>
+                                    <th class="px-4 py-3 text-left">Conf</th>
+                                    <th class="px-4 py-3 text-left">Benar?</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">
+                                @foreach($regime['results'] as $row)
+                                    <tr class="hover:bg-slate-800/50">
+                                        <td class="px-4 py-2">{{ $row['date'] }}</td>
+                                        <td class="px-4 py-2 font-semibold text-purple-300">{{ strtoupper($row['prediction']) }}</td>
+                                        <td class="px-4 py-2">{{ strtoupper($row['actual_regime']) }}</td>
+                                        <td class="px-4 py-2">{{ $row['actual_return'] }}%</td>
+                                        <td class="px-4 py-2">{{ round($row['confidence'] * 100, 1) }}%</td>
+                                        <td class="px-4 py-2">{{ $row['is_correct'] ? '✅' : '❌' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </x-panel>
+            @endif
 
             <div class="glass-card border border-slate-800/80 rounded-2xl p-5 mt-4 space-y-4">
                 <h3 class="font-semibold text-slate-200">📊 Interpretasi Hasil Backtest</h3>

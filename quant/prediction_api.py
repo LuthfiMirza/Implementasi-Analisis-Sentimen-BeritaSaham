@@ -115,11 +115,26 @@ production_model_dir = Path(os.environ.get("PREDICTION_PRODUCTION_MODEL_DIR", "s
 production_stores = {
     "technical": PredictionModelStore([production_model_dir]),
     "technical_sentiment": PredictionModelStore([production_model_dir]),
+    "bumi_technical": PredictionModelStore([production_model_dir]),
+    "dewa_regime": PredictionModelStore([production_model_dir]),
+    "dewa_technical": PredictionModelStore([production_model_dir]),
 }
 production_stores["technical"].model_path = production_model_dir / "model_technical_v6a.joblib"
 production_stores["technical"].metadata_path = production_model_dir / "model_technical_v6a_metadata.json"
 production_stores["technical_sentiment"].model_path = production_model_dir / "model_technical_sentiment_v6b.joblib"
 production_stores["technical_sentiment"].metadata_path = production_model_dir / "model_technical_sentiment_v6b_metadata.json"
+production_stores["bumi_technical"].model_path = production_model_dir / "model_bumi_technical.joblib"
+production_stores["bumi_technical"].metadata_path = production_model_dir / "model_bumi_technical_metadata.json"
+production_stores["dewa_regime"].model_path = production_model_dir / "model_dewa_regime.joblib"
+production_stores["dewa_regime"].metadata_path = production_model_dir / "model_dewa_regime_metadata.json"
+production_stores["dewa_technical"].model_path = production_model_dir / "model_dewa_technical.joblib"
+production_stores["dewa_technical"].metadata_path = production_model_dir / "model_dewa_technical_metadata.json"
+
+TICKER_SPECIFIC_VARIANTS = {
+    "bumi_technical": "BUMI",
+    "dewa_regime": "DEWA",
+    "dewa_technical": "DEWA",
+}
 
 
 def load_named_store(store: PredictionModelStore) -> None:
@@ -182,6 +197,12 @@ def sentiment_availability(features: dict[str, object]) -> tuple[bool, list[str]
         missing.append("news_volume_5d<=0")
     return len(missing) == 0, sorted(set(missing))
 
+def request_ticker(features: dict[str, object]) -> str | None:
+    value = features.get("ticker") or features.get("code") or features.get("stock_code") or features.get("stock")
+    if value is None:
+        return None
+    return str(value).upper().strip()
+
 
 @app.get("/health")
 def health() -> dict[str, object]:
@@ -210,6 +231,13 @@ def predict(payload: PredictionRequest) -> dict[str, object]:
     model_variant = payload.model_variant
     if model_variant not in production_stores:
         raise HTTPException(status_code=422, detail=f"Unsupported model_variant: {model_variant}")
+
+    required_ticker = TICKER_SPECIFIC_VARIANTS.get(model_variant)
+    if required_ticker is not None and request_ticker(payload.features) != required_ticker:
+        raise HTTPException(
+            status_code=422,
+            detail=f"model_variant {model_variant} is specific to ticker {required_ticker}.",
+        )
 
     selected_store = production_stores[model_variant]
     if selected_store.model is None or selected_store.metadata is None:
@@ -245,6 +273,23 @@ def predict(payload: PredictionRequest) -> dict[str, object]:
     probability_map = {normalize_direction(label): float(probabilities[idx]) for idx, label in enumerate(classes)}
     probability = probability_map.get(predicted_direction, max(probability_map.values()))
 
+    if model_variant == "dewa_regime":
+        predicted_regime = str(raw_direction).lower()
+        regime_probability_map = {str(label).lower(): float(probabilities[idx]) for idx, label in enumerate(classes)}
+        regime_probability = regime_probability_map.get(predicted_regime, max(regime_probability_map.values()))
+        return {
+            "predicted_regime": predicted_regime,
+            "probability": round(regime_probability, 4),
+            "confidence": round(regime_probability, 4),
+            "model_variant": model_variant,
+            "model_version": selected_store.metadata.get("model_version"),
+            "label_type": selected_store.metadata.get("label_type"),
+            "basis": "Model khusus DEWA untuk deteksi rezim move/no_move; ini bukan prediksi arah up/down/flat.",
+            "message": "Prediksi ini mendeteksi apakah DEWA cenderung bergerak signifikan atau tidak, bukan arah pergerakannya.",
+            "model_name": selected_store.metadata["selected_model"]["model_name"],
+            "feature_columns": feature_columns,
+        }
+
     regime = "bullish" if payload.features.get("market_regime_bullish") else "non-bullish"
     weighted_sentiment = float(payload.features.get("weighted_sentiment_5d") or 0.0)
     feature_columns_lower = {str(column).lower() for column in feature_columns}
@@ -275,6 +320,7 @@ def predict(payload: PredictionRequest) -> dict[str, object]:
         "scenario_neutral": scenario_neutral,
         "scenario_bearish": scenario_bearish,
         "model_name": selected_store.metadata["selected_model"]["model_name"],
+        "label_type": selected_store.metadata.get("label_type"),
         "feature_columns": feature_columns,
     }
 

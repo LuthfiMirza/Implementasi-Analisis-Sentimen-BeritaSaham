@@ -26,6 +26,9 @@ class BacktestController extends Controller
         $stock = Stock::where('code', strtoupper($code))
             ->where('is_active', true)
             ->firstOrFail();
+        if (in_array($stock->code, ['BUMI', 'DEWA'], true)) {
+            $forward = 5;
+        }
         $stocks = Stock::where('is_active', true)->orderBy('code')->get();
 
         $service = app(BacktestService::class);

@@ -31,7 +31,7 @@ class ApiPredictionController extends Controller
             'features.atr_ratio' => ['required', 'numeric'],
             'features.price_vs_ema20_pct' => ['required', 'numeric'],
             'features.regime_duration' => ['required', 'integer'],
-            'model_variant' => ['nullable', 'in:technical,technical_sentiment'],
+            'model_variant' => ['nullable', 'in:technical,technical_sentiment,bumi_technical,dewa_regime,dewa_technical'],
         ]);
 
         if ($validator->fails()) {
@@ -69,8 +69,8 @@ class ApiPredictionController extends Controller
             ['features' => $features, 'model_variant' => $variant],
         );
 
-        if (is_array($python) && (array_key_exists('predicted_direction', $python) || ($python['has_sufficient_sentiment_data'] ?? null) === false)) {
-            return $this->normalizePrediction($python, $variant, $variant === 'technical' ? 'v6a_technical' : 'v6b_sentiment');
+        if (is_array($python) && (array_key_exists('predicted_direction', $python) || array_key_exists('predicted_regime', $python) || ($python['has_sufficient_sentiment_data'] ?? null) === false)) {
+            return $this->normalizePrediction($python, $variant, $this->modelSourceForVariant($variant));
         }
 
         return $this->normalizePrediction(
@@ -152,17 +152,31 @@ class ApiPredictionController extends Controller
 
         return [
             'predicted_direction' => $hasDirection ? strtolower((string) $prediction['predicted_direction']) : null,
+            'predicted_regime' => filled($prediction['predicted_regime'] ?? null) ? strtolower((string) $prediction['predicted_regime']) : null,
             'probability' => $prediction['probability'] ?? $prediction['confidence'] ?? null,
             'basis' => (string) ($prediction['basis'] ?? $prediction['prediction_basis'] ?? 'baseline_heuristic_v1'),
             'model_variant' => $prediction['model_variant'] ?? $variant,
             'model_source' => $prediction['model_source'] ?? $source,
             'model_name' => $prediction['model_name'] ?? ($source === 'fallback_heuristic' ? 'baseline_heuristic' : null),
             'model_version' => $prediction['model_version'] ?? null,
+            'label_type' => $prediction['label_type'] ?? null,
             'has_sufficient_sentiment_data' => $prediction['has_sufficient_sentiment_data'] ?? null,
             'message' => $prediction['message'] ?? null,
             'scenario_bullish' => (string) ($prediction['scenario_bullish'] ?? ''),
             'scenario_neutral' => (string) ($prediction['scenario_neutral'] ?? ''),
             'scenario_bearish' => (string) ($prediction['scenario_bearish'] ?? ''),
         ];
+    }
+
+    protected function modelSourceForVariant(string $variant): string
+    {
+        return match ($variant) {
+            'technical' => 'v6a_technical',
+            'technical_sentiment' => 'v6b_sentiment',
+            'bumi_technical' => 'bumi_special',
+            'dewa_regime' => 'dewa_regime',
+            'dewa_technical' => 'dewa_special_directional',
+            default => 'fallback_heuristic',
+        };
     }
 }

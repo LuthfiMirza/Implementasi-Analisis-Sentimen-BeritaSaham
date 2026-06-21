@@ -80,6 +80,57 @@ class PredictionDualModelTest extends TestCase
             ->assertSee('Prediksi Teknikal + Sentimen', false);
     }
 
+    public function test_prediction_page_uses_dewa_special_models(): void
+    {
+        $stock = $this->seedStock('DEWA');
+        $this->seedPriceSeries($stock, 90);
+        $this->configurePythonEndpoint();
+
+        Http::fake(function (Request $request) {
+            $variant = $request->data()['model_variant'] ?? '';
+            if ($variant === 'dewa_regime') {
+                return Http::response([
+                    'predicted_regime' => 'move',
+                    'probability' => 0.82,
+                    'model_variant' => 'dewa_regime',
+                    'model_name' => 'logistic_regression',
+                    'label_type' => 'move_vs_no_move',
+                    'basis' => 'Regime model',
+                ], 200);
+            }
+
+            return Http::response($this->pythonPayload($variant), 200);
+        });
+
+        $this->actingAsUser()
+            ->get('/predictions?code=DEWA')
+            ->assertOk()
+            ->assertSee('Deteksi Rezim DEWA', false)
+            ->assertSee('Prediksi Arah DEWA', false)
+            ->assertSee('MOVE', false)
+            ->assertDontSee('Prediksi Teknikal + Sentimen', false);
+
+        Http::assertSent(fn (Request $request) => $request->data()['model_variant'] === 'dewa_regime');
+        Http::assertSent(fn (Request $request) => $request->data()['model_variant'] === 'dewa_technical');
+    }
+
+    public function test_prediction_page_uses_bumi_special_model(): void
+    {
+        $stock = $this->seedStock('BUMI');
+        $this->seedPriceSeries($stock, 90);
+        $this->configurePythonEndpoint();
+
+        Http::fake(fn (Request $request) => Http::response($this->pythonPayload($request->data()['model_variant'] ?? 'bumi_technical'), 200));
+
+        $this->actingAsUser()
+            ->get('/predictions?code=BUMI')
+            ->assertOk()
+            ->assertSee('Prediksi Teknikal BUMI', false)
+            ->assertDontSee('Prediksi Teknikal + Sentimen', false);
+
+        Http::assertSent(fn (Request $request) => $request->data()['model_variant'] === 'bumi_technical');
+    }
+
     public function test_api_predict_returns_dual_predictions_by_default(): void
     {
         $this->configurePythonEndpoint();

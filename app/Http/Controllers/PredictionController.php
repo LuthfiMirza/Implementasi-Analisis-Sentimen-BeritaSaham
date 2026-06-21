@@ -49,12 +49,33 @@ class PredictionController extends Controller
             $analytics = $analyticsService->analyze($stock, $prices, $articles, 30);
             $features = $featureBuilderService->build($stock, $prices, $articles, $analytics, 30);
 
-            $predictions = $this->buildDualPredictions($features, $baselinePredictionService);
-            $prediction = $predictions['technical'] ?? null;
+            $predictions = $this->buildPredictionsForStock($stock, $features, $baselinePredictionService);
+            $prediction = $predictions['technical']
+                ?? $predictions['bumi_technical']
+                ?? $predictions['dewa_technical']
+                ?? $predictions['dewa_regime']
+                ?? null;
             $predictionSource = $prediction['model_source'] ?? 'fallback_heuristic';
         }
 
         return view('predictions.index', compact('stock', 'prediction', 'predictionSource', 'predictions', 'stocks'));
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    protected function buildPredictionsForStock(Stock $stock, array $features, BaselinePredictionService $baselinePredictionService): array
+    {
+        return match ($stock->code) {
+            'BUMI' => [
+                'bumi_technical' => $this->predictVariant($features, $baselinePredictionService, 'bumi_technical'),
+            ],
+            'DEWA' => [
+                'dewa_regime' => $this->predictVariant($features, $baselinePredictionService, 'dewa_regime'),
+                'dewa_technical' => $this->predictVariant($features, $baselinePredictionService, 'dewa_technical'),
+            ],
+            default => $this->buildDualPredictions($features, $baselinePredictionService),
+        };
     }
 
     /**
@@ -102,8 +123,8 @@ class PredictionController extends Controller
                 ->post($endpoint, ['features' => $features, 'model_variant' => $variant]);
             $payload = $response->successful() ? $response->json() : null;
 
-            return is_array($payload) && (array_key_exists('predicted_direction', $payload) || ($payload['has_sufficient_sentiment_data'] ?? null) === false)
-                ? $this->normalizePrediction($payload, $variant, $variant === 'technical' ? 'v6a_technical' : 'v6b_sentiment')
+            return is_array($payload) && (array_key_exists('predicted_direction', $payload) || array_key_exists('predicted_regime', $payload) || ($payload['has_sufficient_sentiment_data'] ?? null) === false)
+                ? $this->normalizePrediction($payload, $variant, $this->modelSourceForVariant($variant))
                 : null;
         } catch (\Throwable) {
             return null;
@@ -121,17 +142,31 @@ class PredictionController extends Controller
 
         return [
             'predicted_direction' => $hasDirection ? strtolower((string) $prediction['predicted_direction']) : null,
+            'predicted_regime' => filled($prediction['predicted_regime'] ?? null) ? strtolower((string) $prediction['predicted_regime']) : null,
             'probability' => $prediction['probability'] ?? $prediction['confidence'] ?? null,
             'basis' => (string) ($prediction['basis'] ?? $prediction['prediction_basis'] ?? 'baseline_heuristic_v1'),
             'model_variant' => $prediction['model_variant'] ?? $variant,
             'model_source' => $prediction['model_source'] ?? $source,
             'model_name' => $prediction['model_name'] ?? ($source === 'fallback_heuristic' ? 'baseline_heuristic' : null),
             'model_version' => $prediction['model_version'] ?? null,
+            'label_type' => $prediction['label_type'] ?? null,
             'has_sufficient_sentiment_data' => $prediction['has_sufficient_sentiment_data'] ?? null,
             'message' => $prediction['message'] ?? null,
             'scenario_bullish' => $prediction['scenario_bullish'] ?? null,
             'scenario_neutral' => $prediction['scenario_neutral'] ?? null,
             'scenario_bearish' => $prediction['scenario_bearish'] ?? null,
         ];
+    }
+
+    protected function modelSourceForVariant(string $variant): string
+    {
+        return match ($variant) {
+            'technical' => 'v6a_technical',
+            'technical_sentiment' => 'v6b_sentiment',
+            'bumi_technical' => 'bumi_special',
+            'dewa_regime' => 'dewa_regime',
+            'dewa_technical' => 'dewa_special_directional',
+            default => 'fallback_heuristic',
+        };
     }
 }

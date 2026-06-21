@@ -16,7 +16,7 @@
 
         <x-panel class="p-4 border-sky-500/30 bg-sky-500/5">
             <div class="text-sm text-sky-100 leading-relaxed">
-                Kedua model adalah hasil riset skripsi yang diuji dengan walk-forward validation. Model Teknikal mencapai directional accuracy ~40.5%, sedangkan Model Teknikal+Sentimen menunjukkan peningkatan ~1-2% pada sebagian konfigurasi pengujian. Output ini bersifat estimasi indikatif untuk decision support, bukan rekomendasi investasi final atau jaminan hasil.
+                Model prediksi adalah hasil riset skripsi yang diuji dengan walk-forward validation. Untuk 10 ticker resmi, Model Teknikal V6A mencapai directional accuracy ~40.5%, sedangkan Model Teknikal+Sentimen V6B menunjukkan peningkatan ~1-2% pada sebagian konfigurasi. Untuk BUMI/DEWA, model yang tampil adalah model khusus per-saham dan tidak digabung dengan V6A/V6B. Output ini bersifat estimasi indikatif untuk decision support, bukan rekomendasi investasi final atau jaminan hasil.
             </div>
         </x-panel>
 
@@ -31,21 +31,41 @@
                         'title' => 'Prediksi Teknikal + Sentimen',
                         'subtitle' => 'V6B Logistic Regression · technical + berita',
                     ],
+                    'bumi_technical' => [
+                        'title' => 'Prediksi Teknikal BUMI',
+                        'subtitle' => 'BUMI Random Forest · threshold fixed 2.7%',
+                    ],
+                    'dewa_regime' => [
+                        'title' => 'Deteksi Rezim DEWA',
+                        'subtitle' => 'DEWA Logistic Regression · move vs no_move, bukan arah harga',
+                    ],
+                    'dewa_technical' => [
+                        'title' => 'Prediksi Arah DEWA',
+                        'subtitle' => 'DEWA Logistic Regression · ATR threshold 0.5, sinyal arah lemah/moderat',
+                    ],
                 ];
             @endphp
 
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 @foreach($cards as $variant => $meta)
                     @php
+                        if (! array_key_exists($variant, $predictions)) {
+                            continue;
+                        }
                         $item = $predictions[$variant] ?? null;
                         $sentimentUnavailable = $variant === 'technical_sentiment'
                             && (($item['has_sufficient_sentiment_data'] ?? null) === false);
+                        $isRegime = $variant === 'dewa_regime';
                         $direction = strtolower((string) ($item['predicted_direction'] ?? 'flat'));
+                        $regime = strtolower((string) ($item['predicted_regime'] ?? 'no_move'));
                         $badge = match ($direction) {
                             'up' => 'bg-green-500/20 text-green-300',
                             'down' => 'bg-rose-500/20 text-rose-300',
                             default => 'bg-slate-700 text-slate-200',
                         };
+                        if ($isRegime) {
+                            $badge = $regime === 'move' ? 'bg-purple-500/20 text-purple-300' : 'bg-slate-700 text-slate-200';
+                        }
                         $source = $item['model_source'] ?? 'unavailable';
                         $sourceBadge = $source === 'fallback_heuristic'
                             ? 'bg-amber-500/15 text-amber-300'
@@ -73,7 +93,7 @@
                         @elseif($item)
                             <div class="flex flex-wrap items-center gap-3">
                                 <span class="px-3 py-1 rounded-full text-sm font-semibold {{ $badge }}">
-                                    {{ strtoupper($direction) }}
+                                    {{ $isRegime ? strtoupper($regime) : strtoupper($direction) }}
                                 </span>
                                 @if(! empty($item['model_name']))
                                     <span class="px-3 py-1 rounded-full text-xs bg-slate-700 text-slate-200">
@@ -83,7 +103,7 @@
                             </div>
 
                             <div>
-                                <div class="text-xs uppercase text-slate-400">Probability</div>
+                                <div class="text-xs uppercase text-slate-400">{{ $isRegime ? 'Regime Probability' : 'Probability' }}</div>
                                 <div class="text-4xl font-bold text-slate-100">
                                     {{ number_format(((float) ($item['probability'] ?? 0)) * 100, 1) }}%
                                 </div>
@@ -93,6 +113,12 @@
                                 <div class="text-xs uppercase text-slate-400">Basis</div>
                                 <p class="text-sm text-slate-300 mt-1">{{ $item['basis'] ?? '-' }}</p>
                             </div>
+
+                            @if($variant === 'dewa_technical')
+                                <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
+                                    Sinyal arah DEWA ini lemah/moderat: directional accuracy riset berada di bawah majority-class baseline pada sebagian pengujian. Gunakan sebagai pembanding, bukan sinyal final.
+                                </div>
+                            @endif
 
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                                 <div class="rounded-lg border border-slate-800 p-3">

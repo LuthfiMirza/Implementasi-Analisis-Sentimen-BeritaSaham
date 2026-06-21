@@ -15,6 +15,15 @@ class DummyModel:
     def predict_proba(self, frame):
         return np.array([[0.1, 0.2, 0.7]])
 
+class DummyRegimeModel:
+    classes_ = np.array(["move", "no_move"])
+
+    def predict(self, frame):
+        return np.array(["move"])
+
+    def predict_proba(self, frame):
+        return np.array([[0.8, 0.2]])
+
 
 def ready_store(feature_columns):
     api = importlib.import_module("quant.prediction_api")
@@ -24,6 +33,18 @@ def ready_store(feature_columns):
         "model_version": "test-version",
         "feature_columns": feature_columns,
         "selected_model": {"model_name": "dummy_model"},
+    }
+    return store
+
+def ready_regime_store(feature_columns):
+    api = importlib.import_module("quant.prediction_api")
+    store = api.PredictionModelStore([])
+    store.model = DummyRegimeModel()
+    store.metadata = {
+        "model_version": "dewa-regime-test",
+        "feature_columns": feature_columns,
+        "label_type": "move_vs_no_move",
+        "selected_model": {"model_name": "dummy_regime_model"},
     }
     return store
 
@@ -82,3 +103,32 @@ def test_health_reports_both_production_variants(monkeypatch):
     payload = response.json()
     assert payload["production_models_ready"]["technical"] is True
     assert payload["production_models_ready"]["technical_sentiment"] is True
+
+def test_dewa_regime_returns_regime_contract(monkeypatch):
+    api = importlib.import_module("quant.prediction_api")
+    monkeypatch.setitem(api.production_stores, "dewa_regime", ready_regime_store(["return_5d"]))
+    client = TestClient(api.app)
+
+    response = client.post(
+        "/predict",
+        json={"model_variant": "dewa_regime", "features": {"stock": "DEWA", "return_5d": 0.01}},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["predicted_regime"] == "move"
+    assert "predicted_direction" not in payload
+    assert payload["label_type"] == "move_vs_no_move"
+
+def test_ticker_specific_variant_rejects_wrong_ticker(monkeypatch):
+    api = importlib.import_module("quant.prediction_api")
+    monkeypatch.setitem(api.production_stores, "bumi_technical", ready_store(["return_5d"]))
+    client = TestClient(api.app)
+
+    response = client.post(
+        "/predict",
+        json={"model_variant": "bumi_technical", "features": {"stock": "BBCA", "return_5d": 0.01}},
+    )
+
+    assert response.status_code == 422
+    assert "specific to ticker BUMI" in response.json()["detail"]
