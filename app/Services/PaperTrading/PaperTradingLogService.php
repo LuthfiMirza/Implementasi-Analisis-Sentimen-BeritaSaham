@@ -167,7 +167,6 @@ class PaperTradingLogService
         return Stock::query()
             ->where('is_active', true)
             ->whereHas('watchlists')
-            ->with('latestPrice')
             ->orderBy('code')
             ->get();
     }
@@ -187,10 +186,6 @@ class PaperTradingLogService
             if ($value !== null && is_numeric($value)) {
                 return round((float) $value, 4);
             }
-        }
-
-        if ($stock->latestPrice?->close !== null) {
-            return round((float) $stock->latestPrice->close, 4);
         }
 
         $snapshot = $this->priceSeriesService->latestSnapshot($stock, '1d');

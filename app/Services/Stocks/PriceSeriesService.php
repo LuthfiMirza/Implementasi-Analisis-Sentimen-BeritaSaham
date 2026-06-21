@@ -4,7 +4,6 @@ namespace App\Services\Stocks;
 
 use App\Models\Stock;
 use App\Models\StockPrice;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class PriceSeriesService
@@ -48,49 +47,6 @@ class PriceSeriesService
             ->sortBy('price_date')
             ->values();
 
-        return $this->collapseDailyDuplicates($rows);
-    }
-
-    protected function collapseDailyDuplicates(Collection $rows): Collection
-    {
-        $normalizedRows = $rows;
-        if ($rows->contains(fn (StockPrice $row) => ($row->source ?? '') !== 'seed')) {
-            $normalizedRows = $rows
-                ->filter(fn (StockPrice $row) => ($row->source ?? '') !== 'seed')
-                ->values();
-        }
-
-        return $normalizedRows
-            ->groupBy(fn (StockPrice $row) => Carbon::parse($row->price_date)->toDateString())
-            ->map(function (Collection $group) {
-                return $group
-                    ->sort(function (StockPrice $left, StockPrice $right): int {
-                        $leftRank = $this->sourcePriority($left);
-                        $rightRank = $this->sourcePriority($right);
-
-                        if ($leftRank !== $rightRank) {
-                            return $leftRank <=> $rightRank;
-                        }
-
-                        return Carbon::parse($right->price_date)->getTimestamp()
-                            <=> Carbon::parse($left->price_date)->getTimestamp();
-                    })
-                    ->first();
-            })
-            ->sortBy(fn (StockPrice $row) => Carbon::parse($row->price_date)->getTimestamp())
-            ->values();
-    }
-
-    protected function sourcePriority(StockPrice $row): int
-    {
-        if (($row->source ?? '') === 'seed') {
-            return 2;
-        }
-
-        if (($row->source ?? null) === null) {
-            return 0;
-        }
-
-        return 1;
+        return StockPrice::canonicalize($rows);
     }
 }

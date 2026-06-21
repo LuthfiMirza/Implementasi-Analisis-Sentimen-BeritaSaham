@@ -22,11 +22,11 @@ class UpdateStockSnapshotsCommand extends Command
         $stocks = Stock::where('is_active', true)->get();
 
         foreach ($stocks as $stock) {
-            $latest = $stock->prices()->latest('price_date')->first();
+            $latest = StockPrice::canonicalize($stock->prices()->where('interval_type', '1d')->get())->last();
             $base = $latest?->close ?? 1000;
 
             for ($i = 0; $i < $days; $i++) {
-                $date = Carbon::now()->subDays($i)->setTime(15, 0);
+                $date = Carbon::now()->subDays($i)->toDateString();
                 $delta = random_int(-50, 50);
                 $close = max(10, $base + $delta);
                 $open = $close + random_int(-20, 20);

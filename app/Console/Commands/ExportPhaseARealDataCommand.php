@@ -231,45 +231,12 @@ class ExportPhaseARealDataCommand extends Command
 
     protected function normalizePriceRows(Collection $rows): Collection
     {
-        $normalizedRows = $rows;
-        if ($rows->contains(fn (StockPrice $price) => (($price->source ?? '') !== 'seed'))) {
-            $normalizedRows = $rows
-                ->filter(fn (StockPrice $price) => (($price->source ?? '') !== 'seed'))
-                ->values();
-        }
-
-        return $normalizedRows
-            ->groupBy(fn (StockPrice $price) => Carbon::parse($price->price_date)->toDateString())
-            ->map(function (Collection $group) {
-                return $group
-                    ->sort(function (StockPrice $left, StockPrice $right): int {
-                        $leftRank = $this->sourcePriority($left);
-                        $rightRank = $this->sourcePriority($right);
-
-                        if ($leftRank !== $rightRank) {
-                            return $leftRank <=> $rightRank;
-                        }
-
-                        return Carbon::parse($right->price_date)->getTimestamp()
-                            <=> Carbon::parse($left->price_date)->getTimestamp();
-                    })
-                    ->first();
-            })
-            ->sortBy(fn (StockPrice $price) => Carbon::parse($price->price_date)->getTimestamp())
-            ->values();
+        return StockPrice::canonicalize($rows);
     }
 
     protected function sourcePriority(StockPrice $price): int
     {
-        if (($price->source ?? '') === 'seed') {
-            return 2;
-        }
-
-        if (($price->source ?? null) === null) {
-            return 0;
-        }
-
-        return 1;
+        return StockPrice::sourcePriority($price->source);
     }
 
     protected function buildDailySentimentSeries(Stock $stock, Collection $priceRows): array

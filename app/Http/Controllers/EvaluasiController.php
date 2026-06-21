@@ -5,20 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\NewsArticle;
 use App\Models\Stock;
 use App\Services\Analytics\DecisionSupportService;
+use App\Services\Stocks\PriceSeriesService;
 
 class EvaluasiController extends Controller
 {
     public function index()
     {
         $stocks = Stock::where('is_active', 1)->get();
+        $priceSeriesService = app(PriceSeriesService::class);
         $results = [];
 
         foreach ($stocks as $stock) {
-            $prices = $stock->prices()
-                ->where('interval_type', '1d')
-                ->orderBy('price_date', 'desc')
-                ->limit(60)
-                ->get()->reverse()->values();
+            $prices = $priceSeriesService->getSeries($stock, '1d', 60);
 
             $articles = NewsArticle::where('stock_id', $stock->id)
                 ->latest()->limit(50)->get();
@@ -82,11 +80,7 @@ class EvaluasiController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $prices = $stock->prices()
-            ->where('interval_type', '1d')
-            ->orderBy('price_date', 'desc')
-            ->limit(60)
-            ->get()->reverse()->values();
+        $prices = app(PriceSeriesService::class)->getSeries($stock, '1d', 60);
 
         $articles = NewsArticle::where('stock_id', $stock->id)
             ->orderByDesc('final_quality_score')

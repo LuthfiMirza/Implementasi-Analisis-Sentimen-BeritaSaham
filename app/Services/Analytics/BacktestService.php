@@ -36,6 +36,7 @@ class BacktestService
             ->where('interval_type', '1d')
             ->orderBy('price_date', 'asc')
             ->get();
+        $allPrices = StockPrice::canonicalize($allPrices);
 
         if ($allPrices->count() < $lookback + $forward) {
             return ['error' => 'Data tidak cukup untuk backtest'];

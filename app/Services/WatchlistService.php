@@ -23,7 +23,7 @@ class WatchlistService
 
     public function getWatchlist(User $user)
     {
-        return $user->watchlistStocks()->with(['latestPrice'])->get();
+        return $user->watchlistStocks()->get();
     }
 
     public function getWatchlistWithAnalytics(User $user, int $periodDays = 7): Collection
@@ -57,7 +57,7 @@ class WatchlistService
 
             return [
                 'stock' => $stock,
-                'latest' => $stock->latestPrice,
+                'latest' => $this->priceSeriesService->latestSnapshot($stock, '1d'),
                 'analytics' => $cached['analytics'] ?? [],
                 'decision' => $cached['decision'] ?? [],
                 'sparkline' => collect($cached['sparkline'] ?? []),
