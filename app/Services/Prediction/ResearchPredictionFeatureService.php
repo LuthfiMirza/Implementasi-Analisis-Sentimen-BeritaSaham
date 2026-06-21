@@ -416,14 +416,14 @@ class ResearchPredictionFeatureService
             return collect();
         }
 
-        $header = fgetcsv($handle);
+        $header = fgetcsv($handle, null, ',', '"', '\\');
         if (! is_array($header)) {
             fclose($handle);
             return collect();
         }
 
         $rows = [];
-        while (($data = fgetcsv($handle)) !== false) {
+        while (($data = fgetcsv($handle, null, ',', '"', '\\')) !== false) {
             if ($data === [null] || $data === false) {
                 continue;
             }
