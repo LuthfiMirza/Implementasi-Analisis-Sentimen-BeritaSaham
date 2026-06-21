@@ -1,0 +1,36 @@
+Volatile Stock V2 Feature/Ensemble/Horizon Experiments
+======================================================
+
+Scope: prediction research only; no strategy, P&L, trading signal, or production replacement.
+Baseline comparator: model_comparison_bumi_special + model_comparison_dewa_special remain unchanged.
+Walk-forward: min_train_days=252, test_window_days=126, latest 8 folds.
+Horizon threshold policy: BUMI fixed threshold scaled by sqrt(horizon/5); DEWA ATR thresholds scaled by sqrt(horizon/5).
+Improvement rule: claim only if delta >0.02 macro F1 OR >0.02 directional accuracy AND learned model wins both metrics vs majority.
+
+scope,ticker,experiment,best_model,macro_f1,directional_accuracy,majority_macro_f1,majority_directional_accuracy,random_macro_f1,random_directional_accuracy,status_vs_majority,assessment,label_distribution
+old_features_all_models,BUMI,bumi_fixed_2_7pct,random_forest,0.3758,0.4236,0.1541,0.3036,0.3309,0.3353,menang kedua metrik vs majority,no_clear_improvement: delta_macro_f1=+0.0016, delta_directional_accuracy=+0.0020, menang kedua metrik vs majority,{"down": 0.354984, "flat": 0.348448, "up": 0.296569}
+new_features_all_models,BUMI,bumi_fixed_2_7pct,gradient_boosting,0.4020,0.4325,0.1712,0.3472,0.3270,0.3313,menang kedua metrik vs majority,clear_improvement: delta_macro_f1=+0.0278, delta_directional_accuracy=+0.0109, menang kedua metrik vs majority,{"down": 0.374408, "flat": 0.314089, "up": 0.311504}
+new_features_with_ensemble,BUMI,bumi_fixed_2_7pct,soft_voting_ensemble,0.4040,0.4395,0.1712,0.3472,0.3270,0.3313,menang kedua metrik vs majority,clear_improvement: delta_macro_f1=+0.0298, delta_directional_accuracy=+0.0179, menang kedua metrik vs majority,{"down": 0.374408, "flat": 0.314089, "up": 0.311504}
+old_features_all_models,DEWA,dewa_move_0_5pct,logistic_regression,0.5751,0.8532,0.1544,0.2183,0.3763,0.4306,menang kedua metrik vs majority,no_clear_improvement: delta_macro_f1=+0.0000, delta_directional_accuracy=-0.0000, menang kedua metrik vs majority,{"move": 0.416291, "no_move": 0.583709}
+new_features_all_models,DEWA,dewa_move_0_5pct,random_forest,0.5613,0.8163,0.4467,0.8209,0.4944,0.7347,menang sebagian vs majority,no_clear_improvement: delta_macro_f1=-0.0138, delta_directional_accuracy=-0.0369, menang sebagian vs majority,{"move": 0.802705, "no_move": 0.197295}
+new_features_with_ensemble,DEWA,dewa_move_0_5pct,soft_voting_ensemble,0.5694,0.8322,0.4467,0.8209,0.4944,0.7347,menang kedua metrik vs majority,no_clear_improvement: delta_macro_f1=-0.0057, delta_directional_accuracy=-0.0210, menang kedua metrik vs majority,{"move": 0.802705, "no_move": 0.197295}
+old_features_all_models,DEWA,dewa_atr0_5_h5d,gradient_boosting,0.4102,0.5050,0.2188,0.5000,0.2887,0.4415,menang kedua metrik vs majority,clear_improvement: delta_macro_f1=+0.0838, delta_directional_accuracy=+0.0983, menang kedua metrik vs majority,{"down": 0.124437, "flat": 0.729022, "up": 0.146541}
+new_features_all_models,DEWA,dewa_atr0_5_h5d,gradient_boosting,0.3913,0.4807,0.2141,0.4796,0.2876,0.3367,menang kedua metrik vs majority,clear_improvement: delta_macro_f1=+0.0649, delta_directional_accuracy=+0.0740, menang kedua metrik vs majority,{"down": 0.241846, "flat": 0.479714, "up": 0.278441}
+new_features_with_ensemble,DEWA,dewa_atr0_5_h5d,soft_voting_ensemble,0.3978,0.4785,0.2141,0.4796,0.2876,0.3367,menang sebagian vs majority,no_clear_improvement: delta_macro_f1=+0.0714, delta_directional_accuracy=+0.0718, menang sebagian vs majority,{"down": 0.241846, "flat": 0.479714, "up": 0.278441}
+old_features_all_models,DEWA,dewa_atr0_75_h5d,gradient_boosting,0.3666,0.5655,0.2546,0.6240,0.2877,0.5466,menang sebagian vs majority,no_clear_improvement: delta_macro_f1=+0.0789, delta_directional_accuracy=+0.0189, menang sebagian vs majority,{"down": 0.091691, "flat": 0.794924, "up": 0.113385}
+new_features_all_models,DEWA,dewa_atr0_75_h5d,gradient_boosting,0.3941,0.5658,0.2508,0.6066,0.2918,0.4342,menang sebagian vs majority,no_clear_improvement: delta_macro_f1=+0.1064, delta_directional_accuracy=+0.0192, menang sebagian vs majority,{"down": 0.178202, "flat": 0.607796, "up": 0.214002}
+new_features_with_ensemble,DEWA,dewa_atr0_75_h5d,gradient_boosting,0.3941,0.5658,0.2508,0.6066,0.2918,0.4342,menang sebagian vs majority,no_clear_improvement: delta_macro_f1=+0.1064, delta_directional_accuracy=+0.0192, menang sebagian vs majority,{"down": 0.178202, "flat": 0.607796, "up": 0.214002}
+horizon_alternative_new_features_ensemble,BUMI,bumi_h3_fixed_scaled,random_forest,0.3691,0.4028,0.1745,0.3562,0.3338,0.3353,menang kedua metrik vs majority,horizon alternative; no direct 5D baseline,{"down": 0.362775, "flat": 0.329599, "up": 0.307626}
+horizon_alternative_new_features_ensemble,BUMI,bumi_h10_fixed_scaled,random_forest,0.4195,0.4782,0.1669,0.3423,0.3216,0.3304,menang kedua metrik vs majority,horizon alternative; no direct 5D baseline,{"down": 0.367945, "flat": 0.323998, "up": 0.308057}
+horizon_alternative_new_features_ensemble,DEWA,dewa_atr0_5_h3d,random_forest,0.3758,0.4184,0.2053,0.4524,0.2974,0.3401,menang sebagian vs majority,horizon alternative; no direct 5D baseline,{"down": 0.256961, "flat": 0.473349, "up": 0.26969}
+horizon_alternative_new_features_ensemble,DEWA,dewa_atr0_5_h10d,logistic_regression,0.4166,0.4660,0.2084,0.4626,0.3114,0.3515,menang kedua metrik vs majority,horizon alternative; no direct 5D baseline,{"down": 0.21957, "flat": 0.470167, "up": 0.310263}
+horizon_alternative_new_features_ensemble,DEWA,dewa_atr0_75_h3d,random_forest,0.3518,0.4048,0.2475,0.5952,0.3000,0.4433,menang sebagian vs majority,horizon alternative; no direct 5D baseline,{"down": 0.183771, "flat": 0.603819, "up": 0.212411}
+horizon_alternative_new_features_ensemble,DEWA,dewa_atr0_75_h10d,logistic_regression,0.4014,0.4649,0.2491,0.5998,0.3214,0.4535,menang sebagian vs majority,horizon alternative; no direct 5D baseline,{"down": 0.151154, "flat": 0.594272, "up": 0.254574}
+
+Assessment Summary
+------------------
+- CLEAR: new_features_all_models BUMI bumi_fixed_2_7pct -> gradient_boosting macro_f1=0.4020, directional_accuracy=0.4325; clear_improvement: delta_macro_f1=+0.0278, delta_directional_accuracy=+0.0109, menang kedua metrik vs majority
+- CLEAR: new_features_with_ensemble BUMI bumi_fixed_2_7pct -> soft_voting_ensemble macro_f1=0.4040, directional_accuracy=0.4395; clear_improvement: delta_macro_f1=+0.0298, delta_directional_accuracy=+0.0179, menang kedua metrik vs majority
+- CLEAR: old_features_all_models DEWA dewa_atr0_5_h5d -> gradient_boosting macro_f1=0.4102, directional_accuracy=0.5050; clear_improvement: delta_macro_f1=+0.0838, delta_directional_accuracy=+0.0983, menang kedua metrik vs majority
+- CLEAR: new_features_all_models DEWA dewa_atr0_5_h5d -> gradient_boosting macro_f1=0.3913, directional_accuracy=0.4807; clear_improvement: delta_macro_f1=+0.0649, delta_directional_accuracy=+0.0740, menang kedua metrik vs majority
+- Horizon alternatives are exploratory and require separate review before any production artifact replacement.
