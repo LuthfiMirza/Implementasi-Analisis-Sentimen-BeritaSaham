@@ -31,6 +31,7 @@ class ApiPredictionController extends Controller
             'features.atr_ratio' => ['required', 'numeric'],
             'features.price_vs_ema20_pct' => ['required', 'numeric'],
             'features.regime_duration' => ['required', 'integer'],
+            'model_variant' => ['nullable', 'in:technical,technical_sentiment'],
         ]);
 
         if ($validator->fails()) {
@@ -40,19 +41,43 @@ class ApiPredictionController extends Controller
             ], 422);
         }
 
-        $features = $validator->validated()['features'];
-        if (config('prediction.engine', env('PREDICTION_ENGINE', 'baseline')) === 'python') {
-            $python = $this->postJson(
-                (string) config('services.python_prediction.endpoint'),
-                (int) config('services.python_prediction.timeout', 5),
-                ['features' => $features],
-            );
-            if (is_array($python) && isset($python['predicted_direction'])) {
-                return response()->json($python);
-            }
+        $features = $request->input('features', []);
+        $requestedVariant = $validator->validated()['model_variant'] ?? null;
+
+        if ($requestedVariant) {
+            return response()->json($this->predictVariant($features, $baselinePredictionService, $requestedVariant));
         }
 
-        return response()->json($this->normalizePrediction($baselinePredictionService->predictFromFeatures($features)));
+        $predictions = [
+            'technical' => $this->predictVariant($features, $baselinePredictionService, 'technical'),
+            'technical_sentiment' => $this->predictVariant($features, $baselinePredictionService, 'technical_sentiment'),
+        ];
+
+        return response()->json(array_merge($predictions['technical'], [
+            'predictions' => $predictions,
+        ]));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function predictVariant(array $features, BaselinePredictionService $baselinePredictionService, string $variant): array
+    {
+        $python = $this->postJson(
+            (string) config('services.python_prediction.endpoint'),
+            (int) config('services.python_prediction.timeout', 5),
+            ['features' => $features, 'model_variant' => $variant],
+        );
+
+        if (is_array($python) && (array_key_exists('predicted_direction', $python) || ($python['has_sufficient_sentiment_data'] ?? null) === false)) {
+            return $this->normalizePrediction($python, $variant, $variant === 'technical' ? 'v6a_technical' : 'v6b_sentiment');
+        }
+
+        return $this->normalizePrediction(
+            $baselinePredictionService->predictFromFeatures($features),
+            $variant,
+            'fallback_heuristic'
+        );
     }
 
     /**
@@ -121,12 +146,20 @@ class ApiPredictionController extends Controller
      *
      * @return array<string, mixed>
      */
-    protected function normalizePrediction(array $prediction): array
+    protected function normalizePrediction(array $prediction, string $variant = 'technical', string $source = 'fallback_heuristic'): array
     {
+        $hasDirection = filled($prediction['predicted_direction'] ?? null);
+
         return [
-            'predicted_direction' => strtolower((string) ($prediction['predicted_direction'] ?? 'flat')),
-            'probability' => (float) ($prediction['probability'] ?? $prediction['confidence'] ?? 0.45),
+            'predicted_direction' => $hasDirection ? strtolower((string) $prediction['predicted_direction']) : null,
+            'probability' => $prediction['probability'] ?? $prediction['confidence'] ?? null,
             'basis' => (string) ($prediction['basis'] ?? $prediction['prediction_basis'] ?? 'baseline_heuristic_v1'),
+            'model_variant' => $prediction['model_variant'] ?? $variant,
+            'model_source' => $prediction['model_source'] ?? $source,
+            'model_name' => $prediction['model_name'] ?? ($source === 'fallback_heuristic' ? 'baseline_heuristic' : null),
+            'model_version' => $prediction['model_version'] ?? null,
+            'has_sufficient_sentiment_data' => $prediction['has_sufficient_sentiment_data'] ?? null,
+            'message' => $prediction['message'] ?? null,
             'scenario_bullish' => (string) ($prediction['scenario_bullish'] ?? ''),
             'scenario_neutral' => (string) ($prediction['scenario_neutral'] ?? ''),
             'scenario_bearish' => (string) ($prediction['scenario_bearish'] ?? ''),

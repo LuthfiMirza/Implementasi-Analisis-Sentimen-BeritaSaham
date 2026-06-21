@@ -35,7 +35,8 @@ class PredictionController extends Controller
             ->first() ?? $stocks->first();
 
         $prediction = null;
-        $predictionSource = 'baseline';
+        $predictionSource = 'fallback_heuristic';
+        $predictions = [];
 
         if ($stock) {
             $prices = $priceSeriesService->getSeries($stock, '1d', 90)->values();
@@ -48,20 +49,40 @@ class PredictionController extends Controller
             $analytics = $analyticsService->analyze($stock, $prices, $articles, 30);
             $features = $featureBuilderService->build($stock, $prices, $articles, $analytics, 30);
 
-            if (config('prediction.engine', env('PREDICTION_ENGINE', 'baseline')) === 'python') {
-                $pythonPrediction = $this->predictViaPython($features);
-                if ($pythonPrediction !== null) {
-                    $prediction = $pythonPrediction;
-                    $predictionSource = 'python_api';
-                } else {
-                    $predictionSource = 'baseline_fallback';
-                }
-            }
-
-            $prediction ??= $this->normalizePrediction($baselinePredictionService->predictFromFeatures($features));
+            $predictions = $this->buildDualPredictions($features, $baselinePredictionService);
+            $prediction = $predictions['technical'] ?? null;
+            $predictionSource = $prediction['model_source'] ?? 'fallback_heuristic';
         }
 
-        return view('predictions.index', compact('stock', 'prediction', 'predictionSource', 'stocks'));
+        return view('predictions.index', compact('stock', 'prediction', 'predictionSource', 'predictions', 'stocks'));
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    protected function buildDualPredictions(array $features, BaselinePredictionService $baselinePredictionService): array
+    {
+        return [
+            'technical' => $this->predictVariant($features, $baselinePredictionService, 'technical'),
+            'technical_sentiment' => $this->predictVariant($features, $baselinePredictionService, 'technical_sentiment'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function predictVariant(array $features, BaselinePredictionService $baselinePredictionService, string $variant): array
+    {
+        $pythonPrediction = $this->predictViaPython($features, $variant);
+        if ($pythonPrediction !== null) {
+            return $pythonPrediction;
+        }
+
+        return $this->normalizePrediction(
+            $baselinePredictionService->predictFromFeatures($features),
+            $variant,
+            'fallback_heuristic'
+        );
     }
 
     /**
@@ -69,7 +90,7 @@ class PredictionController extends Controller
      *
      * @return array<string, mixed>|null
      */
-    protected function predictViaPython(array $features): ?array
+    protected function predictViaPython(array $features, string $variant): ?array
     {
         $endpoint = config('services.python_prediction.endpoint');
         if (! $endpoint) {
@@ -78,11 +99,11 @@ class PredictionController extends Controller
 
         try {
             $response = Http::timeout((int) config('services.python_prediction.timeout', 5))
-                ->post($endpoint, ['features' => $features]);
+                ->post($endpoint, ['features' => $features, 'model_variant' => $variant]);
             $payload = $response->successful() ? $response->json() : null;
 
-            return is_array($payload) && isset($payload['predicted_direction'])
-                ? $this->normalizePrediction($payload)
+            return is_array($payload) && (array_key_exists('predicted_direction', $payload) || ($payload['has_sufficient_sentiment_data'] ?? null) === false)
+                ? $this->normalizePrediction($payload, $variant, $variant === 'technical' ? 'v6a_technical' : 'v6b_sentiment')
                 : null;
         } catch (\Throwable) {
             return null;
@@ -94,12 +115,20 @@ class PredictionController extends Controller
      *
      * @return array<string, mixed>
      */
-    protected function normalizePrediction(array $prediction): array
+    protected function normalizePrediction(array $prediction, string $variant = 'technical', string $source = 'fallback_heuristic'): array
     {
+        $hasDirection = filled($prediction['predicted_direction'] ?? null);
+
         return [
-            'predicted_direction' => strtolower((string) ($prediction['predicted_direction'] ?? 'flat')),
-            'probability' => (float) ($prediction['probability'] ?? $prediction['confidence'] ?? 0.45),
+            'predicted_direction' => $hasDirection ? strtolower((string) $prediction['predicted_direction']) : null,
+            'probability' => $prediction['probability'] ?? $prediction['confidence'] ?? null,
             'basis' => (string) ($prediction['basis'] ?? $prediction['prediction_basis'] ?? 'baseline_heuristic_v1'),
+            'model_variant' => $prediction['model_variant'] ?? $variant,
+            'model_source' => $prediction['model_source'] ?? $source,
+            'model_name' => $prediction['model_name'] ?? ($source === 'fallback_heuristic' ? 'baseline_heuristic' : null),
+            'model_version' => $prediction['model_version'] ?? null,
+            'has_sufficient_sentiment_data' => $prediction['has_sufficient_sentiment_data'] ?? null,
+            'message' => $prediction['message'] ?? null,
             'scenario_bullish' => $prediction['scenario_bullish'] ?? null,
             'scenario_neutral' => $prediction['scenario_neutral'] ?? null,
             'scenario_bearish' => $prediction['scenario_bearish'] ?? null,
