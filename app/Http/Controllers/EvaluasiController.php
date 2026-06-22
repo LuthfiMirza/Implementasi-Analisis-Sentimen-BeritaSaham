@@ -38,6 +38,7 @@ class EvaluasiController extends Controller
                 'pbv' => $stock->pbv,
                 'per' => $stock->per,
                 'roe' => $stock->roe,
+                'fundamentals_updated_at' => $stock->fundamentals_updated_at,
                 'macd_trend' => $result['indicators']['macd']['trend'] ?? null,
                 'bb_position' => $result['indicators']['bollinger']['position'] ?? null,
                 'stoch_signal' => $result['indicators']['stochastic']['signal'] ?? null,

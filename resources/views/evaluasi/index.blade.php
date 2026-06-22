@@ -170,8 +170,19 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-slate-300">
+                                    @php
+                                        $fundamentalSnapshotDate = $r['fundamentals_updated_at']
+                                            ? \Illuminate\Support\Carbon::parse($r['fundamentals_updated_at'])->format('d M Y')
+                                            : 'tidak diketahui';
+                                    @endphp
+                                    <div class="mb-2 inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-200">
+                                        Data fundamental: snapshot per {{ $fundamentalSnapshotDate }} — belum real-time
+                                    </div>
                                     <div>PBV: {{ $r['pbv'] ?? 'N/A' }}</div>
                                     <div>ROE: {{ $r['roe'] ?? 'N/A' }}</div>
+                                    <div class="mt-1 text-[10px] text-slate-500">
+                                        Untuk data fundamental terkini, verifikasi ke IDX, RTI Business, atau laporan keuangan perusahaan.
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <a href="{{ route('evaluasi.show', $r['code']) }}" class="text-xs text-sky-400 hover:underline">Detail →</a>

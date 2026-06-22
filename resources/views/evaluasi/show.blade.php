@@ -257,6 +257,17 @@
 
         @php $fund = $result['fundamental'] ?? null; @endphp
         @if($fund)
+            @php
+                $fundamentalSnapshotDate = $stock->fundamentals_updated_at
+                    ? \Illuminate\Support\Carbon::parse($stock->fundamentals_updated_at)->format('d M Y')
+                    : 'tidak diketahui';
+            @endphp
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div class="text-xs text-slate-500 uppercase font-medium">Fundamental</div>
+                <span class="inline-flex w-fit rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] text-amber-200">
+                    Data fundamental: snapshot per {{ $fundamentalSnapshotDate }} — belum real-time
+                </span>
+            </div>
             <div class="grid grid-cols-3 md:grid-cols-6 gap-3">
                 <div class="bg-slate-900 rounded-xl p-3 text-center">
                     <div class="text-[10px] text-slate-500 uppercase">PBV</div>
@@ -283,6 +294,9 @@
                     <div class="text-lg font-mono font-bold text-slate-100">{{ $fund['dividend_yield'] !== null ? number_format($fund['dividend_yield'],1).'%' : 'N/A' }}</div>
                 </div>
             </div>
+            <p class="text-[11px] text-slate-500">
+                Untuk data fundamental terkini, verifikasi ke sumber resmi seperti IDX, RTI Business, atau laporan keuangan perusahaan.
+            </p>
         @endif
 
         <div class="space-y-3">

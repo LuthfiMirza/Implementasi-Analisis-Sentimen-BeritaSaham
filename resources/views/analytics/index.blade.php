@@ -642,9 +642,19 @@
                         </div>
                     </div>
 
-                    <div class="text-xs text-slate-500 uppercase font-medium mt-6 mb-3">Analisis Fundamental</div>
                     @php $fundamental = $decision['indicators']['fundamental'] ?? null; @endphp
                     @if($fundamental)
+                        @php
+                            $fundamentalSnapshotDate = $stock->fundamentals_updated_at
+                                ? \Illuminate\Support\Carbon::parse($stock->fundamentals_updated_at)->format('d M Y')
+                                : 'tidak diketahui';
+                        @endphp
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-6 mb-3">
+                            <div class="text-xs text-slate-500 uppercase font-medium">Analisis Fundamental</div>
+                            <span class="inline-flex w-fit rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] text-amber-200">
+                                Data fundamental: snapshot per {{ $fundamentalSnapshotDate }} — belum real-time
+                            </span>
+                        </div>
                         <div class="glass-card border border-slate-800/80 rounded-2xl p-5">
                             <div class="flex items-center justify-between mb-4">
                                 <div>
@@ -726,6 +736,9 @@
                                     Data per: {{ \Illuminate\Support\Carbon::parse($fundamental['updated_at'])->format('Y-m-d') }}
                                 </div>
                             @endif
+                            <p class="text-[11px] text-slate-500 mt-3">
+                                Untuk data fundamental terkini, verifikasi ke sumber resmi seperti IDX, RTI Business, atau laporan keuangan perusahaan.
+                            </p>
                         </div>
                     @endif
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
