@@ -1,0 +1,1603 @@
+{
+  "metadata": {
+    "scope": "prediction research only; no production dataset/model overwrite",
+    "period_start": "2025-10-01",
+    "period_end": "2026-04-15",
+    "min_train_days": 40,
+    "test_window_days": 10,
+    "promotion_criteria": "wins both macro_f1 and directional_accuracy by >0.02 and wins both metrics in majority of folds"
+  },
+  "dataset_summary": {
+    "BUMI": {
+      "rows": 128,
+      "sentiment_rows": 48,
+      "sentiment_coverage_pct": 37.5,
+      "evaluation_rows": 48,
+      "fold_count": 0,
+      "date_start": "2025-10-01",
+      "date_end": "2026-04-15"
+    },
+    "DEWA": {
+      "rows": 128,
+      "sentiment_rows": 67,
+      "sentiment_coverage_pct": 52.34,
+      "evaluation_rows": 67,
+      "fold_count": 2,
+      "date_start": "2025-10-01",
+      "date_end": "2026-04-15"
+    }
+  },
+  "experiments": {
+    "dewa_directional_atr0_5_technical_only": {
+      "experiment_id": "dewa_directional_atr0_5_technical_only",
+      "label_column": "label_directional_atr0_5",
+      "feature_columns": [
+        "return_1d",
+        "return_3d",
+        "return_5d",
+        "return_20d",
+        "atr14_pct",
+        "atr_ratio",
+        "volume_ratio_5d",
+        "volume_ratio_20d",
+        "price_vs_ema20_pct",
+        "price_vs_ema50",
+        "rsi_slope_5d",
+        "return_5d_cross_section_rank",
+        "volume_spike_flag",
+        "market_regime_bullish",
+        "regime_duration"
+      ],
+      "rows_after_dropna": 67,
+      "sentiment_rows": 67,
+      "date_start": "2025-12-01",
+      "date_end": "2026-04-15",
+      "fold_count": 2,
+      "class_labels": [
+        "down",
+        "flat",
+        "up"
+      ],
+      "label_distribution": {
+        "counts": {
+          "down": 24,
+          "flat": 8,
+          "up": 35
+        },
+        "shares": {
+          "down": 0.358209,
+          "flat": 0.119403,
+          "up": 0.522388
+        }
+      },
+      "models": [
+        {
+          "model_name": "gradient_boosting",
+          "mean_metrics": {
+            "accuracy": 0.6,
+            "directional_accuracy": 0.6,
+            "precision_down": 0.583333,
+            "recall_down": 0.625,
+            "f1_down": 0.515152,
+            "precision_flat": 0.5,
+            "recall_flat": 0.5,
+            "f1_flat": 0.5,
+            "precision_up": 0.571429,
+            "recall_up": 0.9375,
+            "f1_up": 0.591667,
+            "f1_macro": 0.535606
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.3,
+                "directional_accuracy": 0.3,
+                "precision_down": 0.6666666666666666,
+                "recall_down": 0.25,
+                "f1_down": 0.36363636363636365,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.14285714285714285,
+                "recall_up": 1.0,
+                "f1_up": 0.25,
+                "f1_macro": 0.20454545454545456
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.9,
+                "directional_accuracy": 0.9,
+                "precision_down": 0.5,
+                "recall_down": 1.0,
+                "f1_down": 0.6666666666666666,
+                "precision_flat": 1.0,
+                "recall_flat": 1.0,
+                "f1_flat": 1.0,
+                "precision_up": 1.0,
+                "recall_up": 0.875,
+                "f1_up": 0.9333333333333333,
+                "f1_macro": 0.8666666666666666
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "logistic_regression",
+          "mean_metrics": {
+            "accuracy": 0.45,
+            "directional_accuracy": 0.45,
+            "precision_down": 0.5,
+            "recall_down": 0.625,
+            "f1_down": 0.431818,
+            "precision_flat": 0.0,
+            "recall_flat": 0.0,
+            "f1_flat": 0.0,
+            "precision_up": 0.5,
+            "recall_up": 0.8125,
+            "f1_up": 0.5,
+            "f1_macro": 0.310606
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.3,
+                "directional_accuracy": 0.3,
+                "precision_down": 0.6666666666666666,
+                "recall_down": 0.25,
+                "f1_down": 0.36363636363636365,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.16666666666666666,
+                "recall_up": 1.0,
+                "f1_up": 0.2857142857142857,
+                "f1_macro": 0.21645021645021645
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.6,
+                "directional_accuracy": 0.6,
+                "precision_down": 0.3333333333333333,
+                "recall_down": 1.0,
+                "f1_down": 0.5,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.8333333333333334,
+                "recall_up": 0.625,
+                "f1_up": 0.7142857142857143,
+                "f1_macro": 0.4047619047619048
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "majority_class",
+          "mean_metrics": {
+            "accuracy": 0.1,
+            "directional_accuracy": 0.1,
+            "precision_down": 0.05,
+            "recall_down": 0.5,
+            "f1_down": 0.090909,
+            "precision_flat": 0.0,
+            "recall_flat": 0.0,
+            "f1_flat": 0.0,
+            "precision_up": 0.05,
+            "recall_up": 0.5,
+            "f1_up": 0.090909,
+            "f1_macro": 0.060606
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.1,
+                "directional_accuracy": 0.1,
+                "precision_down": 0.0,
+                "recall_down": 0.0,
+                "f1_down": 0.0,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.1,
+                "recall_up": 1.0,
+                "f1_up": 0.18181818181818182,
+                "f1_macro": 0.06060606060606061
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.1,
+                "directional_accuracy": 0.1,
+                "precision_down": 0.1,
+                "recall_down": 1.0,
+                "f1_down": 0.18181818181818182,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.0,
+                "recall_up": 0.0,
+                "f1_up": 0.0,
+                "f1_macro": 0.06060606060606061
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "random_baseline",
+          "mean_metrics": {
+            "accuracy": 0.4,
+            "directional_accuracy": 0.4,
+            "precision_down": 0.5,
+            "recall_down": 0.125,
+            "f1_down": 0.2,
+            "precision_flat": 0.25,
+            "recall_flat": 0.5,
+            "f1_flat": 0.333333,
+            "precision_up": 0.416667,
+            "recall_up": 0.75,
+            "f1_up": 0.428571,
+            "f1_macro": 0.320635
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.4,
+                "directional_accuracy": 0.4,
+                "precision_down": 1.0,
+                "recall_down": 0.25,
+                "f1_down": 0.4,
+                "precision_flat": 0.5,
+                "recall_flat": 1.0,
+                "f1_flat": 0.6666666666666666,
+                "precision_up": 0.16666666666666666,
+                "recall_up": 1.0,
+                "f1_up": 0.2857142857142857,
+                "f1_macro": 0.4507936507936508
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.4,
+                "directional_accuracy": 0.4,
+                "precision_down": 0.0,
+                "recall_down": 0.0,
+                "f1_down": 0.0,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.6666666666666666,
+                "recall_up": 0.5,
+                "f1_up": 0.5714285714285714,
+                "f1_macro": 0.19047619047619047
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "dewa_directional_atr0_5_technical_plus_sentiment": {
+      "experiment_id": "dewa_directional_atr0_5_technical_plus_sentiment",
+      "label_column": "label_directional_atr0_5",
+      "feature_columns": [
+        "return_1d",
+        "return_3d",
+        "return_5d",
+        "return_20d",
+        "atr14_pct",
+        "atr_ratio",
+        "volume_ratio_5d",
+        "volume_ratio_20d",
+        "price_vs_ema20_pct",
+        "price_vs_ema50",
+        "rsi_slope_5d",
+        "return_5d_cross_section_rank",
+        "volume_spike_flag",
+        "market_regime_bullish",
+        "regime_duration",
+        "has_sentiment_data",
+        "sentiment_average_5d",
+        "weighted_sentiment_5d",
+        "news_volume_5d",
+        "sentiment_average_5d_x_regime",
+        "weighted_sentiment_5d_x_regime"
+      ],
+      "rows_after_dropna": 67,
+      "sentiment_rows": 67,
+      "date_start": "2025-12-01",
+      "date_end": "2026-04-15",
+      "fold_count": 2,
+      "class_labels": [
+        "down",
+        "flat",
+        "up"
+      ],
+      "label_distribution": {
+        "counts": {
+          "down": 24,
+          "flat": 8,
+          "up": 35
+        },
+        "shares": {
+          "down": 0.358209,
+          "flat": 0.119403,
+          "up": 0.522388
+        }
+      },
+      "models": [
+        {
+          "model_name": "gradient_boosting",
+          "mean_metrics": {
+            "accuracy": 0.6,
+            "directional_accuracy": 0.6,
+            "precision_down": 0.583333,
+            "recall_down": 0.625,
+            "f1_down": 0.515152,
+            "precision_flat": 0.5,
+            "recall_flat": 0.5,
+            "f1_flat": 0.5,
+            "precision_up": 0.571429,
+            "recall_up": 0.9375,
+            "f1_up": 0.591667,
+            "f1_macro": 0.535606
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.3,
+                "directional_accuracy": 0.3,
+                "precision_down": 0.6666666666666666,
+                "recall_down": 0.25,
+                "f1_down": 0.36363636363636365,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.14285714285714285,
+                "recall_up": 1.0,
+                "f1_up": 0.25,
+                "f1_macro": 0.20454545454545456
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.9,
+                "directional_accuracy": 0.9,
+                "precision_down": 0.5,
+                "recall_down": 1.0,
+                "f1_down": 0.6666666666666666,
+                "precision_flat": 1.0,
+                "recall_flat": 1.0,
+                "f1_flat": 1.0,
+                "precision_up": 1.0,
+                "recall_up": 0.875,
+                "f1_up": 0.9333333333333333,
+                "f1_macro": 0.8666666666666666
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "logistic_regression",
+          "mean_metrics": {
+            "accuracy": 0.45,
+            "directional_accuracy": 0.45,
+            "precision_down": 0.583333,
+            "recall_down": 0.625,
+            "f1_down": 0.515152,
+            "precision_flat": 0.0,
+            "recall_flat": 0.0,
+            "f1_flat": 0.0,
+            "precision_up": 0.5,
+            "recall_up": 0.8125,
+            "f1_up": 0.5,
+            "f1_macro": 0.338384
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.3,
+                "directional_accuracy": 0.3,
+                "precision_down": 0.6666666666666666,
+                "recall_down": 0.25,
+                "f1_down": 0.36363636363636365,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.16666666666666666,
+                "recall_up": 1.0,
+                "f1_up": 0.2857142857142857,
+                "f1_macro": 0.21645021645021645
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.6,
+                "directional_accuracy": 0.6,
+                "precision_down": 0.5,
+                "recall_down": 1.0,
+                "f1_down": 0.6666666666666666,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.8333333333333334,
+                "recall_up": 0.625,
+                "f1_up": 0.7142857142857143,
+                "f1_macro": 0.4603174603174603
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "majority_class",
+          "mean_metrics": {
+            "accuracy": 0.1,
+            "directional_accuracy": 0.1,
+            "precision_down": 0.05,
+            "recall_down": 0.5,
+            "f1_down": 0.090909,
+            "precision_flat": 0.0,
+            "recall_flat": 0.0,
+            "f1_flat": 0.0,
+            "precision_up": 0.05,
+            "recall_up": 0.5,
+            "f1_up": 0.090909,
+            "f1_macro": 0.060606
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.1,
+                "directional_accuracy": 0.1,
+                "precision_down": 0.0,
+                "recall_down": 0.0,
+                "f1_down": 0.0,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.1,
+                "recall_up": 1.0,
+                "f1_up": 0.18181818181818182,
+                "f1_macro": 0.06060606060606061
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.1,
+                "directional_accuracy": 0.1,
+                "precision_down": 0.1,
+                "recall_down": 1.0,
+                "f1_down": 0.18181818181818182,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.0,
+                "recall_up": 0.0,
+                "f1_up": 0.0,
+                "f1_macro": 0.06060606060606061
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "random_baseline",
+          "mean_metrics": {
+            "accuracy": 0.4,
+            "directional_accuracy": 0.4,
+            "precision_down": 0.5,
+            "recall_down": 0.125,
+            "f1_down": 0.2,
+            "precision_flat": 0.25,
+            "recall_flat": 0.5,
+            "f1_flat": 0.333333,
+            "precision_up": 0.416667,
+            "recall_up": 0.75,
+            "f1_up": 0.428571,
+            "f1_macro": 0.320635
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.4,
+                "directional_accuracy": 0.4,
+                "precision_down": 1.0,
+                "recall_down": 0.25,
+                "f1_down": 0.4,
+                "precision_flat": 0.5,
+                "recall_flat": 1.0,
+                "f1_flat": 0.6666666666666666,
+                "precision_up": 0.16666666666666666,
+                "recall_up": 1.0,
+                "f1_up": 0.2857142857142857,
+                "f1_macro": 0.4507936507936508
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 0.4,
+                "directional_accuracy": 0.4,
+                "precision_down": 0.0,
+                "recall_down": 0.0,
+                "f1_down": 0.0,
+                "precision_flat": 0.0,
+                "recall_flat": 0.0,
+                "f1_flat": 0.0,
+                "precision_up": 0.6666666666666666,
+                "recall_up": 0.5,
+                "f1_up": 0.5714285714285714,
+                "f1_macro": 0.19047619047619047
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "dewa_regime_move_0_5pct_technical_only": {
+      "experiment_id": "dewa_regime_move_0_5pct_technical_only",
+      "label_column": "label_regime_move_0_5pct",
+      "feature_columns": [
+        "return_1d",
+        "return_3d",
+        "return_5d",
+        "return_20d",
+        "atr14_pct",
+        "atr_ratio",
+        "volume_ratio_5d",
+        "volume_ratio_20d",
+        "price_vs_ema20_pct",
+        "price_vs_ema50",
+        "rsi_slope_5d",
+        "return_5d_cross_section_rank",
+        "volume_spike_flag",
+        "market_regime_bullish",
+        "regime_duration"
+      ],
+      "rows_after_dropna": 67,
+      "sentiment_rows": 67,
+      "date_start": "2025-12-01",
+      "date_end": "2026-04-15",
+      "fold_count": 2,
+      "class_labels": [
+        "move"
+      ],
+      "label_distribution": {
+        "counts": {
+          "move": 67
+        },
+        "shares": {
+          "move": 1.0
+        }
+      },
+      "models": [
+        {
+          "model_name": "gradient_boosting",
+          "mean_metrics": {
+            "accuracy": 1.0,
+            "directional_accuracy": 1.0,
+            "precision_move": 1.0,
+            "recall_move": 1.0,
+            "f1_move": 1.0,
+            "f1_macro": 1.0
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": true,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": true,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "logistic_regression",
+          "mean_metrics": {
+            "accuracy": 1.0,
+            "directional_accuracy": 1.0,
+            "precision_move": 1.0,
+            "recall_move": 1.0,
+            "f1_move": 1.0,
+            "f1_macro": 1.0
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": true,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": true,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "majority_class",
+          "mean_metrics": {
+            "accuracy": 1.0,
+            "directional_accuracy": 1.0,
+            "precision_move": 1.0,
+            "recall_move": 1.0,
+            "f1_move": 1.0,
+            "f1_macro": 1.0
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "random_baseline",
+          "mean_metrics": {
+            "accuracy": 1.0,
+            "directional_accuracy": 1.0,
+            "precision_move": 1.0,
+            "recall_move": 1.0,
+            "f1_move": 1.0,
+            "f1_macro": 1.0
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "dewa_regime_move_0_5pct_technical_plus_sentiment": {
+      "experiment_id": "dewa_regime_move_0_5pct_technical_plus_sentiment",
+      "label_column": "label_regime_move_0_5pct",
+      "feature_columns": [
+        "return_1d",
+        "return_3d",
+        "return_5d",
+        "return_20d",
+        "atr14_pct",
+        "atr_ratio",
+        "volume_ratio_5d",
+        "volume_ratio_20d",
+        "price_vs_ema20_pct",
+        "price_vs_ema50",
+        "rsi_slope_5d",
+        "return_5d_cross_section_rank",
+        "volume_spike_flag",
+        "market_regime_bullish",
+        "regime_duration",
+        "has_sentiment_data",
+        "sentiment_average_5d",
+        "weighted_sentiment_5d",
+        "news_volume_5d",
+        "sentiment_average_5d_x_regime",
+        "weighted_sentiment_5d_x_regime"
+      ],
+      "rows_after_dropna": 67,
+      "sentiment_rows": 67,
+      "date_start": "2025-12-01",
+      "date_end": "2026-04-15",
+      "fold_count": 2,
+      "class_labels": [
+        "move"
+      ],
+      "label_distribution": {
+        "counts": {
+          "move": 67
+        },
+        "shares": {
+          "move": 1.0
+        }
+      },
+      "models": [
+        {
+          "model_name": "gradient_boosting",
+          "mean_metrics": {
+            "accuracy": 1.0,
+            "directional_accuracy": 1.0,
+            "precision_move": 1.0,
+            "recall_move": 1.0,
+            "f1_move": 1.0,
+            "f1_macro": 1.0
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": true,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": true,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "logistic_regression",
+          "mean_metrics": {
+            "accuracy": 1.0,
+            "directional_accuracy": 1.0,
+            "precision_move": 1.0,
+            "recall_move": 1.0,
+            "f1_move": 1.0,
+            "f1_macro": 1.0
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": true,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": true,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "majority_class",
+          "mean_metrics": {
+            "accuracy": 1.0,
+            "directional_accuracy": 1.0,
+            "precision_move": 1.0,
+            "recall_move": 1.0,
+            "f1_move": 1.0,
+            "f1_macro": 1.0
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            }
+          ]
+        },
+        {
+          "model_name": "random_baseline",
+          "mean_metrics": {
+            "accuracy": 1.0,
+            "directional_accuracy": 1.0,
+            "precision_move": 1.0,
+            "recall_move": 1.0,
+            "f1_move": 1.0,
+            "f1_macro": 1.0
+          },
+          "fold_metrics": [
+            {
+              "fold_index": 1,
+              "fold": {
+                "train_end": "2026-02-11 00:00:00",
+                "test_start": "2026-02-12 00:00:00",
+                "test_end": "2026-03-09 00:00:00"
+              },
+              "train_rows": 40,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            },
+            {
+              "fold_index": 2,
+              "fold": {
+                "train_end": "2026-03-09 00:00:00",
+                "test_start": "2026-03-10 00:00:00",
+                "test_end": "2026-04-06 00:00:00"
+              },
+              "train_rows": 50,
+              "test_rows": 10,
+              "single_class_train_fallback": false,
+              "metrics": {
+                "accuracy": 1.0,
+                "directional_accuracy": 1.0,
+                "precision_move": 1.0,
+                "recall_move": 1.0,
+                "f1_move": 1.0,
+                "f1_macro": 1.0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "bumi_directional_fixed_2_7pct_technical_only": {
+      "experiment_id": "bumi_directional_fixed_2_7pct_technical_only",
+      "label_column": "label_directional_fixed_2_7pct",
+      "feature_columns": [
+        "return_1d",
+        "return_3d",
+        "return_5d",
+        "return_20d",
+        "atr14_pct",
+        "atr_ratio",
+        "volume_ratio_5d",
+        "volume_ratio_20d",
+        "price_vs_ema20_pct",
+        "price_vs_ema50",
+        "rsi_slope_5d",
+        "return_5d_cross_section_rank",
+        "volume_spike_flag",
+        "market_regime_bullish",
+        "regime_duration"
+      ],
+      "rows_after_dropna": 48,
+      "sentiment_rows": 48,
+      "date_start": "2025-12-30",
+      "date_end": "2026-04-15",
+      "fold_count": 0,
+      "class_labels": [
+        "down",
+        "flat",
+        "up"
+      ],
+      "label_distribution": {
+        "counts": {
+          "down": 21,
+          "flat": 9,
+          "up": 18
+        },
+        "shares": {
+          "down": 0.4375,
+          "flat": 0.1875,
+          "up": 0.375
+        }
+      },
+      "models": [
+        {
+          "model_name": "random_forest",
+          "mean_metrics": {},
+          "fold_metrics": []
+        },
+        {
+          "model_name": "logistic_regression",
+          "mean_metrics": {},
+          "fold_metrics": []
+        },
+        {
+          "model_name": "majority_class",
+          "mean_metrics": {},
+          "fold_metrics": []
+        },
+        {
+          "model_name": "random_baseline",
+          "mean_metrics": {},
+          "fold_metrics": []
+        }
+      ]
+    },
+    "bumi_directional_fixed_2_7pct_technical_plus_sentiment": {
+      "experiment_id": "bumi_directional_fixed_2_7pct_technical_plus_sentiment",
+      "label_column": "label_directional_fixed_2_7pct",
+      "feature_columns": [
+        "return_1d",
+        "return_3d",
+        "return_5d",
+        "return_20d",
+        "atr14_pct",
+        "atr_ratio",
+        "volume_ratio_5d",
+        "volume_ratio_20d",
+        "price_vs_ema20_pct",
+        "price_vs_ema50",
+        "rsi_slope_5d",
+        "return_5d_cross_section_rank",
+        "volume_spike_flag",
+        "market_regime_bullish",
+        "regime_duration",
+        "has_sentiment_data",
+        "sentiment_average_5d",
+        "weighted_sentiment_5d",
+        "news_volume_5d",
+        "sentiment_average_5d_x_regime",
+        "weighted_sentiment_5d_x_regime"
+      ],
+      "rows_after_dropna": 48,
+      "sentiment_rows": 48,
+      "date_start": "2025-12-30",
+      "date_end": "2026-04-15",
+      "fold_count": 0,
+      "class_labels": [
+        "down",
+        "flat",
+        "up"
+      ],
+      "label_distribution": {
+        "counts": {
+          "down": 21,
+          "flat": 9,
+          "up": 18
+        },
+        "shares": {
+          "down": 0.4375,
+          "flat": 0.1875,
+          "up": 0.375
+        }
+      },
+      "models": [
+        {
+          "model_name": "random_forest",
+          "mean_metrics": {},
+          "fold_metrics": []
+        },
+        {
+          "model_name": "logistic_regression",
+          "mean_metrics": {},
+          "fold_metrics": []
+        },
+        {
+          "model_name": "majority_class",
+          "mean_metrics": {},
+          "fold_metrics": []
+        },
+        {
+          "model_name": "random_baseline",
+          "mean_metrics": {},
+          "fold_metrics": []
+        }
+      ]
+    }
+  },
+  "comparison_table": [
+    {
+      "ticker": "DEWA",
+      "task": "directional_atr0_5",
+      "variant": "technical_only",
+      "algorithm": "gradient_boosting",
+      "macro_f1": 0.535606,
+      "directional_accuracy": 0.6,
+      "majority_class_macro_f1": 0.060606,
+      "majority_class_directional_accuracy": 0.1,
+      "random_baseline_macro_f1": 0.320635,
+      "random_baseline_directional_accuracy": 0.4,
+      "delta_macro_f1_vs_internal_technical": 0.0,
+      "delta_directional_accuracy_vs_internal_technical": 0.0,
+      "fold_win_summary": {
+        "folds": 2,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "internal_baseline"
+    },
+    {
+      "ticker": "DEWA",
+      "task": "directional_atr0_5",
+      "variant": "technical_plus_sentiment",
+      "algorithm": "gradient_boosting",
+      "macro_f1": 0.535606,
+      "directional_accuracy": 0.6,
+      "majority_class_macro_f1": 0.060606,
+      "majority_class_directional_accuracy": 0.1,
+      "random_baseline_macro_f1": 0.320635,
+      "random_baseline_directional_accuracy": 0.4,
+      "delta_macro_f1_vs_internal_technical": 0.0,
+      "delta_directional_accuracy_vs_internal_technical": 0.0,
+      "fold_win_summary": {
+        "folds": 2,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "tidak_menang"
+    },
+    {
+      "ticker": "DEWA",
+      "task": "directional_atr0_5",
+      "variant": "technical_only",
+      "algorithm": "logistic_regression",
+      "macro_f1": 0.310606,
+      "directional_accuracy": 0.45,
+      "majority_class_macro_f1": 0.060606,
+      "majority_class_directional_accuracy": 0.1,
+      "random_baseline_macro_f1": 0.320635,
+      "random_baseline_directional_accuracy": 0.4,
+      "delta_macro_f1_vs_internal_technical": 0.0,
+      "delta_directional_accuracy_vs_internal_technical": 0.0,
+      "fold_win_summary": {
+        "folds": 2,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "internal_baseline"
+    },
+    {
+      "ticker": "DEWA",
+      "task": "directional_atr0_5",
+      "variant": "technical_plus_sentiment",
+      "algorithm": "logistic_regression",
+      "macro_f1": 0.338384,
+      "directional_accuracy": 0.45,
+      "majority_class_macro_f1": 0.060606,
+      "majority_class_directional_accuracy": 0.1,
+      "random_baseline_macro_f1": 0.320635,
+      "random_baseline_directional_accuracy": 0.4,
+      "delta_macro_f1_vs_internal_technical": 0.027778,
+      "delta_directional_accuracy_vs_internal_technical": 0.0,
+      "fold_win_summary": {
+        "folds": 2,
+        "f1_wins": 1,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "tidak_menang"
+    },
+    {
+      "ticker": "DEWA",
+      "task": "regime_move_0_5pct",
+      "variant": "technical_only",
+      "algorithm": "gradient_boosting",
+      "macro_f1": 1.0,
+      "directional_accuracy": 1.0,
+      "majority_class_macro_f1": 1.0,
+      "majority_class_directional_accuracy": 1.0,
+      "random_baseline_macro_f1": 1.0,
+      "random_baseline_directional_accuracy": 1.0,
+      "delta_macro_f1_vs_internal_technical": 0.0,
+      "delta_directional_accuracy_vs_internal_technical": 0.0,
+      "fold_win_summary": {
+        "folds": 2,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "internal_baseline"
+    },
+    {
+      "ticker": "DEWA",
+      "task": "regime_move_0_5pct",
+      "variant": "technical_plus_sentiment",
+      "algorithm": "gradient_boosting",
+      "macro_f1": 1.0,
+      "directional_accuracy": 1.0,
+      "majority_class_macro_f1": 1.0,
+      "majority_class_directional_accuracy": 1.0,
+      "random_baseline_macro_f1": 1.0,
+      "random_baseline_directional_accuracy": 1.0,
+      "delta_macro_f1_vs_internal_technical": 0.0,
+      "delta_directional_accuracy_vs_internal_technical": 0.0,
+      "fold_win_summary": {
+        "folds": 2,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "tidak_menang"
+    },
+    {
+      "ticker": "DEWA",
+      "task": "regime_move_0_5pct",
+      "variant": "technical_only",
+      "algorithm": "logistic_regression",
+      "macro_f1": 1.0,
+      "directional_accuracy": 1.0,
+      "majority_class_macro_f1": 1.0,
+      "majority_class_directional_accuracy": 1.0,
+      "random_baseline_macro_f1": 1.0,
+      "random_baseline_directional_accuracy": 1.0,
+      "delta_macro_f1_vs_internal_technical": 0.0,
+      "delta_directional_accuracy_vs_internal_technical": 0.0,
+      "fold_win_summary": {
+        "folds": 2,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "internal_baseline"
+    },
+    {
+      "ticker": "DEWA",
+      "task": "regime_move_0_5pct",
+      "variant": "technical_plus_sentiment",
+      "algorithm": "logistic_regression",
+      "macro_f1": 1.0,
+      "directional_accuracy": 1.0,
+      "majority_class_macro_f1": 1.0,
+      "majority_class_directional_accuracy": 1.0,
+      "random_baseline_macro_f1": 1.0,
+      "random_baseline_directional_accuracy": 1.0,
+      "delta_macro_f1_vs_internal_technical": 0.0,
+      "delta_directional_accuracy_vs_internal_technical": 0.0,
+      "fold_win_summary": {
+        "folds": 2,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "tidak_menang"
+    },
+    {
+      "ticker": "BUMI",
+      "task": "directional_fixed_2_7pct",
+      "variant": "technical_only",
+      "algorithm": "random_forest",
+      "macro_f1": null,
+      "directional_accuracy": null,
+      "majority_class_macro_f1": null,
+      "majority_class_directional_accuracy": null,
+      "random_baseline_macro_f1": null,
+      "random_baseline_directional_accuracy": null,
+      "delta_macro_f1_vs_internal_technical": null,
+      "delta_directional_accuracy_vs_internal_technical": null,
+      "fold_win_summary": {
+        "folds": 0,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "insufficient_data"
+    },
+    {
+      "ticker": "BUMI",
+      "task": "directional_fixed_2_7pct",
+      "variant": "technical_plus_sentiment",
+      "algorithm": "random_forest",
+      "macro_f1": null,
+      "directional_accuracy": null,
+      "majority_class_macro_f1": null,
+      "majority_class_directional_accuracy": null,
+      "random_baseline_macro_f1": null,
+      "random_baseline_directional_accuracy": null,
+      "delta_macro_f1_vs_internal_technical": null,
+      "delta_directional_accuracy_vs_internal_technical": null,
+      "fold_win_summary": {
+        "folds": 0,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "insufficient_data"
+    },
+    {
+      "ticker": "BUMI",
+      "task": "directional_fixed_2_7pct",
+      "variant": "technical_only",
+      "algorithm": "logistic_regression",
+      "macro_f1": null,
+      "directional_accuracy": null,
+      "majority_class_macro_f1": null,
+      "majority_class_directional_accuracy": null,
+      "random_baseline_macro_f1": null,
+      "random_baseline_directional_accuracy": null,
+      "delta_macro_f1_vs_internal_technical": null,
+      "delta_directional_accuracy_vs_internal_technical": null,
+      "fold_win_summary": {
+        "folds": 0,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "insufficient_data"
+    },
+    {
+      "ticker": "BUMI",
+      "task": "directional_fixed_2_7pct",
+      "variant": "technical_plus_sentiment",
+      "algorithm": "logistic_regression",
+      "macro_f1": null,
+      "directional_accuracy": null,
+      "majority_class_macro_f1": null,
+      "majority_class_directional_accuracy": null,
+      "random_baseline_macro_f1": null,
+      "random_baseline_directional_accuracy": null,
+      "delta_macro_f1_vs_internal_technical": null,
+      "delta_directional_accuracy_vs_internal_technical": null,
+      "fold_win_summary": {
+        "folds": 0,
+        "f1_wins": 0,
+        "accuracy_wins": 0,
+        "both_metric_wins": 0,
+        "both_metric_win_share": 0.0
+      },
+      "status": "insufficient_data"
+    }
+  ],
+  "production_representativeness": [
+    {
+      "ticker": "DEWA",
+      "task": "directional_atr0_5",
+      "algorithm": "gradient_boosting",
+      "subset_macro_f1": 0.535606,
+      "production_macro_f1": 0.4102,
+      "delta_macro_f1_subset_minus_production": 0.125406,
+      "subset_directional_accuracy": 0.6,
+      "production_directional_accuracy": 0.505,
+      "delta_directional_accuracy_subset_minus_production": 0.095
+    },
+    {
+      "ticker": "DEWA",
+      "task": "regime_move_0_5pct",
+      "algorithm": "logistic_regression",
+      "subset_macro_f1": 1.0,
+      "production_macro_f1": 0.5751,
+      "delta_macro_f1_subset_minus_production": 0.4249,
+      "subset_directional_accuracy": 1.0,
+      "production_directional_accuracy": 0.8532,
+      "delta_directional_accuracy_subset_minus_production": 0.1468
+    }
+  ],
+  "assessment": {
+    "DEWA": "Sentiment layak dipromosikan hanya jika ada status menang pada task production dengan margin >0.02 dan mayoritas fold; hasil eksperimen ini menunjukkan belum ada bukti konsisten yang cukup kuat.",
+    "BUMI": "Preliminary only, insufficient folds; jangan jadikan dasar keputusan promosi model. Tidak ada bukti kuat yang cukup untuk promosi sentiment."
+  },
+  "recommendation": "Tidak promosikan model sentiment dulu; tunggu review dan/atau validasi tambahan."
+}

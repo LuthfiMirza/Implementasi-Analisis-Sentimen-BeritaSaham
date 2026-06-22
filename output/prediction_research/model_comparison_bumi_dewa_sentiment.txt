@@ -1,0 +1,44 @@
+BUMI & DEWA Sentiment Walk-Forward Experiment
+==============================================
+
+Periode subset: 2025-10-01 s.d. 2026-04-15
+Walk-forward: min_train_days=40, test_window_days=10
+Metric policy: macro F1 utama + directional accuracy sekunder.
+Evaluasi memakai rows ber-sentimen untuk menjaga apples-to-apples technical-only vs +sentiment pada sample yang sama.
+BUMI disclaimer: hasil bersifat preliminary karena keterbatasan sample; jika fold < 3 maka insufficient data for robust walk-forward.
+
+Coverage
+--------
+- BUMI: rows=128, sentiment_rows/evaluation_rows=48 (37.50%), fold_count=0
+- DEWA: rows=128, sentiment_rows/evaluation_rows=67 (52.34%), fold_count=2
+
+Comparison Table
+----------------
+ticker,task,variant,algorithm,macro_f1,directional_accuracy,majority_f1,majority_acc,random_f1,random_acc,delta_f1,delta_acc,fold_both_wins,status
+DEWA,directional_atr0_5,technical_only,gradient_boosting,0.5356,0.6000,0.0606,0.1000,0.3206,0.4000,+0.0000,+0.0000,0/2,internal_baseline
+DEWA,directional_atr0_5,technical_plus_sentiment,gradient_boosting,0.5356,0.6000,0.0606,0.1000,0.3206,0.4000,+0.0000,+0.0000,0/2,tidak_menang
+DEWA,directional_atr0_5,technical_only,logistic_regression,0.3106,0.4500,0.0606,0.1000,0.3206,0.4000,+0.0000,+0.0000,0/2,internal_baseline
+DEWA,directional_atr0_5,technical_plus_sentiment,logistic_regression,0.3384,0.4500,0.0606,0.1000,0.3206,0.4000,+0.0278,+0.0000,0/2,tidak_menang
+DEWA,regime_move_0_5pct,technical_only,gradient_boosting,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,+0.0000,+0.0000,0/2,internal_baseline
+DEWA,regime_move_0_5pct,technical_plus_sentiment,gradient_boosting,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,+0.0000,+0.0000,0/2,tidak_menang
+DEWA,regime_move_0_5pct,technical_only,logistic_regression,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,+0.0000,+0.0000,0/2,internal_baseline
+DEWA,regime_move_0_5pct,technical_plus_sentiment,logistic_regression,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,+0.0000,+0.0000,0/2,tidak_menang
+BUMI,directional_fixed_2_7pct,technical_only,random_forest,NA,NA,NA,NA,NA,NA,NA,NA,0/0,insufficient_data
+BUMI,directional_fixed_2_7pct,technical_plus_sentiment,random_forest,NA,NA,NA,NA,NA,NA,NA,NA,0/0,insufficient_data
+BUMI,directional_fixed_2_7pct,technical_only,logistic_regression,NA,NA,NA,NA,NA,NA,NA,NA,0/0,insufficient_data
+BUMI,directional_fixed_2_7pct,technical_plus_sentiment,logistic_regression,NA,NA,NA,NA,NA,NA,NA,NA,0/0,insufficient_data
+
+Production Baseline Representativeness
+--------------------------------------
+ticker,task,algorithm,subset_f1,production_f1,delta_f1,subset_acc,production_acc,delta_acc
+DEWA,directional_atr0_5,gradient_boosting,0.5356,0.4102,+0.1254,0.6000,0.5050,+0.0950
+DEWA,regime_move_0_5pct,logistic_regression,1.0000,0.5751,+0.4249,1.0000,0.8532,+0.1468
+
+Assessment
+----------
+- DEWA: Sentiment layak dipromosikan hanya jika ada status menang pada task production dengan margin >0.02 dan mayoritas fold; hasil eksperimen ini menunjukkan belum ada bukti konsisten yang cukup kuat.
+- BUMI: Preliminary only, insufficient folds; jangan jadikan dasar keputusan promosi model. Tidak ada bukti kuat yang cukup untuk promosi sentiment.
+
+Recommendation
+--------------
+Tidak promosikan model sentiment dulu; tunggu review dan/atau validasi tambahan.
