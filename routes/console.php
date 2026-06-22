@@ -152,8 +152,9 @@ Schedule::command('stocks:update-snapshots')
 // Aman/idempotent: command skip otomatis jika belum ada data baru sejak training terakhir.
 Schedule::command('prediction:retrain-volatile')
     ->weekly()
-    ->mondays()
-    ->at('16:30')
+    ->sundays()
+    ->at('02:00')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/scheduler.log'));
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/retrain-volatile.log'));

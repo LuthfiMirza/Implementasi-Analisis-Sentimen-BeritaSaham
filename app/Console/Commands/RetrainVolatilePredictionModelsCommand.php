@@ -8,13 +8,19 @@ use App\Models\StockPrice;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
 
 class RetrainVolatilePredictionModelsCommand extends Command
 {
-    protected $signature = 'prediction:retrain-volatile {--dry-run : Show planned retrain without executing} {--force : Retrain even when no new data exists}';
+    protected $signature = 'prediction:retrain-volatile
+        {--dry-run : Show planned retrain without executing}
+        {--force : Retrain even when no new data exists}
+        {--model= : Optional model variant: bumi_technical, dewa_regime, dewa_technical}';
 
     protected $description = 'Safely retrain BUMI/DEWA volatile-stock prediction artifacts with backup, candidate gating, and JSONL history.';
+
+    protected const DEGRADATION_THRESHOLD = 0.05;
 
     protected const VARIANTS = [
         'bumi_technical' => [
@@ -36,89 +42,94 @@ class RetrainVolatilePredictionModelsCommand extends Command
 
     public function handle(): int
     {
+        $selectedModel = $this->selectedModel();
+        if ($selectedModel === false) {
+            return self::FAILURE;
+        }
+
         $predictionDir = env('PREDICTION_RETRAIN_MODEL_DIR', storage_path('app/prediction'));
         $historyPath = $predictionDir.'/retrain_history.jsonl';
         $timestamp = now('Asia/Jakarta');
         $force = (bool) $this->option('force');
         $dryRun = (bool) $this->option('dry-run');
-        $plans = $this->buildPlans($predictionDir, $timestamp);
-        $shouldRetrain = $force || collect($plans)->contains(fn (array $plan): bool => $plan['has_new_data']);
+        $variants = $selectedModel ? [$selectedModel => self::VARIANTS[$selectedModel]] : self::VARIANTS;
+        $plans = $this->buildPlans($predictionDir, $timestamp, $variants);
 
         foreach ($plans as $variant => $plan) {
+            $willRetrain = $force || $plan['has_new_data'];
             $this->line(sprintf(
-                '%s: latest_data=%s trained_at=%s new_prices=%d new_articles=%d decision=%s',
+                '%s: latest_data=%s trained_at=%s rows_new_data=%d estimated_training_time=%s decision=%s',
                 $variant,
                 $plan['latest_data_at'] ?? 'n/a',
                 $plan['trained_at'] ?? 'n/a',
-                $plan['new_price_rows'],
-                $plan['new_article_rows'],
-                $shouldRetrain ? ($dryRun ? 'would_retrain' : 'retrain') : 'skip_no_new_data'
+                $plan['rows_new_data'],
+                $this->estimatedTrainingTime($variant),
+                $willRetrain ? ($dryRun ? 'would_retrain' : 'retrain') : 'skip_no_new_data'
             ));
         }
 
-        if (! $shouldRetrain) {
-            foreach ($plans as $variant => $plan) {
-                $this->appendHistory($historyPath, $this->historyRow($variant, 'skip', $plan, null, null, 'no new data, skip'));
-            }
-            $this->info('No new data since last training; skipped retrain. Use --force to override.');
-
-            return self::SUCCESS;
-        }
-
         if ($dryRun) {
-            foreach ($plans as $variant => $plan) {
-                $this->appendHistory($historyPath, $this->historyRow($variant, 'dry_run', $plan, null, null, 'dry run only; no artifact changed'));
-            }
-            $this->info('Dry run complete; no models were retrained.');
+            $this->info('Dry run complete; no Python process was called and no artifact was changed.');
 
             return self::SUCCESS;
         }
 
-        $candidateDir = $predictionDir.'/candidates/retrain_'.$timestamp->format('Ymd_His');
-        File::ensureDirectoryExists($candidateDir);
-
-        $script = base_path(env('PREDICTION_VOLATILE_TRAIN_SCRIPT', 'quant/train_volatile_stock_models.py'));
-        $python = env('PYTHON_BINARY', 'python3');
-        $process = new Process([$python, $script, '--output-dir', $candidateDir], base_path(), null, null, 600);
-        $process->run(function (string $type, string $buffer): void {
-            $this->output->write($buffer);
-        });
-
-        if (! $process->isSuccessful()) {
-            $this->error('Retrain script failed. Candidate directory preserved: '.$candidateDir);
-            foreach ($plans as $variant => $plan) {
-                $this->appendHistory($historyPath, $this->historyRow($variant, 'failed', $plan, null, null, trim($process->getErrorOutput() ?: $process->getOutput())));
+        $exitCode = self::SUCCESS;
+        foreach ($variants as $variant => $spec) {
+            $plan = $plans[$variant];
+            if (! $force && ! $plan['has_new_data']) {
+                $this->appendHistory($historyPath, $this->historyRow($variant, 'skipped', $plan, null, null, $force));
+                $this->info(sprintf('%s: no new data since %s, skip.', $variant, $plan['trained_at'] ?? 'unknown'));
+                continue;
             }
 
-            return self::FAILURE;
-        }
+            $candidateDir = $predictionDir.'/candidates/retrain_'.$timestamp->format('Ymd_His').'_'.$variant;
+            File::ensureDirectoryExists($candidateDir);
 
-        $archiveDir = $predictionDir.'/archive';
-        File::ensureDirectoryExists($archiveDir);
-        $suffix = $timestamp->format('Ymd_His');
+            $process = $this->runTrainingProcess($variant, $candidateDir);
+            if (! $process->isSuccessful()) {
+                $this->error($variant.': retrain script failed. Candidate directory preserved: '.$candidateDir);
+                Log::warning('Volatile model retrain failed', [
+                    'model' => $variant,
+                    'output' => trim($process->getErrorOutput() ?: $process->getOutput()),
+                ]);
+                $exitCode = self::FAILURE;
+                continue;
+            }
 
-        foreach (self::VARIANTS as $variant => $spec) {
-            $plan = $plans[$variant];
             $oldMetadataPath = $predictionDir.'/'.$spec['metadata'];
             $newMetadataPath = $candidateDir.'/'.$spec['metadata'];
             $newArtifactPath = $candidateDir.'/'.$spec['artifact'];
             $oldMetrics = $this->metricsFromMetadata($this->readJson($oldMetadataPath));
-            $newMetadata = $this->readJson($newMetadataPath);
-            $newMetrics = $this->metricsFromMetadata($newMetadata);
+            $newMetrics = $this->metricsFromMetadata($this->readJson($newMetadataPath));
 
             if (! File::exists($newMetadataPath) || ! File::exists($newArtifactPath)) {
-                $this->appendHistory($historyPath, $this->historyRow($variant, 'failed', $plan, $oldMetrics, $newMetrics, 'candidate artifact missing'));
                 $this->warn($variant.': candidate artifact missing; production unchanged.');
+                Log::warning('Volatile model candidate artifact missing', ['model' => $variant, 'candidate_dir' => $candidateDir]);
+                $exitCode = self::FAILURE;
                 continue;
             }
 
             $macroDelta = ($newMetrics['macro_f1'] ?? 0.0) - ($oldMetrics['macro_f1'] ?? 0.0);
-            if ($macroDelta < -0.05) {
-                $this->appendHistory($historyPath, $this->historyRow($variant, 'candidate', $plan, $oldMetrics, $newMetrics, 'macro F1 dropped more than 0.05; production unchanged', $candidateDir));
-                $this->warn(sprintf('%s: candidate kept, production unchanged (macro F1 delta %.4f).', $variant, $macroDelta));
+            if ($macroDelta < -self::DEGRADATION_THRESHOLD) {
+                $candidateArtifact = $predictionDir.'/'.pathinfo($spec['artifact'], PATHINFO_FILENAME).'_candidate.joblib';
+                $candidateMetadata = $predictionDir.'/'.pathinfo($spec['metadata'], PATHINFO_FILENAME).'_candidate.json';
+                File::copy($newArtifactPath, $candidateArtifact);
+                File::copy($newMetadataPath, $candidateMetadata);
+                $this->appendHistory($historyPath, $this->historyRow($variant, 'candidate_only', $plan, $oldMetrics, $newMetrics, $force, $candidateArtifact));
+                $this->warn(sprintf('%s: new model is worse, saved as candidate only (macro F1 old %.4f -> new %.4f).', $variant, $oldMetrics['macro_f1'] ?? 0.0, $newMetrics['macro_f1'] ?? 0.0));
+                Log::warning('Volatile model candidate rejected due to macro F1 degradation', [
+                    'model' => $variant,
+                    'old_macro_f1' => $oldMetrics['macro_f1'] ?? null,
+                    'new_macro_f1' => $newMetrics['macro_f1'] ?? null,
+                    'candidate_artifact' => $candidateArtifact,
+                ]);
                 continue;
             }
 
+            $archiveDir = $predictionDir.'/archive';
+            File::ensureDirectoryExists($archiveDir);
+            $suffix = $timestamp->format('Ymd_His');
             foreach (['artifact', 'metadata'] as $kind) {
                 $productionPath = $predictionDir.'/'.$spec[$kind];
                 if (File::exists($productionPath)) {
@@ -127,31 +138,60 @@ class RetrainVolatilePredictionModelsCommand extends Command
                 File::copy($candidateDir.'/'.$spec[$kind], $productionPath);
             }
 
-            $this->appendHistory($historyPath, $this->historyRow($variant, 'replace', $plan, $oldMetrics, $newMetrics, 'candidate accepted and production replaced', $candidateDir));
-            $this->info(sprintf('%s: replaced production (macro F1 old %.4f -> new %.4f).', $variant, $oldMetrics['macro_f1'] ?? 0.0, $newMetrics['macro_f1'] ?? 0.0));
+            $artifactPath = 'storage/app/prediction/'.$spec['artifact'];
+            $this->appendHistory($historyPath, $this->historyRow($variant, 'promoted', $plan, $oldMetrics, $newMetrics, $force, $artifactPath));
+            $this->info(sprintf('%s: promoted (macro F1 old %.4f -> new %.4f).', $variant, $oldMetrics['macro_f1'] ?? 0.0, $newMetrics['macro_f1'] ?? 0.0));
         }
 
-        return self::SUCCESS;
+        return $exitCode;
     }
 
-    protected function buildPlans(string $predictionDir, Carbon $now): array
+    protected function selectedModel(): string|false|null
+    {
+        $model = trim((string) ($this->option('model') ?? ''));
+        if ($model === '') {
+            return null;
+        }
+        if (! array_key_exists($model, self::VARIANTS)) {
+            $this->error('Invalid --model value. Use one of: '.implode(', ', array_keys(self::VARIANTS)));
+
+            return false;
+        }
+
+        return $model;
+    }
+
+    protected function runTrainingProcess(string $variant, string $candidateDir): Process
+    {
+        $script = base_path(env('PREDICTION_VOLATILE_TRAIN_SCRIPT', 'quant/train_volatile_stock_models.py'));
+        $python = env('PYTHON_BINARY', 'python3');
+        $process = new Process([$python, $script, '--variant', $variant, '--output-dir', $candidateDir], base_path(), null, null, 600);
+        $process->run(function (string $type, string $buffer): void {
+            $this->output->write($buffer);
+        });
+
+        return $process;
+    }
+
+    protected function buildPlans(string $predictionDir, Carbon $now, array $variants): array
     {
         $plans = [];
-        foreach (self::VARIANTS as $variant => $spec) {
+        foreach ($variants as $variant => $spec) {
             $metadata = $this->readJson($predictionDir.'/'.$spec['metadata']);
             $trainedAt = $this->parseDate($metadata['trained_at'] ?? null);
             $ticker = $spec['ticker'];
             $stock = Stock::where('code', $ticker)->first();
-            $latestPriceAt = $stock
-                ? StockPrice::where('stock_id', $stock->id)->where('interval_type', '1d')->max('price_date')
-                : null;
+            $canonicalPrices = $stock
+                ? StockPrice::canonicalize(StockPrice::where('stock_id', $stock->id)->where('interval_type', '1d')->get())
+                : collect();
+            $latestPriceAt = $canonicalPrices->last()?->price_date;
             $latestArticleAt = $stock
                 ? NewsArticle::where('stock_id', $stock->id)->whereNotNull('published_at')->max('published_at')
                 : null;
             $latestDataAt = collect([$this->parseDate($latestPriceAt), $this->parseDate($latestArticleAt)])->filter()->max();
-            $newPriceRows = $stock && $trainedAt
-                ? StockPrice::where('stock_id', $stock->id)->where('interval_type', '1d')->where('price_date', '>', $trainedAt)->count()
-                : 0;
+            $newPriceRows = $trainedAt
+                ? $canonicalPrices->filter(fn (StockPrice $row): bool => $this->parseDate($row->price_date)?->gt($trainedAt) ?? false)->count()
+                : $canonicalPrices->count();
             $newArticleRows = $stock && $trainedAt
                 ? NewsArticle::where('stock_id', $stock->id)->whereNotNull('published_at')->where('published_at', '>', $trainedAt)->count()
                 : 0;
@@ -162,12 +202,22 @@ class RetrainVolatilePredictionModelsCommand extends Command
                 'latest_data_at' => $latestDataAt instanceof Carbon ? $latestDataAt->toIso8601String() : null,
                 'new_price_rows' => $newPriceRows,
                 'new_article_rows' => $newArticleRows,
+                'rows_new_data' => $newPriceRows + $newArticleRows,
                 'has_new_data' => $trainedAt === null || $newPriceRows > 0 || $newArticleRows > 0,
                 'checked_at' => $now->toIso8601String(),
             ];
         }
 
         return $plans;
+    }
+
+    protected function estimatedTrainingTime(string $variant): string
+    {
+        return match ($variant) {
+            'bumi_technical' => '~2-5s',
+            'dewa_regime', 'dewa_technical' => '~1-3s',
+            default => '~1-5s',
+        };
     }
 
     protected function metricsFromMetadata(array $metadata): array
@@ -179,21 +229,22 @@ class RetrainVolatilePredictionModelsCommand extends Command
         ];
     }
 
-    protected function historyRow(string $variant, string $decision, array $plan, ?array $oldMetrics, ?array $newMetrics, string $message, ?string $candidateDir = null): array
+    protected function historyRow(string $variant, string $decision, array $plan, ?array $oldMetrics, ?array $newMetrics, bool $force, ?string $artifactPath = null): array
     {
         return [
-            'timestamp' => now('Asia/Jakarta')->toIso8601String(),
+            'timestamp' => now('UTC')->toIso8601String(),
             'model' => $variant,
-            'ticker' => $plan['ticker'],
+            'trigger' => $force ? 'forced' : 'manual',
+            'rows_new_data' => $plan['rows_new_data'],
+            'old_macro_f1' => $oldMetrics['macro_f1'] ?? null,
+            'new_macro_f1' => $newMetrics['macro_f1'] ?? null,
             'decision' => $decision,
-            'old_metrics' => $oldMetrics,
-            'new_metrics' => $newMetrics,
-            'new_price_rows' => $plan['new_price_rows'],
-            'new_article_rows' => $plan['new_article_rows'],
+            'artifact_path' => $artifactPath,
+            'ticker' => $plan['ticker'],
             'trained_at_before' => $plan['trained_at'],
             'latest_data_at' => $plan['latest_data_at'],
-            'candidate_dir' => $candidateDir,
-            'message' => $message,
+            'old_metrics' => $oldMetrics,
+            'new_metrics' => $newMetrics,
         ];
     }
 

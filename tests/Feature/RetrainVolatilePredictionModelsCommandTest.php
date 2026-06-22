@@ -53,9 +53,7 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
             ->assertExitCode(0);
 
         $this->assertFileDoesNotExist($this->modelDir.'/candidates');
-        $history = $this->historyRows();
-        $this->assertCount(3, $history);
-        $this->assertSame(['dry_run', 'dry_run', 'dry_run'], array_column($history, 'decision'));
+        $this->assertSame([], $this->historyRows());
     }
 
     public function test_skips_when_no_new_data_exists(): void
@@ -68,7 +66,23 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
 
         $history = $this->historyRows();
         $this->assertCount(3, $history);
-        $this->assertSame(['skip', 'skip', 'skip'], array_column($history, 'decision'));
+        $this->assertSame(['skipped', 'skipped', 'skipped'], array_column($history, 'decision'));
+        $this->assertSame(['manual', 'manual', 'manual'], array_column($history, 'trigger'));
+    }
+
+    public function test_model_option_limits_retrain_to_one_model(): void
+    {
+        $this->writeFakeTrainScript(0.42);
+
+        $this->artisan('prediction:retrain-volatile', ['--force' => true, '--model' => 'dewa_technical'])
+            ->expectsOutputToContain('dewa_technical')
+            ->assertExitCode(0);
+
+        $history = $this->historyRows();
+        $this->assertCount(1, $history);
+        $this->assertSame('dewa_technical', $history[0]['model']);
+        $this->assertSame('promoted', $history[0]['decision']);
+        $this->assertSame('production-bumi_technical', File::get($this->modelDir.'/model_bumi_technical.joblib'));
     }
 
     public function test_worse_candidate_does_not_replace_production_model(): void
@@ -77,12 +91,13 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
         $before = File::get($this->modelDir.'/model_bumi_technical.joblib');
 
         $this->artisan('prediction:retrain-volatile', ['--force' => true])
-            ->expectsOutputToContain('candidate kept')
+            ->expectsOutputToContain('candidate only')
             ->assertExitCode(0);
 
         $this->assertSame($before, File::get($this->modelDir.'/model_bumi_technical.joblib'));
         $this->assertDirectoryExists($this->modelDir.'/candidates');
-        $this->assertContains('candidate', array_column($this->historyRows(), 'decision'));
+        $this->assertFileExists($this->modelDir.'/model_bumi_technical_candidate.joblib');
+        $this->assertContains('candidate_only', array_column($this->historyRows(), 'decision'));
     }
 
     public function test_acceptable_candidate_is_archived_and_replaces_production(): void
@@ -90,12 +105,12 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
         $this->writeFakeTrainScript(0.42);
 
         $this->artisan('prediction:retrain-volatile', ['--force' => true])
-            ->expectsOutputToContain('replaced production')
+            ->expectsOutputToContain('promoted')
             ->assertExitCode(0);
 
         $this->assertSame('candidate-bumi_technical', File::get($this->modelDir.'/model_bumi_technical.joblib'));
         $this->assertNotEmpty(File::files($this->modelDir.'/archive'));
-        $this->assertContains('replace', array_column($this->historyRows(), 'decision'));
+        $this->assertContains('promoted', array_column($this->historyRows(), 'decision'));
     }
 
     private function seedVolatileStocks(): void
@@ -135,11 +150,13 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
         File::put($this->scriptPath, <<<'PHP_SCRIPT'
 <?php
 $outputDir = $argv[array_search('--output-dir', $argv, true) + 1] ?? null;
+$variantArg = $argv[array_search('--variant', $argv, true) + 1] ?? 'all';
 if (! $outputDir) { exit(2); }
 @mkdir($outputDir, 0777, true);
 $macroF1 = __MACRO_F1__;
 $specs = __SPECS__;
 foreach ($specs as $variant => $spec) {
+    if ($variantArg !== 'all' && $variantArg !== $variant) { continue; }
     file_put_contents($outputDir.'/'.$spec['artifact'], 'candidate-'.$variant);
     file_put_contents($outputDir.'/'.$spec['metadata'], json_encode([
         'model_variant' => $variant,

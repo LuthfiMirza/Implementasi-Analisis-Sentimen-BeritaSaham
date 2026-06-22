@@ -20,6 +20,43 @@
             </div>
         </x-panel>
 
+        @if(! empty($retrainStatus))
+            <x-panel class="p-4 border-slate-700/80">
+                <div class="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                        <h2 class="text-sm font-semibold text-slate-100">Status Retrain Model Volatil</h2>
+                        <p class="text-xs text-slate-400 mt-1">Read-only dari <code>storage/app/prediction/retrain_history.jsonl</code>. Jalankan manual: <code>php artisan prediction:retrain-volatile --dry-run</code> atau <code>--force</code>.</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-xs text-slate-300">
+                        <thead class="text-slate-500 uppercase">
+                            <tr>
+                                <th class="text-left py-2 pr-4">Model</th>
+                                <th class="text-left py-2 pr-4">Terakhir</th>
+                                <th class="text-left py-2 pr-4">Decision</th>
+                                <th class="text-left py-2 pr-4">Old F1</th>
+                                <th class="text-left py-2 pr-4">New F1</th>
+                                <th class="text-left py-2 pr-4">Rows Baru</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            @foreach($retrainStatus as $model => $row)
+                                <tr>
+                                    <td class="py-2 pr-4 font-semibold text-slate-200">{{ $model }}</td>
+                                    <td class="py-2 pr-4">{{ $row['timestamp'] ?? '-' }}</td>
+                                    <td class="py-2 pr-4">{{ $row['decision'] ?? '-' }}</td>
+                                    <td class="py-2 pr-4">{{ isset($row['old_macro_f1']) ? number_format((float) $row['old_macro_f1'], 4) : '-' }}</td>
+                                    <td class="py-2 pr-4">{{ isset($row['new_macro_f1']) ? number_format((float) $row['new_macro_f1'], 4) : '-' }}</td>
+                                    <td class="py-2 pr-4">{{ $row['rows_new_data'] ?? 0 }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </x-panel>
+        @endif
+
         @if(! empty($predictions))
             @php
                 $cards = [

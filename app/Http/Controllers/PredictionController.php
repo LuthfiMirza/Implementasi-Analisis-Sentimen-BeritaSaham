@@ -10,6 +10,7 @@ use App\Services\Prediction\FeatureBuilderService;
 use App\Services\Stocks\PriceSeriesService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\File;
 use Illuminate\View\View;
 
 class PredictionController extends Controller
@@ -37,6 +38,7 @@ class PredictionController extends Controller
         $prediction = null;
         $predictionSource = 'fallback_heuristic';
         $predictions = [];
+        $retrainStatus = $this->latestRetrainStatus();
 
         if ($stock) {
             $prices = $priceSeriesService->getSeries($stock, '1d', 90)->values();
@@ -58,7 +60,26 @@ class PredictionController extends Controller
             $predictionSource = $prediction['model_source'] ?? 'fallback_heuristic';
         }
 
-        return view('predictions.index', compact('stock', 'prediction', 'predictionSource', 'predictions', 'stocks'));
+        return view('predictions.index', compact('stock', 'prediction', 'predictionSource', 'predictions', 'stocks', 'retrainStatus'));
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    protected function latestRetrainStatus(): array
+    {
+        $path = storage_path('app/prediction/retrain_history.jsonl');
+        if (! File::exists($path)) {
+            return [];
+        }
+
+        return collect(explode("\n", trim((string) File::get($path))))
+            ->filter()
+            ->map(fn (string $line): mixed => json_decode($line, true))
+            ->filter(fn (mixed $row): bool => is_array($row) && isset($row['model']))
+            ->groupBy('model')
+            ->map(fn ($rows): array => collect($rows)->last())
+            ->all();
     }
 
     /**
