@@ -9,6 +9,11 @@ from zoneinfo import ZoneInfo
 
 import joblib
 import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from train_prediction_models import (
     build_logistic_pipeline,
@@ -66,7 +71,7 @@ MODEL_SPECS = {
         },
     },
     "dewa_technical": {
-        "version": "dewa_special_logistic_regression_atr0_5_directional_final",
+        "version": "dewa_special_gradient_boosting_atr0_5_directional_final",
         "artifact_name": "model_dewa_technical.joblib",
         "metadata_name": "model_dewa_technical_metadata.json",
         "dataset": Path("output/prediction_research/dataset_dewa_special.csv"),
@@ -74,18 +79,23 @@ MODEL_SPECS = {
         "label_column": "label_dewa_atr0_5_h5d",
         "label_type": "directional_atr_threshold",
         "atr_multiplier": 0.5,
-        "algorithm": "logistic_regression",
+        "algorithm": "gradient_boosting",
         "scenario_name": "dewa_technical_atr0_5_directional",
         "research_report_json": Path("output/prediction_research/model_comparison_dewa_special.json"),
         "research_report_txt": Path("output/prediction_research/model_comparison_dewa_special.txt"),
         "research_summary": {
-            "macro_f1": 0.3264,
-            "directional_accuracy": 0.4067,
+            "macro_f1": 0.4102,
+            "directional_accuracy": 0.5050,
             "majority_macro_f1": 0.2188,
             "majority_directional_accuracy": 0.5000,
-            "baseline_comparison": "partial_win_macro_f1_only",
-            "important_note": "Directional signal is weak/moderate; directional accuracy is below the majority-class baseline in walk-forward evaluation.",
+            "random_macro_f1": 0.2887,
+            "random_directional_accuracy": 0.4415,
+            "baseline_comparison": "wins_both_metrics_vs_majority_and_random",
+            "important_note": "Gradient boosting upgrade wins vs LR production and RF160 on identical sample; macro F1 +0.0838 and directional accuracy +0.0983 vs LR production.",
         },
+        "model_type": "gradient_boosting",
+        "upgrade_reason": "GB menang vs LR production dan RF160 pada sample identik; macro F1 +0.0838, dir acc +0.0983",
+        "promoted_from_experiment": "model_comparison_volatile_v2_verification.txt",
     },
 }
 
@@ -103,6 +113,36 @@ def build_estimator(algorithm: str, feature_columns: list[str]):
         return build_random_forest_pipeline(feature_columns, class_weight="balanced_subsample")
     if algorithm == "logistic_regression":
         return build_logistic_pipeline(feature_columns, class_weight="balanced")
+    if algorithm == "gradient_boosting":
+        return Pipeline(
+            steps=[
+                (
+                    "preprocess",
+                    ColumnTransformer(
+                        transformers=[
+                            (
+                                "num",
+                                Pipeline(
+                                    steps=[
+                                        ("imputer", SimpleImputer(strategy="median")),
+                                        ("scaler", StandardScaler()),
+                                    ]
+                                ),
+                                feature_columns,
+                            )
+                        ]
+                    ),
+                ),
+                (
+                    "model",
+                    HistGradientBoostingClassifier(
+                        max_iter=60,
+                        learning_rate=0.08,
+                        random_state=42,
+                    ),
+                ),
+            ]
+        )
     raise ValueError(f"Unsupported algorithm: {algorithm}")
 
 
@@ -180,11 +220,15 @@ def train_variant(variant: str, output_dir: Path, sample_rows: int | None = None
         "feature_columns": feature_columns,
         "selected_model": {
             "model_name": spec["algorithm"],
+            "model_type": spec.get("model_type", spec["algorithm"]),
             "scenario_name": spec["scenario_name"],
             "feature_columns": feature_columns,
-            "hyperparameters_source": "quant/train_prediction_models.py",
+            "hyperparameters_source": "quant/run_volatile_v2_experiments.py" if spec["algorithm"] == "gradient_boosting" else "quant/train_prediction_models.py",
             "insights": extract_model_insights(estimator, feature_columns),
         },
+        "model_type": spec.get("model_type", spec["algorithm"]),
+        "upgrade_reason": spec.get("upgrade_reason"),
+        "promoted_from_experiment": spec.get("promoted_from_experiment"),
         "research_metrics_reference": read_research_metrics(Path(spec["research_report_json"]), str(spec["scenario_name"])),
         "research_summary": spec["research_summary"],
         "research_report_json": str(spec["research_report_json"]),
