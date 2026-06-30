@@ -1,0 +1,32 @@
+{
+  "schema_version": "tp_optimizer_v1",
+  "artifact_type": "tp_optimizer",
+  "ticker": "BUMI",
+  "generated_at": "2026-07-01T00:00:00+07:00",
+  "source": {
+    "kind": "example",
+    "walk_forward_artifact": "walk_forward_bumi_v1.json",
+    "notes": "Example artifact for Sprint 1 schema validation only; not production optimizer output."
+  },
+  "candidates": [
+    {"tp_pct": 0.05, "hit_rate": null, "average_return": null, "average_holding_days": null, "expectancy": null, "max_drawdown": null, "median_drawdown": null},
+    {"tp_pct": 0.10, "hit_rate": null, "average_return": null, "average_holding_days": null, "expectancy": null, "max_drawdown": null, "median_drawdown": null},
+    {"tp_pct": 0.15, "hit_rate": null, "average_return": null, "average_holding_days": null, "expectancy": null, "max_drawdown": null, "median_drawdown": null},
+    {"tp_pct": 0.20, "hit_rate": null, "average_return": null, "average_holding_days": null, "expectancy": null, "max_drawdown": null, "median_drawdown": null},
+    {"tp_pct": 0.25, "hit_rate": null, "average_return": null, "average_holding_days": null, "expectancy": null, "max_drawdown": null, "median_drawdown": null},
+    {"tp_pct": 0.30, "hit_rate": null, "average_return": null, "average_holding_days": null, "expectancy": null, "max_drawdown": null, "median_drawdown": null}
+  ],
+  "selected": {
+    "tp_pct": null,
+    "expectancy": null,
+    "hit_rate": null,
+    "average_holding_days": null,
+    "selection_reason": "Unavailable in example artifact."
+  },
+  "quality": {
+    "status": "example",
+    "sample_size": 0,
+    "warnings": ["Example artifact only; do not use for trading decisions."]
+  },
+  "notes": "Sprint 1 fixture for ResearchArtifactService."
+}

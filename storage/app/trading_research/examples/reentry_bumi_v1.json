@@ -1,0 +1,26 @@
+{
+  "schema_version": "reentry_v1",
+  "artifact_type": "reentry",
+  "ticker": "BUMI",
+  "generated_at": "2026-07-01T00:00:00+07:00",
+  "source": {
+    "kind": "example",
+    "notes": "Example artifact for Sprint 1 schema validation only; not production re-entry evidence."
+  },
+  "zones": {
+    "wait": {"description": "No validated pullback zone available in example artifact."},
+    "accumulation": {"description": "Unavailable in example artifact."},
+    "buy_back": {"description": "Unavailable in example artifact."}
+  },
+  "recovery": {
+    "average_days_to_bottom": null,
+    "average_days_to_recovery": null,
+    "median_pullback_pct": null
+  },
+  "quality": {
+    "status": "example",
+    "sample_size": 0,
+    "warnings": ["Example artifact only; do not use for trading decisions."]
+  },
+  "notes": "Sprint 1 fixture for ResearchArtifactService."
+}

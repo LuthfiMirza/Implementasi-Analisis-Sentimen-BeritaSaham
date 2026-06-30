@@ -1,0 +1,42 @@
+{
+  "schema_version": "walk_forward_v1",
+  "artifact_type": "walk_forward",
+  "ticker": "BUMI",
+  "generated_at": "2026-07-01T00:00:00+07:00",
+  "source": {
+    "kind": "example",
+    "dataset": "output/prediction_research/dataset_bumi_special.csv",
+    "notes": "Example artifact for Sprint 1 schema validation only; not production research evidence."
+  },
+  "folds": [
+    {
+      "fold_id": "example_2024",
+      "train_start": "2018-01-01",
+      "train_end": "2023-12-31",
+      "test_start": "2024-01-01",
+      "test_end": "2024-12-31",
+      "event_count": 0
+    }
+  ],
+  "summary": {
+    "event_count": 0,
+    "return_horizons": {
+      "1d": {"mean": null, "median": null},
+      "3d": {"mean": null, "median": null},
+      "5d": {"mean": null, "median": null},
+      "10d": {"mean": null, "median": null},
+      "20d": {"mean": null, "median": null},
+      "30d": {"mean": null, "median": null}
+    },
+    "mfe": {"mean": null, "median": null},
+    "mae": {"mean": null, "median": null},
+    "drawdown": {"mean": null, "median": null},
+    "fold_stability": null
+  },
+  "quality": {
+    "status": "example",
+    "sample_size": 0,
+    "warnings": ["Example artifact only; do not use for trading decisions."]
+  },
+  "notes": "Sprint 1 fixture for ResearchArtifactService."
+}
