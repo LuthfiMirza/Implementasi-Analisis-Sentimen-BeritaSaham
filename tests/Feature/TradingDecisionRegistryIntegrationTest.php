@@ -28,8 +28,8 @@ class TradingDecisionRegistryIntegrationTest extends TestCase
             $this->assertSame('trading_confidence_v1_1', $result['confidence']['schema_version']);
             $this->assertSame('research_only', $result['confidence_status']);
             $this->assertNull($result['confidence']['trade_action_confidence']['score']);
-            $this->assertSame('trading_risk_v1_1', $result['risk']['schema_version']);
-            $this->assertSame('trading_trade_plan_v1_1', $result['trade_plan']['schema_version']);
+            $this->assertSame('trading_risk_v1_3', $result['risk']['schema_version']);
+            $this->assertSame('trading_trade_plan_v1_2', $result['trade_plan']['schema_version']);
             $this->assertSame('trading_reference_trade_plan_v1', $result['trade_plan']['reference_plan']['schema_version']);
             $this->assertSame('unavailable', $result['risk']['decision_risk']['status']);
             $this->assertSame('unavailable', $result['trade_plan']['status']);

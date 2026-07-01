@@ -4,10 +4,14 @@ namespace App\Services\Trading;
 
 class RiskEngineService
 {
-    public function __construct(protected ?array $config = null, protected ?ActionRiskEvaluationService $actionRiskService = null)
+    public function __construct(protected ?array $config = null, protected ?ActionRiskEvaluationService $actionRiskService = null, protected ?CapitalRiskEvaluationService $capitalRiskService = null, protected ?PositionSizingService $positionSizingService = null, protected ?ExposureAggregationService $exposureAggregationService = null, protected ?PortfolioRiskEvaluationService $portfolioRiskService = null)
     {
         $this->config ??= config('trading_risk');
         $this->actionRiskService ??= new ActionRiskEvaluationService($this->config);
+        $this->capitalRiskService ??= new CapitalRiskEvaluationService();
+        $this->positionSizingService ??= new PositionSizingService();
+        $this->exposureAggregationService ??= new ExposureAggregationService();
+        $this->portfolioRiskService ??= new PortfolioRiskEvaluationService();
         $this->validateConfig($this->config);
     }
 
@@ -24,13 +28,36 @@ class RiskEngineService
             'entry_reference' => $context['entry_reference'] ?? null,
         ]);
         $decision = $this->decisionRiskFromActionRisk($actionRisk, $actionCandidate);
-        $positionSizing = [
-            'status' => 'not_implemented',
-            'recommended_fraction' => null,
-            'recommended_quantity' => null,
-            'maximum_loss_amount' => null,
-            'reason_codes' => ['POSITION_SIZING_NOT_IMPLEMENTED'],
-        ];
+        $capitalRisk = $this->capitalRiskService->evaluate([
+            'decision_at' => $context['decision_at'],
+            'action_candidate' => $actionCandidate,
+            'action_risk' => $actionRisk,
+            'reference_plan' => $context['reference_plan'] ?? null,
+            'capital_context' => $context['capital_context'] ?? null,
+            'capital_risk_policy' => $context['capital_risk_policy'] ?? null,
+        ]);
+        $positionSizing = $this->positionSizingService->size([
+            'action_candidate' => $actionCandidate,
+            'capital_risk' => $capitalRisk,
+            'action_risk' => $actionRisk,
+            'reference_plan' => $context['reference_plan'] ?? null,
+        ]);
+        $exposureAggregation = $this->exposureAggregationService->aggregate([
+            'decision_at' => $context['decision_at'],
+            'portfolio_context' => $context['portfolio_context'] ?? null,
+            'position_snapshots' => $context['position_snapshots'] ?? null,
+        ]);
+        $portfolioRisk = $this->portfolioRiskService->evaluate([
+            'action_candidate' => $actionCandidate,
+            'capital_risk' => $capitalRisk,
+            'position_sizing' => $positionSizing,
+            'execution_readiness' => $context['execution_readiness'] ?? null,
+            'portfolio_context' => $context['portfolio_context'] ?? null,
+            'exposure_aggregation' => $exposureAggregation,
+            'portfolio_risk_policy' => $context['portfolio_risk_policy'] ?? null,
+            'candidate_ticker' => $context['ticker'] ?? ($actionCandidate['metadata']['ticker'] ?? null),
+            'candidate_sector' => $context['candidate_sector'] ?? null,
+        ]);
 
         $status = $research['status'] === 'invalid' ? 'invalid' : $research['status'];
         $result = [
@@ -39,11 +66,13 @@ class RiskEngineService
             'research_risk_evidence' => $research,
             'action_specific_risk' => $actionRisk,
             'decision_risk' => $decision,
-            'capital_risk' => ['status' => 'not_implemented', 'maximum_loss_amount' => null, 'capital_at_risk_pct' => null, 'reason_codes' => ['ACTION_RISK_CAPITAL_METRICS_UNAVAILABLE']],
+            'capital_risk' => $capitalRisk,
             'position_sizing' => $positionSizing,
-            'reason_codes' => $this->orderedReasonCodes(array_values(array_unique(array_merge($reasonCodes, $actionRisk['reason_codes'], $decision['reason_codes'], $positionSizing['reason_codes'], ['ACTION_RISK_CAPITAL_METRICS_UNAVAILABLE'])))),
+            'exposure_aggregation' => $exposureAggregation,
+            'portfolio_risk' => $portfolioRisk,
+            'reason_codes' => $this->orderedReasonCodes(array_values(array_unique(array_merge($reasonCodes, $actionRisk['reason_codes'], $decision['reason_codes'], $capitalRisk['reason_codes'], $positionSizing['reason_codes'], $exposureAggregation['reason_codes'], $portfolioRisk['reason_codes'])))),
             'calculation' => [
-                'method' => 'risk_contract_v1_1',
+                'method' => 'risk_contract_v1_3',
                 'calculated_at' => $context['decision_at'],
             ],
         ];

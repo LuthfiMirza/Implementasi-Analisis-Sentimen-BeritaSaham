@@ -13,7 +13,7 @@ class TradingDecisionServiceTest extends TestCase
     {
         $result = $this->service($this->researchEvidence())->decide($this->input());
 
-        $this->assertSame('trading_decision_v1_8', $result['schema_version']);
+        $this->assertSame('trading_decision_v1_15', $result['schema_version']);
         $this->assertSame('WAIT', $result['action']);
         $this->assertSame('safe_downgrade', $result['action_status']);
         $this->assertSame('research_only', $result['recommendation_quality']);
@@ -21,15 +21,19 @@ class TradingDecisionServiceTest extends TestCase
         $this->assertSame('research_only', $result['confidence_status']);
         $this->assertNull($result['confidence']['trade_action_confidence']['score']);
         $this->assertSame('available', $result['confidence']['safety_decision_confidence']['status']);
-        $this->assertSame('trading_risk_v1_1', $result['risk']['schema_version']);
+        $this->assertSame('trading_risk_v1_3', $result['risk']['schema_version']);
         $this->assertSame('trading_action_risk_v1', $result['risk']['action_specific_risk']['schema_version']);
-        $this->assertSame('trading_trade_plan_v1_1', $result['trade_plan']['schema_version']);
+        $this->assertSame('trading_trade_plan_v1_2', $result['trade_plan']['schema_version']);
         $this->assertSame('unavailable', $result['risk']['decision_risk']['status']);
         $this->assertSame('unavailable', $result['trade_plan']['status']);
         $this->assertNull($result['risk']['decision_risk']['risk_reward_ratio']);
         $this->assertNull($result['trade_plan']['take_profit']['price']);
         $this->assertNull($result['trade_plan']['stop_loss']['price']);
-        $this->assertNull($result['risk']['position_sizing']['recommended_quantity']);
+        $this->assertSame('trading_capital_risk_v1', $result['risk']['capital_risk']['schema_version']);
+        $this->assertSame('trading_position_sizing_v1', $result['risk']['position_sizing']['schema_version']);
+        $this->assertSame('unavailable', $result['risk']['capital_risk']['status']);
+        $this->assertSame('unavailable', $result['risk']['position_sizing']['status']);
+        $this->assertNull($result['risk']['position_sizing']['metrics']['executable_quantity']);
         $this->assertContains('NO_DECISION_USABLE_TP', $result['reason_codes']);
         $this->assertContains('NO_DECISION_USABLE_SL', $result['reason_codes']);
         $this->assertContains('SAFE_DOWNGRADE_WAIT', $result['reason_codes']);
@@ -49,6 +53,16 @@ class TradingDecisionServiceTest extends TestCase
         $this->assertSame('entry_evaluation', $result['decision_scope']);
         $this->assertSame('no_open_trade', $result['position_context']);
         $this->assertSame('not_required', $result['position_management_status']);
+        $this->assertSame('trading_portfolio_approval_v1', $result['portfolio_approval']['schema_version']);
+        $this->assertSame('unavailable', $result['portfolio_approval']['status']);
+        $this->assertFalse($result['portfolio_approval']['approval_result']['reference_approved']);
+        $this->assertFalse($result['portfolio_approval']['approval_result']['production_approved']);
+        $this->assertFalse($result['portfolio_approval']['approval_result']['execution_approved']);
+        $this->assertNull($result['portfolio_approval']['approved_action']);
+        $this->assertNull($result['portfolio_approval']['approved_quantity']);
+        $this->assertSame('trading_position_management_v1_2', $result['position_management']['schema_version']);
+        $this->assertSame('not_required', $result['position_management']['status']);
+        $this->assertNull($result['position_management']['management_action_candidate']);
         $this->assertNotEmpty($result['metadata']['decision_fingerprint']);
         $this->assertNotContains($result['action'], ['BUY','ACCUMULATE','BUY_BACK','SELL']);
     }
@@ -213,17 +227,42 @@ class TradingDecisionServiceTest extends TestCase
         $input = $this->input();
         $input['selected_parameters'] = $this->selectedParameters($candidateSeed);
         $input['entry_reference'] = $this->entryReference($candidateSeed);
+        $input['capital_context'] = $this->capitalContext();
+        $input['capital_risk_policy'] = $this->capitalPolicy($candidateSeed);
+        $input['market_constraints'] = $this->marketConstraints($candidateSeed);
+        $input['execution_cash_context'] = $this->cashContext($candidateSeed, 600000.0);
+        $input['portfolio_context'] = $this->portfolioContext();
+        $input['position_snapshots'] = $this->positionSnapshots();
+        $input['portfolio_risk_policy'] = $this->portfolioPolicy($candidateSeed, 5.0);
 
         $result = $service->decide($input);
 
-        $this->assertSame('trading_decision_v1_8', $result['schema_version']);
-        $this->assertSame('trading_trade_plan_v1_1', $result['trade_plan']['schema_version']);
+        $this->assertSame('trading_decision_v1_15', $result['schema_version']);
+        $this->assertSame('trading_trade_plan_v1_2', $result['trade_plan']['schema_version']);
         $this->assertSame('materialized', $result['trade_plan']['reference_plan']['status']);
         $this->assertSame(100.0, $result['trade_plan']['reference_plan']['entry']['reference_price']);
         $this->assertSame(105.0, $result['trade_plan']['reference_plan']['take_profit']['reference_price']);
         $this->assertSame(98.0, $result['trade_plan']['reference_plan']['stop_loss']['reference_price']);
         $this->assertSame(2.5, $result['trade_plan']['reference_plan']['risk_geometry']['gross_reward_risk_ratio']);
-        $this->assertSame('reference_ready', $result['trade_plan']['execution_readiness']['status']);
+        $this->assertSame('evaluated_reference', $result['risk']['capital_risk']['status']);
+        $this->assertSame(10000.0, $result['risk']['capital_risk']['metrics']['maximum_loss_amount']);
+        $this->assertSame('reference_sized', $result['risk']['position_sizing']['status']);
+        $this->assertSame(5000.0, $result['risk']['position_sizing']['metrics']['raw_reference_units']);
+        $this->assertSame(5000.0, $result['risk']['position_sizing']['metrics']['whole_unit_reference_floor']);
+        $this->assertSame(500000.0, $result['risk']['position_sizing']['metrics']['reference_notional']);
+        $this->assertNull($result['risk']['position_sizing']['metrics']['executable_quantity']);
+        $this->assertSame('partial', $result['trade_plan']['execution_readiness']['status']);
+        $this->assertSame(5000.0, $result['trade_plan']['execution_readiness']['reference_quantity']);
+        $this->assertSame(5000.0, $result['trade_plan']['execution_readiness']['constraint_evaluation']['metrics']['step_aligned_reference_units']);
+        $this->assertSame(6000.0, $result['trade_plan']['execution_readiness']['constraint_evaluation']['metrics']['cash_capped_reference_units']);
+        $this->assertSame(5000.0, $result['trade_plan']['execution_readiness']['constraint_evaluation']['metrics']['constraint_adjusted_reference_units']);
+        $this->assertSame(500000.0, $result['trade_plan']['execution_readiness']['constraint_evaluation']['metrics']['reference_notional']);
+        $this->assertNull($result['trade_plan']['execution_readiness']['executable_quantity']);
+        $this->assertSame('evaluated_reference', $result['risk']['portfolio_risk']['status']);
+        $this->assertSame(2500000.0, $result['risk']['portfolio_risk']['post_candidate_exposure']['gross_notional']);
+        $this->assertSame(210000.0, $result['risk']['portfolio_risk']['post_candidate_exposure']['aggregate_capital_at_risk']);
+        $this->assertSame(2.1, $result['risk']['portfolio_risk']['post_candidate_exposure']['aggregate_capital_at_risk_pct']);
+        $this->assertFalse($result['risk']['portfolio_risk']['approved']);
         $this->assertFalse($result['trade_plan']['execution_readiness']['executable']);
         $this->assertNull($result['trade_plan']['position_sizing']['quantity']);
         $this->assertNull($result['action_selection']['selected_candidate']);
@@ -347,5 +386,41 @@ class TradingDecisionServiceTest extends TestCase
     protected function entryReference(array $candidate): array
     {
         return ['schema_version'=>'trading_entry_reference_v1','ticker'=>'BUMI','candidate_id'=>$candidate['candidate_id'],'candidate_intent'=>$candidate['intent'],'status'=>'reference_only','price'=>100.0,'currency'=>'IDR','price_type'=>'reference_market_price','observed_at'=>'2026-07-01T09:59:00+07:00','source'=>['type'=>'synthetic_test_fixture','identifier'=>'fixture-entry-100'],'executable'=>false,'synthetic_test_only'=>true];
+    }
+
+    protected function capitalContext(): array
+    {
+        return ['schema_version'=>'trading_capital_context_v1','status'=>'reference_only','capital_scope'=>'single_candidate_reference','capital_base'=>['amount'=>1000000.0,'currency'=>'IDR'],'available_cash'=>null,'reserved_capital'=>null,'current_exposure'=>null,'as_of'=>'2026-07-01T10:00:00+07:00','source'=>['type'=>'synthetic_test_fixture','identifier'=>'capital-fixture-1m'],'approved_for_execution'=>false,'synthetic_test_only'=>true,'warnings'=>[]];
+    }
+
+    protected function capitalPolicy(array $candidate): array
+    {
+        return ['schema_version'=>'trading_capital_risk_policy_v1','status'=>'reference_only','method'=>'fixed_fractional','maximum_loss_pct'=>1.0,'maximum_loss_amount'=>null,'currency'=>'IDR','candidate_id'=>$candidate['candidate_id'],'candidate_intent'=>$candidate['intent'],'policy_version'=>'fixed_fractional_reference_v1','source'=>['type'=>'synthetic_test_fixture','identifier'=>'risk-policy-1pct'],'approved_for_execution'=>false,'synthetic_test_only'=>true,'warnings'=>[]];
+    }
+
+    protected function marketConstraints(array $candidate): array
+    {
+        return ['schema_version'=>'trading_market_constraints_v1','status'=>'reference_only','ticker'=>'BUMI','candidate_id'=>$candidate['candidate_id'],'market'=>'synthetic','currency'=>'IDR','unit_step'=>100,'minimum_order_units'=>100,'maximum_order_units'=>null,'price_step'=>null,'minimum_notional'=>null,'as_of'=>'2026-07-01T10:00:00+07:00','source'=>['type'=>'synthetic_test_fixture','identifier'=>'market-constraint-1'],'approved_for_execution'=>false,'synthetic_test_only'=>true];
+    }
+
+    protected function cashContext(array $candidate, float $amount): array
+    {
+        return ['schema_version'=>'trading_execution_cash_context_v1','status'=>'reference_only','candidate_id'=>$candidate['candidate_id'],'currency'=>'IDR','available_cash'=>$amount,'reserved_cash'=>null,'as_of'=>'2026-07-01T10:00:00+07:00','source'=>['type'=>'synthetic_test_fixture','identifier'=>'cash-fixture'],'approved_for_execution'=>false,'synthetic_test_only'=>true];
+    }
+
+    protected function portfolioContext(): array
+    {
+        return ['schema_version'=>'trading_portfolio_context_v1','status'=>'reference_only','portfolio_id'=>'synthetic-portfolio-1','base_currency'=>'IDR','capital_base'=>10000000.0,'available_cash'=>null,'as_of'=>'2026-07-01T10:00:00+07:00','source'=>['type'=>'synthetic_test_fixture','identifier'=>'portfolio-fixture-1'],'approved_for_execution'=>false,'synthetic_test_only'=>true];
+    }
+
+    protected function positionSnapshots(): array
+    {
+        $base = ['schema_version'=>'trading_position_snapshot_v1','status'=>'reference_only','portfolio_id'=>'synthetic-portfolio-1','currency'=>'IDR','side'=>'long','quantity'=>10000,'reference_price'=>100,'reference_notional'=>1000000.0,'capital_at_risk'=>100000.0,'risk_source'=>['type'=>'explicit_reference_input','identifier'=>'risk'],'as_of'=>'2026-07-01T10:00:00+07:00','source'=>['type'=>'synthetic_test_fixture','identifier'=>'position'],'approved_for_execution'=>false,'synthetic_test_only'=>true];
+        return [array_merge($base, ['position_id'=>'position-1','ticker'=>'EXISTING1','sector'=>'Energy']), array_merge($base, ['position_id'=>'position-2','ticker'=>'EXISTING2','sector'=>'Finance'])];
+    }
+
+    protected function portfolioPolicy(array $candidate, float $aggregateLimit): array
+    {
+        return ['schema_version'=>'trading_portfolio_risk_policy_v1','status'=>'reference_only','portfolio_id'=>'synthetic-portfolio-1','candidate_id'=>$candidate['candidate_id'],'policy_version'=>'portfolio_reference_policy_v1','limits'=>['maximum_aggregate_capital_at_risk_pct'=>$aggregateLimit,'maximum_single_ticker_notional_pct'=>25.0,'maximum_single_ticker_capital_at_risk_pct'=>2.0,'maximum_sector_notional_pct'=>null,'maximum_sector_capital_at_risk_pct'=>null,'maximum_position_count'=>null],'source'=>['type'=>'synthetic_test_fixture','identifier'=>'portfolio-policy-1'],'approved_for_execution'=>false,'synthetic_test_only'=>true];
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'risk_schema_version' => 'trading_risk_v1_1',
+    'risk_schema_version' => 'trading_risk_v1_3',
     'action_risk_schema_version' => 'trading_action_risk_v1',
     'selected_parameters_schema_version' => 'trading_selected_parameters_v1',
     'trade_plan_schema_version' => 'trading_trade_plan_v1',

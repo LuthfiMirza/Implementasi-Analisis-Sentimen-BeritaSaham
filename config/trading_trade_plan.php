@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'trade_plan_schema_version' => 'trading_trade_plan_v1_1',
+    'trade_plan_schema_version' => 'trading_trade_plan_v1_2',
     'reference_plan_schema_version' => 'trading_reference_trade_plan_v1',
     'entry_reference_schema_version' => 'trading_entry_reference_v1',
     'supported_intents' => ['long_entry'],

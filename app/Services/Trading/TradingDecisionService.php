@@ -194,6 +194,14 @@ class TradingDecisionService
             'position_context' => $positionContext,
             'decision_fingerprint_seed' => $candidateSeed,
         ]);
+        $positionManagement = (new PositionManagementService())->evaluate([
+            'decision_scope' => $positionContext === 'open_trade' ? 'position_management' : 'entry_evaluation',
+            'ticker' => $ticker,
+            'decision_at' => $decisionAtRaw,
+            'managed_position' => $input['managed_position'] ?? $input['open_trade'] ?? null,
+            'market_observation' => $input['position_market_observation'] ?? null,
+            'position_management_policy' => $input['position_management_policy'] ?? null,
+        ]);
         $legacyActionPromotion = $this->actionCandidateService->promotion($actionCandidate);
         $this->appendCandidateReasons($reasonCodes, $reasons, $warnings, $blockers, $actionCandidate, $legacyActionPromotion);
         $confidence = $this->confidenceEngine->calculate([
@@ -214,6 +222,13 @@ class TradingDecisionService
             'action_candidate' => $actionCandidate,
             'selected_parameters' => $input['selected_parameters'] ?? null,
             'entry_reference' => $input['entry_reference'] ?? null,
+            'capital_context' => $input['capital_context'] ?? null,
+            'capital_risk_policy' => $input['capital_risk_policy'] ?? null,
+            'portfolio_context' => $input['portfolio_context'] ?? null,
+            'position_snapshots' => $input['position_snapshots'] ?? null,
+            'portfolio_risk_policy' => $input['portfolio_risk_policy'] ?? null,
+            'candidate_sector' => $input['candidate_sector'] ?? null,
+            'ticker' => $ticker,
         ]);
         $tradePlan = $this->tradePlanService->build([
             'decision_at' => $decisionAtRaw,
@@ -223,13 +238,107 @@ class TradingDecisionService
             'artifact_availability' => $this->availabilityOnly($evidence),
             'selected_parameters' => $input['selected_parameters'] ?? null,
             'entry_reference' => $input['entry_reference'] ?? null,
+            'market_constraints' => $input['market_constraints'] ?? null,
+            'execution_cash_context' => $input['execution_cash_context'] ?? null,
+            'execution_cost_evidence' => $input['execution_cost_evidence'] ?? null,
+            'liquidity_evidence' => $input['liquidity_evidence'] ?? null,
+            'position_management' => $positionManagement,
         ]);
+        if (($input['capital_context'] ?? null) !== null || ($input['capital_risk_policy'] ?? null) !== null) {
+            $risk = $this->riskEngine->assess([
+                'decision_at' => $decisionAtRaw,
+                'artifact_availability' => $this->availabilityOnly($evidence),
+                'confidence' => $confidence,
+                'action_candidate' => $actionCandidate,
+                'selected_parameters' => $input['selected_parameters'] ?? null,
+                'entry_reference' => $input['entry_reference'] ?? null,
+                'reference_plan' => $tradePlan['reference_plan'] ?? null,
+                'capital_context' => $input['capital_context'] ?? null,
+                'capital_risk_policy' => $input['capital_risk_policy'] ?? null,
+                'execution_readiness' => $tradePlan['execution_readiness'] ?? null,
+                'portfolio_context' => $input['portfolio_context'] ?? null,
+                'position_snapshots' => $input['position_snapshots'] ?? null,
+                'portfolio_risk_policy' => $input['portfolio_risk_policy'] ?? null,
+                'candidate_sector' => $input['candidate_sector'] ?? null,
+                'ticker' => $ticker,
+            ]);
+            $tradePlan = $this->tradePlanService->build([
+                'decision_at' => $decisionAtRaw,
+                'risk' => $risk,
+                'action_candidate' => $actionCandidate,
+                'position_context' => $positionContext,
+                'artifact_availability' => $this->availabilityOnly($evidence),
+                'selected_parameters' => $input['selected_parameters'] ?? null,
+                'entry_reference' => $input['entry_reference'] ?? null,
+                'market_constraints' => $input['market_constraints'] ?? null,
+                'execution_cash_context' => $input['execution_cash_context'] ?? null,
+                'execution_cost_evidence' => $input['execution_cost_evidence'] ?? null,
+                'liquidity_evidence' => $input['liquidity_evidence'] ?? null,
+                    'position_management' => $positionManagement,
+                ]);
+            if (($input['portfolio_context'] ?? null) !== null || ($input['portfolio_risk_policy'] ?? null) !== null) {
+                $risk = $this->riskEngine->assess([
+                    'decision_at' => $decisionAtRaw,
+                    'artifact_availability' => $this->availabilityOnly($evidence),
+                    'confidence' => $confidence,
+                    'action_candidate' => $actionCandidate,
+                    'selected_parameters' => $input['selected_parameters'] ?? null,
+                    'entry_reference' => $input['entry_reference'] ?? null,
+                    'reference_plan' => $tradePlan['reference_plan'] ?? null,
+                    'capital_context' => $input['capital_context'] ?? null,
+                    'capital_risk_policy' => $input['capital_risk_policy'] ?? null,
+                    'execution_readiness' => $tradePlan['execution_readiness'] ?? null,
+                    'portfolio_context' => $input['portfolio_context'] ?? null,
+                    'position_snapshots' => $input['position_snapshots'] ?? null,
+                    'portfolio_risk_policy' => $input['portfolio_risk_policy'] ?? null,
+                    'candidate_sector' => $input['candidate_sector'] ?? null,
+                    'ticker' => $ticker,
+                ]);
+                $tradePlan = $this->tradePlanService->build([
+                    'decision_at' => $decisionAtRaw,
+                    'risk' => $risk,
+                    'action_candidate' => $actionCandidate,
+                    'position_context' => $positionContext,
+                    'artifact_availability' => $this->availabilityOnly($evidence),
+                    'selected_parameters' => $input['selected_parameters'] ?? null,
+                    'entry_reference' => $input['entry_reference'] ?? null,
+                    'market_constraints' => $input['market_constraints'] ?? null,
+                    'execution_cash_context' => $input['execution_cash_context'] ?? null,
+                    'execution_cost_evidence' => $input['execution_cost_evidence'] ?? null,
+                    'liquidity_evidence' => $input['liquidity_evidence'] ?? null,
+                    'position_management' => $positionManagement,
+                ]);
+            }
+        }
+        $portfolioApprovalService = new PortfolioApprovalService();
+        $portfolioApproval = $portfolioApprovalService->evaluate([
+            'decision_scope' => $decisionScope,
+            'ticker' => $ticker,
+            'decision_at' => $decisionAtRaw,
+            'action_candidate' => $actionCandidate,
+            'risk' => $risk,
+            'trade_plan' => $tradePlan,
+            'portfolio_risk' => $risk['portfolio_risk'] ?? [],
+            'portfolio_approval_policy' => $input['portfolio_approval_policy'] ?? null,
+            'portfolio_authorization' => $input['portfolio_authorization'] ?? null,
+        ]);
+        $tradePlan['portfolio_approval'] = [
+            'schema_version' => $portfolioApproval['schema_version'],
+            'status' => $portfolioApproval['status'],
+            'reference_approved' => $portfolioApproval['approval_result']['reference_approved'],
+            'production_approved' => false,
+            'execution_approved' => false,
+            'reason_codes' => $portfolioApproval['reason_codes'],
+        ];
         $actionSelection = $this->actionSelectionService->select([
             'action_candidate' => $actionCandidate,
             'trade_action_confidence' => $confidence['trade_action_confidence'],
             'decision_risk' => $risk['decision_risk'],
             'trade_plan' => $tradePlan,
+            'position_state' => $positionManagement['position_state'] ?? [],
+            'position_management' => $positionManagement,
             'safety_action' => $action,
+            'portfolio_approval' => $portfolioApproval,
         ]);
         $actionPromotion = $this->actionPromotionService->promote(['selection' => $actionSelection]);
         $this->appendContractReasons($reasonCodes, $reasons, $warnings, $blockers, $risk, $tradePlan);
@@ -245,7 +354,7 @@ class TradingDecisionService
             'allowed_actions' => $this->config['allowed_actions'],
             'decision_fingerprint_algorithm' => 'sha256',
         ];
-        $fingerprint = $this->fingerprint($ticker, $decisionAtRaw, $predictionSnapshots, $sourceArtifacts, $openTradeIdentity, $confidence, $reasonResult, $risk, $tradePlan, $actionCandidate, $actionPromotion, $actionSelection);
+        $fingerprint = $this->fingerprint($ticker, $decisionAtRaw, $predictionSnapshots, $sourceArtifacts, $openTradeIdentity, $confidence, $reasonResult, $risk, $tradePlan, $actionCandidate, $actionPromotion, $actionSelection, $portfolioApproval);
         $metadata['decision_fingerprint'] = $fingerprint;
         $this->addReason($reasonCodes, $canonicalReasons, $warnings, 'DECISION_FINGERPRINT_GENERATED', 'audit', 'informational', 'Deterministic decision fingerprint generated.');
         $reasonResult = $this->reasonEngine->build(['base_reasons' => $canonicalReasons, 'confidence' => $confidence, 'risk' => $risk, 'trade_plan' => $tradePlan]);
@@ -279,6 +388,9 @@ class TradingDecisionService
             'artifact_availability' => $this->availabilityOnly($evidence),
             'evidence' => ['prediction_semantics' => $predictionEvidence, 'safety_gates' => $gates],
             'trade_plan' => $tradePlan,
+            'position_state' => $positionManagement['position_state'] ?? [],
+            'position_management' => $positionManagement,
+            'portfolio_approval' => $portfolioApproval,
             'risk' => $risk,
             'gates' => $gates,
             'reason_summary' => $reasonResult['summary'],
@@ -502,5 +614,5 @@ class TradingDecisionService
     protected function sortPredictionSnapshots(array $snapshots): array { usort($snapshots, fn($a,$b)=>[$a['variant'],$a['semantic_role'],$a['generated_at']] <=> [$b['variant'],$b['semantic_role'],$b['generated_at']]); return $snapshots; }
     protected function uniqueReasons(array $reasons): array { return collect($reasons)->unique('code')->values()->all(); }
     protected function sortReasonCodes(array $codes): array { $order=array_flip($this->config['reason_codes']); $unique=array_values(array_unique($codes)); usort($unique, fn($a,$b)=>($order[$a]??999)<=>($order[$b]??999) ?: strcmp($a,$b)); return $unique; }
-    protected function fingerprint(string $ticker, string $decisionAt, array $predictions, array $sourceArtifacts, ?string $openTradeIdentity, array $confidence = [], array $reasonResult = [], array $risk = [], array $tradePlan = [], array $actionCandidate = [], array $actionPromotion = [], array $actionSelection = []): string { $actionRisk=$risk['action_specific_risk']??[]; $ref=$tradePlan['reference_plan']??[]; $payload=['ticker'=>$ticker,'decision_at'=>$decisionAt,'prediction_snapshots'=>$predictions,'source_artifacts'=>$sourceArtifacts,'open_trade_identity'=>$openTradeIdentity,'schema_version'=>$this->config['schema_version'],'service_contract_version'=>$this->config['service_contract_version'],'action_candidate_schema'=>$actionCandidate['schema_version']??null,'candidate_status'=>$actionCandidate['status']??null,'candidate_id'=>$actionCandidate['candidate_id']??null,'candidate_intent'=>$actionCandidate['intent']??null,'candidate_eligibility'=>$actionCandidate['eligibility']??null,'candidate_gates'=>$actionCandidate['eligibility_gates']??[],'selection_schema'=>$actionSelection['schema_version']??null,'selection_status'=>$actionSelection['status']??null,'selection_eligibility'=>$actionSelection['selection_eligibility']??null,'selected_candidate_id'=>$actionSelection['selected_candidate']['candidate_id']??null,'safety_action'=>$actionSelection['safety_action']??null,'promotion_schema'=>$actionPromotion['schema_version']??null,'promotion_status'=>$actionPromotion['status']??null,'promotion_eligibility'=>$actionPromotion['promotion_eligibility']??null,'promoted_action'=>$actionPromotion['promoted_action']??null,'executable_action'=>$actionPromotion['executable_action']??null,'confidence_schema_version'=>$confidence['schema_version']??null,'confidence_weight_profile'=>$confidence['calculation']['weight_profile']??null,'evidence_confidence_final'=>$confidence['evidence_confidence']['score']??null,'safety_decision_confidence'=>$confidence['safety_decision_confidence']??null,'trade_action_confidence_status'=>$confidence['trade_action_confidence']['status']??null,'confidence_components'=>$confidence['evidence_confidence']['components']??[],'risk_schema_version'=>$risk['schema_version']??null,'action_risk_schema'=>$actionRisk['schema_version']??null,'action_risk_status'=>$actionRisk['status']??null,'action_risk_eligibility'=>$actionRisk['eligibility']??null,'action_risk_candidate_id'=>$actionRisk['candidate_id']??null,'action_risk_metrics'=>$actionRisk['metrics']??[],'action_risk_method'=>$actionRisk['calculation']['method']??null,'selected_parameter_sources'=>$actionRisk['parameter_snapshot']??null,'research_risk_status'=>$risk['research_risk_evidence']['status']??null,'decision_risk_status'=>$risk['decision_risk']['status']??null,'position_sizing_status'=>$risk['position_sizing']['status']??null,'capital_risk_status'=>$risk['capital_risk']['status']??null,'trade_plan_schema_version'=>$tradePlan['schema_version']??null,'reference_plan_schema'=>$ref['schema_version']??null,'reference_plan_status'=>$ref['status']??null,'reference_plan_eligibility'=>$ref['eligibility']??null,'entry_reference'=>$ref['entry']??null,'tp_reference'=>$ref['take_profit']['reference_price']??null,'sl_reference'=>$ref['stop_loss']['reference_price']??null,'execution_readiness'=>$tradePlan['execution_readiness']['status']??null,'executable'=>$tradePlan['execution_readiness']['executable']??null,'trade_plan_status'=>$tradePlan['status']??null,'trade_plan_eligibility'=>$tradePlan['eligibility']??null,'risk_reason_codes'=>$risk['reason_codes']??[],'trade_plan_reason_codes'=>$tradePlan['reason_codes']??[],'reason_schema_version'=>$reasonResult['schema_version']??null,'primary_reason_codes'=>$reasonResult['summary']['primary_reason_codes']??[]]; return hash('sha256', json_encode($payload, JSON_UNESCAPED_SLASHES|JSON_PRESERVE_ZERO_FRACTION)); }
+    protected function fingerprint(string $ticker, string $decisionAt, array $predictions, array $sourceArtifacts, ?string $openTradeIdentity, array $confidence = [], array $reasonResult = [], array $risk = [], array $tradePlan = [], array $actionCandidate = [], array $actionPromotion = [], array $actionSelection = [], array $portfolioApproval = []): string { $actionRisk=$risk['action_specific_risk']??[]; $ref=$tradePlan['reference_plan']??[]; $payload=['ticker'=>$ticker,'decision_at'=>$decisionAt,'prediction_snapshots'=>$predictions,'source_artifacts'=>$sourceArtifacts,'open_trade_identity'=>$openTradeIdentity,'schema_version'=>$this->config['schema_version'],'service_contract_version'=>$this->config['service_contract_version'],'action_candidate_schema'=>$actionCandidate['schema_version']??null,'candidate_status'=>$actionCandidate['status']??null,'candidate_id'=>$actionCandidate['candidate_id']??null,'candidate_intent'=>$actionCandidate['intent']??null,'candidate_eligibility'=>$actionCandidate['eligibility']??null,'candidate_gates'=>$actionCandidate['eligibility_gates']??[],'selection_schema'=>$actionSelection['schema_version']??null,'selection_status'=>$actionSelection['status']??null,'selection_eligibility'=>$actionSelection['selection_eligibility']??null,'selected_candidate_id'=>$actionSelection['selected_candidate']['candidate_id']??null,'safety_action'=>$actionSelection['safety_action']??null,'promotion_schema'=>$actionPromotion['schema_version']??null,'promotion_status'=>$actionPromotion['status']??null,'promotion_eligibility'=>$actionPromotion['promotion_eligibility']??null,'promoted_action'=>$actionPromotion['promoted_action']??null,'executable_action'=>$actionPromotion['executable_action']??null,'confidence_schema_version'=>$confidence['schema_version']??null,'confidence_weight_profile'=>$confidence['calculation']['weight_profile']??null,'evidence_confidence_final'=>$confidence['evidence_confidence']['score']??null,'safety_decision_confidence'=>$confidence['safety_decision_confidence']??null,'trade_action_confidence_status'=>$confidence['trade_action_confidence']['status']??null,'confidence_components'=>$confidence['evidence_confidence']['components']??[],'risk_schema_version'=>$risk['schema_version']??null,'action_risk_schema'=>$actionRisk['schema_version']??null,'action_risk_status'=>$actionRisk['status']??null,'action_risk_eligibility'=>$actionRisk['eligibility']??null,'action_risk_candidate_id'=>$actionRisk['candidate_id']??null,'action_risk_metrics'=>$actionRisk['metrics']??[],'action_risk_method'=>$actionRisk['calculation']['method']??null,'selected_parameter_sources'=>$actionRisk['parameter_snapshot']??null,'research_risk_status'=>$risk['research_risk_evidence']['status']??null,'decision_risk_status'=>$risk['decision_risk']['status']??null,'position_sizing_status'=>$risk['position_sizing']['status']??null,'capital_risk_status'=>$risk['capital_risk']['status']??null,'portfolio_risk_schema'=>$risk['portfolio_risk']['schema_version']??null,'portfolio_risk_status'=>$risk['portfolio_risk']['status']??null,'portfolio_id'=>$risk['portfolio_risk']['portfolio_id']??null,'portfolio_approved'=>$risk['portfolio_risk']['approved']??null,'post_candidate_exposure'=>$risk['portfolio_risk']['post_candidate_exposure']??null,'portfolio_policy_checks'=>$risk['portfolio_risk']['policy_checks']??null,'portfolio_approval_schema'=>$portfolioApproval['schema_version']??null,'portfolio_approval_status'=>$portfolioApproval['status']??null,'approval_policy_schema'=>$portfolioApproval['policy_evaluation']['schema_version']??null,'approval_policy_id'=>$portfolioApproval['policy_evaluation']['policy_id']??null,'approval_policy_version'=>$portfolioApproval['policy_evaluation']['policy_version']??null,'approval_requirement_checks'=>$portfolioApproval['policy_evaluation']['requirement_checks']??null,'authorization_schema'=>$portfolioApproval['authorization_validation']['schema_version']??null,'authorization_id'=>$portfolioApproval['authorization_validation']['authorization_id']??null,'authorization_decision'=>$portfolioApproval['authorization_validation']['authorization_decision']??null,'authorization_validation_status'=>$portfolioApproval['authorization_validation']['status']??null,'approval_context_fingerprint'=>$portfolioApproval['metadata']['approval_context_fingerprint']??null,'reference_approved'=>$portfolioApproval['approval_result']['reference_approved']??null,'production_approved'=>$portfolioApproval['approval_result']['production_approved']??null,'execution_approved'=>$portfolioApproval['approval_result']['execution_approved']??null,'approved_action'=>$portfolioApproval['approved_action']??null,'approved_quantity'=>$portfolioApproval['approved_quantity']??null,'position_management_status'=>$tradePlan['position_management']['status']??null,'position_state_status'=>$tradePlan['position_management']['position_state']['status']??null,'position_id'=>$tradePlan['position_management']['position_id']??null,'position_management_action'=>$tradePlan['position_management']['management_action_candidate']??null,'pm_policy_schema'=>$tradePlan['position_management']['policy_evaluation']['schema_version']??null,'pm_policy_status'=>$tradePlan['position_management']['policy_evaluation']['status']??null,'pm_policy_id'=>$tradePlan['position_management']['policy_evaluation']['policy_id']??null,'pm_policy_version'=>$tradePlan['position_management']['policy_evaluation']['policy_version']??null,'pm_policy_rule_ids'=>array_values(array_map(fn($r)=>$r['rule_id']??null,$tradePlan['position_management']['policy_evaluation']['matched_rules']??[])),'pm_candidate_schema'=>$tradePlan['position_management']['management_candidate']['schema_version']??null,'pm_candidate_id'=>$tradePlan['position_management']['management_candidate']['candidate_id']??null,'pm_candidate_type'=>$tradePlan['position_management']['management_candidate']['candidate_type']??null,'pm_candidate_condition'=>$tradePlan['position_management']['management_candidate']['condition']??null,'pm_risk_schema'=>$tradePlan['position_management']['management_risk']['schema_version']??null,'pm_risk_status'=>$tradePlan['position_management']['management_risk']['status']??null,'pm_risk_metrics'=>$tradePlan['position_management']['management_risk']['metrics']??null,'pm_review_plan_schema'=>$tradePlan['position_management']['review_plan']['schema_version']??null,'pm_review_plan_status'=>$tradePlan['position_management']['review_plan']['status']??null,'pm_review_required_evidence'=>$tradePlan['position_management']['review_plan']['required_evidence']??null,'pm_review_unavailable_evidence'=>$tradePlan['position_management']['review_plan']['unavailable_evidence']??null,'pm_review_checks'=>$tradePlan['position_management']['review_plan']['review_checks']??null,'pm_action_plan_status'=>$tradePlan['position_management']['review_plan']['action_plan']['status']??null,'pm_execution_status'=>$tradePlan['position_management']['review_plan']['execution']['status']??null,'pm_selection_schema'=>$tradePlan['position_management']['management_selection']['schema_version']??null,'pm_selection_status'=>$tradePlan['position_management']['management_selection']['status']??null,'pm_selection_eligibility'=>$tradePlan['position_management']['management_selection']['selection_eligibility']??null,'pm_selected_action'=>$tradePlan['position_management']['management_selection']['selected_management_action']??null,'pm_safety_action'=>$tradePlan['position_management']['management_selection']['safety_action']??null,'capital_risk_schema'=>$risk['capital_risk']['schema_version']??null,'capital_base'=>$risk['capital_risk']['metrics']['capital_base']??null,'maximum_loss_pct'=>$risk['capital_risk']['metrics']['maximum_loss_pct']??null,'maximum_loss_amount'=>$risk['capital_risk']['metrics']['maximum_loss_amount']??null,'position_sizing_schema'=>$risk['position_sizing']['schema_version']??null,'position_sizing_method'=>$risk['position_sizing']['method']??null,'raw_reference_units'=>$risk['position_sizing']['metrics']['raw_reference_units']??null,'whole_unit_reference_floor'=>$risk['position_sizing']['metrics']['whole_unit_reference_floor']??null,'reference_notional'=>$risk['position_sizing']['metrics']['reference_notional']??null,'executable_quantity'=>$risk['position_sizing']['metrics']['executable_quantity']??null,'trade_plan_schema_version'=>$tradePlan['schema_version']??null,'reference_plan_schema'=>$ref['schema_version']??null,'reference_plan_status'=>$ref['status']??null,'reference_plan_eligibility'=>$ref['eligibility']??null,'entry_reference'=>$ref['entry']??null,'tp_reference'=>$ref['take_profit']['reference_price']??null,'sl_reference'=>$ref['stop_loss']['reference_price']??null,'execution_readiness'=>$tradePlan['execution_readiness']['status']??null,'executable'=>$tradePlan['execution_readiness']['executable_quantity']??($tradePlan['execution_readiness']['executable']??null),'execution_readiness_schema'=>$tradePlan['execution_readiness']['schema_version']??null,'execution_readiness_status'=>$tradePlan['execution_readiness']['status']??null,'execution_reference_quantity'=>$tradePlan['execution_readiness']['reference_quantity']??null,'execution_executable_quantity'=>$tradePlan['execution_readiness']['executable_quantity']??null,'constraint_adjusted_units'=>$tradePlan['execution_readiness']['constraint_evaluation']['metrics']['constraint_adjusted_reference_units']??null,'execution_reference_notional'=>$tradePlan['execution_readiness']['constraint_evaluation']['metrics']['reference_notional']??null,'trade_plan_status'=>$tradePlan['status']??null,'trade_plan_eligibility'=>$tradePlan['eligibility']??null,'risk_reason_codes'=>$risk['reason_codes']??[],'trade_plan_reason_codes'=>$tradePlan['reason_codes']??[],'reason_schema_version'=>$reasonResult['schema_version']??null,'primary_reason_codes'=>$reasonResult['summary']['primary_reason_codes']??[]]; return hash('sha256', json_encode($payload, JSON_UNESCAPED_SLASHES|JSON_PRESERVE_ZERO_FRACTION)); }
 }

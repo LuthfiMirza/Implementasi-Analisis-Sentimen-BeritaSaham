@@ -15,7 +15,7 @@ class TradePlanServiceTest extends TestCase
         $risk = (new RiskEngineService())->assess($this->riskContext());
         $plan = (new TradePlanService())->build(['risk' => $risk, 'action_candidate' => null, 'position_context' => 'no_open_trade']);
 
-        $this->assertSame('trading_trade_plan_v1_1', $plan['schema_version']);
+        $this->assertSame('trading_trade_plan_v1_2', $plan['schema_version']);
         $this->assertSame('unavailable', $plan['status']);
         $this->assertSame('candidate_not_available', $plan['eligibility']);
         $this->assertSame('trading_reference_trade_plan_v1', $plan['reference_plan']['schema_version']);
@@ -105,7 +105,7 @@ class TradePlanServiceTest extends TestCase
         $this->assertSame(98.0, $plan['reference_plan']['stop_loss']['reference_price']);
         $this->assertSame(5.0, $plan['reference_plan']['risk_geometry']['gross_profit_per_unit']);
         $this->assertSame(2.0, $plan['reference_plan']['risk_geometry']['gross_loss_per_unit']);
-        $this->assertSame('reference_ready', $plan['execution_readiness']['status']);
+        $this->assertSame('unavailable', $plan['execution_readiness']['status']);
         $this->assertFalse($plan['execution_readiness']['executable']);
         $this->assertNull($plan['position_sizing']['quantity']);
     }

@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Services\Trading\RiskEngineService;
 use App\Services\Trading\ActionCandidateService;
+use App\Services\Trading\TradePlanService;
 use Tests\TestCase;
 
 class RiskEngineServiceTest extends TestCase
@@ -12,7 +13,7 @@ class RiskEngineServiceTest extends TestCase
     {
         $risk = (new RiskEngineService())->assess($this->context());
 
-        $this->assertSame('trading_risk_v1_1', $risk['schema_version']);
+        $this->assertSame('trading_risk_v1_3', $risk['schema_version']);
         $this->assertSame('research_only', $risk['research_risk_evidence']['status']);
         $this->assertSame('trading_action_risk_v1', $risk['action_specific_risk']['schema_version']);
         $this->assertSame('unavailable', $risk['action_specific_risk']['status']);
@@ -20,8 +21,11 @@ class RiskEngineServiceTest extends TestCase
         $this->assertSame('candidate_not_available', $risk['decision_risk']['eligibility']);
         $this->assertNull($risk['decision_risk']['action']);
         $this->assertNull($risk['decision_risk']['risk_reward_ratio']);
-        $this->assertSame('not_implemented', $risk['position_sizing']['status']);
-        $this->assertNull($risk['position_sizing']['recommended_fraction']);
+        $this->assertSame('unavailable', $risk['capital_risk']['status']);
+        $this->assertSame('unavailable', $risk['position_sizing']['status']);
+        $this->assertSame('trading_portfolio_risk_v1', $risk['portfolio_risk']['schema_version']);
+        $this->assertSame('unavailable', $risk['portfolio_risk']['status']);
+        $this->assertNull($risk['position_sizing']['metrics']['executable_quantity']);
         $this->assertContains('RESEARCH_RISK_EVIDENCE_AVAILABLE', $risk['reason_codes']);
         $this->assertContains('ACTION_RISK_CANDIDATE_REQUIRED', $risk['reason_codes']);
     }
@@ -67,8 +71,33 @@ class RiskEngineServiceTest extends TestCase
         $this->assertSame(2.5, $risk['action_specific_risk']['metrics']['gross_reward_risk_ratio']);
         $this->assertSame('unavailable', $risk['decision_risk']['status']);
         $this->assertNull($risk['decision_risk']['risk_reward_ratio']);
-        $this->assertSame('not_implemented', $risk['capital_risk']['status']);
-        $this->assertSame('not_implemented', $risk['position_sizing']['status']);
+        $this->assertSame('unavailable', $risk['capital_risk']['status']);
+        $this->assertSame('unavailable', $risk['position_sizing']['status']);
+    }
+
+    public function test_synthetic_capital_risk_and_position_sizing_are_reference_only(): void
+    {
+        $candidate = $this->candidate();
+        $ctx = $this->context();
+        $ctx['action_candidate'] = $candidate;
+        $ctx['selected_parameters'] = $this->parameters($candidate);
+        $ctx['entry_reference'] = $this->entryReference($candidate);
+        $first = (new RiskEngineService())->assess($ctx);
+        $referencePlan = (new TradePlanService())->build(['decision_at'=>$ctx['decision_at'],'risk'=>$first,'action_candidate'=>$candidate,'selected_parameters'=>$ctx['selected_parameters'],'entry_reference'=>$ctx['entry_reference']])['reference_plan'];
+        $ctx['reference_plan'] = $referencePlan;
+        $ctx['capital_context'] = $this->capitalContext();
+        $ctx['capital_risk_policy'] = $this->capitalPolicy($candidate);
+        $risk = (new RiskEngineService())->assess($ctx);
+
+        $this->assertSame('evaluated_reference', $risk['capital_risk']['status']);
+        $this->assertSame(1000000.0, $risk['capital_risk']['metrics']['capital_base']);
+        $this->assertSame(10000.0, $risk['capital_risk']['metrics']['maximum_loss_amount']);
+        $this->assertSame('reference_sized', $risk['position_sizing']['status']);
+        $this->assertSame(5000.0, $risk['position_sizing']['metrics']['raw_reference_units']);
+        $this->assertSame(5000.0, $risk['position_sizing']['metrics']['whole_unit_reference_floor']);
+        $this->assertSame(500000.0, $risk['position_sizing']['metrics']['reference_notional']);
+        $this->assertNull($risk['position_sizing']['metrics']['executable_quantity']);
+        $this->assertSame('unavailable', $risk['portfolio_risk']['status']);
     }
 
     public function test_config_and_schema_validation(): void
@@ -130,5 +159,20 @@ class RiskEngineServiceTest extends TestCase
     protected function candidateArtifact(bool $decision): array
     {
         return ['latest_decision_available'=>$decision,'selected_available'=>$decision,'latest_valid'=>['id'=>1,'checksum'=>str_repeat('a',64)],'is_stale'=>false,'is_quarantined'=>false,'dependency_status'=>['resolved']];
+    }
+
+    protected function entryReference(array $candidate): array
+    {
+        return ['schema_version'=>'trading_entry_reference_v1','ticker'=>'BUMI','candidate_id'=>$candidate['candidate_id'],'candidate_intent'=>$candidate['intent'],'status'=>'reference_only','price'=>100.0,'currency'=>'IDR','price_type'=>'reference_market_price','observed_at'=>'2026-07-01T09:59:00+07:00','source'=>['type'=>'synthetic_test_fixture','identifier'=>'fixture-entry-100'],'executable'=>false,'synthetic_test_only'=>true];
+    }
+
+    protected function capitalContext(): array
+    {
+        return ['schema_version'=>'trading_capital_context_v1','status'=>'reference_only','capital_scope'=>'single_candidate_reference','capital_base'=>['amount'=>1000000.0,'currency'=>'IDR'],'available_cash'=>null,'reserved_capital'=>null,'current_exposure'=>null,'as_of'=>'2026-07-01T10:00:00+07:00','source'=>['type'=>'synthetic_test_fixture','identifier'=>'capital-fixture-1m'],'approved_for_execution'=>false,'synthetic_test_only'=>true,'warnings'=>[]];
+    }
+
+    protected function capitalPolicy(array $candidate): array
+    {
+        return ['schema_version'=>'trading_capital_risk_policy_v1','status'=>'reference_only','method'=>'fixed_fractional','maximum_loss_pct'=>1.0,'maximum_loss_amount'=>null,'currency'=>'IDR','candidate_id'=>$candidate['candidate_id'],'candidate_intent'=>$candidate['intent'],'policy_version'=>'fixed_fractional_reference_v1','source'=>['type'=>'synthetic_test_fixture','identifier'=>'risk-policy-1pct'],'approved_for_execution'=>false,'synthetic_test_only'=>true,'warnings'=>[]];
     }
 }

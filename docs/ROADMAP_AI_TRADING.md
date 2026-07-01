@@ -1,7 +1,7 @@
 # AI Trading Decision Support Roadmap
 
-Last updated: 2026-07-01
-Status: Sprint 12 completed — Trade Plan Parameter Materialization Foundation
+Last updated: 2026-07-02
+Status: Sprint 18 completed — Position Management Risk and Review Plan Contract Foundation
 Owner: AI Trading DSS workstream
 
 This document is the single source of truth for the AI Trading Decision Support System implementation. Any architecture change must update this roadmap first, then implementation may follow. The existing Prediction Engine must remain stable; the trading system is a new layer built above it.
@@ -1010,6 +1010,168 @@ Acceptance criteria:
 - Reference plan is candidate-specific, provenance-backed, deterministic, and non-executable.
 - No research fallback, holding materialization, re-entry materialization, position sizing, position management, order payload, selection, or promotion is created.
 - Completed: Full PHP and Python regression tests pass before Sprint 12 is marked completed.
+
+### Milestone 13 — Capital Risk and Position Sizing Contract Foundation
+
+Sprint 13 status: completed on 2026-07-01. Sprint 12 is completed. Position Management, Execution Planning, Final Action Promotion Policy, Portfolio Risk, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Add explicit `trading_capital_context_v1` and `trading_capital_risk_policy_v1` input contracts.
+- Add `trading_capital_risk_v1` as gross single-candidate reference capital-risk evaluation.
+- Add `trading_position_sizing_v1` as non-executable reference sizing.
+- Evolve decision schema to `trading_decision_v1_9`, service contract to `basic_decision_v1_9`, and risk schema to `trading_risk_v1_2`.
+- Preserve trade-plan schema `trading_trade_plan_v1_1` with compatible sizing summary only.
+
+Boundaries:
+- Capital context and risk policy must be explicit inputs; no default capital, default risk percentage, account balance lookup, or Trade Journal fallback.
+- Canonical loss source is `risk.action_specific_risk.metrics.gross_loss_per_unit`.
+- Position sizing computes reference units only; executable quantity remains null.
+- Confidence, prediction probability, quality grade, and gross RR must not alter sizing.
+- Net risk, portfolio risk, lot policy, liquidity, cash validation, execution costs, position management, and execution planning remain deferred.
+
+Acceptance criteria:
+- CapitalRiskEvaluationService and PositionSizingService exist.
+- Real BUMI/DEWA capital risk and sizing remain unavailable.
+- Synthetic explicit capital context and risk policy produce maximum loss amount and reference units.
+- Reference sizing is non-executable; selected candidate, promoted action, and executable action remain null.
+- Completed: Full PHP and Python regression tests pass before Sprint 13 is marked completed.
+
+### Milestone 14 — Execution Readiness and Market Constraint Contract Foundation
+
+Sprint 14 status: completed on 2026-07-01. Sprint 13 ADR closeout is validated. Portfolio Risk, Position Management, Final Action Promotion Policy, Broker Execution, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Add explicit market-constraint, execution-cash, execution-cost, and liquidity evidence contracts.
+- Add `trading_execution_constraints_v1` for reference-only constraint adjustment.
+- Add `trading_execution_readiness_v1` to classify unavailable, partial, or reference-ready execution evidence.
+- Evolve decision schema to `trading_decision_v1_10`, service contract to `basic_decision_v1_10`, and trade-plan schema to `trading_trade_plan_v1_2`.
+
+Boundaries:
+- No default unit step, minimum order, tick size, fees, slippage, available cash, liquidity, or broker settings.
+- Constraint-adjusted reference units are not executable quantity.
+- Missing cost or liquidity evidence does not imply zero costs or unlimited liquidity.
+- Portfolio risk, position management, broker execution, selection policy, and promotion policy remain blocked.
+
+Acceptance criteria:
+- ExecutionConstraintEvaluationService and ExecutionReadinessService exist.
+- Real BUMI/DEWA execution readiness remains unavailable.
+- Synthetic explicit constraints can align units, cash-cap units, and reconcile gross risk.
+- Reference-ready never becomes executable; executable quantity, selected candidate, promoted action, and executable action remain null.
+- Completed: Full PHP and Python regression tests pass before Sprint 14 is marked completed.
+
+### Milestone 15 — Portfolio Risk and Exposure Contract Foundation
+
+Sprint 15 status: completed on 2026-07-02. Sprint 14 is completed. Position Management, Broker Execution, Final Action Promotion Policy, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Add explicit portfolio context and explicit position snapshot contracts.
+- Add exposure aggregation contract for reference gross notional, explicit capital at risk, ticker exposure, and optional sector exposure.
+- Add portfolio risk policy and post-candidate portfolio-risk evaluation.
+- Evolve decision schema to `trading_decision_v1_11`, service contract to `basic_decision_v1_11`, and risk schema to `trading_risk_v1_3`.
+
+Boundaries:
+- No Trade Journal, database, dashboard, hidden market, or empty-portfolio fallback.
+- No portfolio optimization, correlation model, approval, position management, selection, promotion, or broker execution.
+- Portfolio evaluation is reference-only and keeps `approved=false`.
+
+Acceptance criteria:
+- ExposureAggregationService and PortfolioRiskEvaluationService exist.
+- Real BUMI/DEWA portfolio risk remains unavailable.
+- Synthetic exposure aggregation and post-candidate policy checks are deterministic.
+- Limit exceeded blocks selection without creating SELL/CUT_LOSS/BUY.
+- Completed: Full PHP and Python regression tests pass before Sprint 15 is marked completed.
+
+### Milestone 16 — Position Management State Contract Foundation
+
+Sprint 16 status: completed on 2026-07-02. Sprint 15 is completed. Position Management Action Selection, Portfolio Approval, Final Action Promotion Policy, Broker Execution, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Add explicit managed-position and market-observation contracts.
+- Add reference-only position-state evaluation for gross unrealized PnL, holding duration, stop breach, and target reach.
+- Add position-management monitoring contract while keeping management actions and executable instructions null.
+- Evolve decision schema to `trading_decision_v1_12` and service contract to `basic_decision_v1_12`.
+
+Boundaries:
+- No Trade Journal/database fallback and no synthetic open-position assumption.
+- Stop/target conditions are observations, not HOLD/SELL/CUT_LOSS actions.
+- Position management action selection, promotion, and execution remain blocked.
+
+Acceptance criteria:
+- PositionStateEvaluationService and PositionManagementService exist.
+- No-position flow remains not required.
+- Explicit open-position monitoring computes deterministic PnL and conditions.
+- No HOLD, SELL, CUT_LOSS, management action, or executable instruction is produced.
+- Completed: Full PHP and Python regression tests pass before Sprint 16 is marked completed.
+
+### Milestone 16.1 — Position Management Policy, Candidate, and Selection Contract Foundation
+
+Sprint 16.1 status: completed on 2026-07-02. Sprint 16 is completed. Portfolio Approval, Entry Final Action Promotion Policy, Position Management Promotion, Position Management Execution, Broker Execution, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Add explicit reference-only position-management policy contract.
+- Add condition-to-review-candidate boundary for stop breach, target reach, missing protection, and stale observation.
+- Add deterministic management candidate identity tied to position state, observation, policy, and rule.
+- Add management selection contract with risk, plan, portfolio approval, promotion, and execution unavailable.
+- Evolve decision schema to `trading_decision_v1_14`, service contract to `basic_decision_v1_14`, and position-management schema to `trading_position_management_v1_1`.
+
+Boundaries:
+- No default management policy and no implicit HOLD when no condition exists.
+- Stop breach and target reach may only form review hypotheses through explicit policy; they do not promote to CUT_LOSS or SELL.
+- Entry candidate/selection flow remains separate from management candidate/selection flow.
+
+Acceptance criteria:
+- PositionManagementPolicyService, PositionManagementCandidateService, and PositionManagementSelectionService exist.
+- Real flow without explicit policy produces candidate unavailable and safety WAIT.
+- Synthetic explicit policy can produce deterministic review candidates while selected/promoted/executable fields remain null.
+- Management risk, management plan, portfolio approval, management promotion, and execution remain not implemented.
+- Completed: Full PHP and Python regression tests pass before Sprint 16.1 is marked completed.
+
+### Milestone 17 — Portfolio Approval and Authorization Contract Foundation
+
+Sprint 17 status: completed on 2026-07-02. Sprint 16.1 is completed. Management Risk, Management Plan, Entry Final Selection Policy, Entry Action Promotion, Management Promotion, Broker Execution, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Add explicit portfolio-approval policy contract and prerequisite evidence checks.
+- Add explicit reference authorization evidence validation bound to portfolio, candidate, policy, scope, issuer, expiry, and approval-context fingerprint.
+- Add portfolio approval contract that separates eligible reference approval, approved reference, production approval, and execution authorization.
+- Evolve decision schema to `trading_decision_v1_14` and service contract to `basic_decision_v1_14` while keeping risk schema `trading_risk_v1_3`.
+
+Boundaries:
+- Portfolio risk checks passed do not imply approval.
+- Reference approval does not imply production approval or execution authorization.
+- Entry portfolio approval does not apply to position-management review candidates.
+- No default policy, default authorization, auto-approval, order payload, route, controller, persistence, or broker integration.
+
+Acceptance criteria:
+- PortfolioApprovalPolicyService, PortfolioAuthorizationService, and PortfolioApprovalService exist.
+- All checks passed without explicit authorization remains eligible but not approved.
+- Valid synthetic reference authorization can produce `approved_reference` while production/execution approval remain false.
+- Limit-exceeded portfolio risk cannot be overridden by authorization.
+- Final action remains WAIT/NO_TRADE and selected/promoted/executable fields remain null.
+- Completed: Full PHP and Python regression tests pass before Sprint 17 is marked completed.
+
+### Milestone 18 — Position Management Risk and Review Plan Contract Foundation
+
+Sprint 18 status: completed on 2026-07-02. Sprint 17 is completed. Management Portfolio Approval, Management Production Approval, Management Action Promotion, Entry Final Selection Policy, Entry Action Promotion, Execution Authorization, Broker Execution, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Add management-specific risk context for explicit position-management review candidates.
+- Use Position State as canonical source for PnL, holding duration, and stop/target condition facts.
+- Add non-executable management review plan that records required and unavailable evidence without generating actions, quantities, exits, or stop/target updates.
+- Evolve decision schema to `trading_decision_v1_15`, service contract to `basic_decision_v1_15`, and position-management schema to `trading_position_management_v1_2`.
+
+Boundaries:
+- Management risk evaluated does not mean a management action is selected.
+- Review plan ready does not mean action plan ready.
+- Stop breach observed does not imply CUT_LOSS, SELL, HOLD, or executable instruction.
+- Entry services and entry portfolio approval remain separate from management risk/review contracts.
+
+Acceptance criteria:
+- PositionManagementRiskEvaluationService and PositionManagementReviewPlanService exist.
+- Stop-breach and target-reach reference metrics are deterministic and non-executable.
+- Missing protection creates no default stop and stale observation fetches no market data.
+- Management action plan, management portfolio approval, execution authorization, promotion, and broker execution remain not implemented.
+- Full PHP and Python regression tests pass before Sprint 18 is marked completed.
 
 ### Milestone 8 — Trade Plan Engine
 

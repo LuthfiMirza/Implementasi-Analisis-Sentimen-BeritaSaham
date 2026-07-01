@@ -16,6 +16,7 @@ class ActionSelectionService
         $risk = $context['decision_risk'] ?? [];
         $plan = $context['trade_plan'] ?? [];
         $safetyAction = $context['safety_action'] ?? 'WAIT';
+        $portfolioApproval = $context['portfolio_approval'] ?? [];
         $reasonCodes = [];
         $warnings = [];
         $blockers = [];
@@ -57,6 +58,18 @@ class ActionSelectionService
         $planMatch = $planAvailable && ($plan['action_candidate_id'] ?? null) === ($candidate['candidate_id'] ?? null);
         $gates[] = $this->gate('trade_plan_identity_match', $available, $available ? $planMatch : null, $planMatch ? 'passed' : 'blocking', $planMatch ? 'PLAN_IDENTITY_MATCH' : 'ACTION_SELECTION_TRADE_PLAN_IDENTITY_MISMATCH');
         if ($available && $planAvailable && ! $planMatch) $this->add($reasonCodes, $blockers, 'ACTION_SELECTION_TRADE_PLAN_IDENTITY_MISMATCH');
+
+        $approvalStatus = $portfolioApproval['status'] ?? 'unavailable';
+        $productionApproved = ($portfolioApproval['approval_result']['production_approved'] ?? false) === true;
+        $approvalOk = $productionApproved;
+        $gates[] = $this->gate('portfolio_approval_availability', true, is_array($portfolioApproval) && $approvalStatus !== 'unavailable', $approvalStatus !== 'unavailable' ? 'passed' : 'blocking', $approvalStatus !== 'unavailable' ? 'PORTFOLIO_APPROVAL_AVAILABLE' : 'PORTFOLIO_APPROVAL_UNAVAILABLE');
+        $gates[] = $this->gate('portfolio_production_approval', true, $approvalOk, $approvalOk ? 'passed' : 'blocking', $approvalOk ? 'PORTFOLIO_APPROVAL_PRODUCTION_AVAILABLE' : 'PORTFOLIO_APPROVAL_PRODUCTION_NOT_IMPLEMENTED');
+        if (! $approvalOk) $this->add($reasonCodes, $blockers, match ($approvalStatus) {
+            'eligible_for_reference_approval' => 'PORTFOLIO_APPROVAL_AUTHORIZATION_REQUIRED',
+            'approved_reference' => 'PORTFOLIO_APPROVAL_PRODUCTION_NOT_IMPLEMENTED',
+            'denied_reference' => 'PORTFOLIO_APPROVAL_DENIED_REFERENCE',
+            default => 'PORTFOLIO_APPROVAL_UNAVAILABLE',
+        });
 
         $capability = ($this->config['selection_capability'] ?? 'disabled') === 'enabled';
         $gates[] = $this->gate('capability_support', true, $capability, $capability ? 'passed' : 'blocking', $capability ? 'ACTION_SELECTION_CAPABILITY_AVAILABLE' : 'ACTION_SELECTION_CAPABILITY_DISABLED');
