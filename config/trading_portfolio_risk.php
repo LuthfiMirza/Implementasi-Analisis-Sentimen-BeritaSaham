@@ -1,0 +1,19 @@
+<?php
+return [
+ 'portfolio_context_schema_version'=>'trading_portfolio_context_v1',
+ 'position_snapshot_schema_version'=>'trading_position_snapshot_v1',
+ 'exposure_aggregation_schema_version'=>'trading_exposure_aggregation_v1',
+ 'portfolio_policy_schema_version'=>'trading_portfolio_risk_policy_v1',
+ 'portfolio_risk_schema_version'=>'trading_portfolio_risk_v1',
+ 'supported_position_sides'=>['long'],
+ 'aggregation_gate_order'=>['portfolio_context_available','portfolio_context_valid','portfolio_context_fresh','position_snapshots_available','position_schemas_valid','portfolio_identity_consistency','currency_consistency','supported_position_type','quantity_price_validity','notional_reconciliation','capital_risk_completeness','ticker_aggregation','optional_sector_aggregation','final_data_quality_classification'],
+ 'portfolio_risk_gate_order'=>['candidate_available','candidate_ready','candidate_identity_valid','capital_risk_evaluated','position_sizing_reference_sized','execution_readiness_reference_ready_or_allowed_reference_state','portfolio_context_available','exposure_aggregation_available','portfolio_policy_available','portfolio_identity_match','candidate_identity_match','currency_match','candidate_notional_source_available','candidate_capital_risk_source_available','post_candidate_exposure_calculation','aggregate_risk_policy_checks','ticker_concentration_checks','optional_sector_checks','optional_position_count_check','correlation_risk_capability','portfolio_approval_capability','final_reference_classification'],
+ 'percentage_ceiling'=>100.0,
+ 'reconciliation_tolerance'=>0.000001,
+ 'candidate_notional_source_policy'=>'execution_adjusted_reference_notional',
+ 'candidate_position_count_policy'=>'candidate_as_new_reference_position',
+ 'sector_data_policy'=>'explicit_only',
+ 'net_exposure_policy'=>'long_only_complete_snapshot_equals_gross',
+ 'correlation_capability'=>'not_implemented',
+ 'portfolio_approval_capability'=>'not_implemented',
+];
