@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'capital_context_schema_version' => 'trading_capital_context_v1',
+    'capital_risk_policy_schema_version' => 'trading_capital_risk_policy_v1',
+    'capital_risk_schema_version' => 'trading_capital_risk_v1',
+    'position_sizing_schema_version' => 'trading_position_sizing_v1',
+    'supported_capital_scopes' => ['single_candidate_reference'],
+    'supported_policy_methods' => ['fixed_fractional'],
+    'supported_intents' => ['long_entry'],
+    'capital_risk_gate_order' => ['candidate_available','candidate_valid','candidate_ready','supported_intent','action_risk_available','action_risk_evaluated','candidate_identity_match','reference_plan_available','reference_plan_identity_match','capital_context_available','capital_context_valid','capital_context_fresh','capital_policy_available','capital_policy_valid','capital_policy_identity_match','currency_match','gross_loss_per_unit_available','policy_calculation','risk_budget_validation','non_executable_capability'],
+    'sizing_gate_order' => ['candidate_available','candidate_ready','capital_risk_available','capital_risk_evaluated','candidate_identity_match','gross_loss_per_unit_available','maximum_loss_amount_available','numeric_input_validity','raw_unit_calculation','floor_reconciliation','entry_reference_availability','reference_notional_calculation','lot_policy','cash_validation','liquidity_validation','execution_cost_validation','portfolio_risk_validation','execution_capability'],
+    'currency_consistency_policy' => 'strict_match',
+    'timestamp_freshness_minutes' => 1440,
+    'max_policy_loss_pct_ceiling' => 100.0,
+    'calculation_precision' => 6,
+    'floor_policy' => 'whole_unit_floor_reference_only',
+    'reconciliation_tolerance' => 0.000001,
+    'lot_capability' => 'not_implemented',
+    'cash_validation_capability' => 'not_implemented',
+    'liquidity_capability' => 'not_implemented',
+    'portfolio_risk_capability' => 'not_implemented',
+    'execution_cost_capability' => 'not_implemented',
+    'execution_capability' => 'not_implemented',
+    'reason_code_priority' => [],
+];
