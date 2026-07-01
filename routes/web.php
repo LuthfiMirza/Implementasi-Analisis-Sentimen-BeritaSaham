@@ -67,6 +67,7 @@ Route::prefix('admin')
     ->group(function () {
         Route::get('/', [AdminSystemController::class, 'index'])->name('index');
         Route::resource('users', AdminUserController::class)->except(['show', 'create', 'store']);
+        Route::patch('stocks/{stock}/fundamental', [AdminStockController::class, 'updateFundamental'])->name('stocks.fundamental.update');
         Route::resource('stocks', AdminStockController::class);
         Route::resource('news', AdminNewsController::class)->only(['index', 'show', 'destroy']);
         Route::resource('news-sources', AdminNewsSourceController::class);

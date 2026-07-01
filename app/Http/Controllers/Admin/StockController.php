@@ -64,6 +64,23 @@ class StockController extends Controller
         return redirect()->route('admin.stocks.index')->with('status', 'Data saham diperbarui.');
     }
 
+    public function updateFundamental(Request $request, Stock $stock)
+    {
+        $validated = $request->validate([
+            'pbv' => ['nullable', 'numeric'],
+            'per' => ['nullable', 'numeric'],
+            'roe' => ['nullable', 'numeric'],
+            'der' => ['nullable', 'numeric'],
+            'eps' => ['nullable', 'numeric'],
+            'dividend_yield' => ['nullable', 'numeric'],
+            'fundamentals_updated_at' => ['required', 'date'],
+        ]);
+
+        $stock->update($validated);
+
+        return redirect()->route('admin.stocks.edit', $stock)->with('status', 'Data fundamental berhasil diperbarui.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */
