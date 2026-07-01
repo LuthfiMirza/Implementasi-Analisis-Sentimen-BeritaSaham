@@ -1,0 +1,20 @@
+<?php
+return [
+ 'approval_policy_schema_version'=>'trading_portfolio_approval_policy_v1',
+ 'approval_policy_evaluation_schema_version'=>'trading_portfolio_approval_policy_evaluation_v1',
+ 'authorization_schema_version'=>'trading_portfolio_authorization_v1',
+ 'authorization_validation_schema_version'=>'trading_portfolio_authorization_validation_v1',
+ 'portfolio_approval_schema_version'=>'trading_portfolio_approval_v1',
+ 'supported_approval_scopes'=>['entry_candidate_reference'],
+ 'supported_requirement_keys'=>['candidate_ready','action_risk_evaluated','reference_plan_materialized','capital_risk_evaluated','position_sizing_reference_available','execution_readiness_reference_available','portfolio_risk_evaluated','portfolio_limits_passed','authorization_required'],
+ 'authorization_decisions'=>['approve_reference','deny_reference','review_only'],
+ 'authorization_types'=>['reference_approval'],
+ 'approval_context_fingerprint_algorithm'=>'sha256_approval_context_v1',
+ 'reference_approval_capability'=>'contract_available',
+ 'production_approval_capability'=>'not_implemented',
+ 'execution_authorization_capability'=>'not_implemented',
+ 'policy_gate_order'=>['entry_candidate_scope','candidate_available','candidate_ready','policy_available','policy_schema_valid','policy_reference_only_status','portfolio_identity_match','candidate_identity_match','approval_scope_match','action_risk_requirement','trade_plan_requirement','capital_risk_requirement','position_sizing_requirement','execution_readiness_requirement','portfolio_risk_requirement','portfolio_limit_requirement','authorization_requirement','policy_classification'],
+ 'authorization_gate_order'=>['authorization_available','schema_valid','supported_authorization_type','supported_decision','approval_scope_match','portfolio_identity_match','candidate_identity_match','policy_id_match','policy_version_match','approval_context_fingerprint_match','issuer_available','issued_at_validity','expiration_validity','reference_authority_validity','production_authority_false','execution_authority_false','final_authorization_classification'],
+ 'approval_gate_order'=>['candidate_availability','candidate_readiness','portfolio_risk_availability','portfolio_risk_status','portfolio_limits','policy_evaluation_availability','policy_requirements_passed','authorization_requirement','authorization_validation','authorization_decision','reference_approval_classification','production_approval_capability','execution_approval_capability','approved_action_nullability','approved_quantity_nullability','final_safety_classification'],
+ 'reason_priorities'=>[],
+];
