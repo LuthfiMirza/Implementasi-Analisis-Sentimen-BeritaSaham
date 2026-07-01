@@ -1,7 +1,7 @@
 # AI Trading Decision Support Roadmap
 
 Last updated: 2026-07-01
-Status: Sprint 1 completed
+Status: Sprint 12 completed — Trade Plan Parameter Materialization Foundation
 Owner: AI Trading DSS workstream
 
 This document is the single source of truth for the AI Trading Decision Support System implementation. Any architecture change must update this roadmap first, then implementation may follow. The existing Prediction Engine must remain stable; the trading system is a new layer built above it.
@@ -270,24 +270,27 @@ Purpose:
 
 Output:
 - Python scripts under `quant/trading_research/`.
-- Artifacts under `output/trading_research/`.
+- Event dataset artifacts under `storage/app/trading_research/events/`.
 
 Dependencies:
 - Milestone 1 schema.
 - Existing OHLCV and prediction research datasets.
 
 Files created:
-- `quant/trading_research/walk_forward_trade_research.py`
-- `quant/trading_research/event_dataset_builder.py`
-- `quant/trading_research/artifact_schema.py`
+- `quant/trading_research/__init__.py`
+- `quant/trading_research/walk_forward_event_dataset.py`
+- `quant/test_walk_forward_event_dataset.py`
 
 Files changed:
 - Optional Artisan command in later milestone.
 
 Acceptance criteria:
-- Expanding-window folds only.
-- No random train/test split.
-- Output includes return 1/3/5/10/20/30, MFE, MAE, drawdown, TP hit stats, and fold summary.
+- Each historical BUY signal becomes one event record.
+- Event features are point-in-time at entry date.
+- Future OHLCV is used only to calculate holding-period outcome metrics.
+- No model training, TP optimizer, SL optimizer, decision engine, confidence engine, dashboard, notification, or learning engine is created.
+- Output includes entry price/date, holding days, highest/lowest/exit price, return, MFE, MAE, drawdown, recovery, ATR, RSI, MACD, ADX, VWAP, volume ratio, market regime, sentiment, prediction metadata, and trade outcome.
+- Validator rejects missing required fields, invalid schema version, missing ticker, duplicate events, missing OHLCV-backed prices, and invalid prices.
 
 Risk:
 - Look-ahead bias if event features use future data.
@@ -295,36 +298,437 @@ Risk:
 Complexity:
 - Medium.
 
-### Milestone 3 — Artifact Import and Registry
+Status:
+- Sprint 2 completed on 2026-07-01 for the walk-forward event dataset foundation. Full TP/SL optimizer research remains deferred to later sprints.
+
+Event dataset schema:
+- Schema version: `walk_forward_event_dataset_v1`.
+- Artifact type: `walk_forward_event_dataset`.
+- Artifact root fields: `schema_version`, `artifact_type`, `ticker`, `generated_at`, `config`, `events`, `quality`.
+- Required event fields: `entry_date`, `entry_price`, `holding_days`, `highest_price`, `lowest_price`, `exit_price`, `return_pct`, `mfe_pct`, `mae_pct`, `drawdown_pct`, `recovery_pct`, `atr`, `rsi`, `macd`, `adx`, `vwap`, `volume_ratio`, `market_regime`, `news_sentiment`, `prediction_probability`, `prediction_variant`, `trade_outcome`.
+- Output naming: `{TICKER}_events_v1.json`, for example `BUMI_events_v1.json` and `DEWA_events_v1.json`.
+- Execution example: `python3 -m quant.trading_research.walk_forward_event_dataset --ticker BUMI --ohlcv data/stocks/BUMI.csv --prediction-history output/prediction_research/tickers/BUMI.csv --output-dir storage/app/trading_research/events`.
+
+### Milestone 3 — TP Optimizer Research
 
 Purpose:
-- Register generated artifacts so Laravel can find the latest valid evidence.
+- Generate historical take-profit research evidence from the walk-forward event dataset.
 
 Output:
-- Artifact registry table or JSON index.
-- Import command.
+- Event dataset quality reports under `storage/app/trading_research/quality/`.
+- TP optimizer artifacts under `storage/app/trading_research/tp_optimizer/`.
 
 Dependencies:
-- Milestone 1 and 2.
+- Milestone 2 event dataset artifacts.
+- No dependency on Prediction Engine, FastAPI, dashboard, database, trade journal, decision engine, confidence engine, notification, or learning engine.
 
 Files created:
-- Migration for `trade_research_artifacts`.
-- `app/Console/Commands/ImportTradingResearchArtifactsCommand.php`
+- `quant/trading_research/artifact_utils.py`
+- `quant/trading_research/event_dataset_quality.py`
+- `quant/trading_research/tp_optimizer.py`
+- `quant/test_event_dataset_quality.py`
+- `quant/test_tp_optimizer.py`
+- `docs/adr/ADR-001-research-artifact-format.md`
+- `docs/adr/ADR-002-walk-forward-event-dataset.md`
+- `docs/adr/ADR-003-tp-optimizer-selection-policy.md`
 
 Files changed:
-- `ResearchArtifactService` to support registry lookup.
+- `docs/ROADMAP_AI_TRADING.md`
 
 Acceptance criteria:
-- Latest artifact per ticker/type can be resolved.
-- Invalid schema artifacts are ignored.
+- Quality gate validates BUMI and DEWA event artifacts before TP optimization.
+- Quality gate writes deterministic JSON reports with event counts, duplicate counts, overlapping holding periods, missing values, invalid values, distributions, price consistency, look-ahead leakage risk notes, and insufficient future OHLCV counts.
+- TP candidates come from config or CLI arguments, not production hardcoding.
+- Realized return policy is explicit: TP hit realizes the candidate TP; timeout realizes the event exit return.
+- Walk-forward folds are chronological and never shuffled.
+- Selected TP is deterministic, transparent, and based on configured score weights.
+- Segment output is limited to market regime, volatility bucket, and prediction probability bucket, with insufficient samples marked unusable.
+- Artifact validator rejects invalid schema, duplicate candidates/folds, bad percentages, fold leakage, selected TP outside candidates, quality inconsistency, and source hash mismatch.
+- No SL optimizer, decision engine, confidence engine, dashboard, notification, learning engine, migration, or PredictionController integration is created.
 
 Risk:
-- Registry points to deleted files.
+- Overfitting TP selection to in-sample hit rate if walk-forward validation and downside metrics are ignored.
 
 Complexity:
-- Low to Medium.
+- Medium.
 
-### Milestone 4 — Trading Decision Service
+Status:
+- TP Optimizer Prototype Completed on 2026-07-01. Unit tests passed and BUMI/DEWA quality reports plus TP optimizer artifacts were generated and validated, but downstream audit identified quality-policy hardening required before Sprint 4.
+- Sprint 3 quality gate found one DEWA price consistency issue from Sprint 2 event construction. The Sprint 2 builder was fixed so `highest_price` and `lowest_price` always include entry and exit prices, a regression test was added, and BUMI/DEWA event artifacts were regenerated before TP optimization.
+
+Quality gate outputs:
+- `storage/app/trading_research/quality/BUMI_event_quality_v1.json`: valid, 6177 events, 0 duplicate events, 0 invalid prices, 0 price consistency violations, 20 shorter future-OHLCV events, 6176 overlapping holding periods.
+- `storage/app/trading_research/quality/DEWA_event_quality_v1.json`: valid, 4554 events, 0 duplicate events, 0 invalid prices, 0 price consistency violations, 20 shorter future-OHLCV events, 4553 overlapping holding periods.
+
+TP optimizer outputs:
+- `storage/app/trading_research/tp_optimizer/BUMI_tp_optimizer_v1.json`: selected TP 5.0%, validation expectancy -0.312488%, validation hit rate 0.670243, fold stability 1.0, quality valid.
+- `storage/app/trading_research/tp_optimizer/DEWA_tp_optimizer_v1.json`: selected TP 5.0%, validation expectancy 0.913471%, validation hit rate 0.356318, fold stability 1.0, quality valid.
+
+TP optimizer schema:
+- Schema version: `tp_optimizer_v1`.
+- Artifact type: `tp_optimizer`.
+- Artifact root fields: `schema_version`, `artifact_type`, `ticker`, `generated_at`, `generator_version`, `config`, `source`, `candidates`, `folds`, `selected`, `segments`, `quality`, `notes`.
+- Source fields: `event_artifact_path`, `event_schema_version`, `event_generated_at`, `event_count`, `source_checksum`, `data_start`, `data_end`.
+- Quality fields: `status`, `usable_for_decision`, `sample_size`, `minimum_sample_size`, `fold_count`, `fold_stability`, `warnings`.
+- Return policy: if a candidate TP is reached during the holding period, realized return equals the candidate TP; otherwise realized return equals the event `return_pct`.
+- Sprint 4 dependency: SL Optimizer Research must consume the event dataset and TP evidence separately; SL must remain a separate sprint after Sprint 3.
+
+### Milestone 3.1 — TP Optimizer Validation Hardening
+
+Purpose:
+- Harden TP optimizer quality policy before any SL optimizer work starts.
+
+Reason:
+- Prototype artifacts allowed `usable_for_decision=true` despite negative BUMI out-of-sample expectancy.
+- Fold stability only represented selected TP agreement, not economic performance stability.
+- Overlapping event windows made raw sample size optimistic.
+- Tail events without full future OHLCV were included in optimizer evaluation.
+- Zero-return and stale-price behavior required explicit audit.
+
+Output:
+- Hardened TP optimizer artifacts under `storage/app/trading_research/tp_optimizer/`.
+- Updated quality reports under `storage/app/trading_research/quality/`.
+- ADRs for overlapping events and artifact usability policy.
+
+Acceptance criteria:
+- `usable_for_decision` is true only when configured usability gates pass: positive minimum validation expectancy, profitable fold ratio, effective sample size, fold count, downside tail, source validity, no leakage, and no critical warnings.
+- If no candidate passes, `selected` is null, `best_candidate_by_score` remains available, quality is `research_only` or `not_usable`, and warnings explain the failure.
+- Stability metrics are split into `selection_stability`, `expectancy_stability`, `hit_rate_stability`, `drawdown_stability`, `performance_dispersion`, `profitable_fold_ratio`, and `selected_candidate_frequency`.
+- Optimizer stores `all_events_analysis` and `non_overlapping_analysis`; default main selection uses `purge_overlapping`.
+- Artifact stores raw, eligible, overlapping, purged, cluster, and effective sample counts.
+- Events with incomplete future OHLCV are excluded from candidate evaluation and reported in `exclusions`.
+- Zero-return and stale-price audit is included and can downgrade usability by config.
+- Deterministic confidence intervals are stored with configured random seed.
+- Validators accept `selected=null` only when quality is not usable and reject quality inconsistencies.
+
+TP schema hardening:
+- Schema version remains `tp_optimizer_v1` with additive fields for compatibility.
+- Added fields: `selection_policy`, `usability_policy`, `all_events_analysis`, `non_overlapping_analysis`, `exclusions`, `stability`, `confidence_intervals`, `effective_sample_size`, `best_candidate_by_score`, `critical_warnings`.
+- `selected` may be null when `quality.usable_for_decision=false`.
+
+Sprint 4 gate:
+- SL Optimizer Research cannot start until Sprint 3.1 tests pass and BUMI/DEWA hardened artifacts are regenerated and validated.
+
+Status:
+- Sprint 3.1 completed on 2026-07-01. Hardened TP artifacts were regenerated and validated; both BUMI and DEWA are now `research_only` with `usable_for_decision=false` because effective non-overlapping sample size and fold count are below policy minimums.
+
+Sprint 3.1 hardened artifact summary:
+- BUMI: raw events 6177, eligible events 6112, purged events 6110, effective sample size 2, selected null, best candidate by score 30.0%, quality `research_only`.
+- DEWA: raw events 4554, eligible events 4521, purged events 4520, effective sample size 1, selected null, best candidate by score 30.0%, quality `research_only`.
+- Incomplete future OHLCV exclusions: 20 events per ticker.
+- Zero-return rates: BUMI 0.118783, DEWA 0.508516.
+- No Sprint 4 work may start until these hardened artifacts are accepted as the Sprint 3.1 baseline.
+
+### Milestone 4 — SL Optimizer Research
+
+### Milestone 3.2 — Trade Episode Dataset and Chronological Path Simulator
+
+Purpose:
+- Convert daily BUY observations into executable chronological trade episodes before any further optimizer work.
+
+Reason:
+- Sprint 3.1 proved raw BUY observations are not independent trade events. Connected overlap clusters are diagnostic only and must not be treated as a statistical effective sample size.
+
+Output:
+- `storage/app/trading_research/episodes/{TICKER}_trade_episodes_v1.json`.
+- Regenerated TP optimizer artifacts using `one_position_fixed_horizon` episodes as primary input.
+
+Acceptance criteria:
+- Signal observation dataset remains descriptive evidence only.
+- Primary trade episode construction uses `one_position_fixed_horizon` and produces no concurrent position.
+- `signal_transition` and `fixed_spacing` are available for sensitivity comparison.
+- Entry defaults to next available trading-day open and stores entry policy/provenance.
+- Episodes store OHLCV reference anchors and checksum rather than bulky embedded paths.
+- Chronological simulator determines TP/SL first-hit order from daily rows, with same-day ambiguity policy defaulting to `stop_first`.
+- Incomplete future horizon episodes are excluded from optimizer inputs and recorded as `insufficient_future_ohlcv`.
+- Walk-forward folds include purge/embargo metadata and leakage checks.
+- TP metric nullability is explicit: CI/stability/ratios are null when denominators or sample sizes are insufficient.
+- Sprint 4 SL Optimizer remains blocked and not implemented.
+
+Schema:
+- Episode schema version: `trade_episode_dataset_v1`.
+- Root fields: `schema_version`, `artifact_type`, `ticker`, `generated_at`, `generator_version`, `config`, `source`, `observation_summary`, `episode_summary`, `exclusions`, `episodes`, `quality`, `notes`.
+- Episode fields: `episode_id`, `ticker`, `signal_date`, `entry_date`, `entry_price`, `horizon_end_date`, `holding_days`, `complete_horizon`, `sampling_policy`, `source_event_id`, `source_ohlcv_reference`, `prediction_probability`, `prediction_variant`, `market_regime`, `news_sentiment`, `entry_feature_snapshot`, `outcome_summary`.
+
+Status:
+- Sprint 3.2 completed on 2026-07-01. Trade episode artifacts were generated for BUMI and DEWA, TP artifacts were regenerated from `one_position_fixed_horizon` episodes, and all tests passed.
+
+Sprint 3.2 artifact summary:
+- BUMI: raw observations 6177, signal-transition episodes 1, one-position episodes 309, fixed-spacing episodes 309, complete-horizon episodes 308, incomplete exclusions 1, median episode spacing 28.0, selected TP null, quality `research_only`.
+- DEWA: raw observations 4554, signal-transition episodes 1, one-position episodes 228, fixed-spacing episodes 228, complete-horizon episodes 227, incomplete exclusions 1, median episode spacing 29.0, selected TP null, quality `research_only`.
+- Regenerated TP artifacts remain not usable for decisions: BUMI fails validation expectancy/profitable fold/CI lower-bound gates; DEWA fails CI lower-bound gate.
+
+### Milestone 4 — SL Optimizer Research
+
+Purpose:
+- Generate historical stop-loss research evidence after TP optimizer artifacts exist.
+- Sprint 4 scope is Stop-Loss Optimizer Research only. Primary input is the Trade Episode Dataset generated with `one_position_fixed_horizon`. `signal_transition` remains diagnostic because the source event dataset contains BUY observations only. TP artifacts for BUMI and DEWA remain `research_only` and not usable for decision, so SL research must not depend on selected TP.
+
+Output:
+- SL optimizer artifacts under `storage/app/trading_research/sl_optimizer/`.
+- Standalone SL candidate analysis and joint TP-SL sensitivity matrix.
+
+Schema:
+- Schema version: `sl_optimizer_v1`.
+- Root fields: `schema_version`, `artifact_type`, `ticker`, `generated_at`, `generator_version`, `config`, `source`, `exclusions`, `standalone_candidates`, `joint_tp_sl_matrix`, `folds`, `stability`, `confidence_intervals`, `best_sl_candidate_by_score`, `best_tp_sl_pair_by_score`, `selected`, `quality`, `warnings`, `notes`.
+
+Quality policy:
+- `usable_for_risk_analysis` can be true when standalone downside coverage has sufficient sample/folds.
+- `usable_for_decision` requires valid episode and TP source artifacts, positive OOS TP-SL expectancy, CI lower bound above policy minimum, profitable fold ratio, worst-fold limit, enough validation sample/folds, acceptable ambiguity and premature-stop rates, no leakage, no critical warning, and decision-usable TP evidence.
+- Because current TP artifacts are `research_only`, Sprint 4 artifacts must default to decision-unusable unless future TP evidence passes quality gates.
+
+Dependencies:
+- Milestone 2 event dataset artifacts.
+- Milestone 3 TP optimizer artifacts for later combined trade-plan research.
+- Milestone 3.2 trade episode artifacts.
+
+Acceptance criteria:
+- SL candidates are researched separately from TP candidates.
+- No decision engine or dashboard integration is created during this sprint.
+- Fixed-percent and ATR-multiple SL families are evaluated from config/CLI.
+- Joint TP-SL matrix uses chronological simulator and handles same-day ambiguity with `stop_first` primary policy plus sensitivity evidence.
+- Premature stop, recovery-after-stop, loss-avoided, CVaR, downside tails, fold results, source checksums, and nullability are documented.
+- Selected remains null when quality gates fail; best standalone and joint candidates remain available for research.
+
+Status:
+- SL Optimizer Research Prototype Completed on 2026-07-01. SL optimizer research artifacts were generated for BUMI and DEWA, validators passed, source provenance was recorded, and all research unit tests passed.
+- BUMI SL artifact: risk-analysis usable, decision unusable because source TP artifact is not decision usable; selected null.
+- DEWA SL artifact: risk-analysis usable, decision unusable because source TP artifact is not decision usable; selected null.
+
+### Milestone 4.1 — Execution and Joint Validation Hardening
+
+Purpose:
+- Harden SL/joint TP-SL research for execution realism, ATR provenance, gross/net performance, boundary effects, extreme-winner dependency, and nested validation before Re-entry Research.
+
+Scope:
+- Primary inputs remain Trade Episode Dataset and canonical OHLCV.
+- TP artifacts may provide schema-valid candidate provenance even when standalone TP is not decision-usable.
+- No Laravel integration, production decision layer, dashboard, migration, Prediction Engine, FastAPI, or Re-entry Research is created.
+
+Acceptance criteria:
+- ATR provenance is audited from event artifact to episode artifact to SL optimizer; if missing in episode transformation, fix and regenerate impacted artifacts.
+- Fixed-percent, ATR, and optional MAE-quantile family quality are reported separately.
+- Chronological simulator supports gap-aware stop/target fills and entry-day audit semantics.
+- Gross and net returns are reported separately with configurable fee, tax, slippage, and disabled-cost warning.
+- Boundary optimum analysis flags lower/upper grid winners and neighboring robustness.
+- Extreme-winner dependency metrics are included for each joint pair.
+- Nested chronological validation selects candidates on outer-training data only and reports outer validation evidence.
+- Joint TP-SL source policy allows schema-valid TP candidate lists for research, but decision usability depends on joint evidence quality.
+- `selected` remains null when joint quality gates fail.
+
+Schema:
+- Hardened schema version: `sl_optimizer_v1_1`.
+- Added fields: `execution_model`, `transaction_cost_model`, `atr_provenance`, `family_quality`, `boundary_analysis`, `extreme_winner_analysis`, `nested_walk_forward`, `gross_metrics`, `net_metrics`, `gap_metrics`, `source_policy`, `best_gross_joint_pair`, `best_net_joint_pair`, `most_frequent_nested_pair`, `selected`, `critical_warnings`.
+
+Status:
+- Sprint 4.1 completed on 2026-07-01. Episode artifacts were regenerated to carry ATR snapshots, TP artifacts were regenerated because episode checksums changed, SL artifacts were regenerated as `sl_optimizer_v1_1`, and all research tests passed.
+- BUMI: fixed and ATR family risk analysis usable; decision unusable because source TP is not decision usable and execution-cost model is disabled.
+- DEWA: fixed family risk analysis usable, ATR family not usable due lower coverage; decision unusable because CI lower bound/extreme-winner/source TP/cost warnings remain.
+
+### Milestone 5 — Re-entry Research
+
+Purpose:
+- Research post-exit recovery and one-time re-entry behavior after stop-loss, take-profit, and timeout exits.
+
+Scope:
+- Research artifact only; no Laravel integration and no production BUY_BACK action.
+- Uses Trade Episode Dataset, SL optimizer evidence, optional TP candidate provenance, and canonical OHLCV.
+- Maximum one re-entry per original episode; no martingale, no position-size increase, and constant nominal exposure.
+
+Schema:
+- Schema version: `reentry_research_v1`.
+- Root fields: `schema_version`, `artifact_type`, `ticker`, `generated_at`, `generator_version`, `config`, `source`, `execution_model`, `transaction_cost_profiles`, `exclusions`, `recovery_after_stop`, `pullback_after_tp`, `continuation_after_timeout`, `candidate_results`, `segments`, `nested_walk_forward`, `stability`, `confidence_intervals`, `extreme_winner_analysis`, `best_candidates`, `selected`, `quality`, `warnings`, `notes`.
+
+Acceptance criteria:
+- Streams are separated for after-stop, after-TP, and after-timeout behavior.
+- Re-entry metrics report incremental value versus doing nothing.
+- Zero-cost and configurable non-zero-cost profiles are stored separately.
+- Nested chronological validation uses inner training selection and outer validation evaluation with purge/embargo covering original horizon plus extension window.
+- ATR and percentage candidate family coverage are reported separately.
+- `selected` remains null unless decision-grade gates pass.
+
+Status:
+- Re-entry Research Prototype Completed on 2026-07-01. BUMI and DEWA `reentry_research_v1` artifacts were generated and validated, with selected remaining null and all research tests passing. Contract hardening is required before Artifact Registry work.
+
+### Milestone 5.1 — Re-entry Contract and Validation Hardening
+
+Purpose:
+- Harden re-entry source schema policy, episode accounting reconciliation, recovery timing, stream-specific sample policy, family quality, cost provenance, and extreme-winner semantics.
+
+Scope:
+- Research artifact only. No Artifact Registry, Trading Decision Service, Laravel integration, dashboard, migration, or production decision layer is created.
+
+Schema:
+- Schema version: `reentry_research_v1_1`.
+- Added fields: `episode_accounting`, `stream_accounting`, `family_quality`, `recovery_timing`, `source_schema_policy`, `cost_profile`, `extreme_winner_interpretation`, `per_stream_nested_results`, and `validation_summary`.
+
+Acceptance criteria:
+- Source SL schema must be `sl_optimizer_v1_1` by artifact root schema, not filename.
+- All source episodes reconcile through classified stop/TP/timeout, exclusions, or unclassified count.
+- Recovery count and median recovery days are consistent.
+- Stream denominators and candidate selection are independent for after-stop, after-TP, and after-timeout.
+- Minimum sample policy nulls best candidates for insufficient streams while preserving descriptive rankings.
+- ATR family is either implemented with point-in-time coverage or explicitly marked deferred; Sprint 5.1 implements family quality reporting.
+- Non-zero cost profile is complete and four-leg cost provenance is stored.
+- Extreme-winner contribution semantics are documented in artifact and ADR.
+- Artifact Registry and Trading Decision Service remain blocked.
+
+Status:
+- Sprint 5.1 completed on 2026-07-01. BUMI and DEWA `reentry_research_v1_1` artifacts were generated from `sl_optimizer_v1_1` sources, episode accounting reconciled, recovery timing is non-null for recovered samples, and all tests passed. Artifact Registry and Trading Decision Service remain blocked.
+
+### Milestone 5.2 — Re-entry Metric Contract Finalization
+
+Purpose:
+- Freeze the `reentry_research_v1_1` contract for future Research Artifact Registry work.
+
+Scope:
+- Contract-only hardening: unclassified reason accounting, stream-owned metrics, expectancy/CI consistency, ATR family status semantics, validators, and regression tests.
+- No new candidate families, optimizer strategy, segmentation, Artifact Registry, or Decision Service.
+
+Acceptance criteria:
+- `unclassified_count` equals the sum of `unclassified_reasons`.
+- Every stream owns its own expectancy, CI, fold metrics, sample status, quality, and warnings.
+- Top-level summary only points to stream status or explicitly labeled aggregates.
+- ATR configured candidates are separated from evaluated candidates; coverage `0` yields no best candidate and unusable ATR family.
+- Overall `usable_for_reentry_research` depends on valid stream metrics, source validity, metric consistency, and unclassified policy.
+- Decision usability remains false.
+
+Status:
+- Sprint 5.2 completed on 2026-07-01. `reentry_research_v1_1` contract is finalized for registry preparation with unclassified reason reconciliation, stream-owned metrics, CI sample identity, ATR configured-versus-evaluated semantics, and validator regression coverage. BUMI and DEWA final v1.1 artifacts were regenerated from `sl_optimizer_v1_1` sources and all research tests passed. Artifact Registry and Trading Decision Service remain blocked and uncreated.
+
+
+### Milestone 6 — Research Artifact Registry and Import
+
+Sprint 6 status: completed on 2026-07-01. Sprint 5.2 is completed and `reentry_research_v1_1` is accepted. Sprint 7 Basic Trading Decision Service remains blocked until explicitly started.
+
+Scope:
+- Build a central registry for research artifact discovery, validation, checksum verification, metadata import, lineage, dependency status, latest resolution, staleness, and quarantine metadata.
+- Registry stores metadata only; JSON artifact payloads remain on filesystem and are not rewritten.
+- No trading actions, public route, dashboard integration, Prediction Engine change, or Decision Service is created.
+
+Architecture:
+- Config: `config/trading_research.php` defines allowed roots, supported artifact schemas, path security, checksum, stale thresholds, warning classification, quality grading, unclassified thresholds, and quarantine policy.
+- Models: `TradeResearchArtifact` and `TradeResearchArtifactDependency` provide casts, relationships, and query scopes only.
+- Services: discovery scans allowed JSON files; validation normalizes heterogeneous artifact schemas; registry imports metadata, resolves dependencies, manages latest flags, and serves internal query methods.
+- Commands: `trading-research:import-artifacts` imports metadata with dry-run and JSON output; `trading-research:verify-artifacts` rechecks file integrity, schema, staleness, dependencies, and latest flags.
+
+Database schema:
+- `trade_research_artifacts` stores ticker/type/schema, path, checksum, generated/imported timestamps, quality/usability, warnings, summary/source snapshots, logical identity, latest/stale/quarantine flags, and supersession.
+- `trade_research_artifact_dependencies` stores artifact, optional resolved artifact, dependency role/type, expected and resolved path/checksum/schema, resolution status, required flag, and metadata.
+- Rollback drops dependencies before artifacts. Existing trading, prediction, journal, and decision tables are untouched.
+
+Registry policy:
+- Validation status is separate from usage tier and quality grade.
+- `latestValid`, `latestResearchUsable`, and `latestDecisionUsable` are distinct and decision resolution never falls back to research-only artifacts.
+- Logical identity is based on ticker, artifact type, schema version, generated_at, and generator_version; filename is advisory.
+- SHA-256 checksum is deterministic; same checksum import is unchanged, same logical identity with different checksum is conflict.
+- Stale and quarantine are registry metadata only; Sprint 6 does not move or delete artifact files.
+- Re-entry high unclassified rate is imported as a limitation and can downgrade quality to `limited` without invalidating schema-valid research artifacts.
+
+Acceptance criteria:
+- Completed: migrations, models, services, import command, verify command, current artifact import, idempotency check, and tests pass.
+- Current BUMI/DEWA artifacts are discovered/imported with dependency rows.
+- Import is idempotent and dry-run has no DB writes.
+- Invalid/quarantined artifacts do not become latest.
+- Latest research works; latest decision returns explicit unavailable/null for non-decision artifacts.
+- Existing ResearchArtifactService remains backward compatible.
+- PHP and Python research tests pass.
+
+### Milestone 6 — Artifact Registry
+
+Status:
+- Blocked until Sprint 5.1 completion.
+
+
+### Milestone 7 — Basic Trading Decision Service
+
+Sprint 7 status: completed on 2026-07-01. Sprint 6 is completed. Confidence Engine, advanced Reason Engine, Risk Engine, Trade Plan Engine, Dashboard integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Create an in-memory `TradingDecisionService` under `app/Services/Trading/` that converts a normalized prediction snapshot plus Registry evidence into `trading_decision_v1`.
+- Use Registry Service dependency injection only; no filesystem scan, Python/FastAPI call, controller integration, route, dashboard card, persistence, notification, or scheduled command.
+- Supported Sprint 7 actions are only `WAIT` and `NO_TRADE`; aggressive actions remain unsupported.
+
+Input contract:
+- `ticker`, `decision_at`, `prediction`, optional `market_context`, and optional `open_trade`.
+- Prediction semantics are normalized into directional or regime categories; `move` is not treated as `up`.
+- Probability is validated for range but stored only as evidence.
+
+Output schema:
+- `schema_version=trading_decision_v1`, `artifact_type=trading_decision`, action/status, recommendation quality, prediction snapshot, artifact availability, evidence, source artifact metadata, safety gates, structured reasons/warnings/blockers, and metadata.
+- `confidence`, `risk`, and `trade_plan` remain null because their engines are blocked.
+
+Safety gates:
+1. Input validity
+2. Prediction availability
+3. Prediction freshness
+4. Registry availability
+5. Registry integrity
+6. Research artifact availability
+7. Decision artifact usability
+8. Selected-parameter availability
+9. Dependency resolution
+10. Staleness
+11. Quarantine
+12. Current implementation capability
+
+Policy:
+- Required research artifacts: trade episode dataset, TP optimizer, and SL optimizer.
+- Re-entry is optional for generic WAIT/NO_TRADE but is included in evidence and blocks future BUY_BACK only.
+- No fallback from decision-usable to research-only candidates.
+- Current BUMI/DEWA expected output is safe-downgraded WAIT with decision-usable TP/SL/re-entry unavailable.
+
+Acceptance criteria:
+- Completed: Decision service, evidence service, schema validator, Registry integration tests, full PHP tests, and Python research tests pass.
+- Current BUMI and DEWA registry state produces WAIT/NO_TRADE only, with confidence/risk/trade_plan null.
+- Synthetic decision-ready evidence still does not produce BUY because Sprint 7 action capability is not implemented.
+- Registry regression tests, full PHP tests, and Python research tests pass.
+
+
+### Milestone 7.1 — Decision Contract and Multi-Signal Hardening
+
+Sprint 7.1 status: completed on 2026-07-01. Sprint 7 is completed. Sprint 8 Confidence and Reason Engine remains blocked until explicitly started. Risk Engine, Trade Plan, Dashboard integration, Notification, and Learning remain blocked.
+
+Scope:
+- Finalize `trading_decision_v1_1` before Confidence/Reason Engine consumption.
+- Support canonical `predictions[]` with backward-compatible single `prediction` input.
+- Add semantic roles, prediction identity validation, agreement summary, open-trade scope semantics, readiness model, gate consistency checks, and deterministic decision fingerprint.
+- Supported actions remain only WAIT and NO_TRADE; no HOLD, BUY, SELL, CUT_LOSS, BUY_BACK, persistence, route, controller, dashboard, Confidence, Risk, or Trade Plan.
+
+Contract changes:
+- Canonical output stores `prediction_snapshots[]`; `prediction_snapshot` remains a deprecated alias for compatibility.
+- Decision fields include `decision_scope`, `position_context`, `position_management_status`, `evidence_readiness`, `capability_readiness`, and `action_eligibility`.
+- Gate records include `gate`, `evaluated`, `passed`, `severity`, `code`, and `details`; skipped gates use `passed=null`.
+- Metadata includes `service_contract_version=basic_decision_v1_1`, fingerprint algorithm, and deterministic SHA-256 fingerprint.
+
+Prediction policy:
+- Roles: directional, regime, volatility, unknown.
+- Semantics: directional_up, directional_down, directional_neutral, regime_move, regime_no_move, unknown.
+- Regime move is not directional up. Contradictory directional predictions produce NO_TRADE. Duplicate prediction identity is rejected. Probability is evidence only.
+
+Scope policy:
+- No open trade: entry_evaluation / no_open_trade / not_required.
+- Valid open trade: position_management / open_trade / not_implemented with blocker; no implicit HOLD.
+- Invalid open trade: NO_TRADE with explicit blocker.
+
+Readiness model:
+- Evidence readiness: unavailable, partial, research_ready, decision_ready, invalid.
+- Capability readiness: unavailable, partial, basic_only, action_selection_ready.
+- Action eligibility: ineligible, blocked, eligible_but_not_supported, eligible.
+
+Acceptance criteria:
+- Completed: multiple predictions and legacy single prediction both work.
+- Real BUMI/DEWA remain safe WAIT with research_ready/basic_only/blocked.
+- Synthetic decision-ready evidence returns unsupported status and never BUY.
+- Fingerprint is deterministic and changes when prediction or artifact checksum changes.
+- Full PHP and Python regression tests pass.
+
+### Milestone 7 — Trading Decision Service
+
+Status:
+- Blocked until research artifacts become registry-ready and decision-grade policy is accepted.
+
+### Milestone 5 — Trading Decision Service
 
 Purpose:
 - Produce initial trading action from prediction and research evidence.
@@ -426,6 +830,186 @@ Risk:
 
 Complexity:
 - Medium.
+
+
+### Milestone 8 — Confidence and Reason Engine
+
+Sprint 8 status: prototype completed on 2026-07-01. Sprint 7.1 is completed. Risk Engine, Trade Plan Engine, Advanced Action Selection, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Add `ConfidenceEngineService` and `ReasonEngineService` under `app/Services/Trading/`.
+- Evolve decision schema to `trading_decision_v1_2` and service contract to `basic_decision_v1_2`.
+- Confidence separates prediction probability, evidence confidence, and action confidence.
+- Reason Engine produces deterministic structured reasons; no LLM, network, Python, FastAPI, route, controller, persistence, Risk Engine, or Trade Plan.
+- Actions remain WAIT and NO_TRADE only.
+
+Confidence policy:
+- Internal schema `trading_confidence_v1`.
+- Components are weighted from `config/trading_confidence.php`.
+- Caps and penalties are configured and explainable.
+- Probability magnitude is evidence only and does not increase confidence without calibration.
+- Current BUMI/DEWA: evidence confidence available, action confidence null.
+
+Reason policy:
+- Internal schema `trading_reason_v1`.
+- Reasons include code, category, severity, polarity, impact, deterministic message, source metadata, evidence, and rank.
+- Warnings and blockers derive from structured reasons.
+- Ordering: critical, blocking, warning, supportive, informational; then category/code order.
+
+Acceptance criteria:
+- Completed: Confidence/Reason services created and integrated into TradingDecisionService with PHP and Python tests passing.
+- Prototype note: Sprint 8 synthetic decision-ready fixture allowed action confidence, but Sprint 8.1 supersedes this with action-specific trade-action confidence unavailable until an action candidate exists.
+- Fingerprint includes confidence and reason results.
+- Full PHP and Python regression tests pass.
+
+
+### Milestone 8.1 — Confidence Scope and Reason Prioritization Hardening
+
+Sprint 8.1 status: completed on 2026-07-01. Sprint 8 is prototype completed. Sprint 9 Risk and Trade Plan Contract Foundation is blocked. Advanced Action Selection, Dashboard, Notification, and Learning remain blocked.
+
+Scope:
+- Evolve decision schema to `trading_decision_v1_3` and confidence schema to `trading_confidence_v1_1`.
+- Split confidence into evidence, safety-decision, and trade-action scopes.
+- Require action identity before trade-action confidence can be populated.
+- Remove implementation capability from weighted evidence components and move capability into readiness/eligibility metadata.
+- Add explicit calculation stages, missing-component policy, confidence interpretation, reason primary/supporting/diagnostic grouping, source aggregation, and dominant blocker priority.
+- Actions remain only WAIT and NO_TRADE. Risk, Trade Plan, Action Selection, Dashboard, Notification, and Learning remain blocked.
+
+Acceptance criteria:
+- Completed: synthetic decision-ready evidence does not populate trade-action confidence without action candidate.
+- Completed: safety confidence is available for WAIT/NO_TRADE.
+- Completed: compatibility warnings/blockers derive from canonical reasons.
+- Completed: fingerprint includes updated confidence scopes and reason classification.
+- Completed: full PHP and Python tests pass.
+
+### Milestone 9 — Risk and Trade Plan Contract Foundation
+
+Sprint 9 status: completed on 2026-07-01. Sprint 8.1 is completed. Action Selection Engine, Position Sizing Engine, Position Management Engine, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Evolve decision schema to `trading_decision_v1_4` and service contract to `basic_decision_v1_4`.
+- Add `RiskEngineService` with schema `trading_risk_v1` and separate research-risk evidence from action-specific decision risk.
+- Add `TradePlanService` with schema `trading_trade_plan_v1` and explicit unavailable plan sections.
+- Keep supported actions limited to `WAIT` and `NO_TRADE`; no BUY, HOLD, SELL, CUT_LOSS, BUY_BACK, position sizing, routes, controllers, persistence, or production integration.
+- Preserve no-fallback policy: research-only TP/SL/re-entry candidates are not promoted to selected production parameters.
+
+Risk policy:
+- Research-risk evidence may use normalized Registry metadata only.
+- Decision risk requires action candidate identity, selected TP/SL, decision-usable artifacts, fresh non-quarantined sources, resolved dependencies, and calculation capability.
+- Without decision risk eligibility, all decision-risk numeric metrics remain null.
+- Position sizing is `not_implemented` with null size outputs.
+
+Trade-plan policy:
+- Trade plan is unavailable without action candidate, decision risk, selected entry/TP/SL, action support, and valid decision-usable sources.
+- Current BUMI/DEWA expose structured unavailable plan objects, not executable plans.
+- Open-trade context does not imply HOLD/SELL/CUT_LOSS and does not reuse current stop/target as generated plan.
+
+Acceptance criteria:
+- Completed: Risk and Trade Plan services are created and integrated through `TradingDecisionService`.
+- Completed: BUMI/DEWA risk and trade plan objects are structured but decision risk and executable plan remain unavailable.
+- Completed: no numeric production TP/SL/RR/position size is emitted when unavailable.
+- Completed: Reason Engine receives risk/trade-plan status and compatibility fields derive from canonical reasons.
+- Completed: fingerprint includes risk and trade-plan schema/status/reason codes.
+- Completed: full PHP and Python regression tests pass.
+
+### Milestone 10 — Action Candidate and Eligibility Contract Foundation
+
+Sprint 10 status: Action Candidate Foundation completed on 2026-07-01. Sprint 9 is completed. Final Action Promotion, Position Sizing Engine, Position Management Engine, Executable Risk and Trade Plan, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Evolve decision schema to `trading_decision_v1_5` and service contract to `basic_decision_v1_5`.
+- Add `ActionCandidateService` with schema `trading_action_candidate_v1` for non-executable candidate hypotheses.
+- Separate action candidate, candidate eligibility, final action, and promotion status.
+- Keep final supported actions limited to WAIT and NO_TRADE.
+- Provide candidate identity to Risk and Trade Plan contracts without creating Action Promotion, Position Sizing, Position Management, routes, controllers, persistence, or production integration.
+
+Candidate policy:
+- Long-entry candidate requires directional-up prediction, fresh non-conflicting prediction evidence, decision-ready evidence, decision-usable TP/SL, selected TP/SL, resolved dependencies, fresh artifacts, and non-quarantined sources.
+- Regime evidence may support but never replaces directional prediction.
+- Research-only artifacts, evidence-confidence score, and probability magnitude cannot create candidate-ready output.
+- Candidate is always `non_executable`; promotion remains `not_implemented`.
+
+Acceptance criteria:
+- Completed: candidate object and promotion object are structured in decision output.
+- Completed: current BUMI/DEWA do not produce candidate-ready output.
+- Completed: synthetic decision-ready directional-up evidence can produce candidate-ready but final action remains WAIT.
+- Completed: Risk Engine receives candidate identity; Trade Plan remains unavailable without decision risk.
+- Completed: full PHP and Python regression tests pass.
+
+### Milestone 10.1 — Action Selection and Promotion Contract Hardening
+
+Sprint 10.1 status: completed on 2026-07-01. Sprint 10 Action Candidate Foundation is completed. Action-Specific Risk Evaluation, Executable Trade Plan, Position Sizing, Position Management, Dashboard, Notification, and Learning remain blocked.
+
+Scope:
+- Evolve decision schema to `trading_decision_v1_6` and service contract to `basic_decision_v1_6`.
+- Add `ActionSelectionService` with schema `trading_action_selection_v1`.
+- Add `ActionPromotionService` with schema `trading_action_promotion_v1`.
+- Separate candidate formation, selection, promotion, execution readiness, and safety action.
+- Keep final top-level actions limited to WAIT and NO_TRADE.
+
+Selection policy:
+- Selection validates candidate availability, schema, identity, ticker/scope/position consistency, evidence readiness, trade-action confidence identity, decision-risk identity, trade-plan identity, capability, blockers, and selection policy availability.
+- Sprint 10.1 has no production selection policy; selected candidate remains null.
+- No probability, confidence, RR, TP/SL, expectancy, or research fallback threshold may select a candidate.
+
+Promotion policy:
+- Promotion requires selected candidate, capability, risk, trade plan, safety policy, and no blockers.
+- Sprint 10.1 promotion is contract-only; promoted action and executable action remain null.
+- Top-level `action` equals explicit safety action while promoted action is null.
+
+Acceptance criteria:
+- Completed: Action Selection and Action Promotion services are created and integrated.
+- Completed: real BUMI/DEWA selected candidate remains null and safety action remains WAIT.
+- Completed: synthetic candidate-ready is not selected without confidence/risk/plan readiness.
+- Completed: synthetic contract-ready is not promoted because capability is disabled.
+- Completed: fingerprint includes selection and promotion schema/status/eligibility.
+- Completed: full PHP and Python regression tests pass.
+
+### Milestone 11 — Action-Specific Risk Evaluation Foundation
+
+Sprint 11 status: completed on 2026-07-01. Sprint 10.1 is completed. Trade Plan Parameter Materialization, Position Sizing, Position Management, Final Action Promotion Policy, Dashboard, Notification, and Learning remain blocked.
+
+Scope:
+- Evolve decision schema to `trading_decision_v1_7`, service contract to `basic_decision_v1_7`, and risk schema to `trading_risk_v1_1`.
+- Add `ActionRiskEvaluationService` with schema `trading_action_risk_v1`.
+- Make `action_specific_risk` the canonical candidate-risk source inside Risk Engine.
+- Accept only normalized selected-parameter evidence; no filesystem, JSON payload, or research-only fallback.
+- Compute only gross long-entry percentage geometry when candidate and selected TP/SL evidence are decision-grade.
+
+Risk policy:
+- Real BUMI/DEWA remain action-risk unavailable because selected decision-grade TP/SL values are unavailable.
+- Synthetic tests may provide `trading_selected_parameters_v1` evidence to validate gross geometry.
+- Probabilistic, expected value, net, capital, portfolio, execution, position sizing, and position-management risk remain unavailable/not implemented.
+- Gross RR is a metric only and must not select or promote a candidate.
+
+Acceptance criteria:
+- Completed: ActionRiskEvaluationService is created and integrated through RiskEngineService.
+- Completed: synthetic decision-grade percentage parameters can produce deterministic gross geometry.
+- Completed: real BUMI/DEWA action risk remains unavailable with all numeric production metrics null.
+- Completed: trade plan, selection, promotion, final action, and position sizing remain blocked/unavailable.
+- Completed: full PHP and Python regression tests pass.
+
+### Milestone 12 — Trade Plan Parameter Materialization Foundation
+
+Sprint 12 status: completed on 2026-07-01. Sprint 11 is completed. Position Sizing, Position Management, Execution Planning, Final Action Promotion Policy, Dashboard Integration, Notification Engine, and Learning Engine remain blocked.
+
+Scope:
+- Evolve decision schema to `trading_decision_v1_8`, service contract to `basic_decision_v1_8`, and trade-plan schema to `trading_trade_plan_v1_1`.
+- Add `TradePlanMaterializationService` with `trading_reference_trade_plan_v1` and `trading_entry_reference_v1` contracts.
+- Build non-executable reference plans only from candidate-ready, selected decision-grade parameters, evaluated action risk, and explicit entry-reference evidence.
+- Keep selection, promotion, executable action, position sizing, and position management blocked.
+
+Policy:
+- Real BUMI/DEWA remain trade-plan unavailable because candidate/selected-parameter/action-risk prerequisites are unavailable.
+- Synthetic parameters without entry reference can produce `parameter_ready` reference plan.
+- Synthetic valid entry reference can produce materialized reference plan, still non-executable.
+- Trade plan uses Action Risk as canonical geometry source and must not recalculate divergent risk.
+
+Acceptance criteria:
+- TradePlanMaterializationService is created and integrated through TradePlanService.
+- Reference plan is candidate-specific, provenance-backed, deterministic, and non-executable.
+- No research fallback, holding materialization, re-entry materialization, position sizing, position management, order payload, selection, or promotion is created.
+- Completed: Full PHP and Python regression tests pass before Sprint 12 is marked completed.
 
 ### Milestone 8 — Trade Plan Engine
 

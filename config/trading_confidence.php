@@ -1,0 +1,61 @@
+<?php
+
+return [
+    'schema_version' => 'trading_confidence_v1_1',
+    'method' => 'weighted_components_v1',
+    'weight_profile' => 'default_research_v1',
+    'scale' => ['min' => 0, 'max' => 100],
+    'grade_thresholds' => [
+        'unavailable' => null,
+        'very_low' => 0,
+        'low' => 30,
+        'moderate' => 55,
+        'high' => 75,
+        'very_high' => 90,
+    ],
+    'component_weights' => [
+        'prediction_availability' => 0.10,
+        'prediction_freshness' => 0.10,
+        'prediction_semantic_completeness' => 0.10,
+        'prediction_consistency' => 0.10,
+        'research_artifact_coverage' => 0.15,
+        'artifact_integrity' => 0.15,
+        'artifact_freshness' => 0.05,
+        'research_quality' => 0.15,
+        'decision_parameter_readiness' => 0.10,
+    ],
+    'quality_grade_scores' => [
+        'healthy' => 95,
+        'warning' => 75,
+        'limited' => 55,
+        'critical' => 10,
+        'unknown' => 40,
+    ],
+    'penalties' => [
+        'high_unclassified_rate' => 8,
+        'atr_unavailable' => 3,
+        'extreme_winner_dependency' => 8,
+        'selected_null' => 10,
+        'dependency_unresolved' => 5,
+    ],
+    'caps' => [
+        'research_only_action_cap' => 70,
+        'stale_artifact_cap' => 60,
+        'dependency_mismatch_cap' => 35,
+        'quarantine_cap' => 20,
+        'prediction_conflict_cap' => 40,
+    ],
+    'action_confidence' => [
+        'eligible_readiness' => ['decision_ready'],
+        'eligible_action_eligibility' => ['eligible', 'eligible_but_not_supported'],
+    ],
+    'reason' => [
+        'schema_version' => 'trading_reason_v1_1',
+        'primary_reason_limit' => 6,
+        'maximum_warning_primary_reasons' => 2,
+        'maximum_informational_primary_reasons' => 1,
+        'dominant_blocker_priority' => ['DEPENDENCY_CHECKSUM_MISMATCH','ARTIFACT_QUARANTINED','ARTIFACT_STALE','NO_DECISION_USABLE_SL','NO_DECISION_USABLE_TP','SELECTED_SL_UNAVAILABLE','SELECTED_TP_UNAVAILABLE','ACTION_SELECTION_NOT_IMPLEMENTED','ACTION_CAPABILITY_NOT_IMPLEMENTED'],
+        'severity_order' => ['critical', 'blocking', 'warning', 'supportive', 'informational'],
+        'category_order' => ['artifact_integrity','dependency','artifact_usability','capability','prediction_consistency','artifact_quality','limitation','prediction','artifact_availability','confidence','position_context','safety'],
+    ],
+];

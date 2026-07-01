@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'schema_version' => 'trading_action_candidate_v1',
+    'selection_schema_version' => 'trading_action_selection_v1',
+    'promotion_schema_version' => 'trading_action_promotion_v1',
+    'candidate_contract_version' => 'action_candidate_contract_v1',
+    'supported_intents' => ['long_entry', 'no_entry', 'position_management', 'observation', 'unknown'],
+    'supported_position_contexts' => ['no_open_trade', 'open_trade', 'invalid_open_trade', 'unknown'],
+    'statuses' => ['unavailable', 'blocked', 'observation_only', 'candidate_ready', 'rejected', 'invalid'],
+    'eligibility' => ['ineligible', 'blocked', 'research_only', 'eligible_for_risk_evaluation', 'eligible_for_plan_evaluation', 'invalid'],
+    'execution_status' => 'non_executable',
+    'promotion_status' => 'not_implemented',
+    'required_prediction_roles' => ['long_entry' => ['directional']],
+    'required_normalized_semantics' => ['long_entry' => ['directional_up']],
+    'required_artifact_types' => ['long_entry' => ['tp_optimizer', 'sl_optimizer']],
+    'selected_parameter_requirements' => ['long_entry' => ['tp_optimizer', 'sl_optimizer']],
+    'candidate_gate_order' => ['input_validity','position_context_eligibility','directional_prediction_availability','prediction_consistency','prediction_freshness','evidence_readiness','decision_usable_tp_availability','decision_usable_sl_availability','selected_tp_availability','selected_sl_availability','artifact_integrity','dependency_resolution','staleness','quarantine','candidate_capability','execution_capability'],
+    'selection_statuses' => ['candidate_unavailable','candidate_blocked','candidate_under_evaluation','candidate_not_ready','eligible_but_selection_disabled','selected_for_promotion','invalid'],
+    'selection_eligibility' => ['ineligible','blocked','research_only','eligible_for_evaluation','eligible_but_not_selectable','selectable','invalid'],
+    'selection_gate_order' => ['candidate_availability','candidate_schema_validity','candidate_identity_validity','candidate_ticker_consistency','candidate_scope_consistency','candidate_position_context_consistency','evidence_readiness','trade_action_confidence_availability','trade_action_confidence_identity_match','decision_risk_availability','decision_risk_identity_match','trade_plan_availability','trade_plan_identity_match','capability_support','integrity_blockers','selection_policy_availability'],
+    'promotion_statuses' => ['not_applicable','not_promoted','blocked','eligible_but_disabled','promoted_non_executable','promoted_executable','invalid'],
+    'promotion_eligibility' => ['ineligible','blocked','selected_candidate_required','capability_unavailable','eligible_but_disabled','eligible','invalid'],
+    'promotion_gate_order' => ['selected_candidate_availability','selected_candidate_identity','promotion_capability','promotion_policy','risk_availability','trade_plan_availability','execution_capability','safety_policy'],
+    'selection_capability' => 'disabled',
+    'promotion_capability' => 'disabled',
+    'reason_codes' => ['ACTION_CANDIDATE_UNAVAILABLE','ACTION_CANDIDATE_BLOCKED','ACTION_CANDIDATE_OBSERVATION_ONLY','ACTION_CANDIDATE_READY','ACTION_CANDIDATE_REJECTED','ACTION_CANDIDATE_INVALID','LONG_ENTRY_CANDIDATE_REQUIRES_DIRECTIONAL_UP','DIRECTIONAL_SIGNAL_NOT_ELIGIBLE','DECISION_READY_EVIDENCE_REQUIRED','DECISION_USABLE_TP_REQUIRED_FOR_CANDIDATE','DECISION_USABLE_SL_REQUIRED_FOR_CANDIDATE','SELECTED_TP_REQUIRED_FOR_CANDIDATE','SELECTED_SL_REQUIRED_FOR_CANDIDATE','CANDIDATE_ELIGIBLE_FOR_RISK_EVALUATION','CANDIDATE_NOT_EXECUTABLE','ACTION_PROMOTION_NOT_IMPLEMENTED','ACTION_CANDIDATE_AVAILABLE_NOT_PROMOTED','POSITION_MANAGEMENT_CANDIDATE_NOT_IMPLEMENTED','ACTION_SELECTION_CANDIDATE_UNAVAILABLE','ACTION_SELECTION_CANDIDATE_BLOCKED','ACTION_SELECTION_CANDIDATE_INVALID','ACTION_SELECTION_CONFIDENCE_UNAVAILABLE','ACTION_SELECTION_CONFIDENCE_IDENTITY_MISMATCH','ACTION_SELECTION_RISK_UNAVAILABLE','ACTION_SELECTION_RISK_IDENTITY_MISMATCH','ACTION_SELECTION_TRADE_PLAN_UNAVAILABLE','ACTION_SELECTION_TRADE_PLAN_IDENTITY_MISMATCH','ACTION_SELECTION_CAPABILITY_DISABLED','ACTION_SELECTION_POLICY_NOT_IMPLEMENTED','CANDIDATE_ELIGIBLE_BUT_NOT_SELECTABLE','SELECTED_CANDIDATE_UNAVAILABLE','SAFETY_ACTION_WAIT_SELECTED','SAFETY_ACTION_NO_TRADE_SELECTED','ACTION_PROMOTION_NOT_APPLICABLE','ACTION_PROMOTION_SELECTED_CANDIDATE_REQUIRED','ACTION_PROMOTION_CAPABILITY_DISABLED','ACTION_PROMOTION_POLICY_NOT_IMPLEMENTED','ACTION_PROMOTION_BLOCKED','ACTION_PROMOTION_ELIGIBLE_BUT_DISABLED','PROMOTED_ACTION_UNAVAILABLE','EXECUTABLE_ACTION_UNAVAILABLE','EXECUTION_CAPABILITY_NOT_IMPLEMENTED'],
+];
