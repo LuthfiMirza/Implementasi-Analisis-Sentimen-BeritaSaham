@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Models\NewsSource;
 use App\Services\Analytics\SentimentPriceAnalyticsService;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class SentimentPriceAnalyticsServiceTest extends TestCase
@@ -38,6 +39,7 @@ class SentimentPriceAnalyticsServiceTest extends TestCase
             'sentiment_score' => 0.9,
             'source_weight' => 1.2,
             'relevance_score' => 1.0,
+            'published_at' => Carbon::parse('2026-05-08'),
         ]);
         $this->seedArticle($stock, [
             'title' => 'Berita pasar netral',
@@ -45,6 +47,7 @@ class SentimentPriceAnalyticsServiceTest extends TestCase
             'sentiment_score' => 0.0,
             'source_weight' => 0.5,
             'relevance_score' => 0.4,
+            'published_at' => Carbon::parse('2026-05-08'),
         ]);
 
         $result = (new SentimentPriceAnalyticsService())->analyze($stock, $stock->prices, $stock->newsArticles()->with('source')->get(), 30);

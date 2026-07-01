@@ -3,6 +3,7 @@
         $lag = $analytics['lag_correlations'] ?? ['h1' => null, 'h3' => null, 'h7' => null];
         $events = $analytics['event_study'] ?? ['positive_events' => [], 'negative_events' => []];
         $volumeImpact = $analytics['volume_impact'] ?? ['correlation' => null, 'peak_volume_dates' => []];
+        $lagInsufficientHint = 'Minimal 3 artikel sentimen dengan lag berbeda dibutuhkan untuk menghitung korelasi ini. Coverage sentimen untuk saham ini masih terbatas.';
     @endphp
 
     <div class="flex flex-col gap-6">
@@ -773,9 +774,9 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <x-metric-card label="Lag H+1" :value="is_null($lag['h1']) ? 'N/A' : $lag['h1']" />
-                        <x-metric-card label="Lag H+3" :value="is_null($lag['h3']) ? 'N/A' : $lag['h3']" />
-                        <x-metric-card label="Lag H+7" :value="is_null($lag['h7']) ? 'N/A' : $lag['h7']" />
+                        <x-metric-card label="Lag H+1" :value="is_null($lag['h1']) ? '— (data tidak cukup)' : $lag['h1']" :hint="is_null($lag['h1']) ? $lagInsufficientHint : ''" />
+                        <x-metric-card label="Lag H+3" :value="is_null($lag['h3']) ? '— (data tidak cukup)' : $lag['h3']" :hint="is_null($lag['h3']) ? $lagInsufficientHint : ''" />
+                        <x-metric-card label="Lag H+7" :value="is_null($lag['h7']) ? '— (data tidak cukup)' : $lag['h7']" :hint="is_null($lag['h7']) ? $lagInsufficientHint : ''" />
                         <x-metric-card label="Volume→Volatilitas" :value="is_null($volumeImpact['correlation']) ? 'N/A' : $volumeImpact['correlation']" hint="korelasi volume berita vs |return|" />
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm text-slate-200">
