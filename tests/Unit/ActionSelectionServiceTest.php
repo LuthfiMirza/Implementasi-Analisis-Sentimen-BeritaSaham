@@ -11,7 +11,7 @@ class ActionSelectionServiceTest extends TestCase
     public function test_observation_candidate_is_not_selected_and_safety_wait(): void
     {
         $selection = (new ActionSelectionService())->select($this->context($this->candidate('research_ready')));
-        $this->assertSame('trading_action_selection_v1', $selection['schema_version']);
+        $this->assertSame('trading_action_selection_v1_1', $selection['schema_version']);
         $this->assertSame('candidate_not_ready', $selection['status']);
         $this->assertSame('research_only', $selection['selection_eligibility']);
         $this->assertNull($selection['selected_candidate']);
@@ -22,7 +22,7 @@ class ActionSelectionServiceTest extends TestCase
     {
         $candidate = $this->candidate('decision_ready');
         $selection = (new ActionSelectionService())->select($this->context($candidate));
-        $this->assertSame('eligible_but_selection_disabled', $selection['status']);
+        $this->assertSame('policy_unavailable', $selection['status']);
         $this->assertSame('eligible_but_not_selectable', $selection['selection_eligibility']);
         $this->assertContains('ACTION_SELECTION_CONFIDENCE_UNAVAILABLE', $selection['reason_codes']);
         $this->assertContains('ACTION_SELECTION_RISK_UNAVAILABLE', $selection['reason_codes']);
@@ -38,7 +38,7 @@ class ActionSelectionServiceTest extends TestCase
         $context['decision_risk'] = ['status'=>'available','action_candidate_id'=>$candidate['candidate_id']];
         $context['trade_plan'] = ['status'=>'available','action_candidate_id'=>$candidate['candidate_id']];
         $selection = (new ActionSelectionService())->select($context);
-        $this->assertSame('eligible_but_selection_disabled', $selection['status']);
+        $this->assertSame('policy_unavailable', $selection['status']);
         $this->assertContains('ACTION_SELECTION_CAPABILITY_DISABLED', $selection['reason_codes']);
         $this->assertContains('ACTION_SELECTION_POLICY_NOT_IMPLEMENTED', $selection['reason_codes']);
         $this->assertNull($selection['selected_candidate']);
@@ -55,7 +55,7 @@ class ActionSelectionServiceTest extends TestCase
         $selection = (new ActionSelectionService())->select($context);
 
         $this->assertNull($selection['selected_candidate']);
-        $this->assertSame('eligible_but_selection_disabled', $selection['status']);
+        $this->assertSame('policy_unavailable', $selection['status']);
         $this->assertContains('ACTION_SELECTION_POLICY_NOT_IMPLEMENTED', $selection['reason_codes']);
     }
 

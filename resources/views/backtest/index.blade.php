@@ -173,6 +173,11 @@
                             Model ini mendeteksi apakah DEWA cenderung bergerak signifikan (&gt;0.5%) atau tidak. Ini bukan prediksi arah up/down/flat.
                         </p>
                         <div class="text-sm text-purple-200 mt-2">Akurasi regime: {{ $regime['accuracy'] }}% ({{ $regime['correct'] }}/{{ $regime['total'] }})</div>
+                        <p class="text-xs text-slate-400 mt-2">
+                            Catatan interpretasi: akurasi {{ $regime['accuracy'] }}% dihitung pada {{ $regime['total'] }} window pengujian yang dipilih.
+                            Pada sampel ini, semua window dapat berada pada karakteristik pasar yang sama, sehingga hasil perlu dibaca dalam konteks periode yang diuji.
+                            Gunakan sebagai referensi perilaku model pada kondisi pasar aktif, bukan sebagai ukuran akurasi umum.
+                        </p>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm text-slate-200">
@@ -223,9 +228,9 @@
                     </p>
                     <p class="text-xs text-slate-400 mt-1">
                       @if($result['accuracy'] >= 60)
-                        Model DSS menunjukkan kemampuan prediksi yang signifikan.
-                        Hasil ini mendukung hipotesis bahwa kombinasi teknikal + sentimen
-                        dapat memprediksi arah harga jangka pendek.
+                        Akurasi {{ $result['accuracy'] }}% diperoleh dari {{ $result['total'] ?? 0 }} window pengujian.
+                        Catatan metodologis: jumlah window yang kecil tidak cukup untuk klaim statistik yang kuat — hasil ini bersifat indikatif dan perlu diinterpretasi dengan hati-hati.
+                        Backtest ini mengukur konsistensi prediksi model pada periode historis yang dipilih, bukan jaminan performa ke depan.
                       @elseif($result['accuracy'] >= 45)
                         Model menunjukkan sinyal lemah. Kemungkinan disebabkan oleh
                         coverage berita yang belum optimal atau kondisi pasar yang tidak normal.
@@ -276,11 +281,9 @@
                     </p>
                     <p class="text-xs text-slate-400 mt-1">
                         @if($result['correlation'] < -0.3)
-                            Korelasi negatif menunjukkan bahwa pada periode ini,
-                            DSS score tinggi justru berkorelasi dengan return negatif.
-                            Ini konsisten dengan kondisi pasar Jan-Apr 2026 yang mengalami
-                            downtrend akibat kebijakan tariff global — faktor makro eksternal
-                            yang tidak tertangkap oleh model berbasis sentimen berita lokal.
+                            Korelasi {{ $result['correlation'] }} menunjukkan hubungan antara DSS score dan return aktual pada periode ini.
+                            Korelasi negatif atau lemah adalah temuan yang valid dan dicatat — bukan anomali yang perlu dijustifikasi.
+                            Faktor eksternal di luar cakupan model, seperti kondisi makro atau kebijakan global, dapat memengaruhi hasil pada periode tertentu dan tidak tertangkap oleh model berbasis data lokal.
                         @elseif(abs($result['correlation']) < 0.3)
                             Korelasi mendekati nol menunjukkan hubungan yang tidak linear
                             antara DSS score dan return aktual. Ini normal untuk model
@@ -301,11 +304,9 @@
                     <p class="text-xs text-slate-400">
                         Hasil backtest ini memberikan temuan penting:
                         (1) Sistem DSS memerlukan coverage berita yang memadai (≥10 artikel/saham)
-                        untuk menghasilkan sinyal yang akurat.
-                        (2) Akurasi sistem sangat dipengaruhi oleh kondisi makro eksternal yang
-                        tidak tertangkap oleh indikator teknikal maupun sentimen berita lokal.
-                        (3) Periode Jan-Apr 2026 merupakan periode volatilitas tinggi akibat
-                        kebijakan tariff global, yang membuat prediksi jangka pendek lebih sulit.
+                        agar komponen sentimen tidak terlalu jarang.
+                        (2) Hasil evaluasi perlu dibaca sebagai validasi historis pada periode yang dipilih, bukan bukti akurasi umum.
+                        (3) Faktor eksternal di luar cakupan data lokal dapat memengaruhi hubungan antara skor DSS dan return aktual.
                         (4) Diperlukan data historis yang lebih panjang (minimal 6-12 bulan)
                         untuk evaluasi yang lebih representatif.
                     </p>

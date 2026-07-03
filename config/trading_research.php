@@ -65,8 +65,8 @@ return [
         'research_allows_stale_with_warning' => true,
     ],
     'decision' => [
-        'schema_version' => 'trading_decision_v1_15',
-        'service_contract_version' => 'basic_decision_v1_15',
+        'schema_version' => 'trading_decision_v1_18',
+        'service_contract_version' => 'basic_decision_v1_18',
         'supported_tickers' => ['BUMI', 'DEWA'],
         'required_research_artifacts' => ['trade_episode_dataset', 'tp_optimizer', 'sl_optimizer'],
         'required_decision_artifacts' => ['tp_optimizer', 'sl_optimizer'],

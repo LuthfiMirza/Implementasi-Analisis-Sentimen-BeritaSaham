@@ -16,7 +16,7 @@ class ActionSelectionService
         $risk = $context['decision_risk'] ?? [];
         $plan = $context['trade_plan'] ?? [];
         $safetyAction = $context['safety_action'] ?? 'WAIT';
-        $portfolioApproval = $context['portfolio_approval'] ?? [];
+        $portfolioApproval = $context['portfolio_approval'] ?? [];$policyEval=(new EntryReferenceSelectionPolicyService())->evaluate($context+['portfolio_approval'=>$portfolioApproval]);$selectedProposal=(new SelectedProposalService())->build($context+['policy_evaluation'=>$policyEval,'portfolio_approval'=>$portfolioApproval]);
         $reasonCodes = [];
         $warnings = [];
         $blockers = [];
@@ -76,12 +76,12 @@ class ActionSelectionService
         if (! $capability) $this->add($reasonCodes, $blockers, 'ACTION_SELECTION_CAPABILITY_DISABLED');
         $integrityOk = $blockers === [];
         $gates[] = $this->gate('integrity_blockers', true, $integrityOk, $integrityOk ? 'passed' : 'blocking', $integrityOk ? 'NO_SELECTION_BLOCKERS' : 'SELECTED_CANDIDATE_UNAVAILABLE');
-        $policy = false;
-        $gates[] = $this->gate('selection_policy_availability', true, $policy, 'blocking', 'ACTION_SELECTION_POLICY_NOT_IMPLEMENTED');
-        $this->add($reasonCodes, $blockers, 'ACTION_SELECTION_POLICY_NOT_IMPLEMENTED');
+        $policy = ($policyEval['status'] ?? null)==='eligible_for_reference_selection';
+        $gates[] = $this->gate('selection_policy_availability', true, $policy, $policy ? 'passed' : 'blocking', $policy ? 'ENTRY_REFERENCE_SELECTION_ELIGIBLE' : 'ENTRY_REFERENCE_SELECTION_POLICY_UNAVAILABLE');
+        if(! $policy){ $this->add($reasonCodes, $blockers, 'ENTRY_REFERENCE_SELECTION_POLICY_UNAVAILABLE'); $this->add($reasonCodes, $blockers, 'ACTION_SELECTION_POLICY_NOT_IMPLEMENTED'); }
 
-        $status = ! $candidate ? 'candidate_unavailable' : (!$available ? (($candidate['status'] ?? null) === 'invalid' ? 'invalid' : 'candidate_not_ready') : 'eligible_but_selection_disabled');
-        $eligibility = ! $candidate ? 'ineligible' : (!$available ? (($candidate['eligibility'] ?? null) === 'research_only' ? 'research_only' : 'blocked') : 'eligible_but_not_selectable');
+        $status = ($selectedProposal['status']??null)==='selected_reference' ? 'selected_reference' : (! $candidate ? 'candidate_unavailable' : (!$available ? (($candidate['status'] ?? null) === 'invalid' ? 'invalid' : 'candidate_not_ready') : 'policy_unavailable'));
+        $eligibility = ($selectedProposal['status']??null)==='selected_reference' ? 'eligible_for_reference_selection' : (! $candidate ? 'ineligible' : (!$available ? (($candidate['eligibility'] ?? null) === 'research_only' ? 'research_only' : 'blocked') : 'eligible_but_not_selectable'));
         if ($available) $this->add($reasonCodes, $warnings, 'CANDIDATE_ELIGIBLE_BUT_NOT_SELECTABLE');
         $this->add($reasonCodes, $warnings, $safetyAction === 'NO_TRADE' ? 'SAFETY_ACTION_NO_TRADE_SELECTED' : 'SAFETY_ACTION_WAIT_SELECTED');
 
@@ -92,9 +92,12 @@ class ActionSelectionService
             'candidate_id' => $available ? $candidate['candidate_id'] : null,
             'candidate_intent' => $available ? $candidate['intent'] : null,
             'selection_eligibility' => $eligibility,
-            'selection_stage' => 'selection_policy',
+            'selection_stage' => 'reference_selection',
             'safety_action' => $safetyAction,
+            'reference_selection_policy_evaluation' => $policyEval,
+            'selected_proposal' => $selectedProposal,
             'selected_candidate' => null,
+            'production_selected_candidate' => null,
             'selection_gates' => $this->sortGates($gates, 'selection_gate_order'),
             'reason_codes' => $this->orderedCodes($reasonCodes),
             'warnings' => $this->orderedCodes($warnings),

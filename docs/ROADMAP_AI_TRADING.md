@@ -1799,3 +1799,79 @@ Completed:
 - Created `app/Services/Research/ResearchArtifactService.php`.
 - Created `tests/Unit/ResearchArtifactServiceTest.php`.
 - Verified Sprint 1 with `php artisan test tests/Unit/ResearchArtifactServiceTest.php` — 5 tests passed.
+
+## Sprint 18.1 — Management Action Plan and Portfolio Impact Simulation Contract Foundation
+
+Status: Completed
+
+- Sprint 18: Completed.
+- Sprint 18.1 scope: explicit management action policy, reference management action plan, local position impact, and optional explicit portfolio impact simulation.
+- Management Portfolio Approval: Blocked.
+- Management Production Approval: Blocked.
+- Management Action Selection: Blocked.
+- Management Promotion: Blocked.
+- Management Execution Authorization: Blocked.
+- Broker Execution: Blocked.
+- Entry Final Selection Policy: Blocked.
+- Entry Action Promotion: Blocked.
+- Dashboard Integration: Blocked.
+- Notification Engine: Blocked.
+- Learning Engine: Blocked.
+- Boundary: review candidate is not proposed action; proposed action is not selected action; reference impact simulation is not portfolio approval.
+- Supported proposed action types: `exit_position`, `reduce_position` as reference-only `proposed_management_action`.
+- Supported quantity modes: `full_position`, `explicit_units`, `explicit_fraction` without lot-size or broker alignment.
+- No default action policy and no direct condition-to-action mapping.
+- Schema evolution: decision `trading_decision_v1_16`, service contract `basic_decision_v1_16`, position management `trading_position_management_v1_3`, selection `trading_position_management_selection_v1_1`.
+- Acceptance criteria: no selection, no approval, no promotion, no execution, no order payload, no realized PnL/proceeds/released cash/execution cost, final actions remain `WAIT`/`NO_TRADE`.
+- Next dependency: Management Portfolio Approval remains blocked until action plan and impact simulation evidence can be reviewed explicitly.
+
+## Sprint 18.2 — Management Portfolio Reference Approval and Authorization Contract Foundation
+
+Status: In Progress
+
+- Sprint 18.1: Completed.
+- Sprint 18.2 scope: explicit management approval policy, explicit management reference authorization, and management portfolio reference approval contract.
+- Management Production Approval: Blocked.
+- Management Execution Authorization: Blocked.
+- Management Action Selection: Blocked.
+- Management Promotion: Blocked.
+- Entry Production Approval: Blocked.
+- Entry Execution Authorization: Blocked.
+- Unified Promotion Policy: Blocked.
+- Broker Execution: Blocked.
+- Dashboard Integration: Blocked.
+- Notification Engine: Blocked.
+- Learning Engine: Blocked.
+- Boundary: impact simulation is evidence, not approval; reference approval is not production approval, execution authorization, selection, promotion, or broker execution.
+- No auto-approval from exposure reduction; explicit approval policy and explicit reference authorization are required.
+- Entry and management approval scopes remain isolated.
+- Schema evolution: decision `trading_decision_v1_17`, service contract `basic_decision_v1_17`, position management `trading_position_management_v1_4`, selection `trading_position_management_selection_v1_2`.
+- Acceptance criteria: reference approval possible only for valid synthetic policy and authorization; production/execution approval false; approved/selected/promoted/executable management actions null; final actions remain `WAIT`/`NO_TRADE`.
+- Next dependency: Management Production Approval remains blocked after reference approval contract foundation.
+
+## Sprint 18.3 — Unified Reference Selection and Selected Proposal Contract Foundation
+
+Status: Completed
+
+- Sprint 18.2: Completed.
+- Circular dependency correction: reference approval feeds reference selection; selected proposal becomes future production approval binding target.
+- Reference approval is not selection; reference selection is not production selection; selected proposal is not final action.
+- Entry Production Approval: Blocked.
+- Management Production Approval: Blocked.
+- Entry Execution Authorization: Blocked.
+- Management Execution Authorization: Blocked.
+- Unified Promotion Policy: Blocked.
+- Broker-Neutral Instruction: Blocked.
+- Broker Execution: Blocked.
+- Dashboard Integration: Blocked.
+- Notification Engine: Blocked.
+- Learning Engine: Blocked.
+- Entry and management selection policies remain explicit, isolated, single-proposal only, and reference-only.
+- Multi-proposal ranking, production selection, execution authorization, promotion, and broker execution are deferred.
+- Schema evolution: decision `trading_decision_v1_18`, service contract `basic_decision_v1_18`, selected proposal `trading_selected_proposal_v1`, entry selection `trading_action_selection_v1_1`, management selection `trading_position_management_selection_v1_3`, position management `trading_position_management_v1_5`.
+- Acceptance criteria: selected proposal may be reference-selected in synthetic fixtures while final actions remain `WAIT`/`NO_TRADE`, production/execution selected false, promotion/execution null.
+- Completed: unified reference selection policies, selected proposal contract, deterministic selected proposal identity, decision fingerprint coverage, and additive schema/service contract upgrades are implemented.
+- Artifact summary: `trading_decision_v1_18`, `basic_decision_v1_18`, `trading_selected_proposal_v1`, `trading_action_selection_v1_1`, `trading_position_management_selection_v1_3`, and `trading_position_management_v1_5` are covered by unit and registry tests.
+- Validation: real BUMI/DEWA remain safe `WAIT`/`NO_TRADE`; production/execution selected remain false; promotion/execution remain null/not implemented.
+- Tests: `php artisan test` and `python3 -m pytest quant` pass.
+- Next dependency: production approval contract must bind `selected_proposal_id`.

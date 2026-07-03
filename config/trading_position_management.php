@@ -3,7 +3,7 @@ return [
  'managed_position_schema_version'=>'trading_managed_position_v1',
  'market_observation_schema_version'=>'trading_position_market_observation_v1',
  'position_state_schema_version'=>'trading_position_state_v1',
- 'position_management_schema_version'=>'trading_position_management_v1_2',
+ 'position_management_schema_version'=>'trading_position_management_v1_5',
  'supported_sides'=>['long'],
  'observation_freshness_minutes'=>1440,
  'pnl_precision'=>6,

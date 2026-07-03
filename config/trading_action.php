@@ -2,7 +2,7 @@
 
 return [
     'schema_version' => 'trading_action_candidate_v1',
-    'selection_schema_version' => 'trading_action_selection_v1',
+    'selection_schema_version' => 'trading_action_selection_v1_1',
     'promotion_schema_version' => 'trading_action_promotion_v1',
     'candidate_contract_version' => 'action_candidate_contract_v1',
     'supported_intents' => ['long_entry', 'no_entry', 'position_management', 'observation', 'unknown'],
@@ -16,8 +16,8 @@ return [
     'required_artifact_types' => ['long_entry' => ['tp_optimizer', 'sl_optimizer']],
     'selected_parameter_requirements' => ['long_entry' => ['tp_optimizer', 'sl_optimizer']],
     'candidate_gate_order' => ['input_validity','position_context_eligibility','directional_prediction_availability','prediction_consistency','prediction_freshness','evidence_readiness','decision_usable_tp_availability','decision_usable_sl_availability','selected_tp_availability','selected_sl_availability','artifact_integrity','dependency_resolution','staleness','quarantine','candidate_capability','execution_capability'],
-    'selection_statuses' => ['candidate_unavailable','candidate_blocked','candidate_under_evaluation','candidate_not_ready','eligible_but_selection_disabled','selected_for_promotion','invalid'],
-    'selection_eligibility' => ['ineligible','blocked','research_only','eligible_for_evaluation','eligible_but_not_selectable','selectable','invalid'],
+    'selection_statuses' => ['candidate_unavailable','candidate_blocked','candidate_under_evaluation','candidate_not_ready','policy_unavailable','policy_incomplete','reference_approval_required','eligible_for_reference_selection','selected_reference','denied_reference','eligible_but_selection_disabled','selected_for_promotion','invalid'],
+    'selection_eligibility' => ['ineligible','blocked','research_only','eligible_for_evaluation','eligible_for_reference_selection','eligible_but_not_selectable','selectable','invalid'],
     'selection_gate_order' => ['candidate_availability','candidate_schema_validity','candidate_identity_validity','candidate_ticker_consistency','candidate_scope_consistency','candidate_position_context_consistency','evidence_readiness','trade_action_confidence_availability','trade_action_confidence_identity_match','decision_risk_availability','decision_risk_identity_match','portfolio_approval_availability','portfolio_production_approval','trade_plan_availability','trade_plan_identity_match','capability_support','integrity_blockers','selection_policy_availability'],
     'promotion_statuses' => ['not_applicable','not_promoted','blocked','eligible_but_disabled','promoted_non_executable','promoted_executable','invalid'],
     'promotion_eligibility' => ['ineligible','blocked','selected_candidate_required','capability_unavailable','eligible_but_disabled','eligible','invalid'],

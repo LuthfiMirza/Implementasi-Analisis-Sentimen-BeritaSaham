@@ -1,0 +1,42 @@
+{
+  "ticker": "DEWA",
+  "n_oos": 2142,
+  "oos_date_range": [
+    "2017-03-15",
+    "2026-02-02"
+  ],
+  "n_folds_used": 17,
+  "move_definition": "abs(future_return_5d) > 0.0050",
+  "features_used": [
+    "return_1d",
+    "return_3d",
+    "return_5d",
+    "return_20d",
+    "atr14_pct",
+    "atr_ratio",
+    "volume_ratio_5d",
+    "volume_ratio_20d",
+    "price_vs_ema20_pct",
+    "price_vs_ema50",
+    "rsi_slope_5d",
+    "return_5d_cross_section_rank",
+    "volume_spike_flag",
+    "market_regime_bullish",
+    "regime_duration"
+  ],
+  "window_policy": "expanding min_train=252d test=126d",
+  "base_rate_move": 0.41316526610644255,
+  "accuracy": 0.8562091503267973,
+  "accuracy_majority_pointintime": 0.5868347338935574,
+  "accuracy_majority_global": 0.5868347338935574,
+  "auc": 0.9330016315413346,
+  "brier": 0.10213170949660666,
+  "brier_baserate": 0.24245972898963508,
+  "brier_skill_score": 0.5787683590912012,
+  "confusion_matrix_move_nomove": {
+    "tp_move": 644,
+    "fn_move": 241,
+    "fp_move": 67,
+    "tn_nomove": 1190
+  }
+}

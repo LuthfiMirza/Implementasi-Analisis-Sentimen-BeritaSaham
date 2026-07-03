@@ -84,10 +84,9 @@
                 <div class="md:col-span-2">
                     <p class="text-xs text-slate-500 uppercase mb-1">Konteks Pasar</p>
                     <p class="text-xs text-slate-400">
-                        Periode backtest Jan-Apr 2026 ditandai oleh volatilitas tinggi
-                        akibat kebijakan tariff global. IHSG turun ~16% selama periode ini.
-                        Kondisi bearish ekstrem ini mempengaruhi akurasi semua model prediksi
-                        jangka pendek berbasis analisis teknikal dan sentimen.
+                        Ringkasan ini menampilkan hasil backtest pada periode historis yang dipilih.
+                        Perubahan kondisi pasar di luar cakupan data lokal dapat memengaruhi hubungan antara skor DSS dan return aktual.
+                        Karena itu, angka agregat perlu dibaca sebagai evaluasi historis, bukan jaminan akurasi prediksi ke depan.
                     </p>
                 </div>
             </div>

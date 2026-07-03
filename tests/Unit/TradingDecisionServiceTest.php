@@ -13,7 +13,7 @@ class TradingDecisionServiceTest extends TestCase
     {
         $result = $this->service($this->researchEvidence())->decide($this->input());
 
-        $this->assertSame('trading_decision_v1_15', $result['schema_version']);
+        $this->assertSame('trading_decision_v1_18', $result['schema_version']);
         $this->assertSame('WAIT', $result['action']);
         $this->assertSame('safe_downgrade', $result['action_status']);
         $this->assertSame('research_only', $result['recommendation_quality']);
@@ -43,7 +43,7 @@ class TradingDecisionServiceTest extends TestCase
         $this->assertSame('trading_action_candidate_v1', $result['action_candidate']['schema_version']);
         $this->assertSame('observation_only', $result['action_candidate']['status']);
         $this->assertNull($result['action_candidate']['candidate_id']);
-        $this->assertSame('trading_action_selection_v1', $result['action_selection']['schema_version']);
+        $this->assertSame('trading_action_selection_v1_1', $result['action_selection']['schema_version']);
         $this->assertSame('WAIT', $result['action_selection']['safety_action']);
         $this->assertNull($result['action_selection']['selected_candidate']);
         $this->assertSame('trading_action_promotion_v1', $result['action_promotion']['schema_version']);
@@ -60,7 +60,7 @@ class TradingDecisionServiceTest extends TestCase
         $this->assertFalse($result['portfolio_approval']['approval_result']['execution_approved']);
         $this->assertNull($result['portfolio_approval']['approved_action']);
         $this->assertNull($result['portfolio_approval']['approved_quantity']);
-        $this->assertSame('trading_position_management_v1_2', $result['position_management']['schema_version']);
+        $this->assertSame('trading_position_management_v1_5', $result['position_management']['schema_version']);
         $this->assertSame('not_required', $result['position_management']['status']);
         $this->assertNull($result['position_management']['management_action_candidate']);
         $this->assertNotEmpty($result['metadata']['decision_fingerprint']);
@@ -210,7 +210,7 @@ class TradingDecisionServiceTest extends TestCase
         $this->assertSame('candidate_ready', $result['confidence']['trade_action_confidence']['status']);
         $this->assertSame($result['action_candidate']['candidate_id'], $result['confidence']['trade_action_confidence']['action_candidate_id']);
         $this->assertNull($result['action_selection']['selected_candidate']);
-        $this->assertSame('eligible_but_selection_disabled', $result['action_selection']['status']);
+        $this->assertSame('policy_unavailable', $result['action_selection']['status']);
         $this->assertSame('not_promoted', $result['action_promotion']['status']);
         $this->assertNull($result['action_promotion']['promoted_action']);
         $this->assertNull($result['action_promotion']['executable_action']);
@@ -237,7 +237,7 @@ class TradingDecisionServiceTest extends TestCase
 
         $result = $service->decide($input);
 
-        $this->assertSame('trading_decision_v1_15', $result['schema_version']);
+        $this->assertSame('trading_decision_v1_18', $result['schema_version']);
         $this->assertSame('trading_trade_plan_v1_2', $result['trade_plan']['schema_version']);
         $this->assertSame('materialized', $result['trade_plan']['reference_plan']['status']);
         $this->assertSame(100.0, $result['trade_plan']['reference_plan']['entry']['reference_price']);

@@ -1,0 +1,42 @@
+{
+  "ticker": "BUMI",
+  "n_oos": 2142,
+  "oos_date_range": [
+    "2017-03-08",
+    "2026-01-26"
+  ],
+  "n_folds_used": 17,
+  "move_definition": "abs(future_return_5d) > 0.0050",
+  "features_used": [
+    "return_1d",
+    "return_3d",
+    "return_5d",
+    "return_20d",
+    "atr14_pct",
+    "atr_ratio",
+    "volume_ratio_5d",
+    "volume_ratio_20d",
+    "price_vs_ema20_pct",
+    "price_vs_ema50",
+    "rsi_slope_5d",
+    "return_5d_cross_section_rank",
+    "volume_spike_flag",
+    "market_regime_bullish",
+    "regime_duration"
+  ],
+  "window_policy": "expanding min_train=252d test=126d",
+  "base_rate_move": 0.8669467787114846,
+  "accuracy": 0.830999066293184,
+  "accuracy_majority_pointintime": 0.8669467787114846,
+  "accuracy_majority_global": 0.8669467787114846,
+  "auc": 0.6736823210422395,
+  "brier": 0.13589311574112545,
+  "brier_baserate": 0.11535006159326476,
+  "brier_skill_score": -0.1780931354878461,
+  "confusion_matrix_move_nomove": {
+    "tp_move": 1774,
+    "fn_move": 83,
+    "fp_move": 279,
+    "tn_nomove": 6
+  }
+}

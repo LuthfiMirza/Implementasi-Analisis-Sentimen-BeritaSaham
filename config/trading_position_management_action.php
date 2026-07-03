@@ -3,7 +3,7 @@ return [
  'policy_schema_version'=>'trading_position_management_policy_v1',
  'policy_evaluation_schema_version'=>'trading_position_management_policy_evaluation_v1',
  'candidate_schema_version'=>'trading_position_management_candidate_v1',
- 'selection_schema_version'=>'trading_position_management_selection_v1',
+ 'selection_schema_version'=>'trading_position_management_selection_v1_3',
  'supported_policy_conditions'=>['stop_reference_breached','target_reference_reached','protection_reference_missing','market_observation_stale'],
  'supported_review_candidate_types'=>['protection_breach_review','target_reached_review','protection_missing_review','stale_observation_review'],
  'candidate_identity_algorithm'=>'sha256_normalized_json_v1',
