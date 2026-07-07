@@ -1,0 +1,49 @@
+BUMI v3 Fair-Subset Verification (vs official RF160 on identical rows)
+========================================================================
+
+Scope: verification only; does not replace production artifacts.
+
+## v3_technical_only_gb_tuning
+- candidate: soft_voting_ensemble, macro_f1=0.4040, dir_acc=0.4395
+- official RF160 (BASE_FEATURES) on identical 2321 rows: macro_f1=0.3978, dir_acc=0.4325
+- fair delta: macro_f1=+0.0062, directional_accuracy=+0.0069
+- verdict: NOT CLEAR (fair, <=0.02 threshold)
+
+## v3_technical_plus_sentiment
+- candidate: random_forest, macro_f1=0.4191, dir_acc=0.4504
+- official RF160 (BASE_FEATURES) on identical 2321 rows: macro_f1=0.3978, dir_acc=0.4325
+- fair delta: macro_f1=+0.0213, directional_accuracy=+0.0179
+- verdict at random_state=42: CLEAR (fair, >0.02) -- BUT SEE ROBUSTNESS CHECK BELOW, this does not hold up.
+
+## Robustness check: multi-seed re-run (random_state in [0,1,2,42,99], RF30 fast pipeline, same 2321-row subset/folds)
+
+Feature importance of the fitted RF30/FULL_FEATURES model: all 8 sentiment columns have
+feature_importance == 0.0000 (has_sentiment_data reaches only 0.0005). Sentiment carries
+no measurable split signal at ~2% real-coverage (BUMI: 54/2718 rows have real news).
+
+| features | f1_macro per seed [0,1,2,42,99] | mean | std |
+|---|---|---|---|
+| EXTENDED_no_sentiment | 0.4215, 0.4129, 0.3999, 0.3916, 0.3988 | 0.4049 | 0.0108 |
+| FULL_with_sentiment   | 0.4088, 0.3837, 0.3967, 0.4191, 0.3893 | 0.3995 | 0.0129 |
+
+The random_state=42 run (used in the v3 report) happened to be the single best seed for
+FULL_with_sentiment (0.4191) and near-worst for EXTENDED_no_sentiment (0.3916) -- a seed
+artifact, not a sentiment effect. Averaged across seeds, FULL_with_sentiment is *not*
+better than EXTENDED_no_sentiment (0.3995 vs 0.4049); both hover around the same
++0.005-0.007 fair delta vs official RF160 (0.3978), well under the 0.02 promotion
+threshold.
+
+## FINAL VERDICT (corrected)
+
+- BUMI v3 (GB tuning, extended features, sentiment features, horizon labels): **no clear,
+  robust improvement over the official production model.** The single-seed "clear_improvement"
+  reading for v3_technical_plus_sentiment was a random-forest seed artifact, not a genuine
+  gain, confirmed by zero feature importance on every sentiment column and by the multi-seed
+  check above.
+- Sentiment does not help BUMI's directional model at current news coverage (~2%). This is
+  consistent with the project's own phase_b_postmortem finding `sentiment_data_weak_or_non_informative`
+  and with `insufficient_trade_sample`.
+- Do not promote any v3 BUMI variant to production. Recommended next step per the project's
+  existing next-action: extend news coverage first (more articles/day for BUMI), then retest --
+  a feature with 2% coverage cannot realistically move a directional classifier.
+

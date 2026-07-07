@@ -1,0 +1,29 @@
+{
+  "scope": "verification_only",
+  "ticker": "BUMI",
+  "label_column": "label_bumi_fixed_2_7pct",
+  "checks": {
+    "v3_technical_only_gb_tuning": {
+      "candidate_model": "soft_voting_ensemble",
+      "candidate_macro_f1": 0.404013,
+      "candidate_directional_accuracy": 0.439484,
+      "official_rf160_same_subset_macro_f1": 0.397806,
+      "official_rf160_same_subset_directional_accuracy": 0.43254,
+      "rows_used": 2321,
+      "fair_delta_macro_f1": 0.006207000000000018,
+      "fair_delta_directional_accuracy": 0.006944000000000006,
+      "fair_verdict": "no_clear_improvement_fair_subset"
+    },
+    "v3_technical_plus_sentiment": {
+      "candidate_model": "random_forest",
+      "candidate_macro_f1": 0.419132,
+      "candidate_directional_accuracy": 0.450397,
+      "official_rf160_same_subset_macro_f1": 0.397806,
+      "official_rf160_same_subset_directional_accuracy": 0.43254,
+      "rows_used": 2321,
+      "fair_delta_macro_f1": 0.02132600000000001,
+      "fair_delta_directional_accuracy": 0.017857000000000012,
+      "fair_verdict": "clear_improvement_fair_subset"
+    }
+  }
+}
