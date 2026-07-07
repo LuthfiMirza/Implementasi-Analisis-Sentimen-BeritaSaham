@@ -76,4 +76,40 @@ class StockKeywordMapperExclusionTest extends TestCase
         $this->assertContains('PT Indofood Sukses Makmur Tbk', $mapper->keywords($indf));
         $this->assertContains('saham INDF', $indfQueries);
     }
+
+    public function test_bumi_bare_code_does_not_match_common_word_or_substring_context(): void
+    {
+        $mapper = new StockKeywordMapper();
+        $bumi = Stock::factory()->create(['code' => 'BUMI', 'company_name' => 'Bumi Resources Tbk']);
+
+        $this->assertEmpty($mapper->directHits($bumi, 'Bir Tawil, Wilayah Aneh di Bumi yang Tak Diakui Negara Mana Pun'));
+        $this->assertEmpty($mapper->directHits($bumi, "Asteroid Raksasa 'God of Chaos' Terdeteksi Menuju Bumi"));
+        $this->assertNotEmpty($mapper->directHits($bumi, 'Bumi Resources targetkan efisiensi produksi'));
+        $this->assertContains('BUMI', $mapper->directHits($bumi, 'Duo Investor dengan Kepemilikan Saham BUMI Terbesar'));
+    }
+
+    public function test_dewa_bare_code_does_not_match_common_word_or_substring_context(): void
+    {
+        $mapper = new StockKeywordMapper();
+        $dewa = Stock::factory()->create(['code' => 'DEWA', 'company_name' => 'Darma Henwa Tbk']);
+
+        // "Dewan" and "Sadewa" contain "dewa" as a substring but are unrelated words/names.
+        $this->assertEmpty($mapper->directHits($dewa, 'Dewan Keamanan Rusia peringatkan Iran'));
+        $this->assertEmpty($mapper->directHits($dewa, 'Menteri Keuangan Purbaya Yudhi Sadewa menyampaikan rating'));
+        $this->assertEmpty($mapper->directHits($dewa, 'Nikahan El Rumi di Hotel kelas Dewa'));
+        $this->assertContains('DEWA', $mapper->directHits($dewa, 'IHSG Ditutup Naik, Top Gainers: Saham TOWR, DEWA, HRTA'));
+        $this->assertContains('Darma Henwa', $mapper->directHits($dewa, 'Darma Henwa (DEWA) Bidik Overburden 150 Juta BCM di 2026'));
+    }
+
+    public function test_bare_ticker_codes_do_not_match_as_substring_inside_unrelated_words(): void
+    {
+        $mapper = new StockKeywordMapper();
+        $goto = Stock::factory()->create(['code' => 'GOTO', 'company_name' => 'GoTo Gojek Tokopedia Tbk']);
+
+        // "ngotot" (to insist) contains "goto" as a substring but is unrelated.
+        $this->assertEmpty($mapper->directHits($goto, 'Bos Buruh Ngotot Minta Outsourcing Dihapus'));
+        // Genuine mentions still match regardless of casing style (brand uses mixed case "GoTo").
+        $this->assertContains('GOTO', $mapper->directHits($goto, 'GoTo Salurkan Bonus Hari Raya untuk Mitra Driver'));
+        $this->assertContains('GOTO', $mapper->directHits($goto, 'Empat Petinggi GOTO Mundur Berjamaah'));
+    }
 }

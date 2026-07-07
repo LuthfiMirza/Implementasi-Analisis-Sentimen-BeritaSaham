@@ -40,7 +40,7 @@ class NewsRelevanceTest extends TestCase
         $service = new RelevanceScoringService(new StockKeywordMapper());
         $result = $service->score($stock, [
             'title' => 'BBCA catat kenaikan laba dan rencana bagi dividen saham',
-            'summary' => 'Laporan kinerja kuartal dengan konteks IHSG dan investor',
+            'summary' => 'Saham BBCA menguat, laporan kinerja kuartal dengan konteks IHSG dan investor',
             'language' => 'id',
         ], 'newsapi');
 

@@ -24,7 +24,7 @@ class StockKeywordMapper
             'BCA',
         ],
         'BBNI' => ['BBNI', 'BNI', 'Bank Negara Indonesia'],
-        'BBRI' => ['BBRI', 'BRI', 'Bank Rakyat Indonesia'],
+        'BBRI' => ['BBRI', 'BRI', 'Bank Rakyat Indonesia', 'BRImo'],
         'BBTN' => ['BBTN', 'BTN', 'Bank Tabungan Negara'],
         'BMRI' => [
             'PT Bank Mandiri Persero Tbk',
@@ -36,7 +36,7 @@ class StockKeywordMapper
             'BMRI',
         ],
         'MEGA' => ['MEGA', 'Bank Mega'],
-        'TLKM' => ['TLKM', 'Telkom', 'Telkom Indonesia', 'PT Telkom Indonesia', 'Telkomsel', 'IndiHome'],
+        'TLKM' => ['TLKM', 'Telkom', 'Telkom Indonesia', 'PT Telkom Indonesia', 'Telkomsel', 'IndiHome', 'TelkomGroup', 'Telkomsat'],
         'ASII' => ['ASII', 'Astra', 'Astra International', 'Astra Otoparts'],
         'GOTO' => [
             'PT GoTo Gojek Tokopedia Tbk',
@@ -357,18 +357,54 @@ class StockKeywordMapper
         return $map;
     }
 
+    /**
+     * Kode ticker yang juga kata umum Bahasa Indonesia (bumi = tanah/planet, dewa = tuhan/idiom
+     * "tingkat dewa"). Substring match biasa akan salah tangkap "Dewan"/"Sadewa" (mengandung "dewa")
+     * atau berita geografi/sains yang menyebut "Bumi". Untuk kode-kode ini, bare code wajib cocok
+     * case-sensitive dan sebagai kata utuh (bukan bagian dari kata lain).
+     */
+    protected array $ambiguousCommonWordCodes = ['BUMI', 'DEWA'];
+
+    /**
+     * Whether a single keyword matches inside the ORIGINAL-case text. Ambiguous common-word codes
+     * (BUMI, DEWA) require a case-sensitive, whole-word match; every other keyword keeps the
+     * existing case-insensitive substring match. Callers that only have lowercased text (e.g. for
+     * unrelated case-insensitive comparisons) must pass the original-case text here, not a
+     * pre-lowercased copy, or the ambiguous-code check can never succeed.
+     */
+    public function keywordMatches(string $keyword, string $originalText): bool
+    {
+        $keyword = trim($keyword);
+        if ($keyword === '' || $originalText === '') {
+            return false;
+        }
+
+        if (in_array($keyword, $this->ambiguousCommonWordCodes, true)) {
+            return (bool) preg_match('/\b'.preg_quote($keyword, '/').'\b/', $originalText);
+        }
+
+        // Single-token keywords (bare ticker codes, no space) risk matching as a substring inside an
+        // unrelated longer word -- e.g. "GOTO" inside "ngotot" (insist), "MEGA" inside "Megawati" or
+        // "megaproyek", "BRI" inside "hibrida". Require a word boundary for these (still
+        // case-insensitive, since the ticker's own casing style varies e.g. "GoTo" vs "GOTO").
+        // Multi-word phrases (e.g. "Bumi Resources", "GoTo Gojek Tokopedia") are specific enough that
+        // a plain substring match stays safe.
+        if (! str_contains($keyword, ' ')) {
+            return (bool) preg_match('/\b'.preg_quote($keyword, '/').'\b/iu', $originalText);
+        }
+
+        return str_contains(mb_strtolower($originalText), mb_strtolower($keyword));
+    }
+
     protected function matchKeywords(?string $text, array $keywords): array
     {
-        $haystack = mb_strtolower((string) $text);
-        if ($haystack === '') {
+        $original = (string) $text;
+        if ($original === '') {
             return [];
         }
 
         return collect($keywords)
-            ->filter(function ($keyword) use ($haystack) {
-                $keyword = trim((string) $keyword);
-                return $keyword !== '' && str_contains($haystack, mb_strtolower($keyword));
-            })
+            ->filter(fn ($keyword) => $this->keywordMatches((string) $keyword, $original))
             ->unique()
             ->values()
             ->all();

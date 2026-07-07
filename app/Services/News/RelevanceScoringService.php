@@ -33,17 +33,21 @@ class RelevanceScoringService
         $sourceWeight = (float) ($provider && isset($sourceWeights[$provider]) ? $sourceWeights[$provider] : 1.0);
         $normalizedSourceWeight = max(0.0, min(1.0, $sourceWeight / max(1.0, max($sourceWeights ?: [1]))));
 
-        $textTitle = strtolower($article['title'] ?? '');
-        $textBody = strtolower(implode(' ', array_filter([
+        $rawTitle = (string) ($article['title'] ?? '');
+        $rawBody = implode(' ', array_filter([
             $article['summary'] ?? '',
             $article['content_snippet'] ?? '',
             $article['full_text'] ?? '',
-        ])));
+        ]));
+        $textTitle = strtolower($rawTitle);
+        $textBody = strtolower($rawBody);
         $text = trim($textTitle.' '.$textBody);
 
         $keywords = $this->mapper->keywords($stock);
-        $directTitleHits = $this->mapper->directHits($stock, $textTitle);
-        $directBodyHits = $this->mapper->directHits($stock, $textBody);
+        // Pass original-case text here (not $textTitle/$textBody) so ambiguous common-word
+        // codes like BUMI/DEWA can be matched case-sensitively inside directHits().
+        $directTitleHits = $this->mapper->directHits($stock, $rawTitle);
+        $directBodyHits = $this->mapper->directHits($stock, $rawBody);
         $directHits = array_values(array_unique(array_merge($directTitleHits, $directBodyHits)));
         $competingHits = $this->filterOverlappingCompetitorHits(
             $this->mapper->competingIssuerHits($stock, $text),
@@ -84,14 +88,18 @@ class RelevanceScoringService
             $flags[] = 'language_non_id_en';
         }
 
-        // Ticker/alias/company in title/body
+        // Ticker/alias/company in title/body. Ambiguous common-word codes (BUMI, DEWA) are matched
+        // case-sensitively/whole-word via keywordMatches() against the original-case text, so
+        // "Dewan"/"Sadewa"/"Bumi" (the planet) don't get mistaken for the ticker.
         foreach ($keywords as $kw) {
-            $low = strtolower($kw);
-            if ($low && str_contains($textTitle, $low)) {
+            if (trim((string) $kw) === '') {
+                continue;
+            }
+            if ($this->mapper->keywordMatches($kw, $rawTitle)) {
                 $relevanceScore += 0.34;
                 $entityScore += 0.48;
                 $matched[] = $kw;
-            } elseif ($low && str_contains($textBody, $low)) {
+            } elseif ($this->mapper->keywordMatches($kw, $rawBody)) {
                 $relevanceScore += 0.18;
                 $entityScore += 0.22;
                 $matched[] = $kw;

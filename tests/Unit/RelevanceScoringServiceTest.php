@@ -17,7 +17,7 @@ class RelevanceScoringServiceTest extends TestCase
         $scorer = new RelevanceScoringService();
         $result = $scorer->score($stock, [
             'title' => 'Bank Central Asia umumkan dividen',
-            'summary' => 'BBCA bagikan dividen besar',
+            'summary' => 'Saham BBCA menguat usai emiten BBCA bagikan dividen besar untuk investor',
             'source_url' => 'https://example.com/a',
         ], 'newsapi');
 
@@ -66,5 +66,49 @@ class RelevanceScoringServiceTest extends TestCase
 
         $this->assertLessThan(0.35, $result['relevance_score']);
         $this->assertContains('hit_exclusion:film', $result['quality_flags']);
+    }
+
+    public function test_bumi_genuine_issuer_article_scores_high_end_to_end(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'BUMI', 'company_name' => 'Bumi Resources Tbk']);
+        $scorer = new RelevanceScoringService();
+        $result = $scorer->score($stock, [
+            'title' => 'Duo Investor dengan Kepemilikan Saham BUMI Terbesar',
+            'summary' => 'BUMI catatkan perubahan kepemilikan saham signifikan.',
+            'source_url' => 'https://example.com/bumi-1',
+        ], 'rss_local');
+
+        $this->assertSame('direct', $result['issuer_specificity']);
+        $this->assertContains('BUMI', $result['direct_keyword_hits']);
+        $this->assertGreaterThanOrEqual(0.35, $result['relevance_score']);
+    }
+
+    public function test_bumi_common_word_article_does_not_score_as_issuer_relevant_end_to_end(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'BUMI', 'company_name' => 'Bumi Resources Tbk']);
+        $scorer = new RelevanceScoringService();
+        $result = $scorer->score($stock, [
+            'title' => 'Bir Tawil, Wilayah Aneh di Bumi yang Tak Diakui Negara Mana Pun',
+            'summary' => 'Di tengah dunia yang penuh sengketa wilayah, ada satu tempat yang justru kebalikannya.',
+            'source_url' => 'https://example.com/bumi-2',
+        ], 'rss_local');
+
+        $this->assertEmpty($result['direct_keyword_hits']);
+        $this->assertNotSame('direct', $result['issuer_specificity']);
+        $this->assertLessThan(0.35, $result['relevance_score']);
+    }
+
+    public function test_dewa_name_substring_article_does_not_score_as_issuer_relevant_end_to_end(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'DEWA', 'company_name' => 'Darma Henwa Tbk']);
+        $scorer = new RelevanceScoringService();
+        $result = $scorer->score($stock, [
+            'title' => 'Menteri Keuangan Purbaya Yudhi Sadewa menyampaikan rating',
+            'summary' => 'Lembaga rating Standard dan Poor memberikan peringkat triple B dengan outlook stabil.',
+            'source_url' => 'https://example.com/dewa-1',
+        ], 'rss_local');
+
+        $this->assertEmpty($result['direct_keyword_hits']);
+        $this->assertLessThan(0.35, $result['relevance_score']);
     }
 }
