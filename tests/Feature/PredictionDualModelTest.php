@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 class PredictionDualModelTest extends TestCase
 {
-    public function test_prediction_page_calls_both_python_variants_and_renders_dual_cards(): void
+    public function test_analytics_page_calls_both_python_variants_and_renders_dual_cards(): void
     {
         $stock = $this->seedStock('BBCA');
         $this->seedPriceSeries($stock, 90);
@@ -22,7 +22,7 @@ class PredictionDualModelTest extends TestCase
         ));
 
         $this->actingAsUser()
-            ->get('/predictions?code=BBCA')
+            ->get('/analytics?code=BBCA')
             ->assertOk()
             ->assertSee('Prediksi Teknikal', false)
             ->assertSee('Prediksi Teknikal + Sentimen', false)
@@ -34,7 +34,7 @@ class PredictionDualModelTest extends TestCase
         Http::assertSent(fn (Request $request) => $request->data()['model_variant'] === 'technical_sentiment');
     }
 
-    public function test_prediction_page_renders_sentiment_unavailable_message(): void
+    public function test_analytics_page_renders_sentiment_unavailable_message(): void
     {
         $stock = $this->seedStock('BBCA');
         $this->seedPriceSeries($stock, 90);
@@ -57,13 +57,13 @@ class PredictionDualModelTest extends TestCase
         });
 
         $this->actingAsUser()
-            ->get('/predictions?code=BBCA')
+            ->get('/analytics?code=BBCA')
             ->assertOk()
             ->assertSee('Data sentimen belum memadai', false)
             ->assertSee('Data sentimen berita untuk saham ini belum memadai', false);
     }
 
-    public function test_prediction_page_falls_back_to_heuristic_when_python_is_down(): void
+    public function test_analytics_page_falls_back_to_heuristic_when_python_is_down(): void
     {
         $stock = $this->seedStock('BBCA');
         $this->seedPriceSeries($stock, 90);
@@ -73,14 +73,14 @@ class PredictionDualModelTest extends TestCase
         Http::fake(['python.test/predict' => Http::response(['detail' => 'down'], 503)]);
 
         $this->actingAsUser()
-            ->get('/predictions?code=BBCA')
+            ->get('/analytics?code=BBCA')
             ->assertOk()
             ->assertSee('fallback_heuristic', false)
             ->assertSee('Prediksi Teknikal', false)
             ->assertSee('Prediksi Teknikal + Sentimen', false);
     }
 
-    public function test_prediction_page_uses_dewa_special_models(): void
+    public function test_analytics_page_uses_dewa_special_models(): void
     {
         $stock = $this->seedStock('DEWA');
         $this->seedPriceSeries($stock, 90);
@@ -103,7 +103,7 @@ class PredictionDualModelTest extends TestCase
         });
 
         $this->actingAsUser()
-            ->get('/predictions?code=DEWA')
+            ->get('/analytics?code=DEWA')
             ->assertOk()
             ->assertSee('Deteksi Rezim DEWA', false)
             ->assertSee('Prediksi Arah DEWA', false)
@@ -114,7 +114,7 @@ class PredictionDualModelTest extends TestCase
         Http::assertSent(fn (Request $request) => $request->data()['model_variant'] === 'dewa_technical');
     }
 
-    public function test_prediction_page_uses_bumi_special_model(): void
+    public function test_analytics_page_uses_bumi_special_model(): void
     {
         $stock = $this->seedStock('BUMI');
         $this->seedPriceSeries($stock, 90);
@@ -123,7 +123,7 @@ class PredictionDualModelTest extends TestCase
         Http::fake(fn (Request $request) => Http::response($this->pythonPayload($request->data()['model_variant'] ?? 'bumi_technical'), 200));
 
         $this->actingAsUser()
-            ->get('/predictions?code=BUMI')
+            ->get('/analytics?code=BUMI')
             ->assertOk()
             ->assertSee('Prediksi Teknikal BUMI', false)
             ->assertDontSee('Prediksi Teknikal + Sentimen', false);

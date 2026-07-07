@@ -766,6 +766,236 @@
                     </div>
                 </x-panel>
 
+                <x-panel padding="p-6" class="border-sky-500/30 bg-sky-500/5">
+                    <div class="text-sm text-sky-100 leading-relaxed">
+                        Model prediksi adalah hasil riset skripsi yang diuji dengan walk-forward validation. Untuk 10 ticker resmi, Model Teknikal V6A mencapai directional accuracy ~40.5%, sedangkan Model Teknikal+Sentimen V6B menunjukkan peningkatan ~1-2% pada sebagian konfigurasi. Untuk BUMI/DEWA, model yang tampil adalah model khusus per-saham dan tidak digabung dengan V6A/V6B. Output ini bersifat estimasi indikatif untuk decision support, bukan rekomendasi investasi final atau jaminan hasil.
+                    </div>
+                </x-panel>
+
+                @if(! empty($predictions))
+                    @php
+                        $predictionCards = [
+                            'technical' => [
+                                'title' => 'Prediksi Teknikal',
+                                'subtitle' => 'V6A Random Forest · technical-only',
+                            ],
+                            'technical_sentiment' => [
+                                'title' => 'Prediksi Teknikal + Sentimen',
+                                'subtitle' => 'V6B Logistic Regression · technical + berita',
+                            ],
+                            'bumi_technical' => [
+                                'title' => 'Prediksi Teknikal BUMI',
+                                'subtitle' => 'BUMI Random Forest · threshold fixed 2.7%',
+                            ],
+                            'dewa_regime' => [
+                                'title' => 'Deteksi Rezim DEWA',
+                                'subtitle' => 'DEWA Logistic Regression · move vs no_move, bukan arah harga',
+                            ],
+                            'dewa_technical' => [
+                                'title' => 'Prediksi Arah DEWA',
+                                'subtitle' => 'DEWA Gradient Boosting · ATR threshold 0.5 · macro F1 0.41, directional accuracy 0.51',
+                            ],
+                        ];
+                    @endphp
+
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        @foreach($predictionCards as $variant => $meta)
+                            @php
+                                if (! array_key_exists($variant, $predictions)) {
+                                    continue;
+                                }
+                                $item = $predictions[$variant] ?? null;
+                                $sentimentUnavailable = $variant === 'technical_sentiment'
+                                    && (($item['has_sufficient_sentiment_data'] ?? null) === false);
+                                $isRegime = $variant === 'dewa_regime';
+                                $cardDirection = strtolower((string) ($item['predicted_direction'] ?? 'flat'));
+                                $cardRegime = strtolower((string) ($item['predicted_regime'] ?? 'no_move'));
+                                $cardBadge = match ($cardDirection) {
+                                    'up' => 'bg-green-500/20 text-green-300',
+                                    'down' => 'bg-rose-500/20 text-rose-300',
+                                    default => 'bg-slate-700 text-slate-200',
+                                };
+                                if ($isRegime) {
+                                    $cardBadge = $cardRegime === 'move' ? 'bg-purple-500/20 text-purple-300' : 'bg-slate-700 text-slate-200';
+                                }
+                                $cardSource = $item['model_source'] ?? 'unavailable';
+                                $cardSourceBadge = $cardSource === 'fallback_heuristic'
+                                    ? 'bg-amber-500/15 text-amber-300'
+                                    : 'bg-sky-500/15 text-sky-300';
+                            @endphp
+
+                            <x-panel class="p-6 space-y-5">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div>
+                                        <h2 class="text-lg font-semibold text-slate-100">{{ $meta['title'] }}</h2>
+                                        <p class="text-xs text-slate-400 mt-1">{{ $meta['subtitle'] }}</p>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full text-xs {{ $cardSourceBadge }}">
+                                        {{ $cardSource }}
+                                    </span>
+                                </div>
+
+                                @if($sentimentUnavailable)
+                                    <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+                                        <div class="text-amber-200 font-semibold">Data sentimen belum memadai</div>
+                                        <p class="text-sm text-amber-100/80 mt-1">
+                                            {{ $item['message'] ?? 'Data sentimen berita untuk saham ini belum memadai pada periode ini. Gunakan Model Teknikal sebagai acuan indikatif.' }}
+                                        </p>
+                                    </div>
+                                @elseif($item)
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <span class="px-3 py-1 rounded-full text-sm font-semibold {{ $cardBadge }}">
+                                            {{ $isRegime ? strtoupper($cardRegime) : strtoupper($cardDirection) }}
+                                        </span>
+                                        @if(! empty($item['model_name']))
+                                            <span class="px-3 py-1 rounded-full text-xs bg-slate-700 text-slate-200">
+                                                {{ $item['model_name'] }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div>
+                                        <div class="text-xs uppercase text-slate-400">{{ $isRegime ? 'Regime Probability' : 'Probability' }}</div>
+                                        <div class="text-4xl font-bold text-slate-100">
+                                            {{ number_format(((float) ($item['probability'] ?? 0)) * 100, 1) }}%
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-xs uppercase text-slate-400">Basis</div>
+                                        <p class="text-sm text-slate-300 mt-1">{{ $item['basis'] ?? '-' }}</p>
+                                    </div>
+
+                                    @if($variant === 'dewa_technical')
+                                        <div class="rounded-lg border border-sky-500/30 bg-sky-500/10 p-3 text-sm text-sky-100">
+                                            Model ini sudah dipromosikan ke Gradient Boosting (macro F1 0.4102, directional accuracy 0.5050) setelah menang vs model lama dan vs majority-class baseline pada sample identik. Tetap gunakan sebagai estimasi indikatif, bukan sinyal final.
+                                        </div>
+                                    @endif
+
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                        <div class="rounded-lg border border-slate-800 p-3">
+                                            <div class="text-green-300 font-semibold">Bullish</div>
+                                            <p class="text-slate-400 mt-1">{{ $item['scenario_bullish'] ?? '-' }}</p>
+                                        </div>
+                                        <div class="rounded-lg border border-slate-800 p-3">
+                                            <div class="text-slate-200 font-semibold">Neutral</div>
+                                            <p class="text-slate-400 mt-1">{{ $item['scenario_neutral'] ?? '-' }}</p>
+                                        </div>
+                                        <div class="rounded-lg border border-slate-800 p-3">
+                                            <div class="text-rose-300 font-semibold">Bearish</div>
+                                            <p class="text-slate-400 mt-1">{{ $item['scenario_bearish'] ?? '-' }}</p>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="rounded-lg border border-slate-800 p-4 text-sm text-slate-300">
+                                        Prediction unavailable.
+                                    </div>
+                                @endif
+                            </x-panel>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if(! empty($volatileResearch))
+                    @php
+                        $verdict = $volatileResearch['net_cost_verdict'];
+                        $pullback = $volatileResearch['pullback_reference'];
+                        $candidate = $verdict['experimental_candidate'] ?? null;
+                        $pullbackCandidate = $pullback['pullback_candidate'] ?? null;
+                    @endphp
+                    <x-panel class="p-6 space-y-4 border-rose-500/30 bg-rose-500/5">
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-100">Riset Trading {{ $volatileResearch['ticker'] }}: TP/SL &amp; Pullback-Buy</h2>
+                            <p class="text-xs text-slate-400 mt-1">Riset backtest net-of-cost, bukan sinyal atau rekomendasi transaksi.</p>
+                        </div>
+
+                        @if($verdict['available'] ?? false)
+                            <div class="rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-100">
+                                <p class="font-semibold">
+                                    Strategi TP/SL untuk {{ $volatileResearch['ticker'] }} sudah diuji net-of-cost (biaya transaksi ~0.8% round-trip) dan hasilnya
+                                    <span class="uppercase">{{ str_replace('_', ' ', $verdict['baseline_verdict'] ?? 'tidak tersedia') }}</span>.
+                                </p>
+                                <p class="mt-1 text-rose-100/80">
+                                    Artinya: pasangan TP/SL yang terlihat untung secara kasar (gross) tidak bertahan setelah biaya transaksi realistis dimasukkan, atau hanya untung karena segelintir trade ekstrem (bukan edge yang bisa diulang).
+                                </p>
+                            </div>
+
+                            @if($verdict['has_experimental_candidate'] && $candidate)
+                                <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+                                    <p class="font-semibold">Satu kandidat eksperimental ditemukan: {{ str_replace('_', ' ', $verdict['experimental_candidate_variant']) }}</p>
+                                    <p class="mt-1">
+                                        TP {{ $candidate['best_pair_by_full_net_expectancy']['tp_pct'] ?? '-' }}% /
+                                        SL {{ $candidate['best_pair_by_full_net_expectancy']['sl_candidate']['value'] ?? '-' }}%,
+                                        net expectancy {{ number_format((float) ($candidate['best_pair_by_full_net_expectancy']['net_expectancy_full'] ?? 0), 2) }}%
+                                        (turun ke {{ number_format((float) ($candidate['best_pair_by_full_net_expectancy']['net_expectancy_excl_top5pct'] ?? 0), 2) }}% setelah top-5% trade terbaik dibuang).
+                                    </p>
+                                    <p class="mt-1 text-amber-100/80">
+                                        Status: <strong>candidate_experimental — belum boleh dipakai sebagai dasar keputusan.</strong> Ditemukan dari scan ratusan kombinasi pada satu sample penuh tanpa validasi out-of-sample, jadi berisiko tinggi hanya kebetulan statistik.
+                                    </p>
+                                </div>
+                            @endif
+                        @endif
+
+                        @if(($pullback['available'] ?? false) && $pullbackCandidate)
+                            <div class="rounded-lg border border-slate-800 p-4 text-sm text-slate-300">
+                                <p class="font-semibold text-slate-100">Referensi pullback re-entry (riset)</p>
+                                <p class="mt-1">
+                                    Riset re-entry (beli lagi setelah harga pullback) menunjukkan titik deskriptif terbaik: turun
+                                    <strong>{{ $pullbackCandidate['value'] ?? '-' }}%</strong> dari harga stop/entry sebelumnya.
+                                </p>
+                                <p class="mt-1 text-slate-400">
+                                    Status riset: <code>{{ $pullback['status'] ?? '-' }}</code> ·
+                                    usable_for_decision: <strong>{{ ($pullback['usable_for_decision'] ?? false) ? 'true' : 'false' }}</strong>.
+                                    Selama usable_for_decision masih false, angka ini adalah observasi riset, bukan aturan beli.
+                                </p>
+                            </div>
+                        @endif
+
+                        <p class="text-xs text-slate-500">
+                            Sumber: <code>output/trading_research/reports/BUMI_DEWA_net_cost_verdict.md</code>,
+                            <code>output/trading_research/reports/BUMI_DEWA_v3_regime_longer_hold_experiment.md</code>,
+                            <code>storage/app/trading_research/reentry/{{ $volatileResearch['ticker'] }}_reentry_research_v1_1.json</code>.
+                        </p>
+                    </x-panel>
+                @endif
+
+                @if(! empty($retrainStatus))
+                    <x-panel class="p-4 border-slate-700/80">
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div>
+                                <h2 class="text-sm font-semibold text-slate-100">Status Retrain Model Volatil</h2>
+                                <p class="text-xs text-slate-400 mt-1">Read-only dari <code>storage/app/prediction/retrain_history.jsonl</code>. Jalankan manual: <code>php artisan prediction:retrain-volatile --dry-run</code> atau <code>--force</code>.</p>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-xs text-slate-300">
+                                <thead class="text-slate-500 uppercase">
+                                    <tr>
+                                        <th class="text-left py-2 pr-4">Model</th>
+                                        <th class="text-left py-2 pr-4">Terakhir</th>
+                                        <th class="text-left py-2 pr-4">Decision</th>
+                                        <th class="text-left py-2 pr-4">Old F1</th>
+                                        <th class="text-left py-2 pr-4">New F1</th>
+                                        <th class="text-left py-2 pr-4">Rows Baru</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800">
+                                    @foreach($retrainStatus as $model => $row)
+                                        <tr>
+                                            <td class="py-2 pr-4 font-semibold text-slate-200">{{ $model }}</td>
+                                            <td class="py-2 pr-4">{{ $row['timestamp'] ?? '-' }}</td>
+                                            <td class="py-2 pr-4">{{ $row['decision'] ?? '-' }}</td>
+                                            <td class="py-2 pr-4">{{ isset($row['old_macro_f1']) ? number_format((float) $row['old_macro_f1'], 4) : '-' }}</td>
+                                            <td class="py-2 pr-4">{{ isset($row['new_macro_f1']) ? number_format((float) $row['new_macro_f1'], 4) : '-' }}</td>
+                                            <td class="py-2 pr-4">{{ $row['rows_new_data'] ?? 0 }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </x-panel>
+                @endif
+
                 <x-panel padding="p-6">
                     <div class="flex items-center justify-between mb-3">
                         <div>

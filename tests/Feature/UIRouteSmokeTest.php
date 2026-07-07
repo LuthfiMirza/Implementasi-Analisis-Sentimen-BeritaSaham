@@ -56,12 +56,15 @@ class UIRouteSmokeTest extends TestCase
         $this->actingAsAdmin()->get('/admin/stocks')->assertOk();
     }
 
-    // Previously documented as a contract gap. Routes are now registered.
-    // Verifies: /predictions accessible to all auth users, /admin/users protected by AdminMiddleware.
-    public function test_predictions_and_admin_users_routes_are_now_registered(): void
+    // Prediction cards were merged into /analytics (no more standalone /predictions route).
+    // Verifies: /analytics accessible to all auth users, /admin/users protected by AdminMiddleware.
+    public function test_analytics_accessible_and_admin_users_route_protected(): void
     {
-        $this->actingAsUser()->get('/predictions')->assertOk();
-        $this->actingAsAdmin()->get('/predictions')->assertOk();
+        $stock = $this->seedStock('BBCA');
+        $this->seedPriceSeries($stock, 60);
+
+        $this->actingAsUser()->get('/analytics?code=BBCA')->assertOk();
+        $this->actingAsAdmin()->get('/analytics?code=BBCA')->assertOk();
         $this->actingAsUser()->get('/admin/users')->assertForbidden();
         $this->actingAsAdmin()->get('/admin/users')->assertOk();
     }

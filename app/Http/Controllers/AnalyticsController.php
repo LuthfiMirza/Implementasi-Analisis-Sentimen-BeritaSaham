@@ -8,6 +8,8 @@ use App\Services\Analytics\DecisionSupportService;
 use App\Services\Analytics\SentimentPriceAnalyticsService;
 use App\Services\Prediction\FeatureBuilderService;
 use App\Services\Prediction\PredictionEngineManager;
+use App\Services\Prediction\StockPredictionCardsService;
+use App\Services\Research\VolatileStockTradingResearchService;
 use App\Services\Sentiment\SentimentSummaryService;
 use App\Services\Stocks\PriceSeriesService;
 use Illuminate\Http\Request;
@@ -21,6 +23,8 @@ class AnalyticsController extends Controller
         protected SentimentPriceAnalyticsService $sentimentPriceAnalyticsService,
         protected FeatureBuilderService $featureBuilderService,
         protected PredictionEngineManager $predictionEngineManager,
+        protected StockPredictionCardsService $stockPredictionCardsService,
+        protected VolatileStockTradingResearchService $volatileStockTradingResearchService,
     ) {
     }
 
@@ -57,6 +61,9 @@ class AnalyticsController extends Controller
         $decision = $this->decisionSupportService->analyze($stock, $priceSeries, $articles, $analytics);
         $features = $this->featureBuilderService->build($stock, $priceSeries, $articles, $analytics, $period);
         $prediction = $this->predictionEngineManager->predict($features);
+        $predictions = $this->stockPredictionCardsService->buildPredictionsForStock($stock, $features);
+        $retrainStatus = $this->stockPredictionCardsService->latestRetrainStatus();
+        $volatileResearch = $this->volatileStockTradingResearchService->referenceFor($stock->code);
 
         $perDate = collect($analytics['per_date_sentiment'] ?? []);
         $labels = $priceSeries->map(fn ($p) => optional($p->price_date)->toDateString())->values();
@@ -94,6 +101,9 @@ class AnalyticsController extends Controller
             'decision' => $decision,
             'analytics' => $analytics,
             'prediction' => $prediction,
+            'predictions' => $predictions,
+            'retrainStatus' => $retrainStatus,
+            'volatileResearch' => $volatileResearch,
             'prices' => $priceSeries,
             'topPositiveArticles' => $topPositiveArticles,
             'topRiskArticles' => $topRiskArticles,
