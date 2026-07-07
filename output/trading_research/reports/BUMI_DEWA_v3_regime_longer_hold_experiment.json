@@ -1,0 +1,263 @@
+{
+  "scope": "prediction/trading research only; no strategy, P&L, or trading recommendation",
+  "governance": "read-only w.r.t. production storage/; new experiment, does not replace sl_optimizer/tp_optimizer artifacts",
+  "cost_scenario_used_for_gate": "MID (0.80% round-trip)",
+  "robustness_rule": "pair must stay net-positive after excluding the top-5% winning episodes (excl_top5pct), same rule as BUMI_DEWA_net_cost_verdict.md",
+  "sentiment_conditioned_entry": "SKIPPED: news_sentiment is non-zero for 1/308 BUMI episodes and 0/227 DEWA episodes at entry dates (~0% usable coverage); not a testable filter with current data.",
+  "tickers": {
+    "BUMI": {
+      "baseline_all_episodes": {
+        "episode_count_available": 308,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 53,
+        "pairs_robust_excl_top5pct_at_mid": 0,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 7.5
+          },
+          "episode_count": 308,
+          "net_expectancy_full": 0.9197193668831165,
+          "net_expectancy_excl_top5pct": -0.8822931160409562,
+          "net_positive_full": true,
+          "robust_excl_top5pct": false
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 308,
+          "expectancy_pct": 2.4735138926123947,
+          "pct_positive": 0.4025974025974026
+        },
+        "beats_naive_buy_hold": false,
+        "verdict": "NET_POSITIVE_BUT_FAT_TAIL_ONLY"
+      },
+      "regime_filtered_bullish_only": {
+        "episode_count_available": 221,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 41,
+        "pairs_robust_excl_top5pct_at_mid": 0,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 12.5
+          },
+          "episode_count": 221,
+          "net_expectancy_full": 1.0246955837104068,
+          "net_expectancy_excl_top5pct": -0.6855868000000005,
+          "net_positive_full": true,
+          "robust_excl_top5pct": false
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 221,
+          "expectancy_pct": 3.0356787047748806,
+          "pct_positive": 0.45248868778280543
+        },
+        "beats_naive_buy_hold": false,
+        "verdict": "NET_POSITIVE_BUT_FAT_TAIL_ONLY"
+      },
+      "longer_hold_40d": {
+        "episode_count_available": 308,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 55,
+        "pairs_robust_excl_top5pct_at_mid": 1,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 7.5
+          },
+          "episode_count": 308,
+          "net_expectancy_full": 2.1320241461038956,
+          "net_expectancy_excl_top5pct": 0.22625435836177413,
+          "net_positive_full": true,
+          "robust_excl_top5pct": true
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 308,
+          "expectancy_pct": 6.121904458165504,
+          "pct_positive": 0.4253246753246753
+        },
+        "beats_naive_buy_hold": false,
+        "verdict": "ROBUST_BUT_DOMINATED_BY_NAIVE_HOLD"
+      },
+      "longer_hold_60d": {
+        "episode_count_available": 308,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 61,
+        "pairs_robust_excl_top5pct_at_mid": 3,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 7.5
+          },
+          "episode_count": 308,
+          "net_expectancy_full": 2.8144117077922073,
+          "net_expectancy_excl_top5pct": 0.8753170511945386,
+          "net_positive_full": true,
+          "robust_excl_top5pct": true
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 308,
+          "expectancy_pct": 10.593363251366188,
+          "pct_positive": 0.4318181818181818
+        },
+        "beats_naive_buy_hold": false,
+        "verdict": "ROBUST_BUT_DOMINATED_BY_NAIVE_HOLD"
+      },
+      "regime_filtered_plus_longer_hold_40d": {
+        "episode_count_available": 221,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 38,
+        "pairs_robust_excl_top5pct_at_mid": 1,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 7.5
+          },
+          "episode_count": 221,
+          "net_expectancy_full": 2.2038929954751127,
+          "net_expectancy_excl_top5pct": 0.4351298619047613,
+          "net_positive_full": true,
+          "robust_excl_top5pct": true
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 221,
+          "expectancy_pct": 6.960200483948186,
+          "pct_positive": 0.4796380090497738
+        },
+        "beats_naive_buy_hold": false,
+        "verdict": "ROBUST_BUT_DOMINATED_BY_NAIVE_HOLD"
+      }
+    },
+    "DEWA": {
+      "baseline_all_episodes": {
+        "episode_count_available": 227,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 0,
+        "pairs_robust_excl_top5pct_at_mid": 0,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 10.0,
+          "sl_candidate": {
+            "type": "atr_multiple",
+            "value": 1.5
+          },
+          "episode_count": 122,
+          "net_expectancy_full": -0.00983222131147552,
+          "net_expectancy_excl_top5pct": -0.7348899827586207,
+          "net_positive_full": false,
+          "robust_excl_top5pct": false
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 227,
+          "expectancy_pct": 0.25931093529651655,
+          "pct_positive": 0.23348017621145375
+        },
+        "beats_naive_buy_hold": false,
+        "verdict": "DEAD_no_net_positive_pair"
+      },
+      "regime_filtered_bullish_only": {
+        "episode_count_available": 160,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 7,
+        "pairs_robust_excl_top5pct_at_mid": 0,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 25.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 3.0
+          },
+          "episode_count": 160,
+          "net_expectancy_full": 0.47706303749999995,
+          "net_expectancy_excl_top5pct": -0.8107932828947368,
+          "net_positive_full": true,
+          "robust_excl_top5pct": false
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 160,
+          "expectancy_pct": -0.11475062035044703,
+          "pct_positive": 0.2375
+        },
+        "beats_naive_buy_hold": true,
+        "verdict": "NET_POSITIVE_BUT_FAT_TAIL_ONLY"
+      },
+      "longer_hold_40d": {
+        "episode_count_available": 227,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 48,
+        "pairs_robust_excl_top5pct_at_mid": 0,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 10.0
+          },
+          "episode_count": 227,
+          "net_expectancy_full": 1.1928590969162993,
+          "net_expectancy_excl_top5pct": -0.451323791666667,
+          "net_positive_full": true,
+          "robust_excl_top5pct": false
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 227,
+          "expectancy_pct": 1.9497207536098655,
+          "pct_positive": 0.2422907488986784
+        },
+        "beats_naive_buy_hold": false,
+        "verdict": "NET_POSITIVE_BUT_FAT_TAIL_ONLY"
+      },
+      "longer_hold_60d": {
+        "episode_count_available": 227,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 74,
+        "pairs_robust_excl_top5pct_at_mid": 21,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 10.0
+          },
+          "episode_count": 227,
+          "net_expectancy_full": 2.441181281938326,
+          "net_expectancy_excl_top5pct": 0.7382059629629627,
+          "net_positive_full": true,
+          "robust_excl_top5pct": true
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 227,
+          "expectancy_pct": 3.75006796723975,
+          "pct_positive": 0.2511013215859031
+        },
+        "beats_naive_buy_hold": false,
+        "verdict": "ROBUST_BUT_DOMINATED_BY_NAIVE_HOLD"
+      },
+      "regime_filtered_plus_longer_hold_40d": {
+        "episode_count_available": 160,
+        "pairs_evaluated": 96,
+        "pairs_net_positive_at_mid": 47,
+        "pairs_robust_excl_top5pct_at_mid": 3,
+        "best_pair_by_full_net_expectancy": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 3.0
+          },
+          "episode_count": 160,
+          "net_expectancy_full": 1.71034871875,
+          "net_expectancy_excl_top5pct": 0.26066455263157895,
+          "net_positive_full": true,
+          "robust_excl_top5pct": true
+        },
+        "naive_buy_hold_same_horizon": {
+          "n": 160,
+          "expectancy_pct": 0.6698957857026369,
+          "pct_positive": 0.24375
+        },
+        "beats_naive_buy_hold": true,
+        "verdict": "ALIVE_robust_edge_beats_naive_hold"
+      }
+    }
+  }
+}
