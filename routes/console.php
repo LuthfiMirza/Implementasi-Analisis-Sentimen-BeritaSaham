@@ -116,7 +116,7 @@ Schedule::command('news:rescore-sentiment')
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
 // END-OF-DAY ML REANALYSIS: 15.20 WIB
-Schedule::command('sentiment:reanalyze --limit=50')
+Schedule::command('sentiment:reanalyze --include-global')
     ->weekdays()
     ->dailyAt('15:20')
     ->timezone('Asia/Jakarta')

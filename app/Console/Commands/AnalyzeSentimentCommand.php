@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\NewsArticle;
+use App\Services\Sentiment\RuleBasedSentimentAnalyzer;
 use App\Services\Sentiment\SentimentEngineManager;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -18,10 +19,15 @@ class AnalyzeSentimentCommand extends Command
     public function handle()
     {
         $analyzer = (new SentimentEngineManager())->getAnalyzer();
+        $baselineAnalyzer = new RuleBasedSentimentAnalyzer();
         $query = NewsArticle::query();
 
         if (! $this->option('all')) {
-            $query->whereNull('sentiment_label');
+            $query->where(function ($query) {
+                $query->whereNull('sentiment_label')
+                    ->orWhereNull('ml_sentiment_label')
+                    ->orWhereNull('rule_sentiment_label');
+            });
         }
 
         $count = 0;
@@ -37,6 +43,19 @@ class AnalyzeSentimentCommand extends Command
                         'language' => $article->language ?? 'id',
                     ]
                 );
+                $baseline = $baselineAnalyzer->analyze(
+                    $article->summary ?? $article->content_snippet ?? $article->title,
+                    [
+                        'title' => $article->title,
+                        'summary' => $article->summary,
+                        'body' => $article->full_text ?? $article->content_snippet,
+                        'language' => $article->language ?? 'id',
+                        'stock_code' => $article->stock?->code,
+                    ]
+                );
+                $mlLabel = $result['ml_label'] ?? $article->ml_sentiment_label;
+                $ruleLabel = $result['rule_label'] ?? $baseline['label'] ?? $article->rule_sentiment_label;
+
                 $article->update([
                     'sentiment_label' => $result['label'],
                     'sentiment_score' => $result['score'],
@@ -48,6 +67,15 @@ class AnalyzeSentimentCommand extends Command
                         'reason_summary' => $result['reason_summary'] ?? null,
                         'python_status' => $result['python_status'] ?? null,
                     ],
+                    'ml_sentiment_label' => $mlLabel,
+                    'ml_sentiment_score' => $result['ml_score'] ?? $article->ml_sentiment_score,
+                    'ml_confidence' => $result['ml_confidence'] ?? $article->ml_confidence,
+                    'ml_prob_positive' => $result['ml_prob_positive'] ?? $article->ml_prob_positive,
+                    'ml_prob_neutral' => $result['ml_prob_neutral'] ?? $article->ml_prob_neutral,
+                    'ml_prob_negative' => $result['ml_prob_negative'] ?? $article->ml_prob_negative,
+                    'rule_sentiment_label' => $ruleLabel,
+                    'rule_sentiment_score' => $result['rule_score'] ?? $baseline['score'] ?? $article->rule_sentiment_score,
+                    'ml_rule_agree' => isset($mlLabel, $ruleLabel) ? $mlLabel === $ruleLabel : $article->ml_rule_agree,
                     'analyzed_at' => now(),
                 ]);
                 $count++;
