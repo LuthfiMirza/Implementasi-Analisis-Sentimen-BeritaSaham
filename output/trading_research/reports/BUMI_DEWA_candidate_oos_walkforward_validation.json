@@ -1,0 +1,219 @@
+{
+  "scope": "trading research only; graduation test for the candidate_experimental strategy, not a trading recommendation",
+  "governance": "read-only w.r.t. production storage/; selection never sees the test window",
+  "variant": "regime_filtered_plus_longer_hold_40d",
+  "cost_scenario": "MID (0.80% round-trip)",
+  "pre_registered_pass_criteria": [
+    "P1: selected-pair OOS net expectancy > 0",
+    "P2: selected-pair OOS net expectancy > naive buy-hold on same test episodes",
+    "P3: selected-pair OOS excl-top-5% net expectancy > 0",
+    "P4: bootstrap 95% CI lower bound of OOS mean net return > 0",
+    "Overall PASS requires all four on the primary 70/30 split."
+  ],
+  "tickers": {
+    "DEWA": {
+      "primary_split_70_30": {
+        "split_fraction": 0.7,
+        "train_episode_count": 112,
+        "test_episode_count": 48,
+        "train_window": [
+          "2007-12-31",
+          "2021-01-08"
+        ],
+        "test_window": [
+          "2021-02-05",
+          "2026-03-03"
+        ],
+        "selected_pair_on_train": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 3.0
+          }
+        },
+        "selected_pair_train_net_expectancy": 1.0663594464285713,
+        "selected_pair_matches_frozen_candidate": true,
+        "oos_selected_pair": {
+          "episode_count": 48,
+          "net_expectancy": 3.2129903541666667,
+          "net_expectancy_excl_top5pct": 2.083120369565217,
+          "win_rate": 0.22916666666666666,
+          "bootstrap_ci95_low": 0.04182801197916657,
+          "bootstrap_ci95_high": 6.849322316145829
+        },
+        "oos_frozen_candidate_tp30_sl3_biased_view": {
+          "episode_count": 48,
+          "net_expectancy": 3.2129903541666667,
+          "net_expectancy_excl_top5pct": 2.083120369565217,
+          "win_rate": 0.22916666666666666,
+          "bootstrap_ci95_low": 0.04182801197916657,
+          "bootstrap_ci95_high": 6.849322316145829
+        },
+        "oos_naive_buy_hold_same_horizon": {
+          "n": 48,
+          "expectancy_pct": 8.135766440547089,
+          "pct_positive": 0.4375
+        },
+        "pre_registered_criteria": {
+          "P1_oos_net_expectancy_positive": true,
+          "P2_beats_naive_buy_hold": false,
+          "P3_excl_top5pct_positive": true,
+          "P4_bootstrap_ci_lower_positive": true
+        },
+        "all_criteria_pass": false
+      },
+      "sensitivity_split_60_40": {
+        "split_fraction": 0.6,
+        "train_episode_count": 96,
+        "test_episode_count": 64,
+        "train_window": [
+          "2007-12-31",
+          "2017-12-11"
+        ],
+        "test_window": [
+          "2018-01-08",
+          "2026-03-03"
+        ],
+        "selected_pair_on_train": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "atr_multiple",
+            "value": 1.0
+          }
+        },
+        "selected_pair_train_net_expectancy": 0.6705567192982456,
+        "selected_pair_matches_frozen_candidate": false,
+        "oos_selected_pair": {
+          "episode_count": 38,
+          "net_expectancy": 0.7093602894736841,
+          "net_expectancy_excl_top5pct": -0.06065700000000006,
+          "win_rate": 0.05263157894736842,
+          "bootstrap_ci95_low": -0.8805909013157897,
+          "bootstrap_ci95_high": 3.0860451131578936
+        },
+        "oos_frozen_candidate_tp30_sl3_biased_view": {
+          "episode_count": 64,
+          "net_expectancy": 4.037867765625,
+          "net_expectancy_excl_top5pct": 2.800385852459016,
+          "win_rate": 0.234375,
+          "bootstrap_ci95_low": 1.1304780496093747,
+          "bootstrap_ci95_high": 7.136364111328123
+        },
+        "oos_naive_buy_hold_same_horizon": {
+          "n": 64,
+          "expectancy_pct": 5.866801610596076,
+          "pct_positive": 0.34375
+        },
+        "pre_registered_criteria": {
+          "P1_oos_net_expectancy_positive": true,
+          "P2_beats_naive_buy_hold": false,
+          "P3_excl_top5pct_positive": false,
+          "P4_bootstrap_ci_lower_positive": false
+        },
+        "all_criteria_pass": false
+      }
+    },
+    "BUMI": {
+      "primary_split_70_30": {
+        "split_fraction": 0.7,
+        "train_episode_count": 154,
+        "test_episode_count": 67,
+        "train_window": [
+          "2001-08-31",
+          "2017-09-13"
+        ],
+        "test_window": [
+          "2017-10-11",
+          "2026-02-26"
+        ],
+        "selected_pair_on_train": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 7.5
+          }
+        },
+        "selected_pair_train_net_expectancy": 2.458104545454545,
+        "selected_pair_matches_frozen_candidate": false,
+        "oos_selected_pair": {
+          "episode_count": 67,
+          "net_expectancy": 1.619585850746268,
+          "net_expectancy_excl_top5pct": 0.32675393749999937,
+          "win_rate": 0.29850746268656714,
+          "bootstrap_ci95_low": -2.292408475746268,
+          "bootstrap_ci95_high": 5.6843236899253675
+        },
+        "oos_frozen_candidate_tp30_sl3_biased_view": {
+          "episode_count": 67,
+          "net_expectancy": 0.10848544776119408,
+          "net_expectancy_excl_top5pct": -1.255179296875,
+          "win_rate": 0.14925373134328357,
+          "bootstrap_ci95_low": -2.2397975869402993,
+          "bootstrap_ci95_high": 2.7195061604477595
+        },
+        "oos_naive_buy_hold_same_horizon": {
+          "n": 67,
+          "expectancy_pct": 5.199010978814711,
+          "pct_positive": 0.3880597014925373
+        },
+        "pre_registered_criteria": {
+          "P1_oos_net_expectancy_positive": true,
+          "P2_beats_naive_buy_hold": false,
+          "P3_excl_top5pct_positive": true,
+          "P4_bootstrap_ci_lower_positive": false
+        },
+        "all_criteria_pass": false
+      },
+      "sensitivity_split_60_40": {
+        "split_fraction": 0.6,
+        "train_episode_count": 132,
+        "test_episode_count": 89,
+        "train_window": [
+          "2001-08-31",
+          "2014-12-10"
+        ],
+        "test_window": [
+          "2015-01-13",
+          "2026-02-26"
+        ],
+        "selected_pair_on_train": {
+          "tp_pct": 30.0,
+          "sl_candidate": {
+            "type": "fixed_pct",
+            "value": 7.5
+          }
+        },
+        "selected_pair_train_net_expectancy": 2.3761219696969693,
+        "selected_pair_matches_frozen_candidate": false,
+        "oos_selected_pair": {
+          "episode_count": 89,
+          "net_expectancy": 1.9484522696629207,
+          "net_expectancy_excl_top5pct": 0.6660264941176465,
+          "win_rate": 0.29213483146067415,
+          "bootstrap_ci95_low": -1.3846683960674155,
+          "bootstrap_ci95_high": 5.490763666573033
+        },
+        "oos_frozen_candidate_tp30_sl3_biased_view": {
+          "episode_count": 89,
+          "net_expectancy": 0.7266126404494382,
+          "net_expectancy_excl_top5pct": -0.6133114705882352,
+          "win_rate": 0.15730337078651685,
+          "bootstrap_ci95_low": -1.5084492508426965,
+          "bootstrap_ci95_high": 3.2421031126404496
+        },
+        "oos_naive_buy_hold_same_horizon": {
+          "n": 89,
+          "expectancy_pct": 3.9860597087365326,
+          "pct_positive": 0.38202247191011235
+        },
+        "pre_registered_criteria": {
+          "P1_oos_net_expectancy_positive": true,
+          "P2_beats_naive_buy_hold": false,
+          "P3_excl_top5pct_positive": true,
+          "P4_bootstrap_ci_lower_positive": false
+        },
+        "all_criteria_pass": false
+      }
+    }
+  }
+}
