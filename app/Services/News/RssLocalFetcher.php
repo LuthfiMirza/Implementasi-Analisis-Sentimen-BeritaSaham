@@ -31,6 +31,16 @@ class RssLocalFetcher implements NewsFetcherInterface
         'https://katadata.co.id/feed',
         // Investor Daily is useful for issuer headlines when larger portals are quiet.
         'https://investor.id/rss',
+        // IDX Channel is IDX-affiliated media with frequent per-issuer market news.
+        'https://www.idxchannel.com/rss',
+        // CNN Indonesia adds macro/economy coverage that complements the issuer-focused feeds above.
+        'https://www.cnnindonesia.com/ekonomi/rss',
+        // Bloomberg Technoz frequently covers issuer-level corporate actions and market moves.
+        'https://www.bloombergtechnoz.com/rss',
+        // Tempo Bisnis broadens business-desk coverage beyond the portals above.
+        'https://rss.tempo.co/bisnis',
+        // Republika Ekonomi adds another independent macro/regulatory news source.
+        'https://www.republika.co.id/rss/ekonomi',
     ];
 
     public function __construct(protected StockKeywordMapper $mapper = new StockKeywordMapper())
