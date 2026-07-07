@@ -63,6 +63,37 @@ class VolatileStockTradingResearchService
             'has_experimental_candidate' => $experimentalVariant !== null,
             'experimental_candidate_variant' => $experimentalVariant,
             'experimental_candidate' => $experimentalResult,
+            'oos_validation' => $this->oosValidation($ticker),
+        ];
+    }
+
+    /**
+     * Result of the pre-registered out-of-sample walk-forward graduation test for the
+     * experimental candidate. A failed test retires the candidate: the DSS must stop
+     * presenting it as a live research lead.
+     *
+     * @return array<string, mixed>
+     */
+    protected function oosValidation(string $ticker): array
+    {
+        $path = base_path('output/trading_research/reports/BUMI_DEWA_candidate_oos_walkforward_validation.json');
+        if (! File::exists($path)) {
+            return ['available' => false];
+        }
+
+        $data = json_decode((string) File::get($path), true);
+        $primary = is_array($data) ? ($data['tickers'][$ticker]['primary_split_70_30'] ?? null) : null;
+        if (! is_array($primary)) {
+            return ['available' => false];
+        }
+
+        return [
+            'available' => true,
+            'passed' => (bool) ($primary['all_criteria_pass'] ?? false),
+            'criteria' => $primary['pre_registered_criteria'] ?? null,
+            'oos_net_expectancy' => $primary['oos_selected_pair']['net_expectancy'] ?? null,
+            'naive_buy_hold_expectancy' => $primary['oos_naive_buy_hold_same_horizon']['expectancy_pct'] ?? null,
+            'test_window' => $primary['test_window'] ?? null,
         ];
     }
 

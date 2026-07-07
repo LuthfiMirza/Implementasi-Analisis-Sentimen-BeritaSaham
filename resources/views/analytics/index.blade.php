@@ -920,7 +920,21 @@
                                 </p>
                             </div>
 
-                            @if($verdict['has_experimental_candidate'] && $candidate)
+                            @php $oos = $verdict['oos_validation'] ?? ['available' => false]; @endphp
+                            @if($verdict['has_experimental_candidate'] && $candidate && ($oos['available'] ?? false) && ! ($oos['passed'] ?? false))
+                                <div class="rounded-lg border border-slate-700 bg-slate-800/60 p-4 text-sm text-slate-300">
+                                    <p class="font-semibold text-slate-100">Kandidat eksperimental {{ str_replace('_', ' ', $verdict['experimental_candidate_variant']) }}: DITUTUP setelah gagal validasi out-of-sample</p>
+                                    <p class="mt-1">
+                                        Diuji walk-forward pada periode {{ $oos['test_window'][0] ?? '-' }} s/d {{ $oos['test_window'][1] ?? '-' }} yang tidak pernah dipakai saat seleksi:
+                                        strategi ini masih untung {{ number_format((float) ($oos['oos_net_expectancy'] ?? 0), 2) }}% per trade,
+                                        tapi beli-dan-tahan biasa di periode yang sama menghasilkan {{ number_format((float) ($oos['naive_buy_hold_expectancy'] ?? 0), 2) }}% —
+                                        aturan TP/SL-nya justru memotong keuntungan dibanding tidak melakukan apa-apa.
+                                    </p>
+                                    <p class="mt-1 text-slate-400">
+                                        Status final: <strong>retired</strong>. Tidak ada strategi TP/SL {{ $volatileResearch['ticker'] }} yang lolos gerbang validasi lengkap.
+                                    </p>
+                                </div>
+                            @elseif($verdict['has_experimental_candidate'] && $candidate)
                                 <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
                                     <p class="font-semibold">Satu kandidat eksperimental ditemukan: {{ str_replace('_', ' ', $verdict['experimental_candidate_variant']) }}</p>
                                     <p class="mt-1">
