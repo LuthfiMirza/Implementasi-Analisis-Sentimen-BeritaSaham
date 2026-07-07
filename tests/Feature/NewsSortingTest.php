@@ -12,7 +12,7 @@ class NewsSortingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_news_sorted_by_quality_then_published(): void
+    public function test_news_sorted_by_quality_then_published_when_quality_sort_requested(): void
     {
         $user = User::factory()->create();
         $stock = Stock::factory()->create(['code' => 'BBRI']);
@@ -29,7 +29,7 @@ class NewsSortingTest extends TestCase
             'published_at' => now()->subDay(),
         ]);
 
-        $response = $this->actingAs($user)->get('/news');
+        $response = $this->actingAs($user)->get('/news?sort=quality');
         $response->assertStatus(200);
 
         $content = $response->getContent();
@@ -38,6 +38,35 @@ class NewsSortingTest extends TestCase
 
         $this->assertNotFalse($firstPos);
         $this->assertNotFalse($secondPos);
-        $this->assertTrue($firstPos < $secondPos, 'High quality article should appear before low quality');
+        $this->assertTrue($firstPos < $secondPos, 'High quality article should appear before low quality when sort=quality is requested');
+    }
+
+    public function test_news_defaults_to_latest_first_when_no_sort_requested(): void
+    {
+        $user = User::factory()->create();
+        $stock = Stock::factory()->create(['code' => 'BBRI']);
+
+        $older = NewsArticle::factory()->for($stock)->create([
+            'title' => 'Older high quality sample',
+            'final_quality_score' => 0.9,
+            'published_at' => now()->subDay(),
+        ]);
+
+        $newer = NewsArticle::factory()->for($stock)->create([
+            'title' => 'Newer low quality sample',
+            'final_quality_score' => 0.2,
+            'published_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get('/news');
+        $response->assertStatus(200);
+
+        $content = $response->getContent();
+        $firstPos = strpos($content, 'Newer low quality sample');
+        $secondPos = strpos($content, 'Older high quality sample');
+
+        $this->assertNotFalse($firstPos);
+        $this->assertNotFalse($secondPos);
+        $this->assertTrue($firstPos < $secondPos, 'Newest article should appear first by default, even if lower quality');
     }
 }

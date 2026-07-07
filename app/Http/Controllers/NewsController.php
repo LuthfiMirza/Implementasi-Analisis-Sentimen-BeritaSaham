@@ -26,11 +26,11 @@ class NewsController extends Controller
         $method = $request->query('method');
         $quality = $request->query('quality');
         $relevanceBand = $request->query('relevance');
-        $sort = $request->query('sort', 'quality');
+        $sort = $request->query('sort', 'date_desc');
         $allowedSorts = ['quality', 'date_desc', 'date_asc', 'recent', 'sentiment', 'relevance'];
 
         if (! in_array($sort, $allowedSorts, true)) {
-            $sort = 'quality';
+            $sort = 'date_desc';
         }
 
         $query = NewsArticle::with(['stock', 'source']);

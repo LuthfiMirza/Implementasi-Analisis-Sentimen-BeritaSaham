@@ -11,6 +11,20 @@
                         </span>
                     </h1>
                     <p class="text-sm text-slate-400">Filter emiten, sentimen, tanggal, sumber, metode, kualitas, dan urutkan berdasarkan kualitas atau tanggal berita.</p>
+                    @php
+                        $currentSort = $filters['sort'] ?? 'date_desc';
+                        $isLatestSort = in_array($currentSort, ['date_desc', 'recent'], true);
+                    @endphp
+                    <div class="flex gap-2 mt-3">
+                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'date_desc']) }}"
+                           class="px-3 py-1.5 rounded-full text-xs font-semibold transition {{ $isLatestSort ? 'bg-sky-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' }}">
+                            🕐 Berita Terbaru
+                        </a>
+                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'quality']) }}"
+                           class="px-3 py-1.5 rounded-full text-xs font-semibold transition {{ $currentSort === 'quality' ? 'bg-sky-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' }}">
+                            ★ Kualitas Tertinggi
+                        </a>
+                    </div>
                 </div>
                 <form method="GET" class="w-full">
                     <div class="space-y-3 w-full">
