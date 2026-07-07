@@ -291,7 +291,7 @@ class OjkRssFetcher implements NewsFetcherInterface
                 'slug' => Str::slug($detail['title'] ?? $candidate['title']).'-'.Str::random(4),
                 'source_name' => 'OJK Pasar Modal',
                 'source_url' => $candidate['source_url'],
-                'published_at' => $detail['published_at'] ?? Carbon::now('Asia/Jakarta'),
+                'published_at' => $detail['published_at'] ?? null,
                 'summary' => Str::limit($detail['summary'] ?? $candidate['title'], 500),
                 'content_snippet' => Str::limit($detail['summary'] ?? $candidate['title'], 500),
                 'full_text' => $detail['full_text'] ?? $candidate['title'],
@@ -448,7 +448,7 @@ class OjkRssFetcher implements NewsFetcherInterface
             $title = $detail['title'] ?? $candidate['title'] ?? null;
             $summary = $detail['summary'] ?? $candidate['summary'] ?? $title;
             $fullText = $detail['full_text'] ?? $summary;
-            $publishedAt = $detail['published_at'] ?? $candidate['published_at'] ?? Carbon::now('Asia/Jakarta');
+            $publishedAt = $detail['published_at'] ?? $candidate['published_at'] ?? null;
 
             if (! $title || ! $this->shouldKeepPublishedAt($publishedAt, $fromDate, $toDate)) {
                 continue;
@@ -509,16 +509,18 @@ class OjkRssFetcher implements NewsFetcherInterface
         return $articles->all();
     }
 
-    protected function parsePublishedAt(?string $pubDate): Carbon
+    // Null jika pubDate kosong/tidak bisa di-parse -> jangan tebak "sekarang", biarkan
+    // shouldKeepPublishedAt() menolak kandidat ini supaya published_at lama tidak tertimpa.
+    protected function parsePublishedAt(?string $pubDate): ?Carbon
     {
         if (! $pubDate) {
-            return Carbon::now('Asia/Jakarta');
+            return null;
         }
 
         try {
             return Carbon::parse($pubDate, 'Asia/Jakarta');
         } catch (\Throwable) {
-            return Carbon::now('Asia/Jakarta');
+            return null;
         }
     }
 
@@ -806,7 +808,9 @@ class OjkRssFetcher implements NewsFetcherInterface
             $summary = Str::limit($text, 500);
         }
 
-        $publishedAt = $this->extractPublishedAtFromText($summary.' '.$text) ?? Carbon::now('Asia/Jakarta');
+        // Null jika tanggal asli tidak ditemukan di teks -> jangan tebak "sekarang", biarkan
+        // shouldKeepPublishedAt() menolak kandidat ini supaya published_at lama tidak tertimpa.
+        $publishedAt = $this->extractPublishedAtFromText($summary.' '.$text);
         $language = str_contains($candidate['source_url'], '/en/') || str_starts_with($title, 'Press Release:')
             ? 'en'
             : 'id';

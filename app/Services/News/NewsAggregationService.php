@@ -327,6 +327,7 @@ class NewsAggregationService
                     $providerValue = 'unknown';
                 }
                 $source = $this->resolveSource($providerValue);
+                $existingArticle = NewsArticle::where($match)->first();
 
                 $model = NewsArticle::updateOrCreate($match, [
                     'slug' => $slug,
@@ -336,7 +337,9 @@ class NewsAggregationService
                     'source_weight' => $rawArticle['source_weight'] ?? null,
                     'title' => $storedTitle,
                     'source_url' => $sourceUrl,
-                    'published_at' => $rawArticle['published_at'] ?? Carbon::now(),
+                    // Fetcher gagal mem-parse tanggal asli -> pertahankan published_at lama (jangan reset ke "sekarang"
+                    // setiap kali artikel yang sama di-refetch), fallback ke now() hanya untuk artikel baru.
+                    'published_at' => $rawArticle['published_at'] ?? $existingArticle?->published_at ?? Carbon::now(),
                     'summary' => $summary,
                     'content_snippet' => $rawArticle['content_snippet'] ?? null,
                     'full_text' => $rawArticle['full_text'] ?? null,
