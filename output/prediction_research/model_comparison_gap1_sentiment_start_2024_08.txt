@@ -1,0 +1,34 @@
+Prediction Model Comparison
+===========================
+
+Dataset rows: 50196
+Tickers: 10
+Date range: 2001-01-02 -> 2026-04-15
+Label column: target_direction_5d
+Class labels: down, flat, up
+Feature set: v1
+Scenario filter: all
+Selection metric: directional_accuracy
+Positive label: none
+Sentiment start date: 2024-08-01
+Walk-forward folds: 8
+
+Label distribution:
+  - down: 17783 (35.43%)
+  - flat: 12145 (24.20%)
+  - up: 20268 (40.38%)
+
+Scenario results:
+- with_sentiment
+  - majority_class: acc=0.4119, f1_macro=0.1945, dir_acc=0.4119
+  - random_forest: acc=0.3905, f1_macro=0.3805, dir_acc=0.3905
+  - random_baseline: acc=0.3437, f1_macro=0.3271, dir_acc=0.3437
+  - logistic_regression: acc=0.3373, f1_macro=0.3033, dir_acc=0.3373
+- without_sentiment
+  - majority_class: acc=0.3805, f1_macro=0.1836, dir_acc=0.3805
+  - random_forest: acc=0.3613, f1_macro=0.3443, dir_acc=0.3613
+  - random_baseline: acc=0.3471, f1_macro=0.3353, dir_acc=0.3471
+  - logistic_regression: acc=0.3466, f1_macro=0.3198, dir_acc=0.3466
+
+Selected deployment model: majority_class (with_sentiment) on directional_accuracy=0.4119
+Sentiment contribution delta vs best no-sentiment: 0.0314
