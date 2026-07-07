@@ -26,6 +26,15 @@ class NewsArticle extends Model
         'sentiment_confidence',
         'sentiment_method',
         'sentiment_meta',
+        'ml_sentiment_label',
+        'ml_sentiment_score',
+        'ml_confidence',
+        'ml_prob_positive',
+        'ml_prob_neutral',
+        'ml_prob_negative',
+        'rule_sentiment_label',
+        'rule_sentiment_score',
+        'ml_rule_agree',
         'language',
         'raw_payload',
         'fetched_at',
@@ -49,6 +58,13 @@ class NewsArticle extends Model
         'fetched_at' => 'datetime',
         'sentiment_score' => 'float',
         'sentiment_confidence' => 'float',
+        'ml_sentiment_score' => 'float',
+        'ml_confidence' => 'float',
+        'ml_prob_positive' => 'float',
+        'ml_prob_neutral' => 'float',
+        'ml_prob_negative' => 'float',
+        'rule_sentiment_score' => 'float',
+        'ml_rule_agree' => 'boolean',
         'raw_payload' => 'array',
         'sentiment_meta' => 'array',
         'analyzed_at' => 'datetime',
@@ -75,6 +91,11 @@ class NewsArticle extends Model
     public function entities()
     {
         return $this->hasMany(ArticleEntity::class);
+    }
+
+    public function manualLabels()
+    {
+        return $this->hasMany(SentimentManualLabel::class);
     }
 
     public function scopeForStockContext(Builder $query, Stock|int|null $stock, bool $includeMacro = true): Builder
