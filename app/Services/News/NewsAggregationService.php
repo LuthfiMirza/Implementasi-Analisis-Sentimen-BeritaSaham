@@ -21,8 +21,10 @@ use App\Services\News\RssNewsFetcher;
 use App\Services\News\StockKeywordMapper;
 use App\Services\News\RelevanceScoringService;
 use App\Services\News\ArticleDeduplicationService;
+use App\Services\Sentiment\RuleBasedSentimentAnalyzer;
 use App\Services\Sentiment\SentimentAnalyzerInterface;
 use App\Services\Sentiment\SentimentEngineManager;
+use App\Services\Sentiment\SentimentTiebreakResolver;
 use App\Models\SystemSetting;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -39,6 +41,8 @@ class NewsAggregationService
      */
     protected array $fetchers = [];
 
+    protected RuleBasedSentimentAnalyzer $baselineAnalyzer;
+
     public function __construct(
         protected ?SentimentAnalyzerInterface $analyzer = null,
         protected ?StockKeywordMapper $keywordMapper = null,
@@ -48,6 +52,7 @@ class NewsAggregationService
     ) {
         $this->sentimentEngineManager ??= new SentimentEngineManager();
         $this->analyzer ??= $this->sentimentEngineManager->getAnalyzer();
+        $this->baselineAnalyzer = new RuleBasedSentimentAnalyzer();
         $this->keywordMapper ??= new StockKeywordMapper();
         $this->relevanceScoringService ??= new RelevanceScoringService($this->keywordMapper);
         $this->deduper ??= new ArticleDeduplicationService();
@@ -293,12 +298,18 @@ class NewsAggregationService
                 $slug = $this->normalizeArticleSlug($rawArticle['slug'] ?? $title);
                 $storedTitle = Str::limit($title, self::NEWS_ARTICLE_STRING_MAX_LENGTH, '');
                 $summary = $rawArticle['summary'] ?? $title;
-                $analysis = $this->analyzer->analyze($summary, [
+                $analysisContext = [
                     'title' => $title,
                     'summary' => $summary,
                     'body' => $rawArticle['full_text'] ?? $rawArticle['content_snippet'] ?? null,
                     'language' => $rawArticle['detected_language'] ?? $rawArticle['language'] ?? 'id',
-                ]);
+                ];
+                $analysis = $this->analyzer->analyze($summary, $analysisContext);
+                $baseline = $this->baselineAnalyzer->analyze($summary, $analysisContext + ['stock_code' => $stock->code]);
+
+                $mlLabel = $rawArticle['ml_sentiment_label'] ?? $analysis['ml_label'] ?? null;
+                $ruleLabel = $rawArticle['rule_sentiment_label'] ?? $analysis['rule_label'] ?? $baseline['label'] ?? null;
+                $resolved = SentimentTiebreakResolver::resolve($mlLabel, $ruleLabel, $analysis, $baseline);
                 $sourceUrl = $this->normalizeArticleSourceUrl($rawArticle['source_url'] ?? null, $slug);
 
                 // Pastikan slug unik jika sudah ada, tapi gunakan source_url sebagai key utama jika tersedia.
@@ -343,20 +354,19 @@ class NewsAggregationService
                     'summary' => $summary,
                     'content_snippet' => $rawArticle['content_snippet'] ?? null,
                     'full_text' => $rawArticle['full_text'] ?? null,
-                    'sentiment_label' => $rawArticle['sentiment_label'] ?? $analysis['label'],
-                    'sentiment_score' => $rawArticle['sentiment_score'] ?? $analysis['score'],
-                    'sentiment_confidence' => $rawArticle['sentiment_confidence'] ?? $analysis['confidence'] ?? null,
-                    'sentiment_method' => $rawArticle['sentiment_method'] ?? $analysis['method'] ?? 'python_unavailable',
-                    'ml_sentiment_label' => $rawArticle['ml_sentiment_label'] ?? $analysis['ml_label'] ?? null,
+                    'sentiment_label' => $rawArticle['sentiment_label'] ?? $resolved['label'],
+                    'sentiment_score' => $rawArticle['sentiment_score'] ?? $resolved['score'],
+                    'sentiment_confidence' => $rawArticle['sentiment_confidence'] ?? $resolved['confidence'] ?? null,
+                    'sentiment_method' => $rawArticle['sentiment_method'] ?? $resolved['method'] ?? 'python_unavailable',
+                    'ml_sentiment_label' => $mlLabel,
                     'ml_sentiment_score' => $rawArticle['ml_sentiment_score'] ?? $analysis['ml_score'] ?? null,
                     'ml_confidence' => $rawArticle['ml_confidence'] ?? $analysis['ml_confidence'] ?? null,
                     'ml_prob_positive' => $rawArticle['ml_prob_positive'] ?? $analysis['ml_prob_positive'] ?? null,
                     'ml_prob_neutral' => $rawArticle['ml_prob_neutral'] ?? $analysis['ml_prob_neutral'] ?? null,
                     'ml_prob_negative' => $rawArticle['ml_prob_negative'] ?? $analysis['ml_prob_negative'] ?? null,
-                    'rule_sentiment_label' => $rawArticle['rule_sentiment_label'] ?? $analysis['rule_label'] ?? null,
-                    'rule_sentiment_score' => $rawArticle['rule_sentiment_score'] ?? $analysis['rule_score'] ?? null,
-                    'ml_rule_agree' => $rawArticle['ml_rule_agree']
-                        ?? (isset($analysis['ml_label'], $analysis['rule_label']) ? $analysis['ml_label'] === $analysis['rule_label'] : null),
+                    'rule_sentiment_label' => $ruleLabel,
+                    'rule_sentiment_score' => $rawArticle['rule_sentiment_score'] ?? $analysis['rule_score'] ?? $baseline['score'] ?? null,
+                    'ml_rule_agree' => $rawArticle['ml_rule_agree'] ?? $resolved['agree'],
                     'relevance_score' => $rawArticle['relevance_score'] ?? null,
                     'relevance_band' => $rawArticle['relevance_band'] ?? null,
                     'entity_match_score' => $rawArticle['entity_match_score'] ?? null,

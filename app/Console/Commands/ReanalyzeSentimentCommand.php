@@ -6,6 +6,7 @@ use App\Models\NewsArticle;
 use App\Models\Stock;
 use App\Services\Sentiment\RuleBasedSentimentAnalyzer;
 use App\Services\Sentiment\SentimentEngineManager;
+use App\Services\Sentiment\SentimentTiebreakResolver;
 use Illuminate\Console\Command;
 
 class ReanalyzeSentimentCommand extends Command
@@ -125,10 +126,14 @@ class ReanalyzeSentimentCommand extends Command
             $analysis = $analyzer->analyze($text, $context);
             $baseline = $baselineAnalyzer->analyze($text, $context);
 
-            $article->sentiment_label = $analysis['label'] ?? $article->sentiment_label;
-            $article->sentiment_score = $analysis['score'] ?? $article->sentiment_score;
-            $article->sentiment_confidence = $analysis['confidence'] ?? $article->sentiment_confidence;
-            $article->sentiment_method = $analysis['method'] ?? $article->sentiment_method ?? 'rule_based';
+            $mlLabel = $analysis['ml_label'] ?? $article->ml_sentiment_label;
+            $ruleLabel = $analysis['rule_label'] ?? $baseline['label'] ?? $article->rule_sentiment_label;
+            $resolved = SentimentTiebreakResolver::resolve($mlLabel, $ruleLabel, $analysis, $baseline);
+
+            $article->sentiment_label = $resolved['label'] ?? $article->sentiment_label;
+            $article->sentiment_score = $resolved['score'] ?? $article->sentiment_score;
+            $article->sentiment_confidence = $resolved['confidence'] ?? $article->sentiment_confidence;
+            $article->sentiment_method = $resolved['method'] ?? $article->sentiment_method ?? 'rule_based';
             $article->sentiment_meta = [
                 'matched_positive_terms' => $analysis['matched_positive_terms'] ?? [],
                 'matched_negative_terms' => $analysis['matched_negative_terms'] ?? [],
@@ -136,17 +141,15 @@ class ReanalyzeSentimentCommand extends Command
                 'python_status' => $analysis['python_status'] ?? null,
             ];
 
-            $article->ml_sentiment_label = $analysis['ml_label'] ?? $article->ml_sentiment_label;
+            $article->ml_sentiment_label = $mlLabel;
             $article->ml_sentiment_score = $analysis['ml_score'] ?? $article->ml_sentiment_score;
             $article->ml_confidence = $analysis['ml_confidence'] ?? $article->ml_confidence;
             $article->ml_prob_positive = $analysis['ml_prob_positive'] ?? $article->ml_prob_positive;
             $article->ml_prob_neutral = $analysis['ml_prob_neutral'] ?? $article->ml_prob_neutral;
             $article->ml_prob_negative = $analysis['ml_prob_negative'] ?? $article->ml_prob_negative;
-            $article->rule_sentiment_label = $analysis['rule_label'] ?? $baseline['label'] ?? $article->rule_sentiment_label;
+            $article->rule_sentiment_label = $ruleLabel;
             $article->rule_sentiment_score = $analysis['rule_score'] ?? $baseline['score'] ?? $article->rule_sentiment_score;
-            $article->ml_rule_agree = isset($article->ml_sentiment_label, $article->rule_sentiment_label)
-                ? $article->ml_sentiment_label === $article->rule_sentiment_label
-                : $article->ml_rule_agree;
+            $article->ml_rule_agree = $resolved['agree'] ?? $article->ml_rule_agree;
             $article->analyzed_at = now();
 
             $article->save();

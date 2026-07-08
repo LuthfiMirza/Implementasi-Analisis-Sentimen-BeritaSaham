@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\NewsArticle;
 use App\Services\Sentiment\RuleBasedSentimentAnalyzer;
 use App\Services\Sentiment\SentimentEngineManager;
+use App\Services\Sentiment\SentimentTiebreakResolver;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -55,12 +56,13 @@ class AnalyzeSentimentCommand extends Command
                 );
                 $mlLabel = $result['ml_label'] ?? $article->ml_sentiment_label;
                 $ruleLabel = $result['rule_label'] ?? $baseline['label'] ?? $article->rule_sentiment_label;
+                $resolved = SentimentTiebreakResolver::resolve($mlLabel, $ruleLabel, $result, $baseline);
 
                 $article->update([
-                    'sentiment_label' => $result['label'],
-                    'sentiment_score' => $result['score'],
-                    'sentiment_confidence' => $result['confidence'] ?? null,
-                    'sentiment_method' => $result['method'] ?? 'python_unavailable',
+                    'sentiment_label' => $resolved['label'],
+                    'sentiment_score' => $resolved['score'],
+                    'sentiment_confidence' => $resolved['confidence'] ?? null,
+                    'sentiment_method' => $resolved['method'] ?? 'python_unavailable',
                     'sentiment_meta' => [
                         'matched_positive_terms' => $result['matched_positive_terms'] ?? [],
                         'matched_negative_terms' => $result['matched_negative_terms'] ?? [],
@@ -75,7 +77,7 @@ class AnalyzeSentimentCommand extends Command
                     'ml_prob_negative' => $result['ml_prob_negative'] ?? $article->ml_prob_negative,
                     'rule_sentiment_label' => $ruleLabel,
                     'rule_sentiment_score' => $result['rule_score'] ?? $baseline['score'] ?? $article->rule_sentiment_score,
-                    'ml_rule_agree' => isset($mlLabel, $ruleLabel) ? $mlLabel === $ruleLabel : $article->ml_rule_agree,
+                    'ml_rule_agree' => $resolved['agree'] ?? $article->ml_rule_agree,
                     'analyzed_at' => now(),
                 ]);
                 $count++;

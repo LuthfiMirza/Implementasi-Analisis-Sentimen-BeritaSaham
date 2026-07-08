@@ -186,6 +186,51 @@ class NewsAggregationServiceTest extends TestCase
         $this->assertStringContainsString(substr(sha1($longTitle), 0, 10), $article->slug);
     }
 
+    public function test_rule_based_tiebreak_wins_over_raw_ml_label_during_ingestion(): void
+    {
+        $stock = $this->seedStock('BBCA');
+        $article = $this->rawArticle($stock, [
+            'title' => 'BBCA rugi bersih dan sahamnya anjlok akibat tekanan pasar',
+            'summary' => 'BBCA mencatat rugi bersih dan sahamnya anjlok akibat tekanan pasar.',
+        ]);
+
+        $analyzer = new class implements SentimentAnalyzerInterface {
+            public function analyze(string $text, array $context = []): array
+            {
+                return [
+                    'label' => 'positive',
+                    'ml_label' => 'positive',
+                    'score' => 0.75,
+                    'confidence' => 0.8,
+                    'method' => 'python',
+                ];
+            }
+        };
+        $service = new NewsAggregationService($analyzer);
+        $ref = new ReflectionClass($service);
+        $property = $ref->getProperty('fetchers');
+        $property->setAccessible(true);
+        $property->setValue($service, [
+            'fake' => new class([$article]) implements NewsFetcherInterface {
+                public function __construct(private array $articles) {}
+                public function fetchForStock(Stock $stock, int $limit = 10): array
+                {
+                    return array_slice($this->articles, 0, $limit);
+                }
+            },
+        ]);
+
+        $service->refreshFromProvider($stock, 10, ['fake']);
+        $saved = NewsArticle::firstOrFail();
+
+        // Rule-based must override raw ML label at ingestion time, exactly like SentimentAnalysisService does.
+        $this->assertSame('negative', $saved->sentiment_label);
+        $this->assertSame('rule_based_tiebreak', $saved->sentiment_method);
+        $this->assertSame('negative', $saved->rule_sentiment_label);
+        $this->assertSame('positive', $saved->ml_sentiment_label);
+        $this->assertFalse($saved->ml_rule_agree);
+    }
+
     private function rawArticle(Stock $stock, array $overrides = []): array
     {
         return array_merge([
