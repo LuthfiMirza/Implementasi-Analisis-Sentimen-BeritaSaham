@@ -63,15 +63,6 @@ Schedule::command('news:fetch --limit=20')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
-// BREAK: 11.30–13.30 WIB
-// Hitung ulang DSS + sentiment saat istirahat
-Schedule::command('news:rescore-sentiment')
-    ->weekdays()
-    ->dailyAt('12:00')
-    ->timezone('Asia/Jakarta')
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/scheduler.log'));
-
 // AWAL SESI 2: 13.30 WIB
 Schedule::command('news:fetch --limit=20 --provider=gnews')
     ->weekdays()
@@ -107,15 +98,14 @@ Schedule::command('stocks:fetch-history --days=1')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
-// END-OF-DAY SENTIMENT: 15.15 WIB
-Schedule::command('news:rescore-sentiment')
-    ->weekdays()
-    ->dailyAt('15:15')
-    ->timezone('Asia/Jakarta')
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/scheduler.log'));
-
 // END-OF-DAY ML REANALYSIS: 15.20 WIB
+// Catatan: 'news:rescore-sentiment' (full-corpus, tanpa filter) sengaja TIDAK
+// dijadwalkan lagi -- dulu jalan 2x/hari (12:00 & 15:15) tapi redundan dan makin
+// mahal seiring korpus bertambah (rescore ML utk SEMUA artikel, bukan cuma yang
+// perlu). 'news:analyze' (hourly, di bawah) dan 'sentiment:reanalyze' di bawah ini
+// sudah cukup karena keduanya hanya memroses baris yang field sentimennya NULL.
+// Kalau butuh paksa rescore total (mis. lexicon rule-based berubah), jalankan
+// manual: php artisan news:rescore-sentiment atau sentiment:reanalyze --force.
 Schedule::command('sentiment:reanalyze --include-global')
     ->weekdays()
     ->dailyAt('15:20')
