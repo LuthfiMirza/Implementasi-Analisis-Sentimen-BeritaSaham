@@ -68,6 +68,8 @@ class TradeController extends Controller
         $validated['user_id'] = auth()->id();
         $validated['status'] = 'open';
         $validated['result'] = 'open';
+        // Kolom signal_quality NOT NULL tanpa default; form manual tidak selalu mengirimnya.
+        $validated['signal_quality'] = $validated['signal_quality'] ?? 'manual';
         $validated['position_value'] = $validated['entry_price'] * $validated['lot_size'];
 
         Trade::create($validated);

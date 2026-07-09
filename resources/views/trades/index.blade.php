@@ -213,6 +213,7 @@
               <th class="px-4 py-3 text-center">Hasil</th>
               <th class="px-4 py-3 text-center">DSS Akurat?</th>
               <th class="px-4 py-3 text-right">Hold</th>
+              <th class="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800/50">
@@ -292,6 +293,23 @@
               </td>
               <td class="px-4 py-3 text-right text-slate-400 text-[11px]">
                 {{ $trade->holding_days ?? '-' }}h
+              </td>
+              <td class="px-4 py-3 text-center">
+                <div class="flex items-center justify-center gap-1.5">
+                  <a href="{{ route('trade-journal.edit', $trade) }}"
+                     class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-[11px]
+                            hover:bg-sky-500/10 hover:border-sky-500/30 hover:text-sky-400 transition">
+                    Edit
+                  </a>
+                  <form action="{{ route('trades.destroy', $trade) }}" method="POST"
+                        onsubmit="return confirm('Hapus trade {{ $trade->stock->code }} ({{ $trade->entry_date->format('d M y') }}) ini?')">
+                    @csrf @method('DELETE')
+                    <button class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-[11px]
+                                   hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-400 transition">
+                      Hapus
+                    </button>
+                  </form>
+                </div>
               </td>
             </tr>
             @endforeach
