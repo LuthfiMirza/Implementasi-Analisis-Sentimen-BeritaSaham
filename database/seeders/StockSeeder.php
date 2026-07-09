@@ -73,6 +73,17 @@ class StockSeeder extends Seeder
 
     protected function seedPrices(Stock $stock, float $basePrice): void
     {
+        // Jangan suntik data harga acak lagi kalau saham ini sudah punya riwayat harga
+        // asli (non-seed) -- pernah terjadi 360 baris seed tercampur data real di 12
+        // saham resmi karena seeder ini re-run di database yang sudah berisi data
+        // produksi (lihat memory stock-prices-seed-contamination).
+        $hasRealHistory = StockPrice::where('stock_id', $stock->id)
+            ->where('source', '!=', 'seed')
+            ->count() >= 30;
+        if ($hasRealHistory) {
+            return;
+        }
+
         $startDate = Carbon::now()->subDays(30);
 
         for ($i = 0; $i < 30; $i++) {
