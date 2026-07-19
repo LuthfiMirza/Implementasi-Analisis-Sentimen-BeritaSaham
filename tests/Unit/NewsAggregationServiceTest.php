@@ -186,7 +186,7 @@ class NewsAggregationServiceTest extends TestCase
         $this->assertStringContainsString(substr(sha1($longTitle), 0, 10), $article->slug);
     }
 
-    public function test_rule_based_tiebreak_wins_over_raw_ml_label_during_ingestion(): void
+    public function test_ml_tiebreak_wins_over_rule_based_label_during_ingestion(): void
     {
         $stock = $this->seedStock('BBCA');
         $article = $this->rawArticle($stock, [
@@ -223,9 +223,9 @@ class NewsAggregationServiceTest extends TestCase
         $service->refreshFromProvider($stock, 10, ['fake']);
         $saved = NewsArticle::firstOrFail();
 
-        // Rule-based must override raw ML label at ingestion time, exactly like SentimentAnalysisService does.
-        $this->assertSame('negative', $saved->sentiment_label);
-        $this->assertSame('rule_based_tiebreak', $saved->sentiment_method);
+        // Fine-tuned ML must override rule-based label at ingestion time, exactly like SentimentAnalysisService does.
+        $this->assertSame('positive', $saved->sentiment_label);
+        $this->assertSame('ml_tiebreak', $saved->sentiment_method);
         $this->assertSame('negative', $saved->rule_sentiment_label);
         $this->assertSame('positive', $saved->ml_sentiment_label);
         $this->assertFalse($saved->ml_rule_agree);

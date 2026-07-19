@@ -1,0 +1,27 @@
+{
+  "test_set_size": 120,
+  "disagreement_count": 52,
+  "disagreement_share": 0.4333,
+  "on_disagreement_subset": {
+    "finetuned_ml_accuracy": {
+      "correct": 29,
+      "total": 52,
+      "accuracy": 0.5577
+    },
+    "rule_based_accuracy": {
+      "correct": 17,
+      "total": 52,
+      "accuracy": 0.3269
+    },
+    "old_raw_ml_accuracy_for_context": {
+      "correct": 32,
+      "total": 52,
+      "accuracy": 0.6154
+    }
+  },
+  "overall_test_set_accuracy_for_context": {
+    "finetuned_ml": 0.65,
+    "rule_based": 0.55
+  },
+  "recommendation": "finetuned_ml_wins_tiebreak"
+}

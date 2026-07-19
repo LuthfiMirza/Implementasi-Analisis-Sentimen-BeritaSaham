@@ -14,7 +14,7 @@ class SentimentAnalysisServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_rule_based_label_wins_as_final_when_ml_and_rule_disagree(): void
+    public function test_ml_label_wins_as_final_when_ml_and_rule_disagree(): void
     {
         $stock = Stock::factory()->create(['code' => 'BBCA']);
         $article = NewsArticle::factory()->for($stock)->create([
@@ -35,11 +35,12 @@ class SentimentAnalysisServiceTest extends TestCase
         $article->refresh();
 
         // Rule-based lexicon should read "tumbuh" (grow) as positive, disagreeing with ML's neutral.
+        // Fine-tuned ML now wins disagreements (55.8% vs rule-based 32.7% on held-out test).
         $this->assertSame('positive', $article->rule_sentiment_label);
         $this->assertSame('neutral', $article->ml_sentiment_label);
         $this->assertFalse($article->ml_rule_agree);
-        $this->assertSame('positive', $article->sentiment_label);
-        $this->assertSame('rule_based_tiebreak', $article->sentiment_method);
+        $this->assertSame('neutral', $article->sentiment_label);
+        $this->assertSame('ml_tiebreak', $article->sentiment_method);
     }
 
     public function test_ml_label_stays_final_when_ml_and_rule_agree(): void

@@ -99,3 +99,34 @@ Replikasi pola `quant/prediction_api.py` yang sudah proven di proyek ini (FastAP
   - Berita institusional ("Vanguard dan BlackRock Borong Saham BCA") → dulu ML salah arah total "negative" 93%, sekarang **neutral** (96.4% yakin) ✓
 
 ### Status: Fase B SELESAI TUNTAS (B1-B4). Model fine-tuned sudah live di produksi.
+
+---
+
+## Fase C — Selaraskan kebijakan tie-break dengan kualitas ML yang sudah membaik
+
+**Ditemukan setelah Fase B selesai:** `SentimentTiebreakResolver.php` masih hardcode "rule-based menang saat ML vs rule disagree", dengan docblock yang mengutip angka **lama** (rule-based 59.4% vs ML mentah 35.6%, dari validasi 2026-07-07). Setelah fine-tuning (Fase B), ML tidak lagi mentah — jadi kebijakan ini berpotensi sudah usang.
+
+### Analisis empiris (bukan asumsi)
+Script baru [`quant/analyze_tiebreak_policy.py`](quant/analyze_tiebreak_policy.py) — pada 120 baris test-set held-out, ambil prediksi **fine-tuned ML** untuk tiap baris via server lokal, lalu ukur akurasi **khusus di kondisi yang persis sama dengan yang dieksekusi resolver** (fine-tuned ML vs rule disagree, n=52/120):
+
+| | Akurasi vs label manusia (di 52 kasus disagreement) |
+|---|---|
+| **Fine-tuned ML** | **55.77%** (29/52) |
+| Rule-based | 32.69% (17/52) |
+
+Fine-tuned ML menang +23 poin — kebijakan lama (favor rule-based) sekarang justru **salah arah**. Laporan: `output/prediction_research/sentiment_tiebreak_policy_analysis.json`.
+
+**Catatan metodologis:** angka lama (35.6%) TIDAK bisa dibandingkan langsung dengan yang baru (55.77%) karena base rate berbeda — populasi "ML lama vs rule disagree" (dipakai membuat 801 label) beda dari populasi "ML fine-tuned vs rule disagree" yang diukur di sini (setelah fine-tuning, ML sudah setuju dengan rule di sebagian kasus yang dulu disagreement). Perbandingan yang valid adalah within kondisi disagreement yang SAMA yang dijalankan resolver saat ini — itulah yang diukur di atas.
+
+### Perubahan kode
+- [`app/Services/Sentiment/SentimentTiebreakResolver.php`](app/Services/Sentiment/SentimentTiebreakResolver.php) — dibalik: saat disagree, **ML menang** (bukan rule lagi). `method` tag baru `ml_tiebreak` (dulu `rule_based_tiebreak`). Docblock diupdate dengan angka & tanggal baru.
+- Test diupdate: `SentimentAnalysisServiceTest::test_ml_label_wins_as_final_when_ml_and_rule_disagree` (dulu `test_rule_based_label_wins_...`), `NewsAggregationServiceTest::test_ml_tiebreak_wins_over_rule_based_label_during_ingestion` (dulu `test_rule_based_tiebreak_wins_...`). Full suite 404 passed.
+- **Verifikasi**: command lama `news:apply-rule-tiebreak` (pemaksa rule-label, dari fix Gap 2 lama) dicek **tidak terjadwal** di `routes/console.php` — aman, tidak akan diam-diam membalikkan kebijakan baru ini.
+
+### Backfill artikel lama
+`php artisan sentiment:reanalyze --force --include-global` — re-run pipeline lengkap (ML fine-tuned + rule + resolver baru) untuk **semua 1796 artikel** yang sudah ada. Hasil: 100% berhasil (0 gagal/fallback), agreement rate 72.4% (1301/1796), 495 artikel disagreement sekarang pakai label ML (`ml_tiebreak`) bukan rule lagi. Distribusi label final: neutral 1391, positive 275, negative 130.
+
+### Status: SELESAI. Kebijakan tie-break dan seluruh data historis sudah konsisten dengan model fine-tuned.
+
+### Belum dikerjakan (usulan lanjutan, belum diminta eksekusi)
+Uji ulang kontribusi sentimen ke akurasi prediksi harga (ulangi Fase A) memakai skor sentimen yang sudah dikoreksi Fase C ini — sebelumnya Fase A memakai skor lama (sebelum fine-tuning+backfill). Fokuskan ke subset high-coverage (2024-08+, coverage 17-28%) karena constraint utama tetap coverage, bukan kualitas sentimen.
