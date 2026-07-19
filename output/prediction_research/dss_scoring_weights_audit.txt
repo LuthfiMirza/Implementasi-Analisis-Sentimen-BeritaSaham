@@ -1,0 +1,85 @@
+Audit Bobot Skor Decision Support System (DSS) — Live Production
+====================================================================
+
+Konteks: setelah menemukan fitur "buying_pressure" (uncommitted, gagal
+validasi walk-forward), dicurigai bobot-bobot LAIN di DecisionSupportService
+yang SUDAH LIVE ('sentimentScore*0.20 + trendScore*0.22 + momentumScore*0.18
++ volumeScore*0.13 + volatilityScore*0.12 + fundamentalScore*0.15', plus
+puluhan magic-number threshold di trendScore/momentumScore/volumeScore/
+fundamentalScore/statusAndConfidence) mungkin juga belum pernah divalidasi
+empiris. Tidak seperti buying_pressure, alat validasinya SUDAH ADA di proyek
+ini (BacktestService::runForStock/runAll, halaman /backtest) -- audit ini
+menjalankan alat yang sudah ada, bukan membuat baru.
+
+METODOLOGI: BacktestService::runAll() dengan parameter default produksi
+(lookback=30, forward=5, step=3, threshold=1.0%, includeMacroNews=true),
+maxWindows dinaikkan dari default 5 ke 60 per saham untuk sample yang
+lebih robust (720 prediksi total, 12 saham termasuk BUMI/DEWA). Setiap
+window: DecisionSupportService::analyze() dipanggil di titik waktu itu,
+final_score dan status dibandingkan dengan return AKTUAL 5 hari ke depan
+(sudah out-of-sample secara alami karena entry/exit price selalu setelah
+signal date).
+
+HASIL UTAMA (n=720):
+  Overall directional accuracy: 33.3% (= baseline tebak-acak 3-kelas)
+  Korelasi final_score vs actual_return per saham:
+    BBCA -0.048  BBRI -0.263  BMRI -0.052  TLKM -0.164
+    ASII -0.004  GOTO +0.120  INDF -0.149  ICBP -0.230
+    ADRO +0.050  UNVR -0.023  BUMI +0.375  DEWA -0.352
+  -> 8 dari 12 saham NEGATIF, rata-rata pooled mendekati nol/negatif.
+
+DIKELOMPOKKAN PER STATUS DSS:
+  Bullish Support (score>=65, n=45): avg_return=+1.25%, up_ratio=33.3%
+  Wait and See    (40<score<65, n=463): avg_return=+0.795%, up_ratio=35.4%
+  Warning         (score<=40, n=212): avg_return=-0.534%, up_ratio=36.8%
+
+  Rata-rata TERLIHAT berurutan benar (Bullish>Wait>Warning), TAPI:
+  up_ratio nyaris RATA di ketiga status (33-37%) -- bahkan Warning sedikit
+  LEBIH TINGGI dari Bullish. Artinya status tidak membedakan probabilitas
+  naik/turun sama sekali.
+
+SEBARAN DETAIL (bukti outlier-driven, bukan sinyal asli):
+  Bullish (n=45): min=-32.95%, max=+39.59%, MEDIAN=-1.2%, trimmed_mean=+0.86%
+  Warning (n=212): min=-66%, max=+14.04%, median=0%, trimmed_mean=-0.24%
+
+  MEDIAN outcome untuk "Bullish Support" adalah NEGATIF (-1.2%). Rata-rata
+  positif (+1.25%) semata diseret oleh segelintir outlier ekstrem (sampai
+  +39.59%), persis pola yang sama seperti temuan buying_pressure sebelumnya.
+
+KESIMPULAN:
+Skor DSS yang SUDAH LIVE di produksi (bobot 0.20/0.22/0.18/0.13/0.12/0.15
+plus puluhan threshold internal) TIDAK menunjukkan kemampuan prediktif yang
+reliabel terhadap return 5 hari ke depan, diukur dengan alat backtest milik
+proyek sendiri. Status "Bullish Support" secara median historis JUSTRU
+sedikit merugi, dan tidak lebih mungkin diikuti kenaikan harga dibanding
+status "Warning". Tidak ditemukan bukti (komentar kode, artefak riset, atau
+test) bahwa bobot-bobot ini pernah di-tuning atau dipilih berdasarkan hasil
+backtest ini -- kemungkinan besar murni hasil intuisi/desain manual sejak
+awal, sama seperti kasus buying_pressure.
+
+CATATAN PENTING (bukan berarti DSS "salah semua"):
+- Komponen individual (RSI, MACD, Bollinger, ADX, dst) adalah indikator
+  teknikal standar yang secara matematis benar dihitung -- masalahnya bukan
+  di situ, tapi di BOBOT AGREGAT & THRESHOLD STATUS (0.20/0.22/dst, 65/40)
+  yang menggabungkannya jadi satu skor "Bullish/Warning".
+- Skor fundamental (PBV/PER/ROE/DER) TIDAK ikut diuji terpisah di sini --
+  audit ini menguji SKOR GABUNGAN akhir, bukan tiap komponen sendiri-sendiri.
+- Sample n=60/saham masih terbatas untuk klaim definitif per-saham (korelasi
+  individual bisa noisy), tapi pooled 720 prediksi + pola median-negatif
+  yang konsisten membuat temuan ini cukup kuat untuk didisclosure.
+
+REKOMENDASI:
+1. JANGAN klaim status "Bullish Support"/"Warning" sebagai sinyal
+   tervalidasi ke pengguna tanpa disclaimer tambahan -- disclaimer
+   "referensi, bukan rekomendasi final" yang sudah ada sebenarnya SUDAH
+   tepat dan makin penting mengingat temuan ini.
+2. Kalau DSS mau dipertahankan sebagai fitur, bobot & threshold-nya perlu
+   di-redesign dengan disiplin yang sama seperti model prediksi lain di
+   proyek ini: derive dari train split, walk-forward OOS test, bandingkan
+   ke naive baseline -- BUKAN hasil eyeball/intuisi.
+3. Temuan ini KONSISTEN dengan pola yang sudah 2x ditemukan di sesi
+   audit ini (sentimen coverage rendah, buying_pressure gagal validasi) --
+   proyek ini punya kebiasaan membangun fitur dari intuisi lalu (kalau
+   diaudit) ternyata tidak tervalidasi. Ini bukan kegagalan unik DSS, tapi
+   pola berulang yang layak dicatat sebagai pelajaran metodologis besar
+   untuk skripsi.

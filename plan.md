@@ -209,3 +209,34 @@ User minta (bagian dari audit infra): daripada nambal manual tiap kali ketahuan 
 - ✅ Auto-recovery gap berita: kode selesai, tertest, terjadwal, sudah live (mulai jalan tiap 30 menit begitu di-deploy).
 - ⏳ LaunchDaemon MySQL: **butuh aksi manual user** (jalankan 4 command sudo di atas), belum terverifikasi jalan.
 - ⏳ Belum dikerjakan (belum diminta): bersihkan log 1.3GB, tambah `mac` ke grup `_mysql` untuk akses CLI.
+
+---
+
+## Fase F — Audit bobot skor Decision Support System (tahap 5 dari alur audit)
+
+**Konteks:** setelah buying_pressure (Fase D) terbukti gagal validasi, dicurigai bobot-bobot LAIN di `DecisionSupportService` yang **sudah live di produksi** (bukan eksperimen baru) mungkin juga belum pernah divalidasi empiris. Beda dari Fase D, kali ini alat validasinya **sudah ada** di proyek (`BacktestService::runAll()`, halaman `/backtest`) — audit ini menjalankan alat yang sudah ada dengan sample lebih besar, bukan membuat validator baru.
+
+### Metodologi
+`BacktestService::runAll(lookback=30, forward=5, step=3, threshold=1.0%, maxWindows=60)` — parameter default produksi, `maxWindows` dinaikkan dari default 5 (terlalu kecil untuk statistik) ke 60 per saham. 720 prediksi total, 12 saham (termasuk BUMI/DEWA). Window rolling, entry/exit price selalu setelah signal date (out-of-sample secara alami).
+
+### Hasil — pola yang sama seperti buying_pressure, kali ini di fitur yang SUDAH LIVE
+- **Akurasi arah keseluruhan: 33.3%** (persis baseline tebak-acak 3-kelas).
+- **Korelasi `final_score` vs return aktual negatif di 8 dari 12 saham** (BBCA -0.048, BBRI -0.263, BMRI -0.052, TLKM -0.164, ASII -0.004, ICBP -0.230, INDF -0.149, DEWA -0.352; positif hanya GOTO +0.12, ADRO +0.05, UNVR -0.023≈0, BUMI +0.375).
+- **Status "Bullish Support" (score≥65, n=45): median return historis -1,2% (NEGATIF)**. Rata-rata terlihat +1,25% tapi itu semata diseret outlier ekstrem (rentang -32,95% s/d +39,59%; trimmed mean cuma +0,86%).
+- **Rasio naik/turun nyaris rata di semua status** (Bullish 33,3%, Wait-and-See 35,4%, Warning 36,8%) — status Warning bahkan sedikit LEBIH TINGGI rasio naiknya dibanding Bullish. Status DSS praktis tidak membedakan probabilitas arah sama sekali.
+
+Laporan lengkap: `output/prediction_research/dss_scoring_weights_audit.txt`.
+
+### Kesimpulan
+Tidak ditemukan bukti (komentar kode, artefak riset, test) bahwa bobot 0.20/0.22/0.18/0.13/0.12/0.15 atau puluhan threshold internal (trendScore/momentumScore/volumeScore/fundamentalScore/status 65/40) pernah di-tuning berdasarkan backtest ini — pola yang SAMA seperti buying_pressure: desain dari intuisi, tidak pernah divalidasi, dan begitu diuji dengan alat proyek sendiri, tidak lolos.
+
+**Catatan penting**: ini BUKAN berarti komponen individualnya salah — RSI/MACD/Bollinger/ADX dihitung benar secara matematis. Masalahnya ada di BOBOT AGREGAT & THRESHOLD STATUS yang menggabungkannya jadi satu skor "Bullish/Warning" yang diklaim ke pengguna.
+
+**Pola berulang lintas 2 fase audit (D & F)**: proyek ini punya kecenderungan membangun fitur scoring dari intuisi/eyeball, lalu — kalau diaudit dengan disiplin walk-forward yang sama seperti dipakai di model prediksi resmi — ternyata tidak tervalidasi. Ini pelajaran metodologis besar yang layak jadi temuan tersendiri di skripsi, bukan sekadar 2 bug terpisah.
+
+### Rekomendasi (belum dieksekusi, keputusan user)
+1. Disclaimer "referensi, bukan rekomendasi final" yang sudah ada di DSS makin penting dipertahankan mengingat temuan ini — jangan dilonggarkan.
+2. Kalau DSS mau dipertahankan sebagai fitur andalan, bobot & threshold perlu didesain ulang dengan disiplin walk-forward yang sama seperti model prediksi resmi (derive dari train split, uji OOS, bandingkan naive baseline) — bukan sekadar dihapus.
+3. Fundamental score (PBV/PER/ROE/DER) belum diuji terpisah di audit ini (yang diuji skor gabungan akhir) — kalau mau lanjut, itu area yang belum tersentuh.
+
+### Status Fase F: Audit SELESAI (temuan didokumentasikan). Keputusan tindak lanjut (redesign bobot / biarkan dengan disclaimer lebih kuat / lainnya) di tangan user.
