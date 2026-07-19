@@ -1,0 +1,124 @@
+{
+  "official_tickers": [
+    "BBCA",
+    "BBRI",
+    "BMRI",
+    "TLKM",
+    "ASII",
+    "GOTO",
+    "INDF",
+    "ICBP",
+    "ADRO",
+    "UNVR"
+  ],
+  "rows_with_buying_pressure": 50196,
+  "fold_count": 8,
+  "test_a_ml_value_add_5seed_walkforward": {
+    "technical_only": {
+      "f1_macro_mean": 0.3208,
+      "f1_macro_std": 0.0018,
+      "dir_acc_mean": 0.3833,
+      "dir_acc_std": 0.0021
+    },
+    "technical_plus_buying_pressure": {
+      "f1_macro_mean": 0.3082,
+      "f1_macro_std": 0.0031,
+      "dir_acc_mean": 0.3697,
+      "dir_acc_std": 0.0021
+    },
+    "delta_f1_macro": -0.0126,
+    "delta_dir_acc": -0.0136
+  },
+  "test_b_literal_rule_vs_baselines_walkforward_oos": {
+    "rule_directional_accuracy": 0.3306,
+    "majority_class_directional_accuracy": 0.388,
+    "random_baseline_directional_accuracy": 0.3553,
+    "claimed_in_code_comments": {
+      "rule": 0.59,
+      "baseline": 0.5
+    },
+    "folds_where_rule_beats_majority": "1/8",
+    "per_fold_detail": [
+      {
+        "fold_index": 1,
+        "test_start": "2002-01-10",
+        "test_end": "2002-07-11",
+        "test_rows": 378,
+        "rule_dir_acc": 0.3069,
+        "majority_dir_acc": 0.3651,
+        "random_dir_acc": 0.3757,
+        "rule_beats_majority": false
+      },
+      {
+        "fold_index": 2,
+        "test_start": "2002-07-12",
+        "test_end": "2003-01-20",
+        "test_rows": 378,
+        "rule_dir_acc": 0.418,
+        "majority_dir_acc": 0.3333,
+        "random_dir_acc": 0.3545,
+        "rule_beats_majority": true
+      },
+      {
+        "fold_index": 3,
+        "test_start": "2003-01-21",
+        "test_end": "2003-07-23",
+        "test_rows": 378,
+        "rule_dir_acc": 0.2778,
+        "majority_dir_acc": 0.3307,
+        "random_dir_acc": 0.3333,
+        "rule_beats_majority": false
+      },
+      {
+        "fold_index": 4,
+        "test_start": "2003-07-24",
+        "test_end": "2004-02-04",
+        "test_rows": 497,
+        "rule_dir_acc": 0.3581,
+        "majority_dir_acc": 0.4447,
+        "random_dir_acc": 0.3441,
+        "rule_beats_majority": false
+      },
+      {
+        "fold_index": 5,
+        "test_start": "2004-02-05",
+        "test_end": "2004-08-09",
+        "test_rows": 756,
+        "rule_dir_acc": 0.291,
+        "majority_dir_acc": 0.3426,
+        "random_dir_acc": 0.336,
+        "rule_beats_majority": false
+      },
+      {
+        "fold_index": 6,
+        "test_start": "2004-08-10",
+        "test_end": "2005-02-15",
+        "test_rows": 903,
+        "rule_dir_acc": 0.3045,
+        "majority_dir_acc": 0.4828,
+        "random_dir_acc": 0.3499,
+        "rule_beats_majority": false
+      },
+      {
+        "fold_index": 7,
+        "test_start": "2005-02-16",
+        "test_end": "2005-08-18",
+        "test_rows": 1008,
+        "rule_dir_acc": 0.3343,
+        "majority_dir_acc": 0.3869,
+        "random_dir_acc": 0.375,
+        "rule_beats_majority": false
+      },
+      {
+        "fold_index": 8,
+        "test_start": "2005-08-19",
+        "test_end": "2006-02-24",
+        "test_rows": 1008,
+        "rule_dir_acc": 0.3542,
+        "majority_dir_acc": 0.4177,
+        "random_dir_acc": 0.374,
+        "rule_beats_majority": false
+      }
+    ]
+  }
+}

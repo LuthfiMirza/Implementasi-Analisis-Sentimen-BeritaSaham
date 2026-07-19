@@ -1,0 +1,49 @@
+Validasi Walk-Forward: Fitur "Buying Pressure" (uncommitted)
+===============================================================
+
+Konteks: 3 file (FeatureBuilderService.php, BaselinePredictionService.php,
+DecisionSupportService.php) mengklaim di komentar kode bahwa aturan
+"buying_pressure >= 0.55 -> naik, <= 0.45 -> turun" mencapai ~59% akurasi
+arah pada "validasi held-out 10 saham objek penelitian", vs ~50% baseline.
+TIDAK ADA artefak riset apa pun di repo yang membuktikan klaim ini. Validasi
+ini mereproduksi klaim tersebut memakai metodologi resmi proyek: walk-forward
+OOS 8-fold (min_train_days=252, test_window_days=126, sama seperti setting
+default train_prediction_models.py), 10 ticker resmi, label target_direction_5d.
+
+Data: 50.196/50.196 baris (100% coverage -- buying_pressure murni dari
+harga+volume, tidak bergantung berita).
+
+TEST A -- Nilai tambah sebagai fitur ML (RandomForest 5-seed):
+  technical_only:              f1_macro=0.3208 (std 0.0018), dir_acc=0.3833 (std 0.0021)
+  technical + buying_pressure: f1_macro=0.3082 (std 0.0031), dir_acc=0.3697 (std 0.0021)
+  Delta: f1_macro -0.0126, dir_acc -0.0136 (KEDUANYA NEGATIF, jauh di luar std --
+  bukan noise, ini penurunan performa yang nyata dan konsisten)
+
+TEST B -- Aturan literal dari kode (>=0.55 naik, <=0.45 turun) vs baseline,
+walk-forward OOS 8 fold:
+  Rule (buying_pressure threshold): dir_acc = 33.06%
+  Majority-class baseline:          dir_acc = 38.80%
+  Random baseline:                  dir_acc = 35.53%
+  Klaim di komentar kode:           59% (rule) vs 50% (baseline)
+
+  Aturan literal KALAH dari majority-class di 7 dari 8 fold, dan kalah dari
+  random baseline di 6 dari 8 fold. Detail per fold ada di
+  buying_pressure_walkforward_validation.json.
+
+KESIMPULAN:
+Klaim "~59% vs ~50%" di komentar kode TIDAK TERBUKTI dan TIDAK BISA
+DIREPRODUKSI dengan metodologi walk-forward yang benar -- bahkan hasilnya
+TERBALIK: baik sebagai aturan langsung maupun sebagai fitur tambahan di
+model ML, buying_pressure justru MENURUNKAN akurasi dibanding baseline.
+Threshold 0,55/0,45 dan probabilitas presisi (0,60/0,58/0,55/0,54) di kode
+kemungkinan besar hasil tuning manual/eyeball pada sampel terbatas, bukan
+validasi out-of-sample yang benar -- pola data-snooping yang persis sama
+dengan kasus kandidat trading DEWA yang pernah gagal graduation test OOS
+di proyek ini sebelumnya.
+
+REKOMENDASI: JANGAN commit ketiga file ini dalam bentuk sekarang. Kalau
+fitur buying_pressure mau dipertahankan, perlu didesain ulang dari nol
+dengan metodologi yang benar (split train/test dulu, derive threshold HANYA
+dari train, uji di test yang benar-benar tidak tersentuh) -- bukan sekadar
+menghapus fitur ini, karena rasio volume ini pada dasarnya bisa saja
+mengandung sinyal, tapi implementasi & threshold saat ini terbukti salah.
