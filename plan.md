@@ -240,3 +240,33 @@ Tidak ditemukan bukti (komentar kode, artefak riset, test) bahwa bobot 0.20/0.22
 3. Fundamental score (PBV/PER/ROE/DER) belum diuji terpisah di audit ini (yang diuji skor gabungan akhir) — kalau mau lanjut, itu area yang belum tersentuh.
 
 ### Status Fase F: Audit SELESAI (temuan didokumentasikan). Keputusan tindak lanjut (redesign bobot / biarkan dengan disclaimer lebih kuat / lainnya) di tangan user.
+
+---
+
+## Fase G — Audit tahap 4 (Model Prediksi): engine produksi ternyata bukan yang tervalidasi
+
+**Konteks:** lanjutan audit alur (tahap 4, setelah tahap 5/DSS di Fase F). `DecisionSupportService::analyze()` memanggil `BaselinePredictionService::predict()` untuk field `prediction`/`prediction_confidence` yang juga menggerakkan validitas `trading_signal` (TP/SL). Berbeda dari kartu prediksi dual-model di `/analytics` (`StockPredictionCardsService`, manggil Python langsung, tidak terpengaruh), jalur DSS ini tunduk ke config `PREDICTION_ENGINE`.
+
+### Temuan
+`.env` production: **`PREDICTION_ENGINE=baseline`** — padahal model ML resmi (`prediction_api.py`, RandomForest `model_technical_v6a.joblib`, sudah tervalidasi walk-forward di sesi-sesi sebelumnya, ~40.5% dir_acc tercatat) **sedang jalan sehat** (`model_ready: true`) via LaunchAgent yang sama seperti sentiment-api. Jalur DSS malah pakai `BaselinePredictionService::baselineHeuristic()` — heuristik hand-tuned lain (bobot `sentimentWeight`/`newsFlowWeight` dinamis + `maSignal*0.18 + lag1Signal*0.14 + lag3Signal*0.20 + lag7Signal*0.10 + rsiSignal*0.10 + cumSignal*0.06 + trendSignal*0.10 + corrSignal*0.06`, pola sama seperti DSS/buying-pressure) — yang **inilah** yang diam-diam sudah teruji ikut kena angka 33.3% (random-baseline) di backtest Fase F, karena `accuracy` di backtest itu mengukur field `prediction` yang datang dari service ini.
+
+### Verifikasi perbandingan apples-to-apples
+Backtest SAMA PERSIS (`runAll`, maxWindows=60, 720 prediksi) dijalankan ulang dengan `Config::set('prediction.engine','python')`:
+
+| Engine | Akurasi arah (n=720) |
+|---|---|
+| `baseline` (heuristik, aktif sebelumnya) | 33.3% |
+| `python` (model ML resmi v6a) | **39.6%** |
+
++6.3 poin, korelasi per-saham juga lebih seimbang (7 positif/netral vs 5 negatif, dibanding 4 vs 8 sebelumnya). Konsisten dengan baseline V6A resmi (~40.5%) yang sudah tercatat di sesi lama.
+
+### Perubahan diterapkan
+- `.env` **`PREDICTION_ENGINE` diubah dari `baseline` ke `python`**.
+- Verifikasi teknis: skema fitur `FeatureBuilderService::build()` kompatibel dengan `/predict` endpoint (`method: 'python'` di response, bukan fallback).
+- Verifikasi test suite: **aman** — `phpunit.xml` sudah override `PREDICTION_ENGINE=baseline` khusus testing (baris terpisah dari `.env`), jadi switch ini tidak memengaruhi test suite. Full suite tetap 408 passed.
+- **Verifikasi visual di browser**: `/analytics?code=BBRI` — panel DSS menampilkan "Prediksi: UP (0.35)" dengan benar, seluruh halaman (trading signal, indikator teknikal, faktor pendukung) render normal tanpa error.
+
+### Berbeda dari Fase D & F (temuan negatif/reject)
+Ini temuan **positif dan actionable** — bukan buang fitur yang gagal, tapi ganti komponen lemah dengan komponen yang SUDAH ADA dan SUDAH tervalidasi (bukan bikin baru).
+
+### Status Fase G: SELESAI. `.env` sudah diubah & diverifikasi end-to-end. (`.env` tidak masuk git — perubahan ini cuma berlaku di mesin lokal ini, perlu direplikasi manual kalau pindah/deploy ke environment lain.)
