@@ -154,6 +154,7 @@ class BacktestService
                 'macro_regulatory_regime' => (string) ($macroSignal['attention_regime'] ?? 'disabled'),
                 'macro_regulatory_caution_flag' => (bool) ($macroSignal['caution_flag'] ?? false),
                 'macro_regulatory_article_count' => (int) ($macroSignal['article_count'] ?? 0),
+                'component_scores' => $result['component_scores'] ?? null,
             ];
         }
 

@@ -333,3 +333,45 @@ Cek sebaran probabilitas aktual dari 360 prediksi live (engine `python`): median
 - **Browser** (`/analytics?code=BBRI`): status sekarang **konsisten** dengan prediksi — "Bullish Support • Rendah" sejalan dengan "Prediksi: UP (0.35)" (sebelumnya kontradiktif: "Wait and See" + "UP" bersamaan). Skor faktor tampil terpisah dengan label deskriptif jelas.
 
 ### Status Fase I: SELESAI. Temuan Fase F sudah ditindaklanjuti — status DSS sekarang berbasis komponen tervalidasi, bukan komposit yang gagal backtest, dan transparan ke user soal apa yang sebenarnya menggerakkan keputusan.
+
+---
+
+## Fase J — Pendalaman bobot DSS: cek komponen individual (bukan asal redesign)
+
+**Konteks:** setelah Fase F/I, user minta didalami lagi — apakah ada cara yang BENAR untuk mencoba memperbaiki bobot DSS, bukan sekadar menyerah. Disepakati: sebelum coba redesign bobot (Opsi A, ditolak sebelumnya karena risiko data-snooping tinggi), cek dulu apakah komponen INDIVIDUAL (sentimen/trend/momentum/volume/volatilitas/fundamental) punya sinyal sama sekali — diagnostik murni, tanpa optimasi apa pun, jadi tidak ada risiko overfitting.
+
+### Perubahan kode (aditif, tidak mengubah perilaku)
+- `DecisionSupportService::analyze()` — tambah `component_scores` ke return array (6 skor individual sebelum digabung jadi `final_score`).
+- `BacktestService::runForStock()` — tambah passthrough `component_scores` ke `$results[]`.
+- Full suite tetap 411 passed setelah perubahan.
+
+### Diagnostik: korelasi tiap komponen vs return aktual, 3 horizon (5d/20d/60d)
+n=480 per horizon (40 window × 12 ticker), `BacktestService::runAll()`.
+
+| Komponen | 5 hari | 20 hari | 60 hari |
+|---|---|---|---|
+| Sentimen | -0.09 | -0.23 | -0.13 |
+| Trend | -0.15 | -0.16 | +0.17 |
+| Momentum | -0.09 | -0.03 | +0.08 |
+| Volume | 0.00 | 0.01 | +0.18 |
+| Volatilitas | 0.03 | 0.02 | -0.05 |
+| **Fundamental** | +0.13 | +0.23 | **+0.31** |
+
+Sekilas fundamental terlihat menjanjikan: korelasi positif, menguat monoton seiring horizon memanjang — pola yang biasanya jadi ciri sinyal asli (bukan noise), sesuai dugaan awal user bahwa sinyal fundamental bergerak lambat.
+
+### Investigasi lanjut: fundamental TERNYATA statis, bukan deret waktu — temuan gugur
+Dicek: `calculateFundamentalScore()` membaca `$stock->pbv/per/roe/der` **langsung dari tabel `stocks`** (`fundamentals_updated_at` = snapshot tunggal, 2025-12-30), BUKAN data historis per tanggal. Artinya nilai fundamentalScore **identik** di semua window backtest untuk saham yang sama, terlepas dari `signalDate`-nya 2010 atau 2025.
+
+**Implikasi (3 masalah sekaligus):**
+1. **Sample sesungguhnya cuma n=12** (jumlah saham unik), bukan n=480 — korelasi dari 12 titik data sangat rentan kebetulan.
+2. **Risiko sebab-akibat terbalik**: saham dengan histori harga bagus sering JUGA punya fundamental bagus SEKARANG (karena histori sukses itu sendiri membentuk fundamental saat ini) — bukan bukti fundamental "memprediksi" apa pun.
+3. **Pola "korelasi menguat seiring horizon" adalah artefak statistik** dari memakai variabel konstan-per-saham (window lebih panjang → return ter-smoothing → efek tetap-per-saham APAPUN, bukan cuma fundamental, akan terlihat "menguat") — bukan bukti skill prediktif genuine.
+
+**Kenapa validasi OOS tidak applicable:** split kronologis tidak menolong karena nilai fundamentalnya SAMA di kedua sisi split (cuma 1 snapshot). Untuk benar-benar menguji fundamental historis vs return ke depan, dibutuhkan **data fundamental historis per tanggal** (PBV/PER/ROE dari waktu ke waktu) — database ini cuma simpan snapshot terkini, bukan deret waktu. Ini keterbatasan data struktural, sama seperti coverage sentimen — bukan soal desain uji yang bisa diperbaiki.
+
+### Kesimpulan Fase J
+Tidak ada satu pun dari 6 komponen DSS yang lolos uji dengan disiplin penuh (sentimen/trend/momentum/volume/volatilitas: noise jelas; fundamental: sekilas menjanjikan tapi gugur karena artefak statistik + keterbatasan data). Ini memperkuat kesimpulan Fase F: skor komposit DSS memang tidak punya dasar empiris yang kuat pada data yang tersedia saat ini. Keputusan Fase I (status DSS berbasis model ML tervalidasi, bukan komposit) tetap pilihan paling tepat — tidak ada alasan baru untuk mengubahnya.
+
+**Follow-up potensial (belum dieksekusi, butuh data baru yang belum ada)**: kalau proyek ini suatu saat mulai menyimpan data fundamental historis (bukan cuma snapshot terkini), pengujian fundamental yang benar baru bisa dilakukan. Sampai saat itu, klaim "fundamental scoring" di DSS sebaiknya dipahami sebagai info deskriptif kondisi SAAT INI (rating "fair"/"attractive"/"expensive"), bukan sinyal prediktif return.
+
+### Status Fase J: SELESAI. Tidak ada perubahan kode lebih lanjut diperlukan — temuan mengonfirmasi keputusan Fase I sudah tepat.
