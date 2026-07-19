@@ -4,22 +4,22 @@ Sentiment Window Experiment (5d vs 10d vs 20d)
 window_days,scenario,algorithm,seeds_run,fold_count,f1_macro_mean,f1_macro_std,dir_acc_mean,dir_acc_std
 5,without_sentiment,logistic_regression,1,1,0.2934,0.0000,0.3222,0.0000
 5,without_sentiment,random_forest,5,1,0.3516,0.0045,0.3608,0.0052
-5,with_sentiment,logistic_regression,1,1,0.2998,0.0000,0.3000,0.0000
-5,with_sentiment,random_forest,5,1,0.3496,0.0063,0.3579,0.0062
+5,with_sentiment,logistic_regression,1,1,0.2951,0.0000,0.2952,0.0000
+5,with_sentiment,random_forest,5,1,0.3499,0.0024,0.3587,0.0013
 10,without_sentiment,logistic_regression,1,1,0.2934,0.0000,0.3222,0.0000
 10,without_sentiment,random_forest,5,1,0.3516,0.0045,0.3608,0.0052
-10,with_sentiment,logistic_regression,1,1,0.3329,0.0000,0.3333,0.0000
-10,with_sentiment,random_forest,5,1,0.3493,0.0066,0.3629,0.0064
+10,with_sentiment,logistic_regression,1,1,0.3131,0.0000,0.3135,0.0000
+10,with_sentiment,random_forest,5,1,0.3483,0.0099,0.3654,0.0123
 20,without_sentiment,logistic_regression,1,1,0.2934,0.0000,0.3222,0.0000
 20,without_sentiment,random_forest,5,1,0.3516,0.0045,0.3608,0.0052
-20,with_sentiment,logistic_regression,1,1,0.2807,0.0000,0.2825,0.0000
-20,with_sentiment,random_forest,5,1,0.3274,0.0064,0.3979,0.0036
+20,with_sentiment,logistic_regression,1,1,0.2646,0.0000,0.2698,0.0000
+20,with_sentiment,random_forest,5,1,0.3308,0.0072,0.3879,0.0088
 
 With vs Without Sentiment (delta, positive = sentiment helps)
 window_days,algorithm,delta_f1_macro,delta_directional_accuracy,with_f1,without_f1,with_dir_acc,without_dir_acc
-5,logistic_regression,+0.0064,-0.0222,0.2998,0.2934,0.3000,0.3222
-5,random_forest,-0.0020,-0.0029,0.3496,0.3516,0.3579,0.3608
-10,logistic_regression,+0.0395,+0.0111,0.3329,0.2934,0.3333,0.3222
-10,random_forest,-0.0023,+0.0021,0.3493,0.3516,0.3629,0.3608
-20,logistic_regression,-0.0127,-0.0397,0.2807,0.2934,0.2825,0.3222
-20,random_forest,-0.0242,+0.0371,0.3274,0.3516,0.3979,0.3608
+5,logistic_regression,+0.0017,-0.0270,0.2951,0.2934,0.2952,0.3222
+5,random_forest,-0.0017,-0.0021,0.3499,0.3516,0.3587,0.3608
+10,logistic_regression,+0.0197,-0.0087,0.3131,0.2934,0.3135,0.3222
+10,random_forest,-0.0033,+0.0046,0.3483,0.3516,0.3654,0.3608
+20,logistic_regression,-0.0288,-0.0524,0.2646,0.2934,0.2698,0.3222
+20,random_forest,-0.0208,+0.0271,0.3308,0.3516,0.3879,0.3608

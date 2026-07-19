@@ -43,9 +43,9 @@
       "algorithm": "logistic_regression",
       "seeds_run": 1,
       "fold_count": 1,
-      "f1_macro_mean": 0.2998,
+      "f1_macro_mean": 0.2951,
       "f1_macro_std": 0.0,
-      "directional_accuracy_mean": 0.3,
+      "directional_accuracy_mean": 0.2952,
       "directional_accuracy_std": 0.0
     },
     {
@@ -54,10 +54,10 @@
       "algorithm": "random_forest",
       "seeds_run": 5,
       "fold_count": 1,
-      "f1_macro_mean": 0.3496,
-      "f1_macro_std": 0.0063,
-      "directional_accuracy_mean": 0.3579,
-      "directional_accuracy_std": 0.0062
+      "f1_macro_mean": 0.3499,
+      "f1_macro_std": 0.0024,
+      "directional_accuracy_mean": 0.3587,
+      "directional_accuracy_std": 0.0013
     },
     {
       "window_days": 10,
@@ -87,9 +87,9 @@
       "algorithm": "logistic_regression",
       "seeds_run": 1,
       "fold_count": 1,
-      "f1_macro_mean": 0.3329,
+      "f1_macro_mean": 0.3131,
       "f1_macro_std": 0.0,
-      "directional_accuracy_mean": 0.3333,
+      "directional_accuracy_mean": 0.3135,
       "directional_accuracy_std": 0.0
     },
     {
@@ -98,10 +98,10 @@
       "algorithm": "random_forest",
       "seeds_run": 5,
       "fold_count": 1,
-      "f1_macro_mean": 0.3493,
-      "f1_macro_std": 0.0066,
-      "directional_accuracy_mean": 0.3629,
-      "directional_accuracy_std": 0.0064
+      "f1_macro_mean": 0.3483,
+      "f1_macro_std": 0.0099,
+      "directional_accuracy_mean": 0.3654,
+      "directional_accuracy_std": 0.0123
     },
     {
       "window_days": 20,
@@ -131,9 +131,9 @@
       "algorithm": "logistic_regression",
       "seeds_run": 1,
       "fold_count": 1,
-      "f1_macro_mean": 0.2807,
+      "f1_macro_mean": 0.2646,
       "f1_macro_std": 0.0,
-      "directional_accuracy_mean": 0.2825,
+      "directional_accuracy_mean": 0.2698,
       "directional_accuracy_std": 0.0
     },
     {
@@ -142,71 +142,71 @@
       "algorithm": "random_forest",
       "seeds_run": 5,
       "fold_count": 1,
-      "f1_macro_mean": 0.3274,
-      "f1_macro_std": 0.0064,
-      "directional_accuracy_mean": 0.3979,
-      "directional_accuracy_std": 0.0036
+      "f1_macro_mean": 0.3308,
+      "f1_macro_std": 0.0072,
+      "directional_accuracy_mean": 0.3879,
+      "directional_accuracy_std": 0.0088
     }
   ],
   "comparisons": [
     {
       "window_days": 5,
       "algorithm": "logistic_regression",
-      "delta_f1_macro": 0.0064,
-      "delta_directional_accuracy": -0.0222,
-      "with_sentiment_f1_macro": 0.2998,
+      "delta_f1_macro": 0.0017,
+      "delta_directional_accuracy": -0.027,
+      "with_sentiment_f1_macro": 0.2951,
       "without_sentiment_f1_macro": 0.2934,
-      "with_sentiment_dir_acc": 0.3,
+      "with_sentiment_dir_acc": 0.2952,
       "without_sentiment_dir_acc": 0.3222
     },
     {
       "window_days": 5,
       "algorithm": "random_forest",
-      "delta_f1_macro": -0.002,
-      "delta_directional_accuracy": -0.0029,
-      "with_sentiment_f1_macro": 0.3496,
+      "delta_f1_macro": -0.0017,
+      "delta_directional_accuracy": -0.0021,
+      "with_sentiment_f1_macro": 0.3499,
       "without_sentiment_f1_macro": 0.3516,
-      "with_sentiment_dir_acc": 0.3579,
+      "with_sentiment_dir_acc": 0.3587,
       "without_sentiment_dir_acc": 0.3608
     },
     {
       "window_days": 10,
       "algorithm": "logistic_regression",
-      "delta_f1_macro": 0.0395,
-      "delta_directional_accuracy": 0.0111,
-      "with_sentiment_f1_macro": 0.3329,
+      "delta_f1_macro": 0.0197,
+      "delta_directional_accuracy": -0.0087,
+      "with_sentiment_f1_macro": 0.3131,
       "without_sentiment_f1_macro": 0.2934,
-      "with_sentiment_dir_acc": 0.3333,
+      "with_sentiment_dir_acc": 0.3135,
       "without_sentiment_dir_acc": 0.3222
     },
     {
       "window_days": 10,
       "algorithm": "random_forest",
-      "delta_f1_macro": -0.0023,
-      "delta_directional_accuracy": 0.0021,
-      "with_sentiment_f1_macro": 0.3493,
+      "delta_f1_macro": -0.0033,
+      "delta_directional_accuracy": 0.0046,
+      "with_sentiment_f1_macro": 0.3483,
       "without_sentiment_f1_macro": 0.3516,
-      "with_sentiment_dir_acc": 0.3629,
+      "with_sentiment_dir_acc": 0.3654,
       "without_sentiment_dir_acc": 0.3608
     },
     {
       "window_days": 20,
       "algorithm": "logistic_regression",
-      "delta_f1_macro": -0.0127,
-      "delta_directional_accuracy": -0.0397,
-      "with_sentiment_f1_macro": 0.2807,
+      "delta_f1_macro": -0.0288,
+      "delta_directional_accuracy": -0.0524,
+      "with_sentiment_f1_macro": 0.2646,
       "without_sentiment_f1_macro": 0.2934,
-      "with_sentiment_dir_acc": 0.2825,
+      "with_sentiment_dir_acc": 0.2698,
       "without_sentiment_dir_acc": 0.3222
     },
     {
       "window_days": 20,
       "algorithm": "random_forest",
-      "delta_f1_macro": -0.0242,
-      "delta_directional_accuracy": 0.0371,
-      "with_sentiment_f1_macro": 0.3274,
+      "delta_f1_macro": -0.0208,
+      "delta_directional_accuracy": 0.0271,
+      "with_sentiment_f1_macro": 0.3308,
       "without_sentiment_f1_macro": 0.3516,
-      "with_sentiment_dir_acc": 0.3979,
+      "with_sentiment_dir_acc": 0.3879,
       "without_sentiment_dir_acc": 0.3608
     }
   ]

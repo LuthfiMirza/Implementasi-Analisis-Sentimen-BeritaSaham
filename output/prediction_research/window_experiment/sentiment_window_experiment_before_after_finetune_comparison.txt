@@ -1,0 +1,43 @@
+Perbandingan: Kontribusi Sentimen ke Akurasi Prediksi Harga
+Sebelum vs Sesudah Fine-Tuning + Tiebreak Flip (Fase B & C)
+=============================================================
+
+Subset: 2024-08-01..2026-04-15, 10 ticker resmi, label=target_direction_5d
+Metodologi: fair-comparison (with/without sentiment pada baris identik), RandomForest 5-seed, LogisticRegression 1-seed (solver lbfgs, tidak seed-sensitive)
+
+RandomForest (model primer, tervalidasi multi-seed) -- delta with vs without sentiment:
+
+window_days | delta_f1_macro (lama -> baru) | delta_dir_acc (lama -> baru)
+5           | -0.0017 -> -0.0020            | -0.0021 -> -0.0029
+10          | -0.0033 -> -0.0023            | +0.0046 -> +0.0021
+20          | -0.0208 -> -0.0242            | +0.0271 -> +0.0371
+
+Verdict RandomForest: PRAKTIS TIDAK BERUBAH. Semua delta tetap dalam rentang
+noise (std ~0.005-0.007) kecuali window=20, yang tetap menunjukkan pola sama
+seperti sebelumnya (dir_acc naik tapi f1_macro turun -- model condong ke
+kelas mayoritas, bukan sinyal prediktif asli). KESIMPULAN TIDAK BERUBAH:
+sentimen belum berkontribusi ke akurasi prediksi harga, bahkan setelah
+kualitas sentimen terbukti membaik signifikan (macro-F1 35.6% -> 58.16%).
+
+LogisticRegression (sekunder, 1-seed, untuk konteks) -- window=10 menarik:
+  delta_f1_macro: +0.0197 -> +0.0395 (menguat)
+  delta_dir_acc:  -0.0087 -> +0.0111 (berbalik dari negatif ke positif)
+Tapi ini model yang lebih lemah di pipeline ini (macro_f1 ~0.29-0.33 vs RF
+~0.35) dan tidak melalui uji multi-seed formal. Dicatat sebagai observasi,
+BUKAN bukti kuat -- tidak cukup untuk mengubah kesimpulan utama.
+
+INTERPRETASI:
+Perbaikan kualitas sentimen (Fase B: fine-tuning, Fase C: tiebreak flip)
+TIDAK menerjemah ke perbaikan akurasi prediksi harga yang terukur pada
+RandomForest -- model yang divalidasi paling ketat di pipeline ini.
+Ini mengonfirmasi hipotesis yang sudah diduga sejak Fase A: COVERAGE
+(17-28% di subset terbaik) adalah bottleneck utama, BUKAN kualitas skor
+sentimen itu sendiri. Sentimen yang lebih akurat pada ~20% baris yang
+punya data tetap tidak cukup untuk menggerakkan model yang 80% barisnya
+tanpa sinyal sentimen sama sekali.
+
+Implikasi untuk skripsi: temuan ini negatif tapi kuat secara metodologis --
+dua sumber perbaikan independen (kualitas model + kebijakan tie-break)
+sama-sama gagal mengubah kontribusi prediktif sentimen, memperkuat klaim
+bahwa akar masalahnya struktural (coverage berita vs rentang training),
+bukan kualitas analisis sentimen.
