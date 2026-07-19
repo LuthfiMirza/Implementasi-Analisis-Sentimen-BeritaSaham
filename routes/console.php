@@ -148,3 +148,12 @@ Schedule::command('prediction:retrain-volatile')
     ->withoutOverlapping()
     ->runInBackground()
     ->appendOutputTo(storage_path('logs/retrain-volatile.log'));
+
+// AUTO-RECOVERY: setiap 30 menit, cek apakah scheduler.log stale (proxy scheduler/DB sempat mati)
+// dan otomatis backfill berita untuk rentang yang terlewat -- supaya outage MySQL/scheduler tidak
+// perlu ditambal manual tiap kali ketahuan (sudah 2x terjadi: 2026-07-10..13, 2026-07-18..19).
+Schedule::command('news:auto-recover-gap')
+    ->everyThirtyMinutes()
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));

@@ -172,3 +172,40 @@ Klaim "~59% vs ~50%" **tidak bisa direproduksi** dan **terbalik** di bawah metod
 **Rekomendasi ke user: JANGAN commit ketiga file dalam bentuk sekarang.** Kalau fitur ini mau dilanjutkan, perlu didesain ulang dari nol dengan disiplin yang sama seperti fitur lain di proyek ini (derive threshold HANYA dari train split, uji di test yang benar-benar tidak tersentuh) — bukan berarti rasio volume ini pasti tidak ada sinyal sama sekali, tapi implementasi & threshold yang ada SEKARANG terbukti salah.
 
 ### Status Fase D: SELESAI. Keputusan akhir (commit/revisi/buang 3 file) di tangan user.
+
+**Update 2026-07-19 malam**: user konfirmasi "belum divalidasi, jangan di-commit dulu" → 3 file di-`git checkout --` (dikembalikan ke state committed terakhir, backup diff tersimpan di `storage/app/discarded_experiments/buying_pressure_discarded_20260719.patch` untuk referensi kalau mau redesign nanti). Working tree bersih.
+
+---
+
+## Fase E — Audit infra: root cause outage MySQL & auto-recovery gap berita
+
+**Konteks:** user minta audit menyeluruh dimulai dari infra MySQL, karena sudah 2x outage nyata (2026-07-10..13, 2026-07-18..19) yang menghentikan pengumpulan berita tanpa gejala sampai `scheduler:healthcheck` dicek manual.
+
+### Temuan root cause
+- MySQL **sebenarnya SEDANG JALAN** saat dicek (PID aktif), tapi `mysql.server status`/`start` CLI **selalu gagal** untuk user `mac` — root cause: `/Applications/XAMPP/xamppfiles/var/mysql/` dan isinya dimiliki grup `_mysql:702` (`rw-rw----`), dan `mac` **bukan anggota grup itu**. User selama ini menyalakan MySQL lewat **XAMPP Application Manager (GUI)**, yang elevate ke root lalu drop privilege ke `_mysql` sesuai `my.cnf` (`user=mysql`) — bukan lewat CLI.
+- **Tidak ada mekanisme auto-start sama sekali** (tidak ada LaunchDaemon) — akar sebab langsung dari kedua outage: begitu Mac restart / app XAMPP Manager tidak dibuka lagi, MySQL mati total tanpa gejala lain.
+- **Log error MySQL membengkak lagi ke 1.3GB** (`macs-MacBook-Pro.local.err`) — sempat "diperbaiki" di sesi lama (1.25GB) tapi ternyata cuma dibersihkan sekali, bukan dicegah tumbuh lagi. Plus ada 5 file `.err` sisa hostname lama (jaringan/nama Mac berubah-ubah) menumpuk ~1.4GB total di direktori itu. **Belum dibersihkan** (belum diminta user, opsional).
+
+### Perbaikan: LaunchDaemon auto-start MySQL
+User pilih opsi paling tuntas. Plist disiapkan di scratchpad (`com.sentimena.mysql.plist`) — jalankan `mysqld_safe` langsung sebagai `root` (`UserName: root`), `RunAtLoad`+`KeepAlive`, replikasi persis mekanisme privilege-drop yang sudah terbukti jalan via GUI XAMPP (root → drop ke `_mysql` sesuai `my.cnf`). **Instalasi butuh `sudo` yang tidak bisa dieksekusi dari tool ini** (non-interactive sudo gagal, perlu password) — user diberi 4 command copy-paste untuk dijalankan sendiri di terminal:
+```
+sudo cp <scratchpad>/com.sentimena.mysql.plist /Library/LaunchDaemons/com.sentimena.mysql.plist
+sudo chown root:wheel /Library/LaunchDaemons/com.sentimena.mysql.plist
+sudo chmod 644 /Library/LaunchDaemons/com.sentimena.mysql.plist
+sudo launchctl load /Library/LaunchDaemons/com.sentimena.mysql.plist
+```
+**Status: menunggu user eksekusi command di atas, belum diverifikasi jalan.** Kalau sesi depan mau lanjut/verifikasi: cek `ps aux | grep mysqld`, `scheduler:healthcheck`, dan coba `php artisan tinker` konek DB tanpa perlu buka app XAMPP Manager dulu.
+
+### Fitur baru: auto-detect-gap + auto-backfill (self-healing)
+User minta (bagian dari audit infra): daripada nambal manual tiap kali ketahuan ada gap, buat mekanisme otomatis. Command baru [`app/Console/Commands/AutoRecoverNewsGapCommand.php`](app/Console/Commands/AutoRecoverNewsGapCommand.php) (`news:auto-recover-gap`):
+- **Reuse mekanisme yang sudah proven**: baca mtime `storage/logs/scheduler.log` (proxy yang sama dipakai `scheduler:healthcheck`, sudah terbukti akurat mendeteksi 2 outage nyata sebelumnya).
+- Kalau gap > `--threshold-hours` (default 1 jam): otomatis panggil `news:backfill-historical` untuk rentang tanggal yang terlewat, dibatasi `--max-gap-days` (default 14 hari) supaya tidak backfill kelewat jauh.
+- Dijadwalkan tiap 30 menit di `routes/console.php` (`->everyThirtyMinutes()`), `withoutOverlapping()`, log ke `scheduler.log` yang sama (jadi run command ini sendiri juga jadi bukti "scheduler sehat").
+- Idempotent secara alami: `news:backfill-historical` yang dipanggil sudah punya resume/skip logic sendiri (`Cache` per source+ticker+month), jadi aman dipanggil berulang tanpa kerja duplikat.
+- Test baru `tests/Feature/AutoRecoverNewsGapCommandTest.php` (4 test: no-gap, gap-detected, log-missing, max-gap-days-cap). Full suite 408 passed (dari 404).
+
+### Status Fase E: SEBAGIAN SELESAI.
+- ✅ Root cause outage MySQL ditemukan & didokumentasikan.
+- ✅ Auto-recovery gap berita: kode selesai, tertest, terjadwal, sudah live (mulai jalan tiap 30 menit begitu di-deploy).
+- ⏳ LaunchDaemon MySQL: **butuh aksi manual user** (jalankan 4 command sudo di atas), belum terverifikasi jalan.
+- ⏳ Belum dikerjakan (belum diminta): bersihkan log 1.3GB, tambah `mac` ke grup `_mysql` untuk akses CLI.
