@@ -42,16 +42,17 @@ Urutan ini mengikuti alur skripsi: **berita → sentimen → fitur → prediksi 
 | 4 | **Evaluasi Model** (`/evaluasi`) | Ringkasan akurasi model prediksi 10 saham resmi |
 | 5 | **Audit Sentimen** (`/evaluasi/sentimen`) | Perbandingan sentimen vs pergerakan harga |
 | 6 | **Backtest DSS** (`/backtest`) | Hasil backtest sistem pendukung keputusan |
-| 7 | **Validasi Sentimen Manual** (`/sentiment-validation`) | Tool riset: label manual ML vs rule-based, dengan ringkasan agreement rate (`/sentiment-validation/summary`) — bukti empiris kenapa rule-based dipilih sebagai tie-break |
+| 7 | **Validasi Sentimen Manual** (`/sentiment-validation`) | Tool riset: label manual ML vs rule-based, dengan ringkasan agreement rate (`/sentiment-validation/summary`) — dasar untuk memutuskan kebijakan tie-break saat ML dan rule-based beda pendapat |
 
 ## 4. Temuan riset yang layak disebut ke penguji (jujur, termasuk yang negatif)
 
 Skripsi ini secara sengaja **tidak menyembunyikan hasil negatif** — itu bagian dari rigor ilmiahnya:
 
-- **Coverage sentimen rendah** (0.22% dari total hari trading untuk 10 saham resmi) karena riwayat harga 25 tahun vs data berita baru ~1-1.5 tahun. Dicatat sebagai keterbatasan, bukan disembunyikan.
+- **Coverage sentimen rendah** (1.37% dari total hari trading untuk 10 saham resmi di dataset full-history 25 tahun; naik ke 17-28% di subset periode terbaru 2024-08+) karena riwayat harga 25 tahun vs data berita baru ~1.5-2 tahun. Dicatat sebagai keterbatasan struktural, bukan disembunyikan.
 - **Strategi trading TP/SL BUMI/DEWA terbukti tidak profitable** net-of-cost (dianalisis sampai level fat-tail robustness, bukan cuma gross return).
-- **Validasi manual 801 artikel** menunjukkan model ML (IndoBERT) cuma 35.6% akurat dibanding manusia — lebih buruk dari tebak acak — sementara rule-based 59.4%. Sistem sudah diperbaiki untuk pakai rule-based sebagai pemenang saat keduanya beda pendapat.
-- Detail lengkap tiap temuan ada di `output/prediction_research/` dan `output/trading_research/reports/`. Lihat `output/RESEARCH_INDEX.md` untuk peta 700+ file artefak riset (final vs eksperimen).
+- **Model sentimen ML (IndoBERT) sudah di-fine-tune** dari 801 artikel yang dilabel manual (awalnya model mentah cuma 35.6% akurat dibanding manusia — lebih buruk dari tebak acak — vs rule-based 59.4%). Setelah fine-tuning, ML naik jadi 58.16% macro-F1, mengalahkan rule-based (54.82%) di test-set yang sama. Kebijakan tie-break (saat ML dan rule-based beda pendapat) sudah dibalik mengikuti bukti empiris ini: ML sekarang menang (55.8% akurat vs rule-based 32.7%, diukur khusus di kondisi disagreement), dan seluruh riwayat artikel sudah di-backfill mengikuti kebijakan baru.
+- **Temuan jujur lanjutan**: meskipun kualitas sentimen terbukti membaik signifikan (dua kali diuji — model lebih akurat, DAN kebijakan tie-break diperbaiki), kontribusinya ke akurasi model prediksi harga **tetap tidak berubah** (diuji ulang dengan metodologi fair-comparison + multi-seed). Ini memperkuat kesimpulan bahwa akar masalahnya coverage berita yang struktural, bukan kualitas analisis sentimen — konsisten dengan bobot sentimen yang kecil di skor Decision Support System.
+- Detail lengkap tiap temuan ada di `output/prediction_research/` dan `output/trading_research/reports/`. Lihat `output/RESEARCH_INDEX.md` untuk peta 700+ file artefak riset (final vs eksperimen), dan `plan.md` untuk log eksekusi fase perbaikan sentimen terbaru.
 
 ## 5. Kalau ada yang error
 
