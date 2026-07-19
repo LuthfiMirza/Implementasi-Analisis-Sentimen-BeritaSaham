@@ -1,0 +1,70 @@
+Audit Konsistensi Fitur: Training vs Live Serving (Tahap 3 Alur Audit)
+==========================================================================
+
+Konteks: cek apakah fitur yang dipakai training model (ExportPredictionResearchDatasetCommand)
+konsisten dengan fitur yang dikirim saat live inference (FeatureBuilderService ->
+prediction_api.py /predict), untuk model_technical_v6a yang baru dipromosikan jadi
+default produksi di Fase G.
+
+DESAIN YANG SUDAH BAIK (tidak perlu diubah):
+- FeatureBuilderService::build() dan ExportPredictionResearchDatasetCommand sama-sama
+  memanggil ResearchPredictionFeatureService::seriesForStock()/buildForDate() -- SATU
+  sumber kode untuk semua indikator teknikal (return_1d/3d/5d/20d, atr14_pct, atr_ratio,
+  volume_ratio, price_vs_ema, rsi_slope, dst). Training dan serving otomatis konsisten
+  by construction untuk semua fitur ini.
+- prediction_api.py membaca feature_columns dari metadata.json model sendiri (self-
+  describing), bukan asumsi urutan kolom dari sisi PHP -- menghindari kelas bug
+  "kolom tertukar urutan" yang umum di serving ML.
+- StockPredictionCardsService (kartu prediksi dual-model) reuse array fitur yang sama
+  dari caller, tidak membangun ulang secara terpisah -- tidak ada divergensi antara
+  panel DSS dan kartu prediksi.
+
+BUG DITEMUKAN: return_5d_cross_section_rank selalu null di live inference
+- Fitur ini = ranking return 5-hari suatu saham relatif terhadap 9 saham lain PADA
+  TANGGAL YANG SAMA. Perhitungannya HANYA ada di
+  ExportPredictionResearchDatasetCommand::applyCrossSectionalReturnRanks() -- method
+  post-processing yang beroperasi di level SELURUH dataset gabungan (semua ticker),
+  dipanggil SEKALI setelah loop buildForDate() per-ticker selesai.
+- ResearchPredictionFeatureService.php:236 (di dalam seriesForStock(), dipakai baik
+  training-time export MAUPUN live serving) hardcode
+  'return_5d_cross_section_rank' => null -- karena fungsi ini memang tidak punya akses
+  ke data saham lain untuk menghitung ranking.
+- Akibatnya: SETIAP request prediksi live (baik panel DSS/analytics maupun kartu
+  prediksi dual-model) mengirim null untuk fitur ini ke prediction_api.py. Model
+  (SimpleImputer strategy=median di dalam Pipeline sklearn) diam-diam mengisi dengan
+  median nilai training -- tidak error, tidak ada gejala, betul-betul silent.
+
+DAMPAK TERUKUR (feature_importances_ dari model_technical_v6a.joblib):
+  atr14_pct: 20.23%       <- dominan, dihitung KONSISTEN (bukan bug)
+  atr_ratio: 18.12%       <- dominan, dihitung KONSISTEN (bukan bug)
+  regime_duration: 8.81%
+  return_3d: 8.11%
+  return_5d: 7.42%
+  price_vs_ema50: 7.23%
+  price_vs_ema20_pct: 6.40%
+  return_20d: 5.23%
+  return_1d: 4.77%
+  volume_ratio_5d: 3.97%
+  volume_ratio_20d: 3.39%
+  rsi_slope_5d: 3.12%
+  return_5d_cross_section_rank: 2.44%   <- BUG: selalu null di live inference
+  market_regime_bullish: 0.49%
+  volume_spike_flag: 0.27%
+
+KESIMPULAN:
+Bug nyata dan terverifikasi, TAPI dampaknya kecil (2.44% importance, peringkat 13
+dari 15 fitur). Bukan penyebab utama akurasi model yang tipis (39.6%) -- dua fitur
+dominan (atr14_pct + atr_ratio, 38.35% gabungan) sudah konsisten dan benar. Fase G
+(switch ke engine python) tetap valid keputusannya meski bug ini belum diperbaiki,
+karena upside-nya sudah terukur nyata (+6.3pp vs heuristik) terlepas dari bug minor
+ini.
+
+REKOMENDASI (belum dieksekusi, opsional -- effort vs impact tidak terlalu menarik):
+1. Fix paling sederhana: precompute tabel ranking cross-sectional harian (semua 10
+   ticker) sebagai bagian dari scheduler harian (mis. saat stocks:update-snapshots),
+   simpan ke cache/tabel kecil, live serving tinggal lookup bukan hitung ulang.
+2. Alternatif lebih sederhana: drop fitur ini dari model versi berikutnya kalau mau
+   retrain (importance rendah, tidak banyak kehilangan sinyal) -- hindari beban
+   maintain kode yang tidak bisa benar-benar dipakai saat serving.
+3. TIDAK mendesak diperbaiki sekarang mengingat importance rendah -- dicatat sebagai
+   temuan audit, bukan bug kritis.

@@ -270,3 +270,43 @@ Backtest SAMA PERSIS (`runAll`, maxWindows=60, 720 prediksi) dijalankan ulang de
 Ini temuan **positif dan actionable** — bukan buang fitur yang gagal, tapi ganti komponen lemah dengan komponen yang SUDAH ADA dan SUDAH tervalidasi (bukan bikin baru).
 
 ### Status Fase G: SELESAI. `.env` sudah diubah & diverifikasi end-to-end. (`.env` tidak masuk git — perubahan ini cuma berlaku di mesin lokal ini, perlu direplikasi manual kalau pindah/deploy ke environment lain.)
+
+---
+
+## Fase H — Audit tahap 3 (Fitur Gabungan): konsistensi training vs live serving
+
+**Konteks:** cek apakah fitur yang dipakai training `model_technical_v6a` (baru dipromosikan produksi di Fase G) konsisten dengan fitur yang dikirim saat live inference.
+
+### Desain yang sudah baik (dikonfirmasi, tidak perlu diubah)
+- `FeatureBuilderService` & `ExportPredictionResearchDatasetCommand` sama-sama pakai `ResearchPredictionFeatureService::seriesForStock()`/`buildForDate()` — satu sumber kode untuk semua indikator teknikal, otomatis konsisten training vs serving by construction.
+- `prediction_api.py` self-describing (baca `feature_columns` dari metadata model sendiri) — menghindari kelas bug "kolom tertukar urutan".
+- `StockPredictionCardsService` reuse array fitur yang sama dari caller — tidak ada divergensi antara panel DSS dan kartu prediksi dual-model.
+
+### Bug ditemukan: `return_5d_cross_section_rank` selalu `null` di live inference
+Fitur ini = ranking return 5-hari suatu saham relatif ke 9 saham lain di tanggal sama. Perhitungan aslinya HANYA ada di `ExportPredictionResearchDatasetCommand::applyCrossSectionalReturnRanks()` — post-processing di level dataset gabungan SEMUA ticker, tidak bisa dihitung per-saham tunggal. `ResearchPredictionFeatureService.php:236` (dipakai baik training maupun serving) hardcode `null` untuk fitur ini. Akibatnya SETIAP prediksi live (panel DSS + kartu prediksi) mengirim `null`, diam-diam di-imputasi model ke nilai median training — tidak ada gejala/error yang terlihat.
+
+**Dampak terukur (feature importance `model_technical_v6a`)**: fitur ini cuma **2.44%** (peringkat 13 dari 15). Dua fitur dominan `atr14_pct` (20.2%) + `atr_ratio` (18.1%) — **dihitung KONSISTEN**, bukan kena bug ini. Laporan lengkap + tabel importance penuh: `output/prediction_research/feature_consistency_audit.txt`.
+
+### Kesimpulan
+Bug nyata & terverifikasi, tapi dampak kecil — bukan penyebab utama akurasi tipis (39.6%). Keputusan Fase G (switch ke `python` engine) tetap valid, upside-nya sudah terukur nyata terlepas dari bug minor ini.
+
+### Rekomendasi (belum dieksekusi, effort vs impact kurang menarik untuk dikejar sekarang)
+1. Precompute ranking cross-sectional harian sebagai bagian scheduler (`stocks:update-snapshots`), live serving tinggal lookup.
+2. Atau: drop fitur ini kalau retrain model berikutnya (importance rendah, tidak banyak kehilangan sinyal).
+3. Tidak mendesak — dicatat sebagai temuan audit, bukan bug kritis.
+
+### Status Fase H: SELESAI. Bug terdokumentasi, tidak diperbaiki (impact rendah, keputusan user kalau mau lanjut).
+
+---
+
+## Ringkasan Audit Menyeluruh (Tahap 1-5)
+
+| Tahap | Area | Status |
+|---|---|---|
+| 1 | Infra MySQL | Root cause ditemukan (Fase E), auto-recovery gap berita LIVE, LaunchDaemon menunggu aksi manual user |
+| 2 | Analisis Sentimen | Solid — fine-tuned, tie-break diperbaiki berdasar data, di-backfill (Fase B/C) |
+| 3 | Fitur Gabungan | Diaudit (Fase H) — desain konsisten, 1 bug minor ditemukan (importance 2.44%, tidak mendesak) |
+| 4 | Model Prediksi | **Bug ditemukan & diperbaiki** (Fase G) — engine production diganti dari heuristik tak-tervalidasi (33.3%) ke model resmi tervalidasi (39.6%) |
+| 5 | Decision Support System | **Temuan besar** (Fase F) — bobot skor live tidak lolos backtest sendiri (median "Bullish" -1.2%), keputusan tindak lanjut di user |
+
+Audit menyeluruh SELESAI tuntas 5 tahap. Pola lintas-fase yang konsisten: proyek ini punya kecenderungan membangun fitur/bobot dari intuisi tanpa validasi empiris (buying_pressure, bobot DSS, cross-section-rank) — tapi begitu diaudit dengan disiplin yang sama seperti model resmi (walk-forward, backtest, feature importance), masalahnya bisa ditemukan dan sebagian diperbaiki (Fase G). Ini pelajaran metodologis besar yang layak jadi bagian tersendiri di skripsi.
