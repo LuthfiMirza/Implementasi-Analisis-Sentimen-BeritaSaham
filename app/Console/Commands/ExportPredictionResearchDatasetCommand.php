@@ -21,7 +21,8 @@ class ExportPredictionResearchDatasetCommand extends Command
         {--threshold=0.01 : Flat/up/down threshold in decimal return terms}
         {--threshold-v2=0.015 : Label v2 threshold in decimal return terms}
         {--min-history=60 : Minimum history rows before a sample is emitted}
-        {--include-macro-news : Include macro/global news via forStockContext scope}';
+        {--include-macro-news : Include macro/global news via forStockContext scope}
+        {--sentiment-lookback-days=5 : Rolling window size in days for sentiment aggregation}';
 
     protected $description = 'Export point-in-time prediction research dataset with adjusted-price features and 5-day direction labels';
 
@@ -42,6 +43,7 @@ class ExportPredictionResearchDatasetCommand extends Command
         $startDate = $this->option('start-date') ? Carbon::parse((string) $this->option('start-date'))->toDateString() : null;
         $endDate = $this->option('end-date') ? Carbon::parse((string) $this->option('end-date'))->toDateString() : null;
         $includeMacroNews = (bool) $this->option('include-macro-news');
+        $sentimentLookbackDays = max(1, (int) $this->option('sentiment-lookback-days'));
         $requestedTickers = collect((array) $this->option('ticker'))
             ->filter(fn ($code) => is_string($code) && trim($code) !== '')
             ->map(fn (string $code) => strtoupper(trim($code)))
@@ -90,7 +92,7 @@ class ExportPredictionResearchDatasetCommand extends Command
                     continue;
                 }
 
-                $features = $this->researchPredictionFeatureService->buildForDate($stock, $articles, $referenceDate);
+                $features = $this->researchPredictionFeatureService->buildForDate($stock, $articles, $referenceDate, $sentimentLookbackDays);
                 if ($this->hasMissingCoreFeature($features)) {
                     continue;
                 }
