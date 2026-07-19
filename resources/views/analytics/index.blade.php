@@ -78,9 +78,13 @@
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
                         <div>
                             <p class="text-xs uppercase text-slate-400">Model Pendukung Keputusan</p>
-                            <h3 class="font-semibold">{{ $decision['status'] }} • {{ $decision['confidence'] }} • Skor {{ $decision['final_score'] }}</h3>
+                            <h3 class="font-semibold">{{ $decision['status'] }} • {{ $decision['confidence'] }}</h3>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Status berdasarkan model prediksi arah tervalidasi (walk-forward, akurasi ~40%). Bukan rekomendasi final — selalu lakukan riset mandiri.</p>
                         </div>
-                        <div class="text-xs text-slate-400">Bobot: Sentimen 20% • Trend 22% • Momentum 18% • Volume/OBV 13% • Volatilitas 12% • Fundamental 15%</div>
+                        <div class="text-xs text-slate-400 text-right">
+                            <div>Skor faktor (deskriptif, bukan penggerak status): {{ $decision['final_score'] }}</div>
+                            <div>Bobot: Sentimen 20% • Trend 22% • Momentum 18% • Volume/OBV 13% • Volatilitas 12% • Fundamental 15%</div>
+                        </div>
                     </div>
                     <p class="text-slate-200 leading-relaxed">{{ $decision['narrative'] }}</p>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">

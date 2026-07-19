@@ -310,3 +310,26 @@ Bug nyata & terverifikasi, tapi dampak kecil — bukan penyebab utama akurasi ti
 | 5 | Decision Support System | **Temuan besar** (Fase F) — bobot skor live tidak lolos backtest sendiri (median "Bullish" -1.2%), keputusan tindak lanjut di user |
 
 Audit menyeluruh SELESAI tuntas 5 tahap. Pola lintas-fase yang konsisten: proyek ini punya kecenderungan membangun fitur/bobot dari intuisi tanpa validasi empiris (buying_pressure, bobot DSS, cross-section-rank) — tapi begitu diaudit dengan disiplin yang sama seperti model resmi (walk-forward, backtest, feature importance), masalahnya bisa ditemukan dan sebagian diperbaiki (Fase G). Ini pelajaran metodologis besar yang layak jadi bagian tersendiri di skripsi.
+
+---
+
+## Fase I — Tindak lanjut temuan Fase F (bobot DSS): Opsi B+C diterapkan
+
+**Konteks:** setelah didiskusikan, user pilih kombinasi **Opsi B (perkuat disclaimer)** + **Opsi C (pindahkan basis status ke model ML tervalidasi)** — BUKAN Opsi A (redesign bobot komposit via walk-forward, ditolak karena risiko tinggi mengulang pola data-snooping buying_pressure/DEWA), dan bukan Opsi D (hapus status sepenuhnya).
+
+### Kalibrasi threshold confidence (bukan tebakan)
+Cek sebaran probabilitas aktual dari 360 prediksi live (engine `python`): median **0.35** (nyaris baseline 3-kelas 33%), p75 **0.41**, max 0.95 — sangat miring ke kanan. Threshold confidence baru: Rendah <0.36, Sedang 0.36–0.45, Tinggi ≥0.45 — dipilih berdasar sebaran nyata, bukan angka bulat sembarang.
+
+### Perubahan kode
+- [`app/Services/Analytics/DecisionSupportService.php`](app/Services/Analytics/DecisionSupportService.php):
+  - Panggilan `$predictor->predict()` dipindah ke SEBELUM `statusAndConfidence()` (dulu di bawah, terpisah — menyebabkan `status` dan `prediction` bisa KONTRADIKTIF, contoh nyata terlihat sebelum fix: status "Wait and See" tapi `prediction` "UP" bersamaan).
+  - `statusAndConfidence()` ditulis ulang: terima `$predictionResult` (bukan `$finalScore`). `up`→Bullish Support, `down`→Warning, `flat`→Wait and See. Confidence dari `probability` model pakai threshold hasil kalibrasi di atas.
+  - `$rawFinalScore` (skor komposit 0.20/0.22/dst) **tetap dihitung & ditampilkan** (Opsi B, bukan D) — sekarang murni informational/deskriptif, dengan docblock jelas mengutip hasil audit Fase F.
+- [`resources/views/analytics/index.blade.php`](resources/views/analytics/index.blade.php) — UI diupdate: judul cuma tampilkan status+confidence (skor dipisah ke bagian sendiri berlabel "Skor faktor (deskriptif, bukan penggerak status)"), plus disclaimer baru: *"Status berdasarkan model prediksi arah tervalidasi (walk-forward, akurasi ~40%). Bukan rekomendasi final — selalu lakukan riset mandiri."*
+- Test baru: 3 test di `DecisionSupportServiceTest.php` mengunci perilaku baru (`up`→Bullish Support+Tinggi, `down`→Warning+Sedang, `flat`→Wait and See+Rendah), pakai container binding untuk fake `BaselinePredictionService::predict()`. Full suite **411 passed** (dari 408).
+
+### Verifikasi
+- **Test suite**: 411 passed, tidak ada regresi.
+- **Browser** (`/analytics?code=BBRI`): status sekarang **konsisten** dengan prediksi — "Bullish Support • Rendah" sejalan dengan "Prediksi: UP (0.35)" (sebelumnya kontradiktif: "Wait and See" + "UP" bersamaan). Skor faktor tampil terpisah dengan label deskriptif jelas.
+
+### Status Fase I: SELESAI. Temuan Fase F sudah ditindaklanjuti — status DSS sekarang berbasis komponen tervalidasi, bukan komposit yang gagal backtest, dan transparan ke user soal apa yang sebenarnya menggerakkan keputusan.

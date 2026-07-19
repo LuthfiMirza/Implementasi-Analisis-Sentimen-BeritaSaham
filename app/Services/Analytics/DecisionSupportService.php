@@ -60,6 +60,14 @@ class DecisionSupportService
         $volatilityScore = $this->volatilityScore($bollinger);
         $fundamentalScore = $fundamental['score'] ?? 0;
 
+        // INFORMATIONAL ONLY -- this composite does not drive `status`/`confidence` anymore
+        // (see statusAndConfidence() below). Kept for the factor breakdown shown in the UI
+        // ("Bobot: Sentimen 20% ..."), which is a legitimate descriptive summary of where each
+        // individual technical/fundamental/sentiment signal currently reads. It is NOT a
+        // validated predictor: audited 2026-07-19 against 720 walk-forward backtest windows,
+        // this weighted sum showed no reliable correlation with subsequent 5-day returns
+        // (overall directional accuracy 33.3%, "Bullish Support" median return -1.2%). See
+        // output/prediction_research/dss_scoring_weights_audit.txt for the full audit.
         $rawFinalScore = round(
             0.20 * $sentimentScore +
             0.22 * $trendScore +
@@ -75,7 +83,14 @@ class DecisionSupportService
             : [];
         $finalScore = $this->applyMacroRegulatoryModeration($rawFinalScore, $macroSignal);
 
-        [$status, $confidence] = $this->statusAndConfidence($finalScore, $analytics, $orderedPrices);
+        // Prediction integration (moved up: status/confidence now derive from this, not from
+        // the composite score above -- see statusAndConfidence() docblock for why).
+        $featureBuilder = app(\App\Services\Prediction\FeatureBuilderService::class);
+        $predictor = app(\App\Services\Prediction\BaselinePredictionService::class);
+        $predictionFeatures = $featureBuilder->build($stock, $orderedPrices, $articles, $analytics, 30, $analysisDate);
+        $predictionResult = $predictor->predict($predictionFeatures);
+
+        [$status, $confidence] = $this->statusAndConfidence($predictionResult, $analytics, $orderedPrices);
         $confidence = $this->moderateConfidenceByMacroSignal($confidence, $macroSignal);
 
         $technical = [
@@ -105,11 +120,6 @@ class DecisionSupportService
         $risks = array_merge($risks, $fundamental['risks'] ?? []);
         $invalidation = $this->invalidationRules($technical);
 
-        // Prediction integration
-        $featureBuilder = app(\App\Services\Prediction\FeatureBuilderService::class);
-        $predictor = app(\App\Services\Prediction\BaselinePredictionService::class);
-        $predictionFeatures = $featureBuilder->build($stock, $orderedPrices, $articles, $analytics, 30, $analysisDate);
-        $predictionResult = $predictor->predict($predictionFeatures);
         $lastCloseVal = (float) ($orderedPrices->last()->close ?? 0);
         $tradingSignal = $this->calculateTradingSignal(
             lastClose: $lastCloseVal,
@@ -1177,21 +1187,37 @@ class DecisionSupportService
         return $ema;
     }
 
-    protected function statusAndConfidence(float $finalScore, array $analytics, Collection $prices): array
+    /**
+     * Status/confidence used to derive from the hand-tuned composite score below (final_score,
+     * weights 0.20/0.22/0.18/0.13/0.12/0.15). Audit 2026-07-19 (output/prediction_research/
+     * dss_scoring_weights_audit.txt) found that composite has no reliable relationship with
+     * subsequent 5-day returns when tested with this project's own walk-forward backtest --
+     * "Bullish Support" historically had a NEGATIVE median return. Status now derives instead
+     * from BaselinePredictionService's prediction, which (via PREDICTION_ENGINE=python) is the
+     * walk-forward-validated RandomForest model -- 39.6% directional accuracy vs the composite's
+     * 33.3% (random baseline) on the same backtest. Confidence thresholds (0.36/0.45) are
+     * calibrated from the model's actual live probability distribution (median 0.35, p75 0.41),
+     * not arbitrary round numbers.
+     */
+    protected function statusAndConfidence(?array $predictionResult, array $analytics, Collection $prices): array
     {
-        $status = 'Wait and See';
-        if ($finalScore >= 65) {
-            $status = 'Bullish Support';
-        } elseif ($finalScore <= 40) {
-            $status = 'Warning';
+        $direction = strtolower((string) ($predictionResult['predicted_direction'] ?? 'flat'));
+        $status = match ($direction) {
+            'up' => 'Bullish Support',
+            'down' => 'Warning',
+            default => 'Wait and See',
+        };
+
+        $probability = (float) ($predictionResult['confidence'] ?? $predictionResult['probability'] ?? 0.0);
+        $confidence = 'Rendah';
+        if ($probability >= 0.45) {
+            $confidence = 'Tinggi';
+        } elseif ($probability >= 0.36) {
+            $confidence = 'Sedang';
         }
 
-        $confidence = 'Sedang';
-        $volume = $analytics['news_volume'] ?? 0;
-        if ($volume < 3 || $prices->count() < 5) {
+        if ($prices->count() < 5) {
             $confidence = 'Rendah';
-        } elseif ($finalScore >= 75 && $volume >= 5) {
-            $confidence = 'Tinggi';
         }
 
         return [$status, $confidence];
