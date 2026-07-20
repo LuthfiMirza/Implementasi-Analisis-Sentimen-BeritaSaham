@@ -764,7 +764,7 @@
 
                 <x-panel padding="p-6" class="border-sky-500/30 bg-sky-500/5">
                     <div class="text-sm text-sky-100 leading-relaxed">
-                        Model prediksi adalah hasil riset skripsi yang diuji dengan walk-forward validation. Untuk 10 ticker resmi, Model Teknikal V6A mencapai directional accuracy ~40.5%, sedangkan Model Teknikal+Sentimen V6B menunjukkan peningkatan ~1-2% pada sebagian konfigurasi. Untuk BUMI/DEWA, model yang tampil adalah model khusus per-saham dan tidak digabung dengan V6A/V6B. Output ini bersifat estimasi indikatif untuk decision support, bukan rekomendasi investasi final atau jaminan hasil.
+                        Model prediksi adalah hasil riset skripsi yang diuji dengan walk-forward validation. Untuk 10 ticker resmi, Model Teknikal V6A (technical-only) mencapai directional accuracy ~44.0% (macro-F1 42.6%) di held-out test terbaru — <strong>lebih baik</strong> dari Model Teknikal+Sentimen V6B (~40.6% akurasi, macro-F1 37.1%, diukur 2026-07-20 di baris held-out yang sama). Menambahkan fitur sentimen ke V6B TIDAK terbukti meningkatkan akurasi dibanding V6A — konsisten dengan temuan audit sentimen sesi ini (lihat plan.md Fase A/C). V6A yang jadi acuan default sistem. Untuk BUMI/DEWA, model yang tampil adalah model khusus per-saham dan tidak digabung dengan V6A/V6B. Output ini bersifat estimasi indikatif untuk decision support, bukan rekomendasi investasi final atau jaminan hasil.
                     </div>
                 </x-panel>
 
@@ -777,7 +777,7 @@
                             ],
                             'technical_sentiment' => [
                                 'title' => 'Prediksi Teknikal + Sentimen',
-                                'subtitle' => 'V6B Logistic Regression · technical + berita',
+                                'subtitle' => 'V6B Logistic Regression · technical + berita · akurasi lebih rendah dari V6A (40.6% vs 44.0%)',
                             ],
                             'bumi_technical' => [
                                 'title' => 'Prediksi Teknikal BUMI',
@@ -1019,19 +1019,25 @@
                         <x-metric-card label="Lag H+7" :value="is_null($lag['h7']) ? '— (data tidak cukup)' : $lag['h7']" :hint="is_null($lag['h7']) ? $lagInsufficientHint : ''" />
                         <x-metric-card label="Volume→Volatilitas" :value="is_null($volumeImpact['correlation']) ? 'N/A' : $volumeImpact['correlation']" hint="korelasi volume berita vs |return|" />
                     </div>
+                    <p class="text-[11px] text-slate-500 mt-1">
+                        "Event" di bawah = hari dengan SENTIMEN berita yang kuat (positif/negatif), bukan hasil ke harga.
+                        Kolom impact H+1/H+3/H+7 menunjukkan return harga AKTUAL sesudahnya apa adanya — termasuk kalau
+                        arahnya berlawanan dengan sentimen (mis. sentimen positif diikuti return negatif). Ini sengaja
+                        dilaporkan jujur, bukan bug.
+                    </p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm text-slate-200">
                         <div class="border border-slate-800 rounded-xl p-4 bg-slate-900/50">
-                            <p class="text-xs uppercase text-green-400 mb-2">Event Positif</p>
+                            <p class="text-xs uppercase text-green-400 mb-2">Event Sentimen Positif</p>
                             <p class="text-sm text-slate-300">Jumlah: {{ count($events['positive_events'] ?? []) }}</p>
                             @if(($events['positive_events'] ?? []))
-                                <p class="text-xs text-slate-400 mt-1">Contoh impact H+1/H+3/H+7: {{ data_get($events['positive_events'], '0.impact.h1') ?? 'n/a' }}% / {{ data_get($events['positive_events'], '0.impact.h3') ?? 'n/a' }}% / {{ data_get($events['positive_events'], '0.impact.h7') ?? 'n/a' }}%</p>
+                                <p class="text-xs text-slate-400 mt-1">Return aktual sesudahnya H+1/H+3/H+7: {{ data_get($events['positive_events'], '0.impact.h1') ?? 'n/a' }}% / {{ data_get($events['positive_events'], '0.impact.h3') ?? 'n/a' }}% / {{ data_get($events['positive_events'], '0.impact.h7') ?? 'n/a' }}%</p>
                             @endif
                         </div>
                         <div class="border border-slate-800 rounded-xl p-4 bg-slate-900/50">
-                            <p class="text-xs uppercase text-rose-400 mb-2">Event Negatif</p>
+                            <p class="text-xs uppercase text-rose-400 mb-2">Event Sentimen Negatif</p>
                             <p class="text-sm text-slate-300">Jumlah: {{ count($events['negative_events'] ?? []) }}</p>
                             @if(($events['negative_events'] ?? []))
-                                <p class="text-xs text-slate-400 mt-1">Contoh impact H+1/H+3/H+7: {{ data_get($events['negative_events'], '0.impact.h1') ?? 'n/a' }}% / {{ data_get($events['negative_events'], '0.impact.h3') ?? 'n/a' }}% / {{ data_get($events['negative_events'], '0.impact.h7') ?? 'n/a' }}%</p>
+                                <p class="text-xs text-slate-400 mt-1">Return aktual sesudahnya H+1/H+3/H+7: {{ data_get($events['negative_events'], '0.impact.h1') ?? 'n/a' }}% / {{ data_get($events['negative_events'], '0.impact.h3') ?? 'n/a' }}% / {{ data_get($events['negative_events'], '0.impact.h7') ?? 'n/a' }}%</p>
                             @endif
                         </div>
                     </div>

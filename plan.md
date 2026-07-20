@@ -470,3 +470,29 @@ User pilih Opsi B — hapus klaim "VALID/WAIT" (yang terbukti salah arah), tapi 
 **Verifikasi visual** (`/analytics?code=BBCA`): header baru, disclaimer lengkap dengan angka audit, tombol "Catat Trade Manual" selalu tampil, semua level referensi tetap ada — dikonfirmasi lewat browser langsung.
 
 ### Status Fase L: SELESAI TUNTAS (temuan didokumentasikan + Opsi B diterapkan + diverifikasi).
+
+---
+
+## Fase M — Sisa halaman `/analytics`: Event Study membingungkan + klaim V6B basi
+
+**Konteks:** lanjutan "cek bagian lain di halaman ini juga" setelah Fase K/L. Dua temuan lebih kecil tapi tetap layak diperbaiki (bukan cuma disclaimer, ada 1 klaim yang faktual salah).
+
+### Temuan 1: Label "Event Positif/Negatif" membingungkan (bukan bug logika)
+`SentimentPriceAnalyticsService::eventStudy()` — "positive_events"/"negative_events" berarti **hari dengan SENTIMEN kuat** (positif/negatif), BUKAN hasil ke harga. Kolom "impact" jujur menunjukkan return aktual sesudahnya apa adanya. Untuk BBCA baris data saat dicek: "Event Positif" nunjukin impact H+1/H+3/H+7 semuanya **negatif** (-1.61%/-3.21%/-4.82%) — logikanya benar (memang begitu yang terjadi setelah hari sentimen positif), tapi label "Positif" di sebelah angka negatif gampang disalahartikan sebagai bug.
+- **Perbaikan**: label diubah jadi "Event Sentimen Positif/Negatif" (eksplisit ini soal sentimen, bukan hasil), ditambah kalimat penjelas: "Kolom impact... return AKTUAL sesudahnya apa adanya — termasuk kalau arahnya berlawanan dengan sentimen... Ini sengaja dilaporkan jujur, bukan bug."
+
+### Temuan 2: Klaim "V6B naik 1-2%" sudah basi & sekarang TERBALIK
+Footer disclaimer & subtitle kartu V6B masih mengutip klaim lama ("V6B menunjukkan peningkatan ~1-2% pada sebagian konfigurasi") — diukur ulang head-to-head di baris held-out yang sama persis (split kronologis 80/20, `output/prediction_research/dataset_v6a.csv` vs `dataset_v6b_10ticker.csv`, dijoin by ticker+reference_date):
+
+| Model | Akurasi | Macro-F1 |
+|---|---|---|
+| V6A (technical-only, RandomForest) | **44.0%** | **42.6%** |
+| V6B (technical+sentiment, LogisticRegression) | 40.6% | 37.1% |
+
+**V6B sekarang justru lebih buruk** (-3.4pp akurasi, -5.5pp F1), bukan lebih baik — konsisten dengan seluruh temuan sesi ini bahwa sentimen belum terbukti membantu prediksi harga (Fase A/C). Catatan: model beda algoritma juga (RF vs LR, bukan cuma ablasi fitur murni), tapi ini tetap perbandingan yang fair karena keduanya model PRODUKSI yang benar-benar ditampilkan ke user apa adanya.
+- **Perbaikan**: footer disclaimer & subtitle kartu V6B diupdate dengan angka baru + kutip temuan sesi ini, bukan klaim lama yang sudah salah arah.
+
+### Verifikasi
+Full suite 415 passed. Verifikasi visual (`/analytics?code=BBCA`): label event study baru tampil jelas, disclaimer V6A/V6B akurat dengan angka terkini — bahkan hari ini V6A bilang UP sementara V6B bilang DOWN untuk BBCA, ilustrasi nyata kenapa konteks akurasi ini penting ditampilkan.
+
+### Status Fase M: SELESAI.
