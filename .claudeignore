@@ -1,0 +1,25 @@
+# Dependencies — never need to be read directly, npm/composer own them
+node_modules/
+vendor/
+
+# Build output
+public/build/
+.vite/
+.vite-temp/
+
+# Logs — storage/logs alone is 600MB+, grows every request
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+storage/framework/testing/
+
+# Large generated/static data — read specific files with Read, never scan whole dir
+data/stocks/
+output/prediction_research/
+output/trading_research/
+
+# Model artifacts (binary, not readable as text anyway)
+storage/app/prediction/*.joblib
+storage/app/prediction/archive/
+storage/app/prediction/candidates/
