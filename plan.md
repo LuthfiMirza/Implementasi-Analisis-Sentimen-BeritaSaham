@@ -496,3 +496,41 @@ Footer disclaimer & subtitle kartu V6B masih mengutip klaim lama ("V6B menunjukk
 Full suite 415 passed. Verifikasi visual (`/analytics?code=BBCA`): label event study baru tampil jelas, disclaimer V6A/V6B akurat dengan angka terkini — bahkan hari ini V6A bilang UP sementara V6B bilang DOWN untuk BBCA, ilustrasi nyata kenapa konteks akurasi ini penting ditampilkan.
 
 ### Status Fase M: SELESAI.
+
+---
+
+## Fase N — Retrain otomatis model produksi V6A/V6B + housekeeping dokumentasi Claude Code
+
+**Konteks:** saat menyusun laporan status keseluruhan sesi (setelah Fase M), ditemukan gap operasional yang belum tersentuh audit tahap 4: `model_technical_v6a.joblib`/`model_technical_sentiment_v6b.joblib` (yang baru dipromosikan jadi engine produksi di Fase G) **beku sejak dilatih terakhir 2026-06-21/22**, tanpa jadwal retrain otomatis sama sekali — berbeda dari BUMI/DEWA yang sudah punya `prediction:retrain-volatile` (mingguan, aman dengan gating). User minta dibangun mekanisme yang setara.
+
+### Temuan arsitektur (mengubah scope sebelum implementasi)
+`quant/train_production_models.py` (trainer V6A/V6B) ternyata **tidak pernah menghitung metrik evaluasi baru** — field `official_baseline`/`research_metrics_reference` di metadata cuma menyalin angka STATIS dari laporan riset lama (`model_comparison_v6a.json`) atau konstanta hardcode. Kalau retrain otomatis langsung dibangun di atas ini, gerbang "jangan promosikan kalau lebih buruk" (pola yang sudah proven di BUMI/DEWA) **tidak akan pernah benar-benar berfungsi** — akan selalu membandingkan angka statis lama dengan dirinya sendiri.
+
+### Perubahan kode
+- [`quant/train_production_models.py`](quant/train_production_models.py) — tambah `evaluate_walk_forward()` (reuse `build_folds`/`evaluate_predictions`/`mean_metrics` dari `train_prediction_models.py`, setting resmi `min_train_days=252, test_window_days=126`, dibatasi 8 fold terbaru untuk performa). Hasilnya disimpan sebagai field metadata BARU `retrain_evaluation` (terpisah dari `official_baseline` yang tetap dipertahankan sebagai jejak riset historis, tidak dihapus).
+- [`app/Console/Commands/RetrainProductionPredictionModelsCommand.php`](app/Console/Commands/RetrainProductionPredictionModelsCommand.php) (`prediction:retrain-production`) — mengikuti pola `RetrainVolatilePredictionModelsCommand` persis: `--dry-run`/`--force`/`--variant`, cek data baru di StockPrice+NewsArticle SELURUH 10 ticker resmi, regenerasi dataset via `Artisan::call('prediction:export-research-dataset', ...)`, gating degradasi macro-F1 (ambang 0.05, konsisten dengan BUMI/DEWA), archive+promote, log ke `retrain_history.jsonl` yang SAMA (tabel "Status Retrain Model" di `/analytics` otomatis ikut menampilkan baris baru karena baca file JSONL yang sama, tidak perlu perubahan UI).
+- Jadwal baru mingguan, Senin 07:00 WIB (`routes/console.php`) — 1 jam setelah sync fundamental (06:00) supaya tidak berebut resource.
+- Test baru [`tests/Feature/RetrainProductionPredictionModelsCommandTest.php`](tests/Feature/RetrainProductionPredictionModelsCommandTest.php) — 6 test (dry-run, skip-no-data, scoping `--variant`, reject-saat-memburuk, promote-saat-membaik, promote-tanpa-baseline-lama). Dataset export di test pakai data historis ASLI (`data/stocks/BBCA.csv`, sudah ada di repo) via `Stock::factory()->create(['code'=>'BBCA'])` — tidak perlu fabrikasi OHLCV sintetis, training-nya sendiri di-fake via `PYTHON_BINARY=php` (pola sama seperti test BUMI/DEWA). Full suite naik jadi **421 passed** (dari 415).
+
+### Bug ditemukan & diperbaiki saat verifikasi retrain nyata
+Percobaan `--force` pertama GAGAL: trainer minta kolom `label_v2_h5d`, tapi `prediction:export-research-dataset` cuma menghasilkan `label_v2`. Investigasi: `label_v2_h5d` ternyata dulu dibuat oleh script riset one-off `run_v6a_prediction_research.py` (enrichment terpisah, bukan bagian dari alur retrain). Dicek numerik: `label_v2` dan `label_v2_h5d` **identik 100% di 50.196 baris** (keduanya label arah 5-hari dengan threshold 1.5%) — jadi `MODEL_SPECS["technical"]["label_column"]` diubah ke `label_v2` langsung, tanpa perlu replikasi langkah enrichment terpisah. Dataset canonical (`output/prediction_research/dataset_v6a.csv`/`dataset_v6b_10ticker.csv`) yang sempat tertimpa saat percobaan gagal berhasil dipulihkan via `git checkout --` sebelum percobaan kedua.
+
+### Verifikasi end-to-end (retrain nyata, bukan simulasi)
+`php artisan prediction:retrain-production --force` dijalankan sungguhan (durasi ~9,5 menit, dataset 50.196 baris × 2 varian × 8 fold walk-forward):
+
+| Variant | macro-F1 (retrain_evaluation, genuine) | directional accuracy | Decision |
+|---|---|---|---|
+| technical (V6A) | 0.3673 | 40.50% | `promoted_no_prior_baseline` |
+| technical_sentiment (V6B) | 0.3457 | 40.48% | `promoted_no_prior_baseline` |
+
+Decision `promoted_no_prior_baseline` (bukan `promoted` biasa) karena ini run pertama dengan field `retrain_evaluation` — metadata produksi lama belum punya angka ini untuk dibandingkan, jadi promosi berjalan tanpa gerbang degradasi (baseline akan tersedia mulai retrain berikutnya). Model lama otomatis diarsipkan ke `storage/app/prediction/archive/`. **Terverifikasi visual** di `/analytics?code=BBCA`: tabel "Status Retrain Model Volatil" menampilkan 2 baris baru ini otomatis, tanpa perubahan kode UI.
+
+### Temuan tambahan (limitation, bukan bug baru — dicatat untuk sesi lanjutan)
+Deteksi "ada data baru" di command retrain memakai tabel DB `stock_prices`/`news_articles` (yang memang aktif ter-update tiap menit), TAPI fitur teknikal aktual dihitung `ResearchPredictionFeatureService` dari file statis `data/stocks/{TICKER}.csv` — dan file itu ternyata **mentok di tanggal 2026-04-15** (dikonfirmasi dari `date_end` hasil export di atas). Artinya: mekanisme retrain sudah aman & otomatis, gerbang degradasi berfungsi genuine, TAPI selama `data/stocks/*.csv` tidak di-refresh, retrain mingguan tidak benar-benar menyerap pergerakan harga terbaru — cuma refit ulang model di rentang data yang sama. **Belum diperbaiki, prioritas untuk sesi berikutnya** kalau mau retrain benar-benar reflect data terkini (perlu cari/bangun jalur update `data/stocks/*.csv`, di luar scope Fase N).
+
+### Housekeeping non-metodologi (di luar pipeline riset, tapi disepakati bareng di sesi ini)
+- [`CLAUDE.md`](CLAUDE.md) — dokumentasi project untuk sesi Claude Code berikutnya (pipeline 5 tahap, tech stack, konvensi repo, hal yang sudah diputuskan final seperti "MySQL manual" dan "Opsi A DSS ditolak") supaya tidak perlu re-derive konteks dari nol tiap sesi.
+- [`.claudeignore`](.claudeignore) — kecualikan folder besar dari auto-scan (`storage/logs` 600MB+, `output/`, `data/stocks/`, `vendor/`, `node_modules/`).
+- Ini murni efisiensi tooling, tidak memengaruhi hasil riset/metodologi skripsi.
+
+### Status Fase N: SELESAI untuk mekanisme retrain otomatis (kode, jadwal, test, verifikasi nyata). Staleness `data/stocks/*.csv` dicatat sebagai temuan terbuka, belum dikerjakan — kandidat item pertama untuk sesi lanjutan.
