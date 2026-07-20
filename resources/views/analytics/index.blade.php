@@ -125,30 +125,24 @@
                     @php $signal = $decision['trading_signal'] ?? null; @endphp
                     @if($signal)
                         <div class="mt-6">
-                            <div class="text-xs text-slate-500 uppercase font-medium mb-3">Trading Signal</div>
-                            <div class="glass-card border rounded-2xl p-5 mb-4
-                                {{ $signal['valid']
-                                    ? ($signal['quality'] === 'strong'
-                                        ? 'border-green-500/40 bg-green-500/5'
-                                        : 'border-sky-500/40 bg-sky-500/5')
-                                    : 'border-slate-700 bg-slate-900/50' }}">
+                            <div class="text-xs text-slate-500 uppercase font-medium mb-3">Level Referensi Teknikal (bukan sinyal rekomendasi)</div>
+                            <div class="text-[11px] text-amber-400/90 mb-3 leading-relaxed">
+                                ⚠ Audit backtest (2026-07-20) menemukan gerbang "valid" versi lama justru <strong>underperform</strong> dibanding tidak ada sinyal sama sekali (avg return -0.25% vs +0.53%, n=28 historis) — jadi status "VALID/WAIT" TIDAK lagi ditampilkan sebagai anjuran. Angka di bawah tetap perhitungan matematis yang benar (ATR, VWAP, support/resistance), murni sebagai referensi level, bukan ajakan entry.
+                            </div>
+                            <div class="glass-card border rounded-2xl p-5 mb-4 border-slate-700 bg-slate-900/50">
                                 <div class="flex items-center justify-between mb-4">
                                     <div>
-                                        <div class="text-xs text-slate-400 uppercase font-medium">Signal Status</div>
-                                        <div class="text-xl font-bold mt-1 {{ $signal['valid'] ? 'text-green-400' : 'text-slate-400' }}">
-                                            {{ $signal['valid'] ? '✅ VALID — ENTRY ZONE' : '⏸ WAIT — Belum Ada Signal' }}
+                                        <div class="text-xs text-slate-400 uppercase font-medium">Kekuatan Konfirmasi Teknikal</div>
+                                        <div class="text-xl font-bold mt-1 text-slate-200">
+                                            {{ strtoupper($signal['quality']) }}
                                         </div>
                                         <div class="text-sm text-slate-400 mt-0.5">
-                                            Kualitas:
-                                            <span class="font-medium {{ $signal['quality'] === 'strong' ? 'text-green-400' : ($signal['quality'] === 'moderate' ? 'text-sky-400' : 'text-slate-400') }}">
-                                                {{ strtoupper($signal['quality']) }}
-                                            </span>
-                                            • {{ $signal['confirm_count'] }} konfirmasi, {{ $signal['warn_count'] }} peringatan
+                                            {{ $signal['confirm_count'] }} konfirmasi, {{ $signal['warn_count'] }} peringatan
                                         </div>
                                     </div>
                                     <div class="text-right">
                                         <div class="text-xs text-slate-500">R:R Ratio</div>
-                                        <div class="text-3xl font-bold {{ $signal['rr_ratio_2r'] >= 2 ? 'text-green-400' : 'text-amber-400' }}">
+                                        <div class="text-3xl font-bold text-slate-300">
                                             1:{{ $signal['rr_ratio_2r'] }}
                                         </div>
                                         <div class="text-xs text-slate-500">Target 2R</div>
@@ -198,28 +192,26 @@
                                 </div>
                             @endif
 
-                            @if($signal['valid'] ?? false)
-                                <div class="mt-3">
-                                    <a href="{{ route('trades.index', [
-                                        'stock_id' => $stock->id,
-                                        'entry_price' => $signal['entry'],
-                                        'stop_loss' => $signal['stop_recommended'],
-                                        'target_1' => $signal['target_2r'],
-                                        'target_2' => $signal['target_3r'],
-                                        'lot_size' => $signal['lot_size'],
-                                        'rr_ratio' => $signal['rr_ratio_2r'],
-                                        'dss_score' => $decision['final_score'] ?? 0,
-                                        'dss_prediction' => $decision['prediction'] ?? 'flat',
-                                        'dss_confidence' => $decision['prediction_confidence'] ?? 0,
-                                        'signal_quality' => $signal['quality'],
-                                        'entry_zone_low' => $signal['entry_zone_low'] ?? null,
-                                        'entry_zone_high' => $signal['entry_zone_high'] ?? null,
-                                    ]) }}"
-                                       class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 hover:bg-green-400 text-slate-900 font-semibold text-sm transition">
-                                        📝 Catat Trade
-                                    </a>
-                                </div>
-                            @endif
+                            <div class="mt-3">
+                                <a href="{{ route('trades.index', [
+                                    'stock_id' => $stock->id,
+                                    'entry_price' => $signal['entry'],
+                                    'stop_loss' => $signal['stop_recommended'],
+                                    'target_1' => $signal['target_2r'],
+                                    'target_2' => $signal['target_3r'],
+                                    'lot_size' => $signal['lot_size'],
+                                    'rr_ratio' => $signal['rr_ratio_2r'],
+                                    'dss_score' => $decision['final_score'] ?? 0,
+                                    'dss_prediction' => $decision['prediction'] ?? 'flat',
+                                    'dss_confidence' => $decision['prediction_confidence'] ?? 0,
+                                    'signal_quality' => $signal['quality'],
+                                    'entry_zone_low' => $signal['entry_zone_low'] ?? null,
+                                    'entry_zone_high' => $signal['entry_zone_high'] ?? null,
+                                ]) }}"
+                                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold text-sm transition">
+                                    📝 Catat Trade Manual (isi sendiri, bukan rekomendasi otomatis)
+                                </a>
+                            </div>
 
                             <div class="border-t border-slate-800 pt-3 mb-3">
                                 <div class="text-xs text-slate-500 uppercase mb-2">

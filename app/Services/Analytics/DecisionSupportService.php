@@ -207,6 +207,16 @@ class DecisionSupportService
         };
     }
 
+    /**
+     * `valid`/`quality` here are a hand-tuned confirmation/warning count gate that was NEVER
+     * empirically validated. Audit 2026-07-20 (output/prediction_research/, plan.md Fase L)
+     * backtested it: signals marked valid=true fire in only ~1.2% of windows and historically
+     * UNDERPERFORM the rest of the sample (avg return -0.25% vs +0.53%, n=28 at forward=5d,
+     * consistent across 5d/10d/20d horizons). Entry/stop/target/confirmations/warnings below
+     * remain legitimate descriptive technical levels (ATR/VWAP/support-resistance math is
+     * correct) -- but `valid=true` must NOT be presented to users as a validated "go" signal.
+     * The view intentionally no longer gates the "VALID — ENTRY ZONE" framing on this field.
+     */
     private function calculateTradingSignal(
         float $lastClose,
         array $technical,

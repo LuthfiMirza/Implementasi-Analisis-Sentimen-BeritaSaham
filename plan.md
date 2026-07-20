@@ -454,4 +454,19 @@ Sinyal **"✅ VALID — ENTRY ZONE"**:
 
 **Ini bagian paling serius dari seluruh audit sesi ini** — beda dari skor DSS/fundamental yang sifatnya informasional, Trading Signal menampilkan harga entry/stop/target spesifik yang bisa langsung dieksekusi sebagai transaksi nyata.
 
-### Status Fase L: TEMUAN DIDOKUMENTASIKAN. Belum ada perubahan kode/UI — keputusan tindak lanjut (perkuat disclaimer / redesign gerbang validitas / nonaktifkan badge "VALID" sampai diperbaiki) akan dibahas dengan user di sesi berjalan ini.
+### Tindak lanjut: Opsi B diterapkan (2026-07-20)
+User pilih Opsi B — hapus klaim "VALID/WAIT" (yang terbukti salah arah), tapi TETAP tampilkan entry/stop/target sebagai referensi teknikal (matematisnya benar, cuma klaim "ini sinyal untuk entry"-nya yang dibuang).
+
+**Perubahan kode:**
+- `DecisionSupportService::calculateTradingSignal()` — docblock baru menjelaskan `valid`/`quality` tidak boleh dipakai sebagai "go signal" tervalidasi (mengutip temuan Fase L), field tetap dihitung (masih dipakai internal/backtest) tapi TIDAK lagi didesain untuk mendorong keputusan user.
+- `resources/views/analytics/index.blade.php`:
+  - Header diubah dari "✅ VALID — ENTRY ZONE" / "⏸ WAIT — Belum Ada Signal" (binary, hijau/abu) jadi netral: **"Level Referensi Teknikal (bukan sinyal rekomendasi)"**.
+  - Disclaimer eksplisit ditambahkan, mengutip angka temuan Fase L langsung (avg return -0.25% vs +0.53%, n=28).
+  - Card border/warna tidak lagi berubah berdasar `valid`+`quality` (dulu hijau kalau valid+strong) — sekarang netral konsisten.
+  - Tombol "📝 Catat Trade" — dulu cuma muncul kalau `valid=true` (menyiratkan endorsement); sekarang **selalu tampil**, dilabel ulang "Catat Trade Manual (isi sendiri, bukan rekomendasi otomatis)" — alat pencatatan manual, bukan ajakan.
+  - Entry zone/stop loss/target 2R-3R/position sizing/level kunci/confirmations-warnings — **semua tetap tampil** (matematis benar, informasinya tetap berguna).
+- Full suite tetap 415 passed (tidak ada test yang bergantung ke teks/logika lama).
+
+**Verifikasi visual** (`/analytics?code=BBCA`): header baru, disclaimer lengkap dengan angka audit, tombol "Catat Trade Manual" selalu tampil, semua level referensi tetap ada — dikonfirmasi lewat browser langsung.
+
+### Status Fase L: SELESAI TUNTAS (temuan didokumentasikan + Opsi B diterapkan + diverifikasi).
