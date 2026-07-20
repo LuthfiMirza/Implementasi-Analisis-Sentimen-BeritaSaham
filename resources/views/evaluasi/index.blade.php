@@ -176,7 +176,7 @@
                                             : 'tidak diketahui';
                                     @endphp
                                     <div class="mb-2 inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-200">
-                                        Data fundamental: snapshot per {{ $fundamentalSnapshotDate }} — belum real-time
+                                        Data fundamental: sinkron mingguan via yfinance, per {{ $fundamentalSnapshotDate }} — bukan harga real-time intraday
                                     </div>
                                     <div>PBV: {{ $r['pbv'] ?? 'N/A' }}</div>
                                     <div>ROE: {{ $r['roe'] ?? 'N/A' }}</div>

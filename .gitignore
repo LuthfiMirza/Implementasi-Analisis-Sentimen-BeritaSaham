@@ -38,6 +38,7 @@ output/ojk_backfill_status.json
 
 # Isolated venv for sentiment fine-tuning (torch/transformers, ~1GB+)
 quant/.venv-sentiment/
+quant/.venv-fundamentals/
 
 # Redundant per-ticker CSV dumps (duplicate data already in the combined dataset_*.csv)
 output/prediction_research/window_experiment/tickers_full_w*/

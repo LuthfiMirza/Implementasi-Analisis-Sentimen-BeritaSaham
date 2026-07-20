@@ -375,3 +375,37 @@ Tidak ada satu pun dari 6 komponen DSS yang lolos uji dengan disiplin penuh (sen
 **Follow-up potensial (belum dieksekusi, butuh data baru yang belum ada)**: kalau proyek ini suatu saat mulai menyimpan data fundamental historis (bukan cuma snapshot terkini), pengujian fundamental yang benar baru bisa dilakukan. Sampai saat itu, klaim "fundamental scoring" di DSS sebaiknya dipahami sebagai info deskriptif kondisi SAAT INI (rating "fair"/"attractive"/"expensive"), bukan sinyal prediktif return.
 
 ### Status Fase J: SELESAI. Tidak ada perubahan kode lebih lanjut diperlukan — temuan mengonfirmasi keputusan Fase I sudah tepat.
+
+---
+
+## Fase K — Data fundamental live via yfinance (menutup follow-up Fase J)
+
+**Konteks:** user minta jelaskan seluruh halaman `/analytics` secara detail ("pertanggung jawabkan datanya"). Saat menjelaskan bagian fundamental, ditemukan masalah baru yang lebih dalam dari sekadar "belum divalidasi" (Fase J): datanya **statis tanpa jalur update sama sekali**.
+
+### Temuan
+`database/seeders/FundamentalStockSeeder.php` — array hardcode 12 saham, `fundamentals_updated_at` **ditulis literal** `'2025-12-31'` di kode (bukan timestamp asli, jadi label "terakhir update" itu sendiri menyesatkan). Tidak ada command terjadwal atau integrasi API — beda total dari harga (`yahoo_finance`, live) dan berita (scheduler tiap menit).
+
+**Dampak terukur**: harga BBCA sudah turun **-11.15%** sejak snapshot itu diambil → PBV/PER yang ditampilkan (3.8x/18.5x) sudah salah, seharusnya sekitar 3.38x/16.4x (perkiraan kasar berbasis harga saja — realisasinya lebih kompleks lagi karena EPS/book value juga berubah, lihat di bawah).
+
+### Riset sumber data (sebelum bangun apa pun)
+Endpoint harga yang sudah dipakai proyek ini (`v8/chart` Yahoo Finance) **tidak** menyediakan fundamental. Endpoint `quoteSummary` yang biasa dipakai butuh crumb/cookie (`curl` langsung gagal "Invalid Crumb"). **Solusi**: library `yfinance` (Python) — yang historinya SUDAH dipakai proyek ini untuk data harga historis (`data/stocks/*.csv`, kolom `source=yfinance_raw_daily`) — menangani crumb/cookie secara otomatis dan **terbukti punya data fundamental live** untuk semua 12 saham (dites langsung, bukan asumsi).
+
+**2 masalah kualitas data ditemukan & ditangani saat riset:**
+1. `debtToEquity` dari yfinance dalam **persen** (mis. TLKM=44.1 berarti DER=0.441x), sementara kode `calculateFundamentalScore()` mengharapkan rasio desimal (0.8, 1.0, dst) — kalau tidak dikonversi, salah skala 100x dan akan merusak total skor fundamental semua saham non-bank.
+2. Data anomali dari upstream: ADRO `priceToBook` sempat kembali **14.823x** (jelas bukan angka wajar) — perlu validasi batas wajar (sanity bounds), bukan percaya mentah-mentah ke sumber eksternal.
+
+### Perubahan kode
+- Migration baru: `book_value_per_share` ditambahkan ke tabel `stocks` (untuk referensi/masa depan, di luar 6 field fundamental utama).
+- [`quant/fetch_fundamentals.py`](quant/fetch_fundamentals.py) — fetch via yfinance untuk 12 ticker, konversi satuan DER (÷100), validasi batas wajar tiap rasio (PBV 0-100, PER 0-300, ROE ±500%, DER 0-50, dst) — nilai di luar batas di-null-kan, bukan disimpan mentah.
+- [`app/Console/Commands/SyncStockFundamentalsCommand.php`](app/Console/Commands/SyncStockFundamentalsCommand.php) (`stocks:sync-fundamentals`) — panggil script Python via `Process`, update `stocks` table, **field null dari fetch baru FALLBACK ke nilai lama** (tidak menghapus info yang sudah ada, mis. DER bank yang memang tidak disediakan yfinance tetap dipertahankan dari input manual lama).
+- Dijadwalkan **mingguan** (Senin 06:00 WIB) — fundamental tidak perlu refresh secepat harga/berita.
+- Venv baru `quant/.venv-fundamentals/` (gitignored), cuma `yfinance` — terisolasi dari venv sentimen (torch dkk).
+- Teks disclaimer di 3 halaman (`analytics/index`, `evaluasi/index`, `evaluasi/show`) diupdate dari "belum real-time" (kesan permanen tidak bisa di-update) jadi "sinkron mingguan via yfinance" (akurat).
+- 4 test baru (`SyncStockFundamentalsCommandTest`, pakai `Process::fake()` — tidak panggil Python asli saat testing): update normal, fallback saat null, skip saat error per-ticker, filter `--ticker`. Full suite **415 passed** (dari 411).
+
+### Verifikasi
+- Dijalankan nyata: semua 12 saham ter-update, `fundamentals_updated_at` sekarang **2026-07-20** (bukan hardcode lagi).
+- ADRO/BUMI (PBV anomali dari yfinance) otomatis fallback ke nilai lama, bukan tersimpan rusak.
+- **Verifikasi visual** (`/analytics?code=BBCA`): Fundamental Score berubah nyata dari 69/100 "FAIR" → **78/100 "ATTRACTIVE"** dengan data segar (PER 18.5x→13.9x, PBV 3.8x→3.1x) — bukti data lama memang sudah bikin kategori salah.
+
+### Status Fase K: SELESAI. Data fundamental sekarang punya jalur update otomatis mingguan yang tervalidasi, bukan snapshot statis selamanya.

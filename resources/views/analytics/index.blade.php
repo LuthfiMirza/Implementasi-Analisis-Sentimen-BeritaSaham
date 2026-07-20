@@ -657,7 +657,7 @@
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-6 mb-3">
                             <div class="text-xs text-slate-500 uppercase font-medium">Analisis Fundamental</div>
                             <span class="inline-flex w-fit rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] text-amber-200">
-                                Data fundamental: snapshot per {{ $fundamentalSnapshotDate }} — belum real-time
+                                Data fundamental: sinkron mingguan via yfinance, per {{ $fundamentalSnapshotDate }} — bukan harga real-time intraday
                             </span>
                         </div>
                         <div class="glass-card border border-slate-800/80 rounded-2xl p-5">

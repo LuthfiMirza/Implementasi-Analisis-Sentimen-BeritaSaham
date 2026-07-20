@@ -157,3 +157,14 @@ Schedule::command('news:auto-recover-gap')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// FUNDAMENTALS SYNC: mingguan (fundamental tidak berubah harian) -- menggantikan
+// FundamentalStockSeeder yang cuma snapshot sekali (2025-12-31, ditemukan basi saat audit
+// 2026-07-20 -- harga BBCA saja sudah bergerak -11% sejak itu, PBV/PER yang tampil salah).
+Schedule::command('stocks:sync-fundamentals')
+    ->weekly()
+    ->mondays()
+    ->at('06:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));

@@ -24,6 +24,7 @@ class Stock extends Model
         'roe',
         'der',
         'eps',
+        'book_value_per_share',
         'dividend_yield',
         'fundamentals_updated_at',
     ];
@@ -34,6 +35,7 @@ class Stock extends Model
         'roe' => 'float',
         'der' => 'float',
         'eps' => 'float',
+        'book_value_per_share' => 'float',
         'dividend_yield' => 'float',
         'fundamentals_updated_at' => 'date',
     ];
