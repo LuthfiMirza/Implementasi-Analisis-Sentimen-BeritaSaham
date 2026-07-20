@@ -168,3 +168,16 @@ Schedule::command('stocks:sync-fundamentals')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// WEEKLY ML RETRAIN: model produksi V6A/V6B (10 saham resmi). Sebelumnya beku sejak 2026-06-21/22
+// tanpa jadwal retrain sama sekali (ditemukan saat audit 2026-07-20) -- berbeda dari BUMI/DEWA yang
+// sudah punya prediction:retrain-volatile. Dijadwalkan 1 jam setelah sync fundamental di atas supaya
+// tidak berebut resource. Aman/idempotent: command skip otomatis jika belum ada data baru.
+Schedule::command('prediction:retrain-production')
+    ->weekly()
+    ->mondays()
+    ->at('07:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/retrain-production.log'));

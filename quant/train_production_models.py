@@ -10,14 +10,29 @@ from zoneinfo import ZoneInfo
 import joblib
 import pandas as pd
 
+from copy import deepcopy
+
 from train_prediction_models import (
     V2_ALL_FEATURE_COLUMNS,
     V2_NO_SENTIMENT_FEATURE_COLUMNS,
+    build_folds,
     build_logistic_pipeline,
     build_random_forest_pipeline,
+    evaluate_predictions,
     extract_model_insights,
     infer_class_labels,
+    mean_metrics,
 )
+
+# Walk-forward settings matching the official V6A/V6B research validation (min_train_days=252,
+# test_window_days=126) -- same defaults used throughout this project's other retrain/experiment
+# scripts, so numbers here are comparable to historical reports. Capped to the most recent 8 folds
+# (matches train_prediction_models.py's --max-folds default) -- the full 25-year dataset produces
+# ~48 folds otherwise, too slow for a weekly scheduled retrain and dominated by stale early-2000s
+# regimes that matter less for judging today's live performance.
+EVAL_MIN_TRAIN_DAYS = 252
+EVAL_TEST_WINDOW_DAYS = 126
+EVAL_MAX_FOLDS = 8
 
 
 JAKARTA_TZ = ZoneInfo("Asia/Jakarta")
@@ -29,7 +44,13 @@ MODEL_SPECS = {
         "artifact_name": "model_technical_v6a.joblib",
         "metadata_name": "model_technical_v6a_metadata.json",
         "dataset": Path("output/prediction_research/dataset_v6a.csv"),
-        "label_column": "label_v2_h5d",
+        # label_v2 (produced directly by `php artisan prediction:export-research-dataset`) is
+        # numerically identical to label_v2_h5d (produced by the separate one-off
+        # run_v6a_prediction_research.py enrichment script that built the original research
+        # dataset_v6a.csv): both are the 5-day-ahead direction label at a 1.5% threshold. Using
+        # label_v2 lets prediction:retrain-production regenerate a fresh dataset via the plain
+        # export command without needing to replicate that enrichment step.
+        "label_column": "label_v2",
         "feature_columns": V2_NO_SENTIMENT_FEATURE_COLUMNS,
         "algorithm": "random_forest",
         "scenario_name": "technical_only",
@@ -109,6 +130,50 @@ def build_estimator(algorithm: str, feature_columns: list[str]):
     raise ValueError(f"Unsupported algorithm: {algorithm}")
 
 
+def evaluate_walk_forward(frame: pd.DataFrame, feature_columns: list[str], label_column: str, algorithm: str) -> dict[str, object]:
+    """Genuinely re-measures macro-F1/directional-accuracy on THIS run's dataset via walk-forward
+    OOS folds -- unlike `official_baseline`/`research_metrics_reference` below (which are frozen
+    copies of a one-time research report), this is computed fresh every retrain so the safety gate
+    in the retrain command has a real number to compare against, not a static constant."""
+    dated = frame.copy()
+    dated["reference_date"] = pd.to_datetime(dated["reference_date"])
+    unique_dates = sorted(dated["reference_date"].drop_duplicates().tolist())
+    folds = build_folds(unique_dates, EVAL_MIN_TRAIN_DAYS, EVAL_TEST_WINDOW_DAYS)[-EVAL_MAX_FOLDS:]
+    class_labels = infer_class_labels(dated[label_column])
+
+    fold_metrics = []
+    for fold in folds:
+        train_df = dated[dated["reference_date"] <= fold.train_end]
+        test_df = dated[(dated["reference_date"] >= fold.test_start) & (dated["reference_date"] <= fold.test_end)]
+        if train_df.empty or test_df.empty:
+            continue
+        estimator = deepcopy(build_estimator(algorithm, feature_columns))
+        estimator.fit(train_df[feature_columns], train_df[label_column])
+        predictions = estimator.predict(test_df[feature_columns])
+        fold_metrics.append(evaluate_predictions(test_df[label_column], predictions, class_labels))
+
+    if not fold_metrics:
+        return {
+            "macro_f1": None,
+            "directional_accuracy": None,
+            "fold_count": 0,
+            "min_train_days": EVAL_MIN_TRAIN_DAYS,
+            "test_window_days": EVAL_TEST_WINDOW_DAYS,
+            "max_folds": EVAL_MAX_FOLDS,
+            "warning": "no_folds_produced",
+        }
+
+    aggregate = mean_metrics(fold_metrics)
+    return {
+        "macro_f1": aggregate.get("f1_macro"),
+        "directional_accuracy": aggregate.get("directional_accuracy"),
+        "fold_count": len(fold_metrics),
+        "min_train_days": EVAL_MIN_TRAIN_DAYS,
+        "test_window_days": EVAL_TEST_WINDOW_DAYS,
+        "max_folds": EVAL_MAX_FOLDS,
+    }
+
+
 def train_variant(variant: str, output_dir: Path, sample_rows: int | None = None) -> dict[str, object]:
     spec = MODEL_SPECS[variant]
     dataset_path = Path(spec["dataset"])
@@ -132,6 +197,11 @@ def train_variant(variant: str, output_dir: Path, sample_rows: int | None = None
         raise SystemExit(f"No training rows available for {variant}")
 
     class_labels = infer_class_labels(frame[label_column])
+
+    # Compute a genuine fresh evaluation BEFORE the final fit-on-everything below, so retrain
+    # tooling has a real macro_f1 to gate promotion on instead of a frozen historical constant.
+    retrain_evaluation = evaluate_walk_forward(frame, feature_columns, label_column, str(spec["algorithm"]))
+
     estimator = build_estimator(str(spec["algorithm"]), feature_columns)
     estimator.fit(frame[feature_columns], frame[label_column])
 
@@ -168,6 +238,7 @@ def train_variant(variant: str, output_dir: Path, sample_rows: int | None = None
             "insights": extract_model_insights(estimator, feature_columns),
         },
         "official_baseline": spec["official_baseline"],
+        "retrain_evaluation": retrain_evaluation,
         "research_metrics_reference": read_research_metrics(Path(spec["research_report_json"]), variant),
         "research_report_json": str(spec["research_report_json"]),
         "research_report_txt": str(spec["research_report_txt"]),
@@ -183,6 +254,7 @@ def train_variant(variant: str, output_dir: Path, sample_rows: int | None = None
         "date_start": metadata["date_start"],
         "date_end": metadata["date_end"],
         "sample_artifact": sample_rows is not None,
+        "retrain_evaluation": retrain_evaluation,
     }
 
 
