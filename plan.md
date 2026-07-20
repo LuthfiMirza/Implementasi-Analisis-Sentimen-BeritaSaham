@@ -204,11 +204,11 @@ User minta (bagian dari audit infra): daripada nambal manual tiap kali ketahuan 
 - Idempotent secara alami: `news:backfill-historical` yang dipanggil sudah punya resume/skip logic sendiri (`Cache` per source+ticker+month), jadi aman dipanggil berulang tanpa kerja duplikat.
 - Test baru `tests/Feature/AutoRecoverNewsGapCommandTest.php` (4 test: no-gap, gap-detected, log-missing, max-gap-days-cap). Full suite 408 passed (dari 404).
 
-### Status Fase E: SEBAGIAN SELESAI.
+### Status Fase E: SELESAI (keputusan final).
 - ✅ Root cause outage MySQL ditemukan & didokumentasikan.
-- ✅ Auto-recovery gap berita: kode selesai, tertest, terjadwal, sudah live (mulai jalan tiap 30 menit begitu di-deploy).
-- ⏳ LaunchDaemon MySQL: **butuh aksi manual user** (jalankan 4 command sudo di atas), belum terverifikasi jalan.
-- ⏳ Belum dikerjakan (belum diminta): bersihkan log 1.3GB, tambah `mac` ke grup `_mysql` untuk akses CLI.
+- ✅ Auto-recovery gap berita: kode selesai, tertest, terjadwal, sudah live (jalan tiap 30 menit).
+- ❌ **LaunchDaemon MySQL: DITOLAK, keputusan final user (2026-07-20).** Sudah dijelaskan plus-minus lengkap (auto-start selalu-nyala vs kontrol manual, risiko rebutan start/stop dengan GUI XAMPP, butuh sudo) — user pilih **tetap manual**, sadar akan trade-off-nya (auto-recovery tetap menutup celah begitu MySQL dinyalakan manual kapan pun, cuma tidak "benar-benar tanpa perlu diingat sama sekali"). **JANGAN diusulkan lagi di sesi berikutnya kecuali user yang mengangkat topik ini duluan.** File plist di scratchpad (`com.sentimena.mysql.plist`) tidak jadi dipasang — aman diabaikan/dihapus kalau perlu beres-beres.
+- ⏳ Belum dikerjakan (belum diminta, prioritas rendah): bersihkan log MySQL 1.3GB, tambah `mac` ke grup `_mysql` untuk akses CLI (opsi B dari diskusi Fase E, juga belum diminta).
 
 ---
 
