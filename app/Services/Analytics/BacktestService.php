@@ -155,6 +155,7 @@ class BacktestService
                 'macro_regulatory_caution_flag' => (bool) ($macroSignal['caution_flag'] ?? false),
                 'macro_regulatory_article_count' => (int) ($macroSignal['article_count'] ?? 0),
                 'component_scores' => $result['component_scores'] ?? null,
+                'trading_signal' => $result['trading_signal'] ?? null,
             ];
         }
 

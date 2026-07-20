@@ -409,3 +409,49 @@ Endpoint harga yang sudah dipakai proyek ini (`v8/chart` Yahoo Finance) **tidak*
 - **Verifikasi visual** (`/analytics?code=BBCA`): Fundamental Score berubah nyata dari 69/100 "FAIR" → **78/100 "ATTRACTIVE"** dengan data segar (PER 18.5x→13.9x, PBV 3.8x→3.1x) — bukti data lama memang sudah bikin kategori salah.
 
 ### Status Fase K: SELESAI. Data fundamental sekarang punya jalur update otomatis mingguan yang tervalidasi, bukan snapshot statis selamanya.
+
+---
+
+## Fase L — Audit Trading Signal (TP/SL): sinyal "VALID" ternyata underperform baseline
+
+**Konteks:** melanjutkan penjelasan `/analytics` field-by-field, giliran bagian "Trading Signal" (entry zone, stop loss, target 2R/3R) digali. Ini beda dari temuan sebelumnya (skor DSS, buying-pressure) — bagian ini paling langsung mengarah ke aksi nyata (user bisa entry beneran berdasar harga spesifik yang ditampilkan).
+
+### Mekanisme (`DecisionSupportService::calculateTradingSignal()`)
+- Stop loss: `min(stopConservative=entry-1.5×ATR, stopBBLower=BBLower-0.3×ATR)` — ambil yang LEBIH DEKAT ke entry (stop lebih ketat), bukan yang lebih longgar.
+- Quality tier dari jumlah confirmation/warning teknikal: `strong` (≥4 confirm, 0 warning), `moderate` (≥3 confirm, ≤1 warning), `weak` (≥2 confirm), `invalid` (sisanya).
+- `valid = true` HANYA jika: prediction='up' DAN quality∈{strong,moderate} DAN R:R₂ᵣ≥1.5.
+- **Tidak ada bukti (komentar kode/test/artefak) bahwa gerbang validitas ini pernah divalidasi** — pola yang sama seperti fitur-fitur lain di sesi ini.
+
+### Perubahan kode (aditif)
+`BacktestService::runForStock()` — tambah capture `trading_signal` ke `$results[]` (field sudah ada di return `DecisionSupportService::analyze()`, cuma belum ditangkap backtest). Full suite tetap 415 passed.
+
+### Hasil pengujian (4 percobaan terpisah, semua konsisten)
+
+**Percobaan awal** (forward 5d/10d/20d, n kecil per horizon karena sinyal VALID jarang muncul):
+| Horizon | n VALID | Win rate VALID | Avg return VALID | Win rate sisanya |
+|---|---|---|---|---|
+| 5 hari | 7 | 28.6% | -0.174% | 42.3% |
+| 10 hari | 3 | 0% | -3.787% | 39.0% |
+| 20 hari | 7 | 14.3% | -2.814% | 27.9% |
+
+**Percobaan sample besar** (forward=5d, step=1, maxWindows=200 → n=2400 window total, jauh lebih meyakinkan):
+| | VALID (n=28) | Sisanya (n=2372) |
+|---|---|---|
+| Frekuensi sinyal | 1.17% dari semua kesempatan | — |
+| Win rate | 39.3% | 44.8% |
+| Avg return | **-0.249%** | +0.527% |
+| Median return | **-0.36%** | — |
+| Return ≥+3% (≈kena target) | 4 dari 28 | — |
+| Return ≤-2% (≈kena stop) | 8 dari 28 | — |
+
+### Kesimpulan
+Sinyal **"✅ VALID — ENTRY ZONE"**:
+1. **Sangat jarang muncul** (~1.2% dari semua kesempatan).
+2. **Saat muncul, historisnya justru lebih buruk** dari tidak ada sinyal sama sekali di semua horizon yang diuji (win rate lebih rendah, average & median return negatif).
+3. Kerugian besar (~2x) lebih sering terjadi dibanding keuntungan besar di antara sinyal yang ditandai "valid".
+
+**Catatan kejujuran metodologis**: sample sinyal VALID tetap kecil (n=28 di uji terbesar) karena sinyal ini memang jarang terpicu — jadi presisi angka win-rate tidak bisa diklaim sangat tinggi. TAPI arah temuannya (lebih buruk, bukan cuma "tidak lebih baik") konsisten di 4 percobaan terpisah dengan horizon berbeda-beda, jadi pola ini bukan kebetulan satu kali ukur.
+
+**Ini bagian paling serius dari seluruh audit sesi ini** — beda dari skor DSS/fundamental yang sifatnya informasional, Trading Signal menampilkan harga entry/stop/target spesifik yang bisa langsung dieksekusi sebagai transaksi nyata.
+
+### Status Fase L: TEMUAN DIDOKUMENTASIKAN. Belum ada perubahan kode/UI — keputusan tindak lanjut (perkuat disclaimer / redesign gerbang validitas / nonaktifkan badge "VALID" sampai diperbaiki) akan dibahas dengan user di sesi berjalan ini.
