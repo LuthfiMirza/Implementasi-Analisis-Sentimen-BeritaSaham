@@ -1,0 +1,97 @@
+{
+  "experiment": "class_weighted_sentiment_finetune",
+  "checkpoint": "w11wo/indonesian-roberta-base-sentiment-classifier",
+  "epochs": 6,
+  "caveat": "801 labels are all ML-vs-rule disagreement cases (biased hard-case sample). Metrics characterize hard cases, not the overall article population.",
+  "baselines_same_test_split": {
+    "production_finetuned_macro_f1": 0.5816,
+    "rule_based_macro_f1": 0.5482
+  },
+  "sweep_selection_by_val": [
+    {
+      "scheme": "none",
+      "val_macro_f1": 0.7202,
+      "test_macro_f1": 0.5816,
+      "test_accuracy": 0.65,
+      "test_per_class_f1": {
+        "positive": 0.3774,
+        "neutral": 0.7468,
+        "negative": 0.6207
+      },
+      "class_weights": null
+    },
+    {
+      "scheme": "inverse",
+      "val_macro_f1": 0.7219,
+      "test_macro_f1": 0.5814,
+      "test_accuracy": 0.6333,
+      "test_per_class_f1": {
+        "positive": 0.386,
+        "neutral": 0.7297,
+        "negative": 0.6286
+      },
+      "class_weights": {
+        "positive": 0.8307,
+        "neutral": 0.3442,
+        "negative": 1.8251
+      }
+    },
+    {
+      "scheme": "sqrt_inverse",
+      "val_macro_f1": 0.7564,
+      "test_macro_f1": 0.5549,
+      "test_accuracy": 0.625,
+      "test_per_class_f1": {
+        "positive": 0.386,
+        "neutral": 0.7333,
+        "negative": 0.5455
+      },
+      "class_weights": {
+        "positive": 0.9597,
+        "neutral": 0.6177,
+        "negative": 1.4225
+      }
+    }
+  ],
+  "winner": {
+    "scheme": "sqrt_inverse",
+    "selected_by": "val_macro_f1",
+    "val_macro_f1": 0.7564,
+    "seeds": [
+      42,
+      0,
+      123
+    ],
+    "test_macro_f1_per_seed": [
+      0.5549,
+      0.5233,
+      0.5875
+    ],
+    "test_accuracy_per_seed": [
+      0.625,
+      0.6083,
+      0.675
+    ],
+    "test_macro_f1_mean": 0.5552,
+    "test_macro_f1_std": 0.0262,
+    "selection_seed_per_class_f1": {
+      "positive": 0.386,
+      "neutral": 0.7333,
+      "negative": 0.5455
+    },
+    "class_weights": {
+      "positive": 0.9597,
+      "neutral": 0.6177,
+      "negative": 1.4225
+    }
+  },
+  "gate": {
+    "rule": "mean test macro-F1 across seeds must exceed production (0.5816) by more than its own std",
+    "margin_vs_production": -0.0264,
+    "std": 0.0262,
+    "passed": false,
+    "verdict": "NO IMPROVEMENT"
+  },
+  "candidate_model_dir": "storage/app/sentiment_model/indobert_finetuned_v2_weighted",
+  "production_model_untouched": "storage/app/sentiment_model/indobert_finetuned_v1"
+}

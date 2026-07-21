@@ -579,3 +579,25 @@ Percobaan pertama (`--force --variant=technical`) selesai TAPI `date_end` cuma m
 - Real run: `PYTHON_BINARY=quant/.venv-sentiment/bin/python3 php artisan prediction:retrain-volatile --force` berhasil. Dataset khusus volatile diregenerasi sampai **2026-07-21**: BUMI 2744 rows (`2001-06-30`–`2026-07-21`), DEWA 2669 rows (`2007-09-30`–`2026-07-21`). Tiga model dipromosikan oleh gating karena tidak memburuk: `bumi_technical` macro-F1 0.3742→0.3742, `dewa_regime` 0.5751→0.5751, `dewa_technical` 0.4102→0.4102. `retrain_history.jsonl` berisi 3 baris promoted baru dengan `latest_data_at=2026-07-21T00:00:00+07:00`.
 
 ### Status Fase Q1: SELESAI. Gap dataset statis BUMI/DEWA tertutup; retrain volatile sekarang mengambil dataset khusus yang diregenerasi dari harga terbaru sebelum training, tanpa melemahkan gerbang degradasi/candidate-only.
+
+## Fase P — Evaluasi eksperimen sentimen berbobot
+
+**Konteks:** eksperimen class-weighted fine-tune IndoBERT dari sesi sebelumnya mati di tengah karena proses background tidak bertahan lintas-sesi. Tiga model sweep seed 42 sudah ada di `storage/app/sentiment_model/_weighted_sweep/`, tetapi metrik lama hilang; sesuai handoff, eksperimen dilanjutkan dengan resume/evaluasi ulang, lalu konfirmasi multi-seed untuk pemenang validasi.
+
+### Perubahan dan artefak
+- `quant/finetune_sentiment_weighted_experiment.py` — script eksperimen standalone dengan resume logic: model sweep yang sudah punya `model.safetensors` tidak dilatih ulang, hanya dievaluasi ulang.
+- `output/prediction_research/sentiment_weighted_experiment_report.json` dan `.txt` — report akhir eksperimen.
+- Candidate model tersimpan di `storage/app/sentiment_model/indobert_finetuned_v2_weighted`; produksi `storage/app/sentiment_model/indobert_finetuned_v1` tidak disentuh.
+
+### Hasil evaluasi
+Sweep dipilih hanya dari validation macro-F1: `sqrt_inverse` menang dengan val macro-F1 **0.7564**. Angka test sweep hanya dicatat untuk transparansi: `none` 0.5816, `inverse` 0.5814, `sqrt_inverse` 0.5549. Konfirmasi pemenang `sqrt_inverse` pada seed `[42, 0, 123]` menghasilkan test macro-F1 `[0.5549, 0.5233, 0.5875]`, mean **0.5552**, std **0.0262**, dan akurasi `[0.6250, 0.6083, 0.6750]`. F1 per kelas pada selection seed: positive **0.3860**, neutral **0.7333**, negative **0.5455**.
+
+### Verdict gate
+Gate mensyaratkan mean test macro-F1 mengalahkan produksi 0.5816 lebih besar dari std sendiri. Margin `0.5552 - 0.5816 = -0.0264`, std 0.0262, sehingga verdict report = **NO IMPROVEMENT**. Candidate **tidak dipromosikan**; model produksi v1 tetap acuan sentimen. Temuan negatif dicatat apa adanya: class weighting sedikit menaikkan positive F1 pada selection seed dibanding produksi (0.3860 vs 0.3774), tetapi menurunkan macro-F1 rata-rata dan tidak cukup stabil untuk mengganti model.
+
+### Verifikasi
+- Eksperimen dijalankan sampai selesai dengan 3 seed konfirmasi; report JSON/TXT terbentuk.
+- Produksi `indobert_finetuned_v1` tidak ditimpa.
+- Catatan eksekusi: sandbox memblokir DNS ke HuggingFace sehingga loader beberapa kali retry, lalu memakai cache lokal dan training/evaluasi tetap selesai.
+
+### Status Fase P: SELESAI. Eksperimen berbobot gagal melewati gate; tidak ada promosi model sentimen.

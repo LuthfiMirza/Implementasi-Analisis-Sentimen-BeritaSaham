@@ -1,0 +1,21 @@
+Class-Weighted Sentiment Fine-Tune Experiment
+=============================================
+
+Checkpoint: w11wo/indonesian-roberta-base-sentiment-classifier  |  epochs: 6
+Baselines (same 120-row test split): production fine-tuned=0.5816, rule-based=0.5482
+
+Scheme sweep (selection by VAL macro-F1, test shown for transparency only):
+  none           val=0.7202  test=0.5816  acc=0.6500  pos/neu/neg F1={'positive': 0.3774, 'neutral': 0.7468, 'negative': 0.6207}
+  inverse        val=0.7219  test=0.5814  acc=0.6333  pos/neu/neg F1={'positive': 0.386, 'neutral': 0.7297, 'negative': 0.6286}
+  sqrt_inverse   val=0.7564  test=0.5549  acc=0.6250  pos/neu/neg F1={'positive': 0.386, 'neutral': 0.7333, 'negative': 0.5455}  <- WINNER
+
+Winner: sqrt_inverse (chosen by val)
+  test macro-F1 across seeds [42, 0, 123]: [0.5549, 0.5233, 0.5875]
+  mean=0.5552  std=0.0262
+  test accuracy per seed: [0.625, 0.6083, 0.675]
+  per-class F1 (selection seed): {'positive': 0.386, 'neutral': 0.7333, 'negative': 0.5455}
+
+Gate (mean test macro-F1 beats production 0.5816 by > std):
+  margin=-0.0264  std=0.0262  -> NO IMPROVEMENT
+
+Candidate saved to: storage/app/sentiment_model/indobert_finetuned_v2_weighted (production v1 untouched).
