@@ -300,10 +300,8 @@ def write_metadata(records: Sequence[RebuildRecord], output_dir: Path) -> Path:
     return path
 
 
-def write_summary(records: Sequence[RebuildRecord], output_dir: Path) -> tuple[Path, Path]:
-    json_path = output_dir / "rebuild_summary.json"
-    txt_path = output_dir / "rebuild_summary.txt"
-    payload = {
+def build_summary_payload(records: Sequence[RebuildRecord]) -> dict[str, object]:
+    return {
         "series": [
             {
                 "name": record.name,
@@ -318,6 +316,12 @@ def write_summary(records: Sequence[RebuildRecord], output_dir: Path) -> tuple[P
             for record in records
         ]
     }
+
+
+def write_summary(records: Sequence[RebuildRecord], output_dir: Path) -> tuple[Path, Path]:
+    json_path = output_dir / "rebuild_summary.json"
+    txt_path = output_dir / "rebuild_summary.txt"
+    payload = build_summary_payload(records)
     json_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     lines = []
     for record in records:
@@ -368,15 +372,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     invalid = [record for record in records if record.status != "rebuilt"]
-    if invalid:
-        for record in invalid:
-            print(f"{record.name}: invalid rebuild ({', '.join(record.issues)})", file=sys.stderr)
-        return 1
+    for record in invalid:
+        print(f"{record.name}: invalid rebuild ({', '.join(record.issues)})", file=sys.stderr)
 
-    for record in records:
-        print(f"rebuilt {record.name} -> {record.output_path} ({record.rows} rows)")
+    # Stdout is reserved for the JSON summary (mirrors fetch_fundamentals.py's convention) so
+    # callers -- e.g. RefreshPriceHistoryCommand.php -- can parse per-ticker outcomes without
+    # reading rebuild_summary.json off disk. Human-readable detail stays in the .txt/.json files
+    # and the stderr lines above for interactive use.
+    print(json.dumps(build_summary_payload(records), indent=2))
 
-    return 0
+    return 1 if invalid else 0
 
 
 if __name__ == "__main__":

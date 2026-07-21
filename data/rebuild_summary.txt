@@ -1,1 +1,1 @@
-IHSG (^JKSE): rebuilt, rows=8774, range=1990-04-06..2026-04-22, issues=-
+IHSG (^JKSE): rebuilt, rows=8831, range=1990-04-06..2026-07-21, issues=-

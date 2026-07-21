@@ -138,6 +138,20 @@ Schedule::command('stocks:update-snapshots')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// WEEKLY PRICE HISTORY REFRESH: data/stocks/*.csv (sumber fitur teknikal training V6A/V6B/BUMI/DEWA)
+// ternyata tidak pernah dijadwalkan sama sekali -- ditemukan mentok ~2026-04-22 saat verifikasi
+// Fase N (retrain otomatis sudah aman tapi belum benar-benar menyerap harga terbaru). Dijadwalkan
+// 1 jam SEBELUM retrain-volatile di bawah supaya kedua jalur retrain (volatile Minggu 02:00,
+// produksi Senin 07:00) sama-sama dapat data segar dari satu refresh mingguan ini.
+Schedule::command('prediction:refresh-price-history')
+    ->weekly()
+    ->sundays()
+    ->at('01:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/refresh-price-history.log'));
+
 // WEEKLY ML RETRAIN: model khusus saham volatil BUMI/DEWA.
 // Aman/idempotent: command skip otomatis jika belum ada data baru sejak training terakhir.
 Schedule::command('prediction:retrain-volatile')

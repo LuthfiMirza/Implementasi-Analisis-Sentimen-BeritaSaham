@@ -1,3 +1,2 @@
 ticker,symbol,status,rows,date_start,date_end,issues,output_path
-BUMI,BUMI.JK,rebuilt,6177,2001-06-07,2026-04-24,,data/stocks/BUMI.csv
-DEWA,DEWA.JK,rebuilt,4554,2007-09-26,2026-04-24,,data/stocks/DEWA.csv
+BBCA,BBCA.JK,rebuilt,5453,2004-06-08,2026-07-21,,data/stocks/BBCA.csv

@@ -1,24 +1,14 @@
 {
   "series": [
     {
-      "name": "BUMI",
-      "symbol": "BUMI.JK",
+      "name": "BBCA",
+      "symbol": "BBCA.JK",
       "status": "rebuilt",
-      "rows": 6177,
-      "date_start": "2001-06-07",
-      "date_end": "2026-04-24",
+      "rows": 5453,
+      "date_start": "2004-06-08",
+      "date_end": "2026-07-21",
       "issues": [],
-      "output_path": "data/stocks/BUMI.csv"
-    },
-    {
-      "name": "DEWA",
-      "symbol": "DEWA.JK",
-      "status": "rebuilt",
-      "rows": 4554,
-      "date_start": "2007-09-26",
-      "date_end": "2026-04-24",
-      "issues": [],
-      "output_path": "data/stocks/DEWA.csv"
+      "output_path": "data/stocks/BBCA.csv"
     }
   ]
 }
