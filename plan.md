@@ -534,3 +534,30 @@ Deteksi "ada data baru" di command retrain memakai tabel DB `stock_prices`/`news
 - Ini murni efisiensi tooling, tidak memengaruhi hasil riset/metodologi skripsi.
 
 ### Status Fase N: SELESAI untuk mekanisme retrain otomatis (kode, jadwal, test, verifikasi nyata). Staleness `data/stocks/*.csv` dicatat sebagai temuan terbuka, belum dikerjakan — kandidat item pertama untuk sesi lanjutan.
+
+---
+
+## Fase O — Tutup gap staleness `data/stocks/*.csv` (tindak lanjut Fase N)
+
+**Konteks:** langsung menindaklanjuti temuan terbuka Fase N. Root cause dicek dulu (bukan asumsi): script pembangun `data/stocks/{TICKER}.csv` sudah ADA dan sudah teruji — [`quant/rebuild_yfinance_ohlcv.py`](quant/rebuild_yfinance_ohlcv.py) (fetch via yfinance, validasi ketat: reject gap/weekend-row/frekuensi campur, py-test sendiri) — tapi **tidak pernah dijadwalkan sama sekali** (`grep -rn "rebuild_yfinance_ohlcv" routes/ app/` nihil sebelum fase ini). Murni terlewat saat proyek dibangun.
+
+### Perubahan kode
+- [`quant/rebuild_yfinance_ohlcv.py`](quant/rebuild_yfinance_ohlcv.py) — `main()` sekarang juga print ringkasan JSON ke stdout (pola sama seperti `fetch_fundamentals.py`), supaya Laravel bisa parse hasil tanpa baca file dari disk. Dicek aman: `quant/test_rebuild_yfinance_ohlcv.py` tidak menguji stdout `main()` sama sekali (cuma unit test fungsi individual), py-test tetap 6/6 lulus setelah perubahan.
+- [`app/Console/Commands/RefreshPriceHistoryCommand.php`](app/Console/Commands/RefreshPriceHistoryCommand.php) (`prediction:refresh-price-history`) — reuse venv yang sudah ada (`quant/.venv-fundamentals`, sudah punya yfinance+pandas), panggil `rebuild_yfinance_ohlcv.py` via `Process` facade (pola `SyncStockFundamentalsCommand`, lebih simpel dari command retrain karena tidak butuh candidate-gating). Scope: 10 ticker resmi V6A/V6B + BUMI/DEWA (12 total), opsi `--ticker=*` untuk subset. Toleran kegagalan sebagian (1-2 ticker gagal fetch tidak menggagalkan seluruh command, file lama yang gagal divalidasi tidak tertimpa — perilaku bawaan `rebuild_series()`).
+- Jadwal baru mingguan **Minggu 01:00 WIB** (`routes/console.php`) — 1 jam sebelum `prediction:retrain-volatile` (Minggu 02:00), jauh sebelum `stocks:sync-fundamentals`/`prediction:retrain-production` (Senin 06:00/07:00). Satu refresh mingguan menutup kebutuhan KEDUA jalur retrain sekaligus.
+- Test baru [`tests/Feature/RefreshPriceHistoryCommandTest.php`](tests/Feature/RefreshPriceHistoryCommandTest.php) — 6 test (`Process::fake()`, tidak sentuh DB): sukses semua, filter `--ticker`, IHSG selalu ikut refresh meski ticker di-subset, partial-invalid tidak gagalkan command, semua-invalid gagal, output non-JSON gagal graceful. Full suite naik jadi **427 passed** (dari 421).
+
+### Temuan tambahan saat verifikasi nyata (ditemukan, langsung diperbaiki — masih dalam scope yang sama)
+Percobaan pertama (`--force --variant=technical`) selesai TAPI `date_end` cuma maju ke 2026-04-22 (dari 2026-04-15), padahal `data/stocks/*.csv` sudah segar sampai 2026-07-21. Investigasi: `data/IHSG.csv` (dipakai `ResearchPredictionFeatureService` untuk fitur `market_regime_bullish`/`regime_duration`, keduanya wajib ada — `ExportPredictionResearchDatasetCommand::hasMissingCoreFeature()`) **juga stale di 2026-04-22** dan belum ikut direfresh — bottleneck pindah ke file ini begitu 12 ticker saham sudah segar. Diperbaiki: `RefreshPriceHistoryCommand` sekarang SELALU ikut refresh `IHSG=^JKSE` ke `data/IHSG.csv` (via panggilan `rebuild_yfinance_ohlcv.py` kedua, output-dir berbeda), terlepas dari filter `--ticker`, karena IHSG adalah dependency bersama semua varian, bukan "ticker" dalam arti retrain per-saham.
+
+### Verifikasi end-to-end (real run, bukan simulasi)
+- `prediction:refresh-price-history --ticker=BBCA` → BBCA maju dari 2026-04-22 ke **2026-07-21** (5453 rows), IHSG maju ke 2026-07-21 juga (8831 rows).
+- `prediction:refresh-price-history` (12 ticker penuh) → semua sukses, ~6 detik total (jauh lebih cepat dari dugaan awal, tidak perlu timeout 300s sebesar itu tapi dibiarkan sebagai margin aman).
+- `prediction:retrain-production --force --variant=technical` (re-run kedua kalinya) → `date_end` maju **2026-04-15 → 2026-07-14** (gap sisa ~1 minggu wajar, efek trimming horizon 5-hari untuk label). macro-F1 naik tipis 0.3648→0.3701 dengan data segar, dipromosikan otomatis (gating jalan normal).
+- Full suite tetap hijau (427 passed) setelah seluruh perubahan.
+
+### Catatan untuk sesi lanjutan (bukan bug, tapi disclosure)
+- `data/stocks/*.csv`, `data/IHSG.csv`, `output/prediction_research/dataset_v6a.csv`/`dataset_v6b_10ticker.csv` semuanya ter-track di git — refresh mingguan otomatis akan menghasilkan diff besar tiap kali jadwal jalan (bukan cuma sekali seperti hari ini). Belum diputuskan apakah ini didiamkan (riwayat penuh di git) atau di-gitignore ke depannya — keputusan user.
+- **Temuan terpisah yang SENGAJA TIDAK dikerjakan di fase ini** (di luar scope, didiskusikan dengan user sebelum mulai): `prediction:retrain-volatile` (BUMI/DEWA) punya gap yang lebih dalam — trainer-nya membaca dataset statis `output/prediction_research/dataset_bumi_special.csv`/`dataset_dewa_special.csv` yang cuma pernah dibuat sekali oleh script riset one-off `quant/run_special_volatile_stock_research.py`, dan command retrain volatile TIDAK PERNAH memanggil script itu ulang untuk regenerasi dataset (beda dari V6A/V6B yang sudah regenerasi tiap retrain sejak Fase N). Refresh `data/stocks/BUMI.csv`/`DEWA.csv` di fase ini TIDAK menutup gap ini — dataset khusus BUMI/DEWA-nya sendiri tetap statis. Kandidat kerjaan berikutnya kalau user mau lanjut.
+
+### Status Fase O: SELESAI TUNTAS (kode, jadwal, test, 2 real run terverifikasi, gap IHSG yang baru ditemukan langsung ditutup). Gap dataset khusus BUMI/DEWA dicatat sebagai temuan terbuka baru, belum dikerjakan.
