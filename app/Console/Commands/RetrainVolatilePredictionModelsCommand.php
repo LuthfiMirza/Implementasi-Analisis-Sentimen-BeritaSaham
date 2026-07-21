@@ -74,12 +74,26 @@ class RetrainVolatilePredictionModelsCommand extends Command
             return self::SUCCESS;
         }
 
+        $shouldRetrain = collect($plans)->contains(fn (array $plan): bool => $force || $plan['has_new_data']);
+        if ($shouldRetrain) {
+            $datasetProcess = $this->runDatasetRefreshProcess();
+            if (! $datasetProcess->isSuccessful()) {
+                $this->error('Volatile dataset refresh failed; retrain aborted before any artifact change.');
+                Log::warning('Volatile dataset refresh failed', [
+                    'output' => trim($datasetProcess->getErrorOutput() ?: $datasetProcess->getOutput()),
+                ]);
+
+                return self::FAILURE;
+            }
+        }
+
         $exitCode = self::SUCCESS;
         foreach ($variants as $variant => $spec) {
             $plan = $plans[$variant];
             if (! $force && ! $plan['has_new_data']) {
                 $this->appendHistory($historyPath, $this->historyRow($variant, 'skipped', $plan, null, null, $force));
                 $this->info(sprintf('%s: no new data since %s, skip.', $variant, $plan['trained_at'] ?? 'unknown'));
+
                 continue;
             }
 
@@ -94,6 +108,7 @@ class RetrainVolatilePredictionModelsCommand extends Command
                     'output' => trim($process->getErrorOutput() ?: $process->getOutput()),
                 ]);
                 $exitCode = self::FAILURE;
+
                 continue;
             }
 
@@ -107,6 +122,7 @@ class RetrainVolatilePredictionModelsCommand extends Command
                 $this->warn($variant.': candidate artifact missing; production unchanged.');
                 Log::warning('Volatile model candidate artifact missing', ['model' => $variant, 'candidate_dir' => $candidateDir]);
                 $exitCode = self::FAILURE;
+
                 continue;
             }
 
@@ -124,6 +140,7 @@ class RetrainVolatilePredictionModelsCommand extends Command
                     'new_macro_f1' => $newMetrics['macro_f1'] ?? null,
                     'candidate_artifact' => $candidateArtifact,
                 ]);
+
                 continue;
             }
 
@@ -166,6 +183,18 @@ class RetrainVolatilePredictionModelsCommand extends Command
         $script = base_path(env('PREDICTION_VOLATILE_TRAIN_SCRIPT', 'quant/train_volatile_stock_models.py'));
         $python = env('PYTHON_BINARY', 'python3');
         $process = new Process([$python, $script, '--variant', $variant, '--output-dir', $candidateDir], base_path(), null, null, 600);
+        $process->run(function (string $type, string $buffer): void {
+            $this->output->write($buffer);
+        });
+
+        return $process;
+    }
+
+    protected function runDatasetRefreshProcess(): Process
+    {
+        $script = base_path(env('PREDICTION_VOLATILE_DATASET_SCRIPT', 'quant/run_special_volatile_stock_research.py'));
+        $python = env('PYTHON_BINARY', 'python3');
+        $process = new Process([$python, $script], base_path(), null, null, 600);
         $process->run(function (string $type, string $buffer): void {
             $this->output->write($buffer);
         });
@@ -223,6 +252,7 @@ class RetrainVolatilePredictionModelsCommand extends Command
     protected function metricsFromMetadata(array $metadata): array
     {
         $summary = is_array($metadata['research_summary'] ?? null) ? $metadata['research_summary'] : [];
+
         return [
             'macro_f1' => isset($summary['macro_f1']) ? (float) $summary['macro_f1'] : null,
             'directional_accuracy' => isset($summary['directional_accuracy']) ? (float) $summary['directional_accuracy'] : null,
@@ -261,6 +291,7 @@ class RetrainVolatilePredictionModelsCommand extends Command
         }
 
         $decoded = json_decode((string) File::get($path), true);
+
         return is_array($decoded) ? $decoded : [];
     }
 

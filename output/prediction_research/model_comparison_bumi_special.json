@@ -1,13 +1,13 @@
 {
   "ticker": "BUMI",
   "dataset_path": "output/prediction_research/dataset_bumi_special.csv",
-  "dataset_rows": 2718,
+  "dataset_rows": 2744,
   "date_start": "2001-06-30",
-  "date_end": "2026-06-16",
+  "date_end": "2026-07-21",
   "source_distribution": {
-    "": 2683,
-    "yahoo_history_incremental": 31,
-    "command": 4
+    "": 2684,
+    "yahoo_history_incremental": 53,
+    "command": 7
   },
   "feature_columns": [
     "return_1d",
@@ -29,9 +29,9 @@
   "evaluations": {
     "bumi_fixed_2_7pct": {
       "label_column": "label_bumi_fixed_2_7pct",
-      "rows_after_dropna": 2448,
+      "rows_after_dropna": 2496,
       "date_start": "2005-08-31",
-      "date_end": "2026-04-22",
+      "date_end": "2026-07-21",
       "fold_count": 8,
       "class_labels": [
         "down",
@@ -40,14 +40,14 @@
       ],
       "label_distribution": {
         "counts": {
-          "down": 869,
-          "flat": 853,
-          "up": 726
+          "down": 888,
+          "flat": 865,
+          "up": 743
         },
         "shares": {
-          "down": 0.354984,
-          "flat": 0.348448,
-          "up": 0.296569
+          "down": 0.355769,
+          "flat": 0.346554,
+          "up": 0.297676
         }
       },
       "models": [

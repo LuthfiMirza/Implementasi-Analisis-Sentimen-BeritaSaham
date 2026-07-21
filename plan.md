@@ -561,3 +561,21 @@ Percobaan pertama (`--force --variant=technical`) selesai TAPI `date_end` cuma m
 - **Temuan terpisah yang SENGAJA TIDAK dikerjakan di fase ini** (di luar scope, didiskusikan dengan user sebelum mulai): `prediction:retrain-volatile` (BUMI/DEWA) punya gap yang lebih dalam — trainer-nya membaca dataset statis `output/prediction_research/dataset_bumi_special.csv`/`dataset_dewa_special.csv` yang cuma pernah dibuat sekali oleh script riset one-off `quant/run_special_volatile_stock_research.py`, dan command retrain volatile TIDAK PERNAH memanggil script itu ulang untuk regenerasi dataset (beda dari V6A/V6B yang sudah regenerasi tiap retrain sejak Fase N). Refresh `data/stocks/BUMI.csv`/`DEWA.csv` di fase ini TIDAK menutup gap ini — dataset khusus BUMI/DEWA-nya sendiri tetap statis. Kandidat kerjaan berikutnya kalau user mau lanjut.
 
 ### Status Fase O: SELESAI TUNTAS (kode, jadwal, test, 2 real run terverifikasi, gap IHSG yang baru ditemukan langsung ditutup). Gap dataset khusus BUMI/DEWA dicatat sebagai temuan terbuka baru, belum dikerjakan.
+
+## Fase Q1 — Regenerasi dataset khusus BUMI/DEWA sebelum retrain volatile
+
+**Konteks:** menindaklanjuti temuan Fase O. `prediction:retrain-volatile` sudah punya gating aman untuk artefak BUMI/DEWA, tapi trainer `quant/train_volatile_stock_models.py` membaca `output/prediction_research/dataset_bumi_special.csv` dan `dataset_dewa_special.csv` yang sebelumnya hanya dibuat oleh script riset one-off `quant/run_special_volatile_stock_research.py`. Akibatnya refresh `data/stocks/BUMI.csv`/`DEWA.csv` belum otomatis masuk ke dataset khusus volatile saat retrain.
+
+### Investigasi sebelum perubahan
+`quant/run_special_volatile_stock_research.py` dicek aman untuk diotomasi: script membangun ulang dataset BUMI/DEWA secara deterministik dari file harga statis, menulis ulang CSV + report JSON/TXT di `output/prediction_research/`, dan menghasilkan label yang memang dipakai trainer produksi volatile (`label_bumi_fixed_2_7pct`, `label_dewa_move_0_5pct`, `label_dewa_atr0_5_h5d`). Script tidak butuh input interaktif dan bisa dipanggil satu kali sebelum semua varian training.
+
+### Perubahan kode
+- `app/Console/Commands/RetrainVolatilePredictionModelsCommand.php` — tambah langkah refresh dataset volatile sebelum loop training jika ada minimal satu varian yang benar-benar akan retrain (`--force` atau ada data baru). Dry-run dan skip-no-new-data tetap tidak memanggil Python. Kalau refresh dataset gagal, command berhenti sebelum membuat/mempromosikan artefak apa pun, sehingga gating produksi tetap utuh.
+- `tests/Feature/RetrainVolatilePredictionModelsCommandTest.php` — tambah fake dataset-refresh script via `PREDICTION_VOLATILE_DATASET_SCRIPT`, verifikasi dry-run/skip tidak refresh, retrain refresh dulu, dan kegagalan refresh membatalkan training tanpa menyentuh artefak produksi.
+
+### Verifikasi
+- `php artisan test tests/Feature/RetrainVolatilePredictionModelsCommandTest.php` → 6 passed, 34 assertions.
+- `php artisan test` → **428 passed**, 1879 assertions.
+- Real run: `PYTHON_BINARY=quant/.venv-sentiment/bin/python3 php artisan prediction:retrain-volatile --force` berhasil. Dataset khusus volatile diregenerasi sampai **2026-07-21**: BUMI 2744 rows (`2001-06-30`–`2026-07-21`), DEWA 2669 rows (`2007-09-30`–`2026-07-21`). Tiga model dipromosikan oleh gating karena tidak memburuk: `bumi_technical` macro-F1 0.3742→0.3742, `dewa_regime` 0.5751→0.5751, `dewa_technical` 0.4102→0.4102. `retrain_history.jsonl` berisi 3 baris promoted baru dengan `latest_data_at=2026-07-21T00:00:00+07:00`.
+
+### Status Fase Q1: SELESAI. Gap dataset statis BUMI/DEWA tertutup; retrain volatile sekarang mengambil dataset khusus yang diregenerasi dari harga terbaru sebelum training, tanpa melemahkan gerbang degradasi/candidate-only.

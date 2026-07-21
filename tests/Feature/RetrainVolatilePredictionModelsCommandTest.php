@@ -12,7 +12,12 @@ use Tests\TestCase;
 class RetrainVolatilePredictionModelsCommandTest extends TestCase
 {
     private string $modelDir;
+
     private string $scriptPath;
+
+    private string $datasetScriptPath;
+
+    private string $datasetMarkerPath;
 
     protected function setUp(): void
     {
@@ -20,25 +25,36 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
 
         $this->modelDir = storage_path('framework/testing/prediction-retrain-'.uniqid());
         $this->scriptPath = storage_path('framework/testing/fake_train_volatile_'.uniqid().'.php');
+        $this->datasetScriptPath = storage_path('framework/testing/fake_refresh_volatile_dataset_'.uniqid().'.php');
+        $this->datasetMarkerPath = storage_path('framework/testing/fake_refresh_volatile_dataset_'.uniqid().'.marker');
         File::ensureDirectoryExists($this->modelDir);
         putenv('PREDICTION_RETRAIN_MODEL_DIR='.$this->modelDir);
         putenv('PREDICTION_VOLATILE_TRAIN_SCRIPT='.$this->relativeToBasePath($this->scriptPath));
+        putenv('PREDICTION_VOLATILE_DATASET_SCRIPT='.$this->relativeToBasePath($this->datasetScriptPath));
         putenv('PYTHON_BINARY=php');
 
         $this->seedVolatileStocks();
         $this->writeProductionArtifacts(0.40);
+        $this->writeFakeDatasetScript();
     }
 
     protected function tearDown(): void
     {
         putenv('PREDICTION_RETRAIN_MODEL_DIR');
         putenv('PREDICTION_VOLATILE_TRAIN_SCRIPT');
+        putenv('PREDICTION_VOLATILE_DATASET_SCRIPT');
         putenv('PYTHON_BINARY');
         if (isset($this->modelDir)) {
             File::deleteDirectory($this->modelDir);
         }
         if (isset($this->scriptPath) && File::exists($this->scriptPath)) {
             File::delete($this->scriptPath);
+        }
+        if (isset($this->datasetScriptPath) && File::exists($this->datasetScriptPath)) {
+            File::delete($this->datasetScriptPath);
+        }
+        if (isset($this->datasetMarkerPath) && File::exists($this->datasetMarkerPath)) {
+            File::delete($this->datasetMarkerPath);
         }
 
         parent::tearDown();
@@ -53,6 +69,7 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
             ->assertExitCode(0);
 
         $this->assertFileDoesNotExist($this->modelDir.'/candidates');
+        $this->assertFileDoesNotExist($this->datasetMarkerPath);
         $this->assertSame([], $this->historyRows());
     }
 
@@ -66,6 +83,7 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
 
         $history = $this->historyRows();
         $this->assertCount(3, $history);
+        $this->assertFileDoesNotExist($this->datasetMarkerPath);
         $this->assertSame(['skipped', 'skipped', 'skipped'], array_column($history, 'decision'));
         $this->assertSame(['manual', 'manual', 'manual'], array_column($history, 'trigger'));
     }
@@ -80,6 +98,7 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
 
         $history = $this->historyRows();
         $this->assertCount(1, $history);
+        $this->assertSame('refreshed', File::get($this->datasetMarkerPath));
         $this->assertSame('dewa_technical', $history[0]['model']);
         $this->assertSame('promoted', $history[0]['decision']);
         $this->assertSame('production-bumi_technical', File::get($this->modelDir.'/model_bumi_technical.joblib'));
@@ -110,7 +129,21 @@ class RetrainVolatilePredictionModelsCommandTest extends TestCase
 
         $this->assertSame('candidate-bumi_technical', File::get($this->modelDir.'/model_bumi_technical.joblib'));
         $this->assertNotEmpty(File::files($this->modelDir.'/archive'));
+        $this->assertSame('refreshed', File::get($this->datasetMarkerPath));
         $this->assertContains('promoted', array_column($this->historyRows(), 'decision'));
+    }
+
+    public function test_dataset_refresh_failure_aborts_before_training(): void
+    {
+        $this->writeFakeDatasetScript(1);
+        $this->writeFakeTrainScript(0.42);
+
+        $this->artisan('prediction:retrain-volatile', ['--force' => true])
+            ->expectsOutputToContain('Volatile dataset refresh failed')
+            ->assertExitCode(1);
+
+        $this->assertSame('production-bumi_technical', File::get($this->modelDir.'/model_bumi_technical.joblib'));
+        $this->assertSame([], $this->historyRows());
     }
 
     private function seedVolatileStocks(): void
@@ -170,6 +203,20 @@ foreach ($specs as $variant => $spec) {
 echo "fake train complete\n";
 PHP_SCRIPT);
         File::put($this->scriptPath, str_replace(['__MACRO_F1__', '__SPECS__'], [(string) $macroF1, $specs], File::get($this->scriptPath)));
+    }
+
+    private function writeFakeDatasetScript(int $exitCode = 0): void
+    {
+        File::put($this->datasetScriptPath, str_replace(
+            ['__MARKER__', '__EXIT_CODE__'],
+            [$this->datasetMarkerPath, (string) $exitCode],
+            <<<'PHP_SCRIPT'
+<?php
+file_put_contents('__MARKER__', 'refreshed');
+echo "fake dataset refresh complete\n";
+exit(__EXIT_CODE__);
+PHP_SCRIPT
+        ));
     }
 
     private function specs(): array
