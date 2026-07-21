@@ -601,3 +601,24 @@ Gate mensyaratkan mean test macro-F1 mengalahkan produksi 0.5816 lebih besar dar
 - Catatan eksekusi: sandbox memblokir DNS ke HuggingFace sehingga loader beberapa kali retry, lalu memakai cache lokal dan training/evaluasi tetap selesai.
 
 ### Status Fase P: SELESAI. Eksperimen berbobot gagal melewati gate; tidak ada promosi model sentimen.
+
+## Fase Q2-prep — Siapkan active learning label positif
+
+**Konteks:** Fase P membuktikan class weighting tidak menaikkan kualitas sentimen secara stabil. Jalur Q2 yang valid bukan membuat label sintetis atau reweight data lama, tetapi menambah label manusia baru, khususnya artikel yang condong positif/ambigu karena kelas positive tetap paling lemah.
+
+### Perubahan kode
+- `app/Console/Commands/ExportSentimentActiveLearningCandidatesCommand.php` — command baru `sentiment:export-active-learning-candidates` untuk mengekspor artikel belum dilabel manual yang condong positif atau dekat dengan batas positif. Output CSV punya kolom `human_label` kosong agar manusia mengisi `positive|neutral|negative`; skor kandidat hanya prioritas sampling, bukan ground truth.
+- `tests/Feature/ExportSentimentActiveLearningCandidatesCommandTest.php` — memastikan kandidat unlabeled positif/ambigu masuk, artikel yang sudah punya label manual tidak ikut.
+
+### Cara pakai untuk pelabelan manusia
+Jalankan saat MySQL lokal menyala:
+```bash
+php artisan sentiment:export-active-learning-candidates --limit=250
+```
+File keluaran default: `storage/app/sentiment_finetune/active_learning_positive_candidates.csv`. Label manusia harus diisi manual di kolom `human_label`, lalu baru boleh diimpor/merge ke `sentiment_manual_labels` dengan audit duplikat. Tidak ada label otomatis dari model/LLM yang dipakai sebagai kebenaran.
+
+### Verifikasi
+- `php artisan test tests/Feature/ExportSentimentActiveLearningCandidatesCommandTest.php` → 1 passed, 5 assertions.
+- Percobaan ekspor real diblokir karena MySQL lokal tidak menyala (`Connection refused` pada 2026-07-22). Ini bukan bug command; MySQL memang keputusan final tetap manual.
+
+### Status Fase Q2-prep: SELESAI. Infrastruktur kandidat active learning siap; Q2 utama masih menunggu pelabelan manusia sebelum retrain/evaluasi baru.
