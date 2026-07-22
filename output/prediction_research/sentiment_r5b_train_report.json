@@ -1,0 +1,60 @@
+{
+  "checkpoint": "w11wo/indonesian-roberta-base-sentiment-classifier",
+  "train_size": 716,
+  "val_size": 154,
+  "test_size": 153,
+  "label2id": {
+    "negative": 2,
+    "neutral": 1,
+    "positive": 0
+  },
+  "caveat": "Manual labels originate from ML-vs-rule disagreement cases plus Q2 active-learning positive/ambiguous candidates (biased hard-case sample, not a random draw from all articles). Metrics characterize performance on this labeled hard-case distribution, not overall article population.",
+  "test_set_results": {
+    "finetuned_macro_f1": 0.7141,
+    "finetuned_classification_report": {
+      "positive": {
+        "precision": 0.7073170731707317,
+        "recall": 0.6170212765957447,
+        "f1-score": 0.6590909090909091,
+        "support": 47.0
+      },
+      "neutral": {
+        "precision": 0.7551020408163265,
+        "recall": 0.8409090909090909,
+        "f1-score": 0.7956989247311828,
+        "support": 88.0
+      },
+      "negative": {
+        "precision": 0.7857142857142857,
+        "recall": 0.6111111111111112,
+        "f1-score": 0.6875,
+        "support": 18.0
+      },
+      "accuracy": 0.7450980392156863,
+      "macro avg": {
+        "precision": 0.749377799900448,
+        "recall": 0.6896804928719823,
+        "f1-score": 0.7140966112740306,
+        "support": 153.0
+      },
+      "weighted avg": {
+        "precision": 0.7440244390439101,
+        "recall": 0.7450980392156863,
+        "f1-score": 0.7410050856445544,
+        "support": 153.0
+      }
+    },
+    "rule_based_baseline_macro_f1": 0.4876,
+    "raw_ml_baseline_macro_f1": 0.8768
+  },
+  "listicle_pattern_spot_check": {
+    "n": 7,
+    "finetuned_accuracy": 1.0,
+    "raw_ml_accuracy": 1.0
+  },
+  "gate": {
+    "rule": "finetuned_macro_f1 > rule_based_baseline_macro_f1 (both measured on same held-out 120-row test split)",
+    "passed": true
+  },
+  "model_saved_to": "storage/app/sentiment_model/indobert_finetuned_r5b_candidate"
+}

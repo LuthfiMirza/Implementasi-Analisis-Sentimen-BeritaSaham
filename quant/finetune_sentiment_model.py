@@ -51,17 +51,19 @@ def macro_f1_for_baseline(rows: list[dict], baseline_key: str) -> dict[str, obje
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-out-dir", default=str(MODEL_OUT_DIR))
+    parser.add_argument("--data-dir", default=str(DATA_DIR))
     parser.add_argument("--report-json", default=str(REPORT_JSON_PATH))
     parser.add_argument("--report-txt", default=str(REPORT_TXT_PATH))
     args = parser.parse_args()
 
     model_out_dir = Path(args.model_out_dir)
+    data_dir = Path(args.data_dir)
     report_json_path = Path(args.report_json)
     report_txt_path = Path(args.report_txt)
 
-    train_rows = load_jsonl(DATA_DIR / "train.jsonl")
-    val_rows = load_jsonl(DATA_DIR / "val.jsonl")
-    test_rows = load_jsonl(DATA_DIR / "test.jsonl")
+    train_rows = load_jsonl(data_dir / "train.jsonl")
+    val_rows = load_jsonl(data_dir / "val.jsonl")
+    test_rows = load_jsonl(data_dir / "test.jsonl")
     print(f"train={len(train_rows)} val={len(val_rows)} test={len(test_rows)}")
 
     config = AutoConfig.from_pretrained(CHECKPOINT)

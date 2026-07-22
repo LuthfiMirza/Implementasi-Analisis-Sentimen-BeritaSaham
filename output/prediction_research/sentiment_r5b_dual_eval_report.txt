@@ -1,0 +1,17 @@
+Sentiment R5b Dual Evaluation
+==============================
+
+legacy_hard_case (n=153, labels={'positive': 47, 'neutral': 88, 'negative': 18}):
+  production macro-F1 : 0.8768
+  candidate macro-F1  : 0.7141
+  rule-based macro-F1 : 0.4876
+  stored ML macro-F1  : 0.8768
+
+representative_random (n=865, labels={'positive': 55, 'neutral': 789, 'negative': 21}):
+  production macro-F1 : 0.4624
+  candidate macro-F1  : 0.5443
+  rule-based macro-F1 : 0.4954
+  stored ML macro-F1  : 0.4624
+
+Gate: PASSED
+Gate rule: candidate legacy_hard_case macro-F1 >= 0.5316 (0.5816 - 0.05)

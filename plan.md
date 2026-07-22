@@ -787,3 +787,29 @@ Buka:
 Label dengan tombol Positif/Netral/Negatif atau keyboard 1/2/3 mengikuti `docs/sentiment_labeling_guideline.md`. Target awal: **150–200 label representatif**. R5b tidak boleh dimulai sampai user eksplisit menyatakan label representatif sudah cukup terkumpul.
 
 ### Status Fase R5a: SIAP LABELING. UI representatif sudah tersedia; R5b DITAHAN sampai ada konfirmasi eksplisit bahwa label representatif cukup.
+
+## Fase R5b — Export test representatif terkunci + evaluasi ganda
+
+**Konteks:** user sudah mengumpulkan label representatif jauh di atas target awal. Cek DB real sebelum eksekusi: `representative_random=865`, `legacy_hard_case=1023`, total manual label `1888`. R5b boleh lanjut karena jeda manusia sudah terpenuhi.
+
+### Perubahan kode
+- `app/Console/Commands/ExportSentimentFinetuneDatasetCommand.php` — filter `--sample-method=`/`--exclude-sample-method=` tersedia untuk memisahkan split berdasarkan lineage label.
+- `quant/finetune_sentiment_model.py` — reuse opsi `--model-out-dir`, `--data-dir`, `--report-json`, dan `--report-txt` agar candidate R5b tersimpan terpisah.
+- `quant/evaluate_sentiment_models.py` — evaluasi produksi vs candidate di dua populasi terpisah: `legacy_hard_case` dan `representative_random`; gate hanya terhadap benchmark hard-case lama, sementara angka representatif dilaporkan sebagai metrik kedua yang tidak dibandingkan langsung dengan 0.5816.
+
+### Artefak
+- Dataset training/evaluasi hard-case: `storage/app/sentiment_finetune/r5b_train/` (`716/154/153`).
+- Test representatif terkunci: `storage/app/sentiment_finetune/r5b_representative/test.jsonl` (`865` baris; train/val kosong karena semua label representatif saat ini ditahan untuk evaluasi populasi kedua).
+- Candidate model: `storage/app/sentiment_model/indobert_finetuned_r5b_candidate/`.
+- Report training: `output/prediction_research/sentiment_r5b_train_report.json` dan `.txt`.
+- Report evaluasi ganda: `output/prediction_research/sentiment_r5b_dual_eval_report.json` dan `.txt`.
+
+### Hasil evaluasi ganda
+- `legacy_hard_case` (`n=153`, positive 47 / neutral 88 / negative 18): produksi `0.8768`, candidate `0.7141`, rule-based `0.4876`, stored ML `0.8768` macro-F1.
+- `representative_random` (`n=865`, positive 55 / neutral 789 / negative 21): produksi `0.4624`, candidate `0.5443`, rule-based `0.4954`, stored ML `0.4624` macro-F1.
+- Gate R5b: **PASSED** karena candidate hard-case `0.7141 >= 0.5316` (`0.5816 - 0.05`). Produksi v1 belum ditimpa otomatis; promosi tetap perlu keputusan eksplisit.
+
+### Verifikasi
+- `quant/.venv-sentiment/bin/python quant/evaluate_sentiment_models.py` → report evaluasi ganda terbentuk ulang; gate `PASSED`.
+
+### Status Fase R5b: SELESAI SEBAGAI CANDIDATE. Candidate R5b meningkatkan metrik representatif dan tidak melanggar gate hard-case, tetapi produksi `indobert_finetuned_v1` belum diganti sampai user eksplisit setuju promosi.

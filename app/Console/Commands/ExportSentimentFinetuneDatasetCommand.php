@@ -12,7 +12,9 @@ class ExportSentimentFinetuneDatasetCommand extends Command
         {--output-dir=storage/app/sentiment_finetune : Output directory for train/val/test JSONL}
         {--train-ratio=0.7}
         {--val-ratio=0.15}
-        {--seed=42}';
+        {--seed=42}
+        {--sample-method=* : Include only these sample_method values; use null for NULL}
+        {--exclude-sample-method=* : Exclude these sample_method values; use null for NULL}';
 
     protected $description = 'Export sentiment_manual_labels joined with article text (production-matching format) for IndoBERT fine-tuning, stratified train/val/test split';
 
@@ -22,18 +24,45 @@ class ExportSentimentFinetuneDatasetCommand extends Command
         $trainRatio = (float) $this->option('train-ratio');
         $valRatio = (float) $this->option('val-ratio');
         $seed = (int) $this->option('seed');
+        $sampleMethods = collect((array) $this->option('sample-method'))->filter()->values();
+        $excludeSampleMethods = collect((array) $this->option('exclude-sample-method'))->filter()->values();
 
         if (! is_dir($outputDir)) {
             mkdir($outputDir, 0777, true);
         }
 
-        $rows = SentimentManualLabel::with('article')->get()
+        $query = SentimentManualLabel::with('article');
+
+        if ($sampleMethods->isNotEmpty()) {
+            $query->where(function ($query) use ($sampleMethods) {
+                $values = $sampleMethods->reject(fn ($value) => $value === 'null')->all();
+                if ($values) {
+                    $query->whereIn('sample_method', $values);
+                }
+                if ($sampleMethods->contains('null')) {
+                    $values ? $query->orWhereNull('sample_method') : $query->whereNull('sample_method');
+                }
+            });
+        }
+
+        if ($excludeSampleMethods->isNotEmpty()) {
+            $values = $excludeSampleMethods->reject(fn ($value) => $value === 'null')->all();
+            if ($values) {
+                $query->whereNotIn('sample_method', $values);
+            }
+            if ($excludeSampleMethods->contains('null')) {
+                $query->whereNotNull('sample_method');
+            }
+        }
+
+        $rows = $query->get()
             ->filter(fn (SentimentManualLabel $row) => $row->article !== null)
             ->map(function (SentimentManualLabel $row) {
                 return [
                     'news_article_id' => $row->news_article_id,
                     'text' => $this->buildProductionInputText($row->article),
                     'label' => $row->label,
+                    'sample_method' => $row->sample_method,
                     'ml_sentiment_label' => $row->article->ml_sentiment_label,
                     'rule_sentiment_label' => $row->article->rule_sentiment_label,
                 ];
