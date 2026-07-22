@@ -13,5 +13,6 @@ representative_random (n=865, labels={'positive': 55, 'neutral': 789, 'negative'
   rule-based macro-F1 : 0.4954
   stored ML macro-F1  : 0.4624
 
-Gate: PASSED
-Gate rule: candidate legacy_hard_case macro-F1 >= 0.5316 (0.5816 - 0.05)
+Gate: FAILED
+Gate rule: candidate legacy_hard_case macro-F1 >= production legacy_hard_case macro-F1 on the same locked file
+Gate comparison: 0.7141 vs 0.8768 (delta -0.1627)

@@ -319,10 +319,12 @@
   },
   "caveat": "legacy_hard_case and representative_random are separate populations; representative_random is not comparable to the old hard-case 0.5816 benchmark.",
   "gate": {
-    "rule": "candidate_macro_f1 on legacy_hard_case must not degrade by more than 0.05 vs original production hard-case benchmark 0.5816; representative_random is reported separately only",
-    "production_hard_case_macro_f1": 0.5816,
-    "allowed_degradation": 0.05,
-    "hard_case_floor": 0.5316,
-    "passed": true
+    "rule": "candidate_macro_f1 must be >= production_macro_f1 on the exact same locked legacy_hard_case test file; representative_random is reported separately only",
+    "locked_hard_test": "output/prediction_research/sentiment_r5b_locked_tests/legacy_hard_case_test.jsonl",
+    "production_macro_f1_same_file": 0.8768,
+    "candidate_macro_f1_same_file": 0.7141,
+    "delta_candidate_minus_production": -0.1627,
+    "passed": false,
+    "verdict": "FAILED"
   }
 }

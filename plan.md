@@ -795,11 +795,12 @@ Label dengan tombol Positif/Netral/Negatif atau keyboard 1/2/3 mengikuti `docs/s
 ### Perubahan kode
 - `app/Console/Commands/ExportSentimentFinetuneDatasetCommand.php` — filter `--sample-method=`/`--exclude-sample-method=` tersedia untuk memisahkan split berdasarkan lineage label.
 - `quant/finetune_sentiment_model.py` — reuse opsi `--model-out-dir`, `--data-dir`, `--report-json`, dan `--report-txt` agar candidate R5b tersimpan terpisah.
-- `quant/evaluate_sentiment_models.py` — evaluasi produksi vs candidate di dua populasi terpisah: `legacy_hard_case` dan `representative_random`; gate hanya terhadap benchmark hard-case lama, sementara angka representatif dilaporkan sebagai metrik kedua yang tidak dibandingkan langsung dengan 0.5816.
+- `quant/evaluate_sentiment_models.py` — evaluasi produksi vs candidate di dua populasi terpisah: `legacy_hard_case` dan `representative_random`; gate memakai perbandingan candidate vs produksi pada file locked `legacy_hard_case` yang sama, sementara angka representatif dilaporkan sebagai metrik kedua.
 
 ### Artefak
 - Dataset training/evaluasi hard-case: `storage/app/sentiment_finetune/r5b_train/` (`716/154/153`).
 - Test representatif terkunci: `storage/app/sentiment_finetune/r5b_representative/test.jsonl` (`865` baris; train/val kosong karena semua label representatif saat ini ditahan untuk evaluasi populasi kedua).
+- Salinan test set permanen yang di-commit: `output/prediction_research/sentiment_r5b_locked_tests/legacy_hard_case_test.jsonl`, `output/prediction_research/sentiment_r5b_locked_tests/representative_random_test.jsonl`, dan `SHA256SUMS`. Evaluasi R5b berikutnya wajib memakai path locked ini, bukan path `storage/app/sentiment_finetune/` yang bisa tertimpa export ulang.
 - Candidate model: `storage/app/sentiment_model/indobert_finetuned_r5b_candidate/`.
 - Report training: `output/prediction_research/sentiment_r5b_train_report.json` dan `.txt`.
 - Report evaluasi ganda: `output/prediction_research/sentiment_r5b_dual_eval_report.json` dan `.txt`.
@@ -807,9 +808,10 @@ Label dengan tombol Positif/Netral/Negatif atau keyboard 1/2/3 mengikuti `docs/s
 ### Hasil evaluasi ganda
 - `legacy_hard_case` (`n=153`, positive 47 / neutral 88 / negative 18): produksi `0.8768`, candidate `0.7141`, rule-based `0.4876`, stored ML `0.8768` macro-F1.
 - `representative_random` (`n=865`, positive 55 / neutral 789 / negative 21): produksi `0.4624`, candidate `0.5443`, rule-based `0.4954`, stored ML `0.4624` macro-F1.
-- Gate R5b: **PASSED** karena candidate hard-case `0.7141 >= 0.5316` (`0.5816 - 0.05`). Produksi v1 belum ditimpa otomatis; promosi tetap perlu keputusan eksplisit.
+- Gate R5b dikoreksi setelah audit metodologi: **FAILED**. Perbandingan wajib apples-to-apples pada file test yang sama, yaitu candidate hard-case `0.7141` vs produksi hard-case `0.8768` (delta `-0.1627`). Konstanta lama `0.5816` tidak boleh dipakai untuk gate R5b karena file test R5b berbeda.
+- Candidate terlihat lebih baik pada `representative_random` (`0.5443` vs produksi `0.4624`), tetapi ini metrik populasi kedua dan tidak cukup untuk promosi karena gate hard-case gagal.
 
 ### Verifikasi
-- `quant/.venv-sentiment/bin/python quant/evaluate_sentiment_models.py` → report evaluasi ganda terbentuk ulang; gate `PASSED`.
+- `quant/.venv-sentiment/bin/python quant/evaluate_sentiment_models.py` → report evaluasi ganda terbentuk ulang dari locked test files; gate `FAILED`.
 
-### Status Fase R5b: SELESAI SEBAGAI CANDIDATE. Candidate R5b meningkatkan metrik representatif dan tidak melanggar gate hard-case, tetapi produksi `indobert_finetuned_v1` belum diganti sampai user eksplisit setuju promosi.
+### Status Fase R5b: SELESAI DENGAN TEMUAN NEGATIF. Candidate R5b **TIDAK BOLEH DIPROMOSIKAN** karena kalah dari produksi pada locked hard-case test yang sama. Produksi tetap `indobert_finetuned_v1`; candidate disimpan hanya sebagai artefak riset.

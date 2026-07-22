@@ -12,8 +12,6 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, Data
 
 CLASS_ORDER = ["positive", "neutral", "negative"]
 MAX_LENGTH = 256
-PRODUCTION_HARD_CASE_MACRO_F1 = 0.5816
-ALLOWED_DEGRADATION = 0.05
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -58,8 +56,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--production-model", default="storage/app/sentiment_model/indobert_finetuned_v1")
     parser.add_argument("--candidate-model", default="storage/app/sentiment_model/indobert_finetuned_r5b_candidate")
-    parser.add_argument("--hard-test", default="storage/app/sentiment_finetune/r5b_train/test.jsonl")
-    parser.add_argument("--representative-test", default="storage/app/sentiment_finetune/r5b_representative/test.jsonl")
+    parser.add_argument("--hard-test", default="output/prediction_research/sentiment_r5b_locked_tests/legacy_hard_case_test.jsonl")
+    parser.add_argument("--representative-test", default="output/prediction_research/sentiment_r5b_locked_tests/representative_random_test.jsonl")
     parser.add_argument("--report-json", default="output/prediction_research/sentiment_r5b_dual_eval_report.json")
     parser.add_argument("--report-txt", default="output/prediction_research/sentiment_r5b_dual_eval_report.txt")
     args = parser.parse_args()
@@ -85,13 +83,15 @@ def main() -> None:
         }
 
     hard = payload["datasets"]["legacy_hard_case"]
-    hard_floor = round(PRODUCTION_HARD_CASE_MACRO_F1 - ALLOWED_DEGRADATION, 4)
+    hard_delta = round(hard["candidate"]["macro_f1"] - hard["production"]["macro_f1"], 4)
     payload["gate"] = {
-        "rule": "candidate_macro_f1 on legacy_hard_case must not degrade by more than 0.05 vs original production hard-case benchmark 0.5816; representative_random is reported separately only",
-        "production_hard_case_macro_f1": PRODUCTION_HARD_CASE_MACRO_F1,
-        "allowed_degradation": ALLOWED_DEGRADATION,
-        "hard_case_floor": hard_floor,
-        "passed": bool(hard["candidate"]["macro_f1"] >= hard_floor),
+        "rule": "candidate_macro_f1 must be >= production_macro_f1 on the exact same locked legacy_hard_case test file; representative_random is reported separately only",
+        "locked_hard_test": args.hard_test,
+        "production_macro_f1_same_file": hard["production"]["macro_f1"],
+        "candidate_macro_f1_same_file": hard["candidate"]["macro_f1"],
+        "delta_candidate_minus_production": hard_delta,
+        "passed": bool(hard["candidate"]["macro_f1"] >= hard["production"]["macro_f1"]),
+        "verdict": "FAILED" if hard["candidate"]["macro_f1"] < hard["production"]["macro_f1"] else "PASSED",
     }
 
     report_json = Path(args.report_json)
@@ -111,7 +111,8 @@ def main() -> None:
         ])
     lines.extend([
         f"Gate: {'PASSED' if payload['gate']['passed'] else 'FAILED'}",
-        f"Gate rule: candidate legacy_hard_case macro-F1 >= {payload['gate']['hard_case_floor']} (0.5816 - 0.05)",
+        "Gate rule: candidate legacy_hard_case macro-F1 >= production legacy_hard_case macro-F1 on the same locked file",
+        f"Gate comparison: {payload['gate']['candidate_macro_f1_same_file']} vs {payload['gate']['production_macro_f1_same_file']} (delta {payload['gate']['delta_candidate_minus_production']})",
     ])
     report_txt = Path(args.report_txt)
     report_txt.parent.mkdir(parents=True, exist_ok=True)
