@@ -35,6 +35,8 @@ class ResearchPredictionFeatureService
 
     protected array $stockSeriesCache = [];
 
+    protected ?array $crossSectionRankCache = null;
+
     protected ?Collection $ihsgRegimeCache = null;
 
     protected ?Collection $ihsgRegimeStateCache = null;
@@ -77,7 +79,7 @@ class ResearchPredictionFeatureService
             'price_vs_ema20_pct' => $row['price_vs_ema20_pct'] ?? null,
             'price_vs_ema50' => $row['price_vs_ema50'] ?? null,
             'rsi_slope_5d' => $row['rsi_slope_5d'] ?? null,
-            'return_5d_cross_section_rank' => $row['return_5d_cross_section_rank'] ?? null,
+            'return_5d_cross_section_rank' => $this->return5dCrossSectionRank($stock->code, $referencePoint->toDateString()),
             'volume_spike_flag' => $row['volume_spike_flag'] ?? null,
             'market_regime_bullish' => $regimeBullish === null ? null : (int) $regimeBullish,
             'regime_duration' => $regimeState['duration'] ?? null,
@@ -96,13 +98,18 @@ class ResearchPredictionFeatureService
 
     public function seriesForStock(Stock $stock): Collection
     {
-        if (isset($this->stockSeriesCache[$stock->code])) {
-            return $this->stockSeriesCache[$stock->code];
+        return $this->seriesForCode($stock->code);
+    }
+
+    protected function seriesForCode(string $code): Collection
+    {
+        if (isset($this->stockSeriesCache[$code])) {
+            return $this->stockSeriesCache[$code];
         }
 
-        $path = rtrim($this->stockDataDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$stock->code.'.csv';
+        $path = rtrim($this->stockDataDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$code.'.csv';
         if (! is_file($path)) {
-            return $this->stockSeriesCache[$stock->code] = collect();
+            return $this->stockSeriesCache[$code] = collect();
         }
 
         $rows = $this->readCsv($path)
@@ -240,7 +247,82 @@ class ResearchPredictionFeatureService
             $previousClose = $close;
         }
 
-        return $this->stockSeriesCache[$stock->code] = $result;
+        return $this->stockSeriesCache[$code] = $result;
+    }
+
+    protected function return5dCrossSectionRank(string $stockCode, string $date): ?float
+    {
+        if ($this->crossSectionRankCache === null) {
+            $this->crossSectionRankCache = $this->buildReturn5dCrossSectionRanks();
+        }
+
+        return $this->crossSectionRankCache[$date][$stockCode] ?? null;
+    }
+
+    protected function buildReturn5dCrossSectionRanks(): array
+    {
+        $bucketsByDate = [];
+        foreach (glob(rtrim($this->stockDataDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'*.csv') ?: [] as $path) {
+            $code = pathinfo($path, PATHINFO_FILENAME);
+            foreach ($this->return5dRowsFromCsv($path) as $date => $return5d) {
+                $bucketsByDate[$date][] = ['code' => $code, 'return_5d' => $return5d];
+            }
+        }
+
+        $allRanks = [];
+        foreach ($bucketsByDate as $date => $buckets) {
+            usort($buckets, fn (array $left, array $right): int => $left['return_5d'] <=> $right['return_5d']);
+            $count = count($buckets);
+            if ($count === 1) {
+                $allRanks[$date][$buckets[0]['code']] = 0.5;
+                continue;
+            }
+
+            $position = 0;
+            while ($position < $count) {
+                $tieEnd = $position;
+                while (
+                    $tieEnd + 1 < $count
+                    && abs($buckets[$tieEnd + 1]['return_5d'] - $buckets[$position]['return_5d']) < 0.0000001
+                ) {
+                    $tieEnd++;
+                }
+
+                $normalizedRank = round((($position + $tieEnd) / 2) / ($count - 1), 6);
+                for ($cursor = $position; $cursor <= $tieEnd; $cursor++) {
+                    $allRanks[$date][$buckets[$cursor]['code']] = $normalizedRank;
+                }
+
+                $position = $tieEnd + 1;
+            }
+        }
+
+        return $allRanks;
+    }
+
+    protected function return5dRowsFromCsv(string $path): array
+    {
+        $returns = [];
+        $closeWindow = [];
+        foreach ($this->readCsv($path) as $row) {
+            $close = $this->floatOrNull($row['close'] ?? null);
+            $adjClose = $this->floatOrNull($row['adj_close'] ?? null);
+            $adjustedClose = $adjClose ?? $close;
+            if (($row['date'] ?? '') === '' || $adjustedClose === null) {
+                continue;
+            }
+
+            $closeWindow[] = $adjustedClose;
+            if (count($closeWindow) > 6) {
+                array_shift($closeWindow);
+            }
+
+            if (count($closeWindow) >= 6 && $closeWindow[0] != 0.0) {
+                $returns[(string) $row['date']] = round(($adjustedClose / $closeWindow[0]) - 1, 6);
+            }
+        }
+
+        return $returns;
     }
 
     protected function ihsgRegimeMap(): Collection

@@ -694,3 +694,41 @@ Command scheduler mingguan tetap source of truth untuk menjaga data segar.
 - `php artisan test` tetap hijau.
 
 ### Status Fase Q4: SELESAI. Repo tidak lagi akan menerima diff mingguan besar dari artefak data regeneratif; data tetap diregenerasi lokal oleh command/scheduler.
+
+## Fase Q3 — Perbaiki `return_5d_cross_section_rank` di live inference
+
+**Konteks:** Fase H menemukan `return_5d_cross_section_rank` selalu `null` di live inference karena fitur rank hanya dihitung saat export dataset gabungan. Model produksi masih bisa jalan karena imputasi median, tetapi fitur ini tetap mismatch training-vs-live meski importance kecil (~2.44%).
+
+### Perubahan kode
+- `app/Services/Prediction/ResearchPredictionFeatureService.php` — live inference sekarang menghitung rank return 5-hari lintas semua CSV saham lokal untuk tanggal referensi yang sama. Rank dihitung dengan aturan sama seperti exporter: urut ascending, tie pakai average rank, dinormalisasi 0..1, single ticker = 0.5.
+- Implementasi dibuat cache sekali per instance service dari return_5d saja, bukan menyimpan seluruh feature series semua saham, agar tidak meledakkan memori saat full test/UI analytics.
+- `tests/Feature/ResearchPredictionFeatureServiceTest.php` — regression test tiga CSV sintetis memastikan saham dengan return_5d tertinggi mendapat rank 1.0 dan fitur tidak lagi null.
+
+### Verifikasi
+- Cek live real BBCA 2026-07-21: `return_5d=0.065306`, `return_5d_cross_section_rank=0.545455`.
+- `php artisan test tests/Feature/ResearchPredictionFeatureServiceTest.php` → 1 passed, 2 assertions.
+- Percobaan full suite pertama menemukan OOM karena desain awal membaca semua feature series penuh lintas CSV; diperbaiki menjadi precompute return_5d saja.
+- `php artisan test` → **431 passed**, 1892 assertions.
+
+### Status Fase Q3: SELESAI. Gap null live inference tertutup tanpa retrain dan tanpa mengubah artefak produksi.
+
+## Fase Q5 — Bersihkan log error MySQL besar
+
+**Konteks:** Fase E mencatat file `.err` MySQL XAMPP membengkak sampai sekitar 1.3–1.4GB. Ini housekeeping, bukan data DB. MySQL tetap keputusan final manual; tindakan hanya membersihkan log yang menumpuk.
+
+### Tindakan yang dicoba
+Agent mencoba mengosongkan file `.err` di `/Applications/XAMPP/xamppfiles/var/mysql/` tanpa menghapus path file. Percobaan non-sudo ditolak permission OS karena file dimiliki `_mysql`; percobaan `sudo -n` juga gagal karena membutuhkan password interaktif.
+
+### Verifikasi
+- File terbesar masih `macs-MacBook-Pro.local.err` sekitar **1.3GB**; total `.err` masih sekitar **1.4GB**.
+- Tidak ada file DB/data yang dihapus.
+- Command manual aman untuk user jalankan di Terminal lokal:
+```bash
+sudo sh -c 'for f in /Applications/XAMPP/xamppfiles/var/mysql/*.err; do : > "$f"; done'
+```
+Lalu cek:
+```bash
+ls -lh /Applications/XAMPP/xamppfiles/var/mysql/*.err
+```
+
+### Status Fase Q5: TERTUNDA MANUAL. Agent tidak punya sudo password; user perlu menjalankan command truncate manual. Auto-start MySQL tetap tidak diubah.
