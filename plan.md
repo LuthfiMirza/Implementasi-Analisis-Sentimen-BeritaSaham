@@ -763,3 +763,27 @@ ls -lh /Applications/XAMPP/xamppfiles/var/mysql/*.err
 - `php artisan sentiment:audit-manual-labels` → report R2 terbentuk; tidak ada label diubah otomatis.
 
 ### Status Fase R1–R4: SELESAI. Data lineage label, audit re-review, klasifikasi diagnostik, dan guideline siap. R5a BELUM dimulai karena wajib tanya user dulu kapan mulai label representatif.
+
+## Fase R5a — UI label sampel representatif
+
+**Konteks:** R1–R4 menyiapkan data lineage, audit, klasifikasi diagnostik, dan guideline. Sesuai aturan Fase R, R5a baru dimulai setelah user setuju mulai labeling representatif. Tujuan R5a adalah membuat jalur labeling acak dari populasi berita, bukan hard-case/disagreement/positive-biased seperti label lama.
+
+### Perubahan kode
+- `routes/web.php` — tambah `/sentiment-validation/representative` dan `/sentiment-validation/representative/next`.
+- `app/Http/Controllers/SentimentValidationController.php` — tambah `representativeSample()` dan `representativeSampleNext()`; query mengambil artikel belum dilabel user dengan title + summary/content, `inRandomOrder()`, tanpa filter `ml_rule_agree`, tanpa filter probabilitas positif, dan tanpa prioritas label tertentu.
+- Reuse view `resources/views/sentiment-validation/index.blade.php`; label yang dikirim dari mode ini menyimpan `sample_method=representative_random`.
+- `tests/Feature/SentimentValidationTest.php` — tambah regression test bahwa mode representatif bisa mengambil artikel negatif biasa dan menyimpan `representative_random`.
+
+### Verifikasi
+- Cek DB real sebelum labeling: `representative_existing=0`, pool unlabeled user pertama `1888` artikel.
+- `php artisan test tests/Feature/SentimentValidationTest.php` → 8 passed, 35 assertions.
+- `php artisan test` → **435 passed**, 1910 assertions.
+
+### Cara pakai
+Buka:
+```text
+/sentiment-validation/representative
+```
+Label dengan tombol Positif/Netral/Negatif atau keyboard 1/2/3 mengikuti `docs/sentiment_labeling_guideline.md`. Target awal: **150–200 label representatif**. R5b tidak boleh dimulai sampai user eksplisit menyatakan label representatif sudah cukup terkumpul.
+
+### Status Fase R5a: SIAP LABELING. UI representatif sudah tersedia; R5b DITAHAN sampai ada konfirmasi eksplisit bahwa label representatif cukup.

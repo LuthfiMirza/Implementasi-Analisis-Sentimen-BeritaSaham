@@ -55,6 +55,27 @@ class SentimentValidationController extends Controller
         ]);
     }
 
+    public function representativeSample(): View
+    {
+        $userId = Auth::id();
+        $totalDisagreements = $this->representativeQuery($userId)->count();
+        $labeledByUser = SentimentManualLabel::where('user_id', $userId)
+            ->where('sample_method', 'representative_random')
+            ->count();
+
+        return view('sentiment-validation.index', [
+            'title' => 'R5a: Label Sampel Representatif',
+            'subtitle' => 'Random Representatif Populasi Berita',
+            'description' => 'Artikel dipilih acak dari populasi berita yang belum kamu label, tanpa filter sentimen/ML/rule. Tujuannya membuat test set representatif, bukan mengejar kasus sulit saja. Target awal 150–200 label.',
+            'doneMessage' => 'Semua kandidat representatif yang tersedia sudah kamu label 🎉',
+            'nextRoute' => route('sentiment-validation.representative.next'),
+            'summaryRoute' => route('sentiment-validation.summary'),
+            'sampleMethod' => 'representative_random',
+            'totalDisagreements' => $totalDisagreements,
+            'labeledByUser' => $labeledByUser,
+        ]);
+    }
+
     public function next(): JsonResponse
     {
         $userId = Auth::id();
@@ -126,6 +147,30 @@ class SentimentValidationController extends Controller
         ]);
     }
 
+    public function representativeSampleNext(): JsonResponse
+    {
+        $userId = Auth::id();
+        $article = $this->representativeQuery($userId)
+            ->with('stock')
+            ->inRandomOrder()
+            ->first();
+
+        if (! $article) {
+            return response()->json(['done' => true]);
+        }
+
+        return response()->json([
+            'done' => false,
+            'article' => $this->articlePayload($article),
+            'progress' => [
+                'labeled' => SentimentManualLabel::where('user_id', $userId)
+                    ->where('sample_method', 'representative_random')
+                    ->count(),
+                'total' => $this->representativeQuery($userId)->count(),
+            ],
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -192,6 +237,35 @@ class SentimentValidationController extends Controller
                     ->orWhere('ml_prob_positive', '>=', 0.35)
                     ->orWhereRaw($this->topProbabilitySql().' - COALESCE(ml_prob_positive, 0) <= ?', [0.15]);
             });
+    }
+
+    private function representativeQuery(int $userId): Builder
+    {
+        return NewsArticle::query()
+            ->whereDoesntHave('manualLabels', fn (Builder $query) => $query->where('user_id', $userId))
+            ->whereNotNull('title')
+            ->where(function (Builder $query): void {
+                $query->whereNotNull('summary')
+                    ->orWhereNotNull('content_snippet');
+            });
+    }
+
+    private function articlePayload(NewsArticle $article): array
+    {
+        return [
+            'id' => $article->id,
+            'title' => $article->title,
+            'summary' => $article->summary ?? $article->content_snippet,
+            'source' => $article->source_provider,
+            'stock' => $article->stock?->code,
+            'published_at' => optional($article->published_at)->toDateString(),
+            'ml_label' => $article->ml_sentiment_label,
+            'rule_label' => $article->rule_sentiment_label,
+            'ml_prob_positive' => $article->ml_prob_positive,
+            'ml_prob_neutral' => $article->ml_prob_neutral,
+            'ml_prob_negative' => $article->ml_prob_negative,
+            'source_url' => $article->source_url,
+        ];
     }
 
     private function topProbabilitySql(): string

@@ -171,4 +171,42 @@ class SentimentValidationTest extends TestCase
             ->assertJsonPath('article.id', $candidate->id)
             ->assertJsonPath('article.stock', 'BBCA');
     }
+
+    public function test_representative_page_and_next_use_unbiased_unlabeled_articles(): void
+    {
+        $user = User::factory()->create();
+        $stock = Stock::factory()->create(['code' => 'UNVR']);
+        $article = NewsArticle::factory()->for($stock)->create([
+            'title' => 'UNVR Terburuk di LQ45',
+            'summary' => 'Saham UNVR melemah saat IHSG rebound.',
+            'ml_sentiment_label' => 'negative',
+            'rule_sentiment_label' => 'negative',
+            'ml_prob_positive' => 0.01,
+            'ml_prob_neutral' => 0.09,
+            'ml_prob_negative' => 0.90,
+        ]);
+
+        $this->actingAs($user)->get('/sentiment-validation/representative')
+            ->assertOk()
+            ->assertSee('R5a: Label Sampel Representatif');
+
+        $this->actingAs($user)->getJson('/sentiment-validation/representative/next')
+            ->assertOk()
+            ->assertJsonPath('done', false)
+            ->assertJsonPath('article.id', $article->id)
+            ->assertJsonPath('article.stock', 'UNVR');
+
+        $this->actingAs($user)->postJson('/sentiment-validation/label', [
+            'news_article_id' => $article->id,
+            'label' => 'negative',
+            'sample_method' => 'representative_random',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('sentiment_manual_labels', [
+            'news_article_id' => $article->id,
+            'user_id' => $user->id,
+            'label' => 'negative',
+            'sample_method' => 'representative_random',
+        ]);
+    }
 }
