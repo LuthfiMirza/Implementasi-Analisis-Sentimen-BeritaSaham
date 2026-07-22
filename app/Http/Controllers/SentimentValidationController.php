@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\NewsArticle;
 use App\Models\SentimentManualLabel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,34 @@ class SentimentValidationController extends Controller
         $totalDisagreements = NewsArticle::where('ml_rule_agree', false)->count();
         $labeledByUser = SentimentManualLabel::where('user_id', $userId)->count();
 
-        return view('sentiment-validation.index', compact('totalDisagreements', 'labeledByUser'));
+        return view('sentiment-validation.index', [
+            'title' => 'Label Manual: ML vs Rule-based',
+            'subtitle' => 'Validasi Kualitas Sentimen (Gap 2)',
+            'description' => 'Artikel di bawah ini adalah kasus di mana model ML dan rule-based BERBEDA PENDAPAT soal sentimen. Baca judul + ringkasan, lalu pilih menurut kamu artikel ini nadanya positif/netral/negatif untuk emitennya.',
+            'doneMessage' => 'Semua artikel disagreement sudah kamu label 🎉',
+            'nextRoute' => route('sentiment-validation.next'),
+            'summaryRoute' => route('sentiment-validation.summary'),
+            'totalDisagreements' => $totalDisagreements,
+            'labeledByUser' => $labeledByUser,
+        ]);
+    }
+
+    public function activeLearning(): View
+    {
+        $userId = Auth::id();
+        $totalDisagreements = $this->activeLearningQuery($userId)->count();
+        $labeledByUser = SentimentManualLabel::where('user_id', $userId)->count();
+
+        return view('sentiment-validation.index', [
+            'title' => 'Q2: Label Kandidat Positif',
+            'subtitle' => 'Active Learning Sentimen Positif',
+            'description' => 'Artikel ini belum dilabel manual dan diprioritaskan karena condong positif atau ambigu dekat kelas positif. Skor ML/rule hanya petunjuk sampling, bukan jawaban. Isi berdasarkan dampak berita ke emiten.',
+            'doneMessage' => 'Semua kandidat Q2 active-learning sudah kamu label 🎉',
+            'nextRoute' => route('sentiment-validation.active-learning.next'),
+            'summaryRoute' => route('sentiment-validation.summary'),
+            'totalDisagreements' => $totalDisagreements,
+            'labeledByUser' => $labeledByUser,
+        ]);
     }
 
     public function next(): JsonResponse
@@ -44,10 +72,54 @@ class SentimentValidationController extends Controller
                 'title' => $article->title,
                 'summary' => $article->summary ?? $article->content_snippet,
                 'source' => $article->source_provider,
+                'stock' => $article->stock?->code,
+                'published_at' => optional($article->published_at)->toDateString(),
+                'ml_label' => $article->ml_sentiment_label,
+                'rule_label' => $article->rule_sentiment_label,
+                'ml_prob_positive' => $article->ml_prob_positive,
+                'ml_prob_neutral' => $article->ml_prob_neutral,
+                'ml_prob_negative' => $article->ml_prob_negative,
+                'source_url' => $article->source_url,
             ],
             'progress' => [
                 'labeled' => SentimentManualLabel::where('user_id', $userId)->count(),
                 'total' => NewsArticle::where('ml_rule_agree', false)->count(),
+            ],
+        ]);
+    }
+
+    public function activeLearningNext(): JsonResponse
+    {
+        $userId = Auth::id();
+        $article = $this->activeLearningQuery($userId)
+            ->with('stock')
+            ->orderByDesc('ml_prob_positive')
+            ->orderByDesc('published_at')
+            ->first();
+
+        if (! $article) {
+            return response()->json(['done' => true]);
+        }
+
+        return response()->json([
+            'done' => false,
+            'article' => [
+                'id' => $article->id,
+                'title' => $article->title,
+                'summary' => $article->summary ?? $article->content_snippet,
+                'source' => $article->source_provider,
+                'stock' => $article->stock?->code,
+                'published_at' => optional($article->published_at)->toDateString(),
+                'ml_label' => $article->ml_sentiment_label,
+                'rule_label' => $article->rule_sentiment_label,
+                'ml_prob_positive' => $article->ml_prob_positive,
+                'ml_prob_neutral' => $article->ml_prob_neutral,
+                'ml_prob_negative' => $article->ml_prob_negative,
+                'source_url' => $article->source_url,
+            ],
+            'progress' => [
+                'labeled' => SentimentManualLabel::where('user_id', $userId)->count(),
+                'total' => $this->activeLearningQuery($userId)->count(),
             ],
         ]);
     }
@@ -101,5 +173,32 @@ class SentimentValidationController extends Controller
             'confusionMl' => $confusionMl,
             'confusionRule' => $confusionRule,
         ]);
+    }
+
+    private function activeLearningQuery(int $userId): Builder
+    {
+        return NewsArticle::query()
+            ->whereDoesntHave('manualLabels', fn (Builder $query) => $query->where('user_id', $userId))
+            ->whereNotNull('ml_prob_positive')
+            ->where(function (Builder $query): void {
+                $query->where('ml_sentiment_label', 'positive')
+                    ->orWhere('rule_sentiment_label', 'positive')
+                    ->orWhere('ml_prob_positive', '>=', 0.35)
+                    ->orWhereRaw($this->topProbabilitySql().' - COALESCE(ml_prob_positive, 0) <= ?', [0.15]);
+            });
+    }
+
+    private function topProbabilitySql(): string
+    {
+        return <<<'SQL'
+(CASE
+    WHEN COALESCE(ml_prob_positive, 0) >= COALESCE(ml_prob_neutral, 0)
+        AND COALESCE(ml_prob_positive, 0) >= COALESCE(ml_prob_negative, 0)
+        THEN COALESCE(ml_prob_positive, 0)
+    WHEN COALESCE(ml_prob_neutral, 0) >= COALESCE(ml_prob_negative, 0)
+        THEN COALESCE(ml_prob_neutral, 0)
+    ELSE COALESCE(ml_prob_negative, 0)
+END)
+SQL;
     }
 }

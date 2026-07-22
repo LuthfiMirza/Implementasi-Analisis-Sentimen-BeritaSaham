@@ -622,3 +622,26 @@ File keluaran default: `storage/app/sentiment_finetune/active_learning_positive_
 - Percobaan ekspor real diblokir karena MySQL lokal tidak menyala (`Connection refused` pada 2026-07-22). Ini bukan bug command; MySQL memang keputusan final tetap manual.
 
 ### Status Fase Q2-prep: SELESAI. Infrastruktur kandidat active learning siap; Q2 utama masih menunggu pelabelan manusia sebelum retrain/evaluasi baru.
+
+## Fase Q2-ui — UI klik cepat untuk label active learning
+
+**Konteks:** CSV kandidat Q2 sulit dilabel manual oleh user. Agar pelabelan manusia tetap valid dan praktis, active learning dipindahkan ke UI klik cepat yang memakai tabel `sentiment_manual_labels` existing; tidak ada label sintetis dan tidak ada schema baru.
+
+### Perubahan kode
+- `routes/web.php` — tambah `/sentiment-validation/active-learning` dan `/sentiment-validation/active-learning/next`.
+- `app/Http/Controllers/SentimentValidationController.php` — tambah mode active-learning: artikel belum dilabel manual yang condong positif atau ambigu dekat kelas positif, urut dari probabilitas positif tertinggi.
+- `resources/views/sentiment-validation/index.blade.php` — view label manual dibuat reusable untuk mode disagreement dan Q2 active-learning, menampilkan stock, tanggal, ML/rule label, probabilitas P/N/Neg, link sumber, tombol Positif/Netral/Negatif, dan shortcut keyboard 1/2/3.
+- `tests/Feature/SentimentValidationTest.php` — tambah test halaman Q2 dan endpoint kandidat berikutnya.
+
+### Cara pakai
+Buka aplikasi lokal lalu masuk login user biasa:
+```text
+/sentiment-validation/active-learning
+```
+Klik `Positif`, `Netral`, atau `Negatif`; label langsung tersimpan ke `sentiment_manual_labels`. Jika ragu lebih dari ±30 detik, pilih `Netral`. Setelah cukup label baru terkumpul, baru lanjut Q2 utama: export finetune dataset, retrain, dan ukur test split yang sama.
+
+### Verifikasi
+- `php artisan test tests/Feature/SentimentValidationTest.php` → 6 passed, 25 assertions.
+- `php artisan test` → **430 passed**, 1890 assertions.
+
+### Status Fase Q2-ui: SELESAI. Pelabelan Q2 sekarang bisa lewat UI klik cepat; retrain Q2 tetap menunggu label manusia terkumpul.

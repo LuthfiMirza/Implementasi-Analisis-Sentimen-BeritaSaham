@@ -117,4 +117,36 @@ class SentimentValidationTest extends TestCase
             ->assertViewHas('mlAgreeRate', 50.0)
             ->assertViewHas('ruleAgreeRate', 50.0);
     }
+
+    public function test_active_learning_page_and_next_prioritize_unlabeled_positive_candidates(): void
+    {
+        $user = User::factory()->create();
+        $stock = Stock::factory()->create(['code' => 'BBCA']);
+        $candidate = NewsArticle::factory()->for($stock)->create([
+            'title' => 'BBCA diborong investor asing',
+            'ml_sentiment_label' => 'neutral',
+            'rule_sentiment_label' => 'neutral',
+            'ml_prob_positive' => 0.72,
+            'ml_prob_neutral' => 0.20,
+            'ml_prob_negative' => 0.08,
+        ]);
+        NewsArticle::factory()->for($stock)->create([
+            'title' => 'BBCA tertekan biaya dana',
+            'ml_sentiment_label' => 'negative',
+            'rule_sentiment_label' => 'negative',
+            'ml_prob_positive' => 0.04,
+            'ml_prob_neutral' => 0.16,
+            'ml_prob_negative' => 0.80,
+        ]);
+
+        $this->actingAs($user)->get('/sentiment-validation/active-learning')
+            ->assertOk()
+            ->assertSee('Q2: Label Kandidat Positif');
+
+        $this->actingAs($user)->getJson('/sentiment-validation/active-learning/next')
+            ->assertOk()
+            ->assertJsonPath('done', false)
+            ->assertJsonPath('article.id', $candidate->id)
+            ->assertJsonPath('article.stock', 'BBCA');
+    }
 }

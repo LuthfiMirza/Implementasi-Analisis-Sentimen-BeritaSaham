@@ -1,12 +1,10 @@
 <x-app-layout>
     <div class="max-w-3xl mx-auto space-y-4" x-data="sentimentValidation()" x-init="init()">
         <x-panel padding="p-6">
-            <p class="text-xs uppercase text-slate-400">Validasi Kualitas Sentimen (Gap 2)</p>
-            <h1 class="text-2xl font-bold text-slate-100">Label Manual: ML vs Rule-based</h1>
+            <p class="text-xs uppercase text-slate-400">{{ $subtitle }}</p>
+            <h1 class="text-2xl font-bold text-slate-100">{{ $title }}</h1>
             <p class="text-sm text-slate-400 mt-2">
-                Artikel di bawah ini adalah kasus di mana model ML dan rule-based BERBEDA PENDAPAT soal sentimen
-                ({{ $totalDisagreements }} artikel total). Baca judul + ringkasan, lalu pilih menurut kamu artikel ini
-                nadanya positif/netral/negatif untuk emitennya. Progres tersimpan otomatis per artikel.
+                {{ $description }} Progres tersimpan otomatis per artikel.
             </p>
             <div class="mt-3 text-sm text-slate-300">
                 Sudah dilabel: <span class="font-semibold" x-text="progress.labeled ?? {{ $labeledByUser }}"></span>
@@ -16,8 +14,8 @@
 
         <template x-if="done">
             <x-panel padding="p-6" class="text-center">
-                <p class="text-lg font-semibold text-slate-100">Semua artikel disagreement sudah kamu label 🎉</p>
-                <a href="{{ route('sentiment-validation.summary') }}" class="inline-block mt-4 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold text-sm">
+                <p class="text-lg font-semibold text-slate-100">{{ $doneMessage }}</p>
+                <a href="{{ $summaryRoute }}" class="inline-block mt-4 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold text-sm">
                     Lihat Ringkasan Hasil
                 </a>
             </x-panel>
@@ -26,9 +24,23 @@
         <template x-if="!done && article">
             <x-panel padding="p-6" class="space-y-4">
                 <div>
-                    <p class="text-[11px] uppercase text-slate-500" x-text="article.source"></p>
+                    <p class="text-[11px] uppercase text-slate-500">
+                        <span x-text="article.stock || 'MARKET'"></span>
+                        <span> · </span>
+                        <span x-text="article.source"></span>
+                        <span> · </span>
+                        <span x-text="article.published_at || '-' "></span>
+                    </p>
                     <h2 class="text-lg font-semibold text-slate-100 mt-1" x-text="article.title"></h2>
                     <p class="text-sm text-slate-300 mt-3 leading-relaxed" x-text="article.summary"></p>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs text-slate-400">
+                        <div class="rounded-lg bg-slate-900/70 border border-slate-700 px-3 py-2">ML: <span class="text-slate-200" x-text="article.ml_label || '-' "></span></div>
+                        <div class="rounded-lg bg-slate-900/70 border border-slate-700 px-3 py-2">Rule: <span class="text-slate-200" x-text="article.rule_label || '-' "></span></div>
+                        <div class="rounded-lg bg-slate-900/70 border border-slate-700 px-3 py-2">P/N/Neg: <span class="text-slate-200" x-text="probText()"></span></div>
+                    </div>
+                    <template x-if="article.source_url">
+                        <a :href="article.source_url" target="_blank" rel="noopener" class="inline-block mt-3 text-xs text-sky-400 hover:underline">Buka sumber asli ↗</a>
+                    </template>
                 </div>
 
                 <div class="grid grid-cols-3 gap-3">
@@ -68,8 +80,12 @@
                         if (e.key === '3') this.label('negative');
                     });
                 },
+                probText() {
+                    const format = (value) => value === null || value === undefined ? '-' : Number(value).toFixed(3);
+                    return `${format(this.article.ml_prob_positive)} / ${format(this.article.ml_prob_neutral)} / ${format(this.article.ml_prob_negative)}`;
+                },
                 async loadNext() {
-                    const res = await fetch('{{ route('sentiment-validation.next') }}');
+                    const res = await fetch('{{ $nextRoute }}');
                     const data = await res.json();
                     if (data.done) {
                         this.done = true;

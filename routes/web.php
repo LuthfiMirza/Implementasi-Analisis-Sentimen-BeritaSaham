@@ -35,6 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');
     Route::get('/sentiment-validation', [SentimentValidationController::class, 'index'])->name('sentiment-validation.index');
     Route::get('/sentiment-validation/next', [SentimentValidationController::class, 'next'])->name('sentiment-validation.next');
+    Route::get('/sentiment-validation/active-learning', [SentimentValidationController::class, 'activeLearning'])->name('sentiment-validation.active-learning');
+    Route::get('/sentiment-validation/active-learning/next', [SentimentValidationController::class, 'activeLearningNext'])->name('sentiment-validation.active-learning.next');
     Route::post('/sentiment-validation/label', [SentimentValidationController::class, 'store'])->name('sentiment-validation.store');
     Route::get('/sentiment-validation/summary', [SentimentValidationController::class, 'summary'])->name('sentiment-validation.summary');
     Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
