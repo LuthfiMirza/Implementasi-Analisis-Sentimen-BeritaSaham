@@ -75,6 +75,7 @@ class SentimentValidationTest extends TestCase
             'news_article_id' => $article->id,
             'user_id' => $user->id,
             'label' => 'positive',
+            'sample_method' => 'legacy_hard_case',
         ]);
         $this->assertSame(1, SentimentManualLabel::count());
 
@@ -88,6 +89,27 @@ class SentimentValidationTest extends TestCase
         $this->assertDatabaseHas('sentiment_manual_labels', [
             'news_article_id' => $article->id,
             'label' => 'negative',
+            'sample_method' => 'legacy_hard_case',
+        ]);
+    }
+
+    public function test_store_can_save_representative_sample_method(): void
+    {
+        $user = User::factory()->create();
+        $stock = Stock::factory()->create(['code' => 'BBCA']);
+        $article = NewsArticle::factory()->for($stock)->create();
+
+        $this->actingAs($user)->postJson('/sentiment-validation/label', [
+            'news_article_id' => $article->id,
+            'label' => 'neutral',
+            'sample_method' => 'representative_random',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('sentiment_manual_labels', [
+            'news_article_id' => $article->id,
+            'user_id' => $user->id,
+            'label' => 'neutral',
+            'sample_method' => 'representative_random',
         ]);
     }
 

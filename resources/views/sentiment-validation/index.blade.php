@@ -104,7 +104,7 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         },
-                        body: JSON.stringify({ news_article_id: this.article.id, label: value }),
+                        body: JSON.stringify({ news_article_id: this.article.id, label: value, sample_method: '{{ $sampleMethod }}' }),
                     });
                     this.submitting = false;
                     await this.loadNext();

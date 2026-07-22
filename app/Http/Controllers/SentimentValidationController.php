@@ -30,6 +30,7 @@ class SentimentValidationController extends Controller
             'doneMessage' => 'Semua artikel disagreement sudah kamu label 🎉',
             'nextRoute' => route('sentiment-validation.next'),
             'summaryRoute' => route('sentiment-validation.summary'),
+            'sampleMethod' => 'legacy_hard_case',
             'totalDisagreements' => $totalDisagreements,
             'labeledByUser' => $labeledByUser,
         ]);
@@ -48,6 +49,7 @@ class SentimentValidationController extends Controller
             'doneMessage' => 'Semua kandidat Q2 active-learning sudah kamu label 🎉',
             'nextRoute' => route('sentiment-validation.active-learning.next'),
             'summaryRoute' => route('sentiment-validation.summary'),
+            'sampleMethod' => 'legacy_hard_case',
             'totalDisagreements' => $totalDisagreements,
             'labeledByUser' => $labeledByUser,
         ]);
@@ -129,11 +131,15 @@ class SentimentValidationController extends Controller
         $validated = $request->validate([
             'news_article_id' => ['required', 'integer', 'exists:news_articles,id'],
             'label' => ['required', 'string', 'in:'.implode(',', SentimentManualLabel::LABELS)],
+            'sample_method' => ['nullable', 'string', 'in:'.implode(',', SentimentManualLabel::SAMPLE_METHODS)],
         ]);
 
         SentimentManualLabel::updateOrCreate(
             ['news_article_id' => $validated['news_article_id'], 'user_id' => Auth::id()],
-            ['label' => $validated['label']]
+            [
+                'label' => $validated['label'],
+                'sample_method' => $validated['sample_method'] ?? 'legacy_hard_case',
+            ]
         );
 
         return response()->json(['success' => true]);

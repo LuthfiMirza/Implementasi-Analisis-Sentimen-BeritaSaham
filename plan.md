@@ -732,3 +732,34 @@ ls -lh /Applications/XAMPP/xamppfiles/var/mysql/*.err
 ```
 
 ### Status Fase Q5: SELESAI (2026-07-22). User menjalankan command truncate manual di Terminal lokal. Verifikasi: seluruh file `.err` di `/Applications/XAMPP/xamppfiles/var/mysql/` sekarang 0B, kecuali log aktif (`macs-MacBook-Pro.local.err`, 712B — wajar, baru mulai lagi). Dari total ~1.4GB menjadi hampir kosong. Tidak ada file DB/data yang tersentuh; MySQL tetap jalan normal, auto-start tetap tidak diubah (keputusan final Fase E).
+
+## Fase R1–R4 — Infrastruktur sampel label, audit, tipe berita, dan guideline
+
+**Konteks:** setelah Fase P dan Q2 gagal mengalahkan produksi, akar masalah metodologis bergeser ke bias sampling: 988 label manual existing berasal dari hard cases/disagreement/ambigu, bukan sampel representatif populasi berita. Fase R1–R4 menyiapkan data lineage dan alat audit tanpa retrain dan tanpa menyentuh model produksi.
+
+### R1 — Tag sumber sampling label
+- `database/migrations/2026_07_22_000001_add_sample_method_to_sentiment_manual_labels.php` — tambah kolom nullable `sample_method` dan backfill label existing ke `legacy_hard_case`.
+- `app/Models/SentimentManualLabel.php` — tambah whitelist `SAMPLE_METHODS` dan fillable `sample_method`.
+- `app/Http/Controllers/SentimentValidationController.php` + `resources/views/sentiment-validation/index.blade.php` — label baru dari mode disagreement/Q2 menyimpan `sample_method=legacy_hard_case`; mode representatif masa depan disiapkan lewat nilai `representative_random` tapi belum dibuka.
+- Verifikasi DB real setelah migrasi: 988 manual labels, 988 `legacy_hard_case`.
+
+### R2 — Audit label manual berisiko salah/ambigu
+- `app/Console/Commands/AuditSentimentManualLabelsCommand.php` — command `sentiment:audit-manual-labels` membandingkan label manusia dengan prediksi ML produksi yang tersimpan, flag mismatch ber-confidence tinggi, dan tidak mengoreksi label otomatis.
+- Output real: `output/prediction_research/sentiment_label_audit_report.csv` dan `.txt`.
+- Hasil real threshold 0.85: audit 988 label, flag 91 kandidat re-review. Breakdown tipe: macro 3, emiten_spesifik 82, multi_emiten_recommendation 6. Breakdown mismatch: positive→neutral 51, neutral→negative 6, negative→neutral 5, neutral→positive 22, negative→positive 6, positive→negative 1.
+
+### R3 — Klasifikasi jenis berita diagnostik
+- `app/Services/Sentiment/NewsArticleTypeClassifier.php` — classifier aturan ringan: `stock_id` null = `macro`; keyword rekomendasi/top pick/multi ticker = `multi_emiten_recommendation`; selain itu = `emiten_spesifik`.
+- Classifier hanya lensa audit/guideline, tidak masuk fitur prediksi harga dan tidak mengubah pipeline live inference.
+- Test: `tests/Unit/NewsArticleTypeClassifierTest.php`.
+
+### R4 — Guideline labeling
+- `docs/sentiment_labeling_guideline.md` — guideline label `positive|neutral|negative`, aturan ambigu, jenis berita, contoh nyata dari audit R2 dan sesi labeling Q2, plus cara memakai report re-review.
+
+### Verifikasi
+- `php artisan migrate --force` → migration R1 applied.
+- `php artisan test tests/Feature/SentimentValidationTest.php` → 7 passed, 27 assertions.
+- `php artisan test tests/Unit/NewsArticleTypeClassifierTest.php tests/Feature/AuditSentimentManualLabelsCommandTest.php` → 2 passed, 8 assertions.
+- `php artisan sentiment:audit-manual-labels` → report R2 terbentuk; tidak ada label diubah otomatis.
+
+### Status Fase R1–R4: SELESAI. Data lineage label, audit re-review, klasifikasi diagnostik, dan guideline siap. R5a BELUM dimulai karena wajib tanya user dulu kapan mulai label representatif.

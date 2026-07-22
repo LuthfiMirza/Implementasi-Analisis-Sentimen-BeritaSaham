@@ -1,0 +1,22 @@
+Sentiment Manual Label Audit
+============================
+
+Rule: flag manual labels that disagree with high-confidence production ML predictions.
+Confidence threshold: 0.85
+Manual labels audited: 988
+Flagged for human re-review: 91
+
+By article type:
+  macro: 3
+  emiten_spesifik: 82
+  multi_emiten_recommendation: 6
+
+By manual→ML mismatch:
+  positive→neutral: 51
+  neutral→negative: 6
+  negative→neutral: 5
+  neutral→positive: 22
+  negative→positive: 6
+  positive→negative: 1
+
+No labels were changed automatically.
