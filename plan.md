@@ -668,3 +668,29 @@ Penambahan label active-learning membantu coverage label positif, tetapi retrain
 - Evaluasi tambahan v1 vs candidate pada test Q2: v1 0.8929 > candidate 0.6739 macro-F1.
 
 ### Status Fase Q2: SELESAI DENGAN TEMUAN NEGATIF. Label bertambah dan pipeline UI/retrain jalan, tetapi candidate tidak layak promosi; produksi v1 tetap dipakai.
+
+## Fase Q4 — Hentikan tracking file data regeneratif besar
+
+**Konteks:** sejak Fase O/Q1, `data/stocks/*.csv`, `data/IHSG.csv`, dan dataset training di `output/prediction_research/` diregenerasi otomatis mingguan. Jika tetap tracked Git, setiap refresh akan membuat diff besar ratusan ribu baris meskipun itu artefak data, bukan perubahan kode/metodologi.
+
+### Keputusan
+File data regeneratif besar tidak lagi dilacak Git. File lokal tidak dihapus; hanya di-`git rm --cached`, sehingga aplikasi lokal dan scheduler tetap bisa memakai CSV yang sudah ada. Clone baru harus menjalankan refresh sebelum retrain penuh.
+
+### Perubahan
+- `.gitignore` — tambah ignore untuk `data/IHSG.csv`, `data/stocks/*.csv`, `output/prediction_research/dataset_v6a.csv`, `dataset_v6b_10ticker.csv`, `dataset_bumi_special.csv`, dan `dataset_dewa_special.csv`.
+- Metadata kecil tetap tracked lewat pengecualian: `data/stocks/ticker_metadata.csv` dan `data/stocks/rebuild_ticker_metadata.csv`.
+- File CSV lokal tetap ada di disk; yang berubah hanya status tracking Git.
+
+### Cara regenerasi bila clone baru kosong
+```bash
+php artisan prediction:refresh-price-history
+php artisan prediction:export-research-dataset
+PYTHON_BINARY=quant/.venv-sentiment/bin/python3 php artisan prediction:retrain-volatile --force
+```
+Command scheduler mingguan tetap source of truth untuk menjaga data segar.
+
+### Verifikasi
+- `git rm --cached` dipakai, bukan hapus file lokal; contoh `data/stocks/BBCA.csv` masih ada setelah untrack.
+- `php artisan test` tetap hijau.
+
+### Status Fase Q4: SELESAI. Repo tidak lagi akan menerima diff mingguan besar dari artefak data regeneratif; data tetap diregenerasi lokal oleh command/scheduler.
