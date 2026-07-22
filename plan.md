@@ -645,3 +645,26 @@ Klik `Positif`, `Netral`, atau `Negatif`; label langsung tersimpan ke `sentiment
 - `php artisan test` → **430 passed**, 1890 assertions.
 
 ### Status Fase Q2-ui: SELESAI. Pelabelan Q2 sekarang bisa lewat UI klik cepat; retrain Q2 tetap menunggu label manusia terkumpul.
+
+## Fase Q2 — Active-learning label positif dan retrain kandidat sentimen
+
+**Konteks:** setelah UI Q2 selesai, user melabel semua kandidat active-learning positif/ambigu. Dataset manual naik dari 801 menjadi **988 label**: negative 105, neutral 576, positive 307. Dataset finetune diekspor ulang dengan split stratified: train 692, val 148, test 148.
+
+### Perubahan kode
+- `quant/finetune_sentiment_model.py` — tambah opsi CLI `--model-out-dir`, `--report-json`, dan `--report-txt` agar retrain Q2 bisa menulis ke candidate directory tanpa menyentuh produksi `indobert_finetuned_v1`.
+
+### Hasil retrain Q2
+Candidate dilatih ke `storage/app/sentiment_model/indobert_finetuned_q2_candidate` selama 6 epoch CPU. Report Q2 tersimpan di `output/prediction_research/sentiment_finetune_q2_report.{json,txt}`. Pada test split Q2: candidate macro-F1 **0.6739**, accuracy **0.7297**, per-class F1: positive **0.6292**, neutral **0.8000**, negative **0.5926**. Rule baseline di test Q2 **0.5519** sehingga gate lama `finetuned > rule` memang PASSED.
+
+### Verdict tambahan sebelum promosi
+Karena test Q2 adalah distribusi baru hasil active learning dan banyak kandidat berasal dari kasus yang sudah condong positif menurut model produksi, gate lama lawan rule saja tidak cukup untuk promosi. Evaluasi eksplisit model produksi `indobert_finetuned_v1` pada test Q2 menghasilkan macro-F1 **0.8929**, accuracy **0.8919**, per-class F1: positive **0.8333**, neutral **0.9121**, negative **0.9333**. Jadi candidate Q2 **kalah jauh** dari produksi v1 pada test Q2 dan **tidak dipromosikan**.
+
+### Temuan negatif
+Penambahan label active-learning membantu coverage label positif, tetapi retrain dari checkpoint mentah justru menurunkan performa terhadap model produksi yang sudah ada. Kemungkinan besar banyak label baru adalah kasus yang produksi v1 sudah prediksi benar; retraining dengan split baru tidak memberi bukti perbaikan OOS. Untuk skripsi, hasil jujur: Q2 memperbaiki fasilitas pelabelan dan menambah data, tetapi belum menghasilkan model sentimen pengganti.
+
+### Verifikasi
+- `php artisan sentiment:export-finetune-dataset` → 988 rows; train/val/test 692/148/148.
+- `quant/.venv-sentiment/bin/python3 quant/finetune_sentiment_model.py --model-out-dir storage/app/sentiment_model/indobert_finetuned_q2_candidate --report-json output/prediction_research/sentiment_finetune_q2_report.json --report-txt output/prediction_research/sentiment_finetune_q2_report.txt` → selesai.
+- Evaluasi tambahan v1 vs candidate pada test Q2: v1 0.8929 > candidate 0.6739 macro-F1.
+
+### Status Fase Q2: SELESAI DENGAN TEMUAN NEGATIF. Label bertambah dan pipeline UI/retrain jalan, tetapi candidate tidak layak promosi; produksi v1 tetap dipakai.

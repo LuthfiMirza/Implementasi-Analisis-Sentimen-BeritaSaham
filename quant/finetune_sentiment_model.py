@@ -11,6 +11,7 @@ for a rigorous apples-to-apples comparison against both baselines).
 from __future__ import annotations
 
 import json
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -48,6 +49,16 @@ def macro_f1_for_baseline(rows: list[dict], baseline_key: str) -> dict[str, obje
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model-out-dir", default=str(MODEL_OUT_DIR))
+    parser.add_argument("--report-json", default=str(REPORT_JSON_PATH))
+    parser.add_argument("--report-txt", default=str(REPORT_TXT_PATH))
+    args = parser.parse_args()
+
+    model_out_dir = Path(args.model_out_dir)
+    report_json_path = Path(args.report_json)
+    report_txt_path = Path(args.report_txt)
+
     train_rows = load_jsonl(DATA_DIR / "train.jsonl")
     val_rows = load_jsonl(DATA_DIR / "val.jsonl")
     test_rows = load_jsonl(DATA_DIR / "test.jsonl")
@@ -85,7 +96,7 @@ def main() -> None:
         return {"f1_macro": f1, "accuracy": accuracy}
 
     training_args = TrainingArguments(
-        output_dir=str(MODEL_OUT_DIR / "checkpoints"),
+        output_dir=str(model_out_dir / "checkpoints"),
         use_cpu=True,  # this Mac's discrete AMD GPU (MPS backend) has too little VRAM for roberta-base fine-tuning
         num_train_epochs=6,
         per_device_train_batch_size=8,
@@ -146,7 +157,7 @@ def main() -> None:
         "val_size": len(val_rows),
         "test_size": len(test_rows),
         "label2id": label2id,
-        "caveat": "All 801 labeled examples originate from ML-vs-rule disagreement cases (biased sample, not a random draw from all articles). Metrics here characterize performance on hard cases, not overall article population.",
+        "caveat": "Manual labels originate from ML-vs-rule disagreement cases plus Q2 active-learning positive/ambiguous candidates (biased hard-case sample, not a random draw from all articles). Metrics characterize performance on this labeled hard-case distribution, not overall article population.",
         "test_set_results": {
             "finetuned_macro_f1": round(float(finetuned_f1), 4),
             "finetuned_classification_report": finetuned_report,
@@ -161,12 +172,13 @@ def main() -> None:
     }
 
     if gate_passed:
-        MODEL_OUT_DIR.mkdir(parents=True, exist_ok=True)
-        trainer.save_model(str(MODEL_OUT_DIR))
-        tokenizer.save_pretrained(str(MODEL_OUT_DIR))
-        summary["model_saved_to"] = str(MODEL_OUT_DIR)
+        model_out_dir.mkdir(parents=True, exist_ok=True)
+        trainer.save_model(str(model_out_dir))
+        tokenizer.save_pretrained(str(model_out_dir))
+        summary["model_saved_to"] = str(model_out_dir)
 
-    REPORT_JSON_PATH.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    report_json_path.parent.mkdir(parents=True, exist_ok=True)
+    report_json_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     lines = [
         "Sentiment Fine-Tune Report",
         "==========================",
@@ -184,7 +196,8 @@ def main() -> None:
     ]
     if listicle_result:
         lines.append(f"Listicle spot-check (n={listicle_result['n']}): finetuned_acc={listicle_result['finetuned_accuracy']}, raw_ml_acc={listicle_result['raw_ml_accuracy']}")
-    REPORT_TXT_PATH.write_text("\n".join(lines), encoding="utf-8")
+    report_txt_path.parent.mkdir(parents=True, exist_ok=True)
+    report_txt_path.write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
 
 

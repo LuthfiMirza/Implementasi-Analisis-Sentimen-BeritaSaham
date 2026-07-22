@@ -1,0 +1,14 @@
+Sentiment Fine-Tune Report
+==========================
+
+Checkpoint: w11wo/indonesian-roberta-base-sentiment-classifier
+Train/val/test: 692/148/148
+
+Test-set macro F1 (same 120-row held-out split for all three):
+  fine-tuned model : 0.6739
+  rule-based       : 0.5519
+  raw ML (no tune) : 0.8929
+
+Gate (finetuned > rule-based): PASSED
+
+Listicle spot-check (n=6): finetuned_acc=1.0, raw_ml_acc=0.8333
