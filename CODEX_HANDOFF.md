@@ -85,14 +85,23 @@ gagal saat divalidasi jujur. Jangan mengulang pola itu. Aturan:
 
 ---
 
-## 3. State sekarang (per 2026-07-21 malam, setelah Fase P selesai)
+## 3. State sekarang (per 2026-07-22, seluruh antrian Q1–Q5 tuntas)
 
-**Selesai:** Fase 0, A–O, **Q1**, **P** (lihat `plan.md` untuk detail tiap fase). Ringkas metrik kunci:
+**SEMUA ITEM DI §4 SUDAH SELESAI** kecuali eksekusi manual `sudo` di Q5 (butuh user, agent tidak
+punya password). Kalau ada pekerjaan baru, itu akan jadi Fase R+ — jangan asumsikan ada kerja lanjutan
+tersirat dari dokumen ini, tanya user dulu apa yang mereka mau berikutnya.
+
+**Selesai:** Fase 0, A–P, Q1–Q5 (lihat `plan.md` untuk detail tiap fase). Ringkas metrik kunci:
 sentimen ML 35.6%→58.16% (B), tie-break 32.69%→55.77% (C), engine prediksi 33.3%→39.6% (G),
 status DSS pindah ke model tervalidasi (F→I), fundamental live mingguan (K), Trading Signal "VALID"
 dibuang (L), retrain V6A/V6B otomatis (N), staleness data harga + IHSG ditutup (O), dataset khusus
-BUMI/DEWA diregenerasi tiap retrain (Q1), eksperimen class-weighted sentimen dievaluasi tuntas (P).
-**428 test hijau.** Semua sudah di-commit & di-push (`ab4d581`, `2edd8a3`).
+BUMI/DEWA diregenerasi tiap retrain (Q1), eksperimen class-weighted sentimen dievaluasi tuntas — NO
+IMPROVEMENT (P), active-learning label positif 801→988 tapi candidate kalah dari produksi — TIDAK
+dipromosikan (Q2), `return_5d_cross_section_rank` diperbaiki nyata di live inference (Q3), file data
+regeneratif besar di-untrack dari git (`git rm --cached`, bukan dihapus) (Q4), log MySQL 1.3GB
+**menunggu user jalankan command sudo manual** (Q5, lihat item Q5 di §4). **431 test hijau.**
+Commit terakhir `c22dd20`, **6 commit ahead dari origin/main, belum di-push** per 2026-07-22 — cek
+`git status -sb` dan tanya user sebelum push.
 
 **Fase P — hasil final (NO IMPROVEMENT, model produksi TIDAK diganti):** skema `sqrt_inverse` menang
 di validation (val macro-F1 0.7564) tapi mean test macro-F1 3-seed = **0.5552** vs produksi **0.5816**
@@ -134,36 +143,39 @@ passed.** Detail lengkap di `plan.md` Fase Q1. **File ini masih UNCOMMITTED di w
 malam** — cek `git status` dulu, kalau masih ada, commit selektif (jangan `git add -A`) sebelum lanjut
 item lain, supaya tidak tertimpa/hilang.
 
-### Q2. (opsional, hanya jika user mau kejar sentimen >70%) Perluas label manual kelas positif
-**Konteks:** kelas positif F1 0.377 (terlemah) karena "positif" finansial sering implisit, BUKAN karena
-kurang data (positif punya 207 label, 2× negative). 801 label semua "hard cases" (ML-vs-rule disagreement).
-Untuk naik signifikan butuh **label BARU yang lebih bersih & lebih banyak**, khususnya artikel positif
-eksplisit maupun implisit — via active learning (ambil prediksi confidence rendah di artikel positif,
-labeli manual), bukan random draw lagi. **Ini butuh usaha pelabelan manusia — konfirmasi ke user dulu
-apakah mau, karena ini proyek data, bukan sekadar koding.** Jangan generate label sintetis pakai LLM
-sebagai "kebenaran" (itu merusak validitas skripsi).
-**Done-criteria:** hanya mulai kalau user eksplisit setuju. Kalau ya: perluas dataset, retrain, ukur di
-test yang SAMA, dokumentasikan Fase Q2 jujur.
+### Q2. ✅ SELESAI DENGAN TEMUAN NEGATIF (2026-07-22) — Perluas label manual kelas positif
+**JANGAN DIKERJAKAN ULANG.** Infrastruktur active-learning dibangun (UI klik cepat di
+`/sentiment-validation/active-learning`, bukan CSV manual — lihat Fase Q2-prep/Q2-ui di `plan.md`).
+Label manual naik 801→988 (positive 207→307). Retrain dari checkpoint mentah dengan label baru
+**KALAH JAUH** dari produksi v1 di test split baru (candidate macro-F1 0.674 vs v1 0.893). Candidate
+**tidak dipromosikan**. Kemungkinan besar: banyak label baru adalah kasus yang v1 sudah benar,
+sehingga retrain ulang tidak memberi bukti perbaikan OOS. Detail: `plan.md` Fase Q2. Kalau mau lanjut
+jalur ini lagi, perlu strategi retrain berbeda (fine-tune dari checkpoint v1, bukan dari nol) —
+diskusikan dengan user dulu, jangan asumsikan otomatis worth mencoba lagi.
 
-### Q3. (technical debt, dampak kecil) Perbaiki `return_5d_cross_section_rank` null di live inference
-**Konteks (Fase H):** fitur ini = ranking return 5-hari suatu saham relatif ke 9 saham lain di tanggal
-sama. Hanya dihitung di `ExportPredictionResearchDatasetCommand::applyCrossSectionalReturnRanks()`
-(level dataset gabungan). Live serving (`ResearchPredictionFeatureService`, ~line 236) hardcode `null`,
-diimputasi model ke median. Importance cuma **2.44%** (peringkat 13/15) → dampak kecil.
-**Opsi:** precompute ranking harian di scheduler (mis. dalam `stocks:update-snapshots`), live tinggal
-lookup; ATAU drop fitur ini di retrain berikutnya. **Diskusikan trade-off effort-vs-impact dengan user
-sebelum kerjakan** — ini bukan prioritas, jangan habiskan waktu besar untuk 2.44%.
+### Q3. ✅ SELESAI (2026-07-22) — `return_5d_cross_section_rank` diperbaiki di live inference
+**JANGAN DIKERJAKAN ULANG.** `ResearchPredictionFeatureService` sekarang menghitung rank asli
+(bukan null lagi), cache sekali per instance dari `return_5d` saja (hindari OOM). Verifikasi real:
+BBCA 2026-07-21 `return_5d_cross_section_rank=0.545455`. Test baru
+`tests/Feature/ResearchPredictionFeatureServiceTest.php`. Detail: `plan.md` Fase Q3.
 
-### Q4. (higiene) Keputusan git untuk file data yang diregenerasi mingguan
-**Konteks:** `data/stocks/*.csv`, `data/IHSG.csv`, `output/prediction_research/dataset_v6a.csv` &
-`dataset_v6b_10ticker.csv` ter-track di git. Refresh mingguan (Fase O) akan bikin diff besar tiap
-minggu. **Keputusan belum diambil:** biarkan (riwayat penuh) atau `.gitignore` + simpan hanya
-metadata/summary. **Ini keputusan user — sajikan plus-minus, jangan putuskan sendiri.**
+### Q4. ✅ SELESAI (2026-07-22) — Keputusan git untuk file data yang diregenerasi mingguan
+**JANGAN DIKERJAKAN ULANG.** Keputusan: `git rm --cached` untuk `data/stocks/*.csv`, `data/IHSG.csv`,
+`output/prediction_research/dataset_v6a.csv`/`dataset_v6b_10ticker.csv`/`dataset_bumi_special.csv`/
+`dataset_dewa_special.csv` + entri `.gitignore` baru. File LOKAL tidak dihapus, cuma berhenti
+ter-track — jadi refresh mingguan tidak lagi bikin diff besar di git. Clone baru harus jalankan
+`prediction:refresh-price-history` + `prediction:export-research-dataset` dulu sebelum retrain
+penuh. Detail: `plan.md` Fase Q4.
 
-### Q5. (housekeeping, prioritas terendah) Bersihkan log MySQL 1.3GB
-`macs-MacBook-Pro.local.err` + file `.err` hostname lama menumpuk ~1.4GB di
-`/Applications/XAMPP/xamppfiles/var/mysql/`. Aman dibersihkan (bukan data DB, cuma log error).
-Konfirmasi ke user dulu karena butuh sudo & menyentuh direktori MySQL.
+### Q5. ⏳ TERTUNDA MANUAL (perlu USER, bukan agent) — Bersihkan log MySQL 1.3GB
+Agent TIDAK bisa menyelesaikan ini — file `.err` dimiliki `_mysql`, butuh `sudo` dengan password
+interaktif yang agent tidak punya. **User perlu jalankan sendiri di Terminal lokal:**
+```bash
+sudo sh -c 'for f in /Applications/XAMPP/xamppfiles/var/mysql/*.err; do : > "$f"; done'
+```
+Verifikasi: `ls -lh /Applications/XAMPP/xamppfiles/var/mysql/*.err` (harus mengecil ke ~0). Aman —
+cuma mengosongkan log error, bukan data DB, tidak menyentuh MySQL yang sedang jalan. Detail:
+`plan.md` Fase Q5.
 
 ---
 
@@ -222,23 +234,21 @@ Aturan mutlak (ada detail di CODEX_HANDOFF.md §2):
 - Git selektif per-file, cek diff, JANGAN `git add -A`, JANGAN push kecuali aku minta.
 - Jangan buka ulang keputusan final di §5 (LaunchDaemon MySQL, redesign bobot DSS, MySQL manual).
 
-Tugas: kerjakan antrian di CODEX_HANDOFF.md §4 SATU PER SATU urut prioritas. Q1 SUDAH SELESAI
-(ditandai di §4, jangan dikerjakan ulang) tapi kemungkinan masih uncommitted -- LANGKAH PERTAMA:
-jalankan `git status`. Kalau ada perubahan uncommitted terkait RetrainVolatilePredictionModelsCommand
-(dataset refresh BUMI/DEWA), commit dulu secara selektif (per file, cek `git diff`, JANGAN `git add -A`)
-sebelum mengerjakan apa pun yang baru -- supaya kerjaan Q1 tidak hilang/tertimpa.
+SEMUA item di CODEX_HANDOFF.md §4 (P, Q1-Q4) SUDAH SELESAI per 2026-07-22 -- JANGAN DIKERJAKAN
+ULANG, JANGAN retrain/regenerasi apa pun dari item-item itu. Q5 (bersihkan log MySQL) TERTUNDA
+tapi butuh sudo password interaktif yang cuma user punya -- kalau user belum konfirmasi sudah
+dijalankan, cukup ingatkan command-nya (ada di §4 item Q5), jangan coba jalankan sendiri.
 
-Setelah itu lanjut ke item P (baca §4 item P lengkap untuk command persis + konteks kenapa harus nohup+disown).
-Ringkas: eksperimen sentimen berbobot sempat jalan lalu MATI DI TENGAH (bukan gagal, cuma proses
-background sesi sebelumnya tidak bertahan). 3 dari 5 model training SUDAH selesai dan tersimpan aman
-di disk (storage/app/sentiment_model/_weighted_sweep/) -- JANGAN dihapus, JANGAN retrain dari nol.
-Script sudah punya resume logic. Jalankan ULANG persis (command ada di §4 item P) pakai nohup+disown
-supaya kali ini tidak mati lagi kalau terminal ketutup -- ini akan otomatis skip yang sudah selesai
-dan lanjut ke sisanya (~2-2.5 jam, bukan 6 jam). Pantau sampai report muncul, baru lanjut ke evaluasi
-gate, dokumentasikan Fase P di plan.md, dan tanya aku sebelum promosi model apa pun.
+LANGKAH PERTAMA sebelum kerja apa pun: jalankan `git status -sb`. Kalau ada commit yang belum
+di-push, JANGAN push tanpa diminta eksplisit. Kalau ada perubahan uncommitted, tanya user dulu
+apa itu sebelum menimpa/menghapus apa pun.
 
-Untuk tiap item: investigasi dulu (baca file terkait) → konfirmasi rencana ke aku kalau ada
-keputusan (promosi model, effort besar, hapus data, sudo) → baru eksekusi → verifikasi (php artisan
-test harus tetap ≥427 hijau) → dokumentasikan fase di plan.md → commit selektif. Jangan lakukan
-banyak item sekaligus. Berhenti dan tanya kalau ragu.
+Tugas berikutnya BELUM ditentukan -- dokumen ini adalah log kerja yang sudah selesai, bukan antrian
+aktif. TANYA USER apa yang mereka mau kerjakan selanjutnya sebelum memulai investigasi/kode apa pun.
+Kalau user memberi task baru, ikuti pola yang sama seperti fase-fase sebelumnya di plan.md:
+investigasi dulu (baca file terkait) → konfirmasi rencana kalau ada keputusan besar (promosi model,
+hapus data, sudo, effort besar) → eksekusi → verifikasi (`php artisan test` harus tetap ≥431 hijau)
+→ dokumentasikan sebagai fase baru di plan.md (§Fase R+, ikuti format: Konteks → Perubahan kode →
+Verifikasi → Status, termasuk temuan negatif kalau ada) → commit selektif per file, JANGAN
+`git add -A`, JANGAN push kecuali diminta. Jangan buka ulang keputusan final di §5.
 ```
