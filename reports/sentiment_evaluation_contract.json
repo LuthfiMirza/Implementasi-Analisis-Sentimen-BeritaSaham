@@ -1,0 +1,92 @@
+{
+  "contract_version": "1.0",
+  "status": "draft_owner_selection_required",
+  "historical_benchmark": {
+    "size": 120,
+    "macro_f1": 0.5816,
+    "role": "historical_reference",
+    "evidence_path": "output/prediction_research/sentiment_finetune_report.json"
+  },
+  "active_splits": {
+    "train_size": 692,
+    "validation_size": 148,
+    "test_size": 148,
+    "train_path": "storage/app/sentiment_finetune/train.jsonl",
+    "validation_path": "storage/app/sentiment_finetune/val.jsonl",
+    "test_path": "storage/app/sentiment_finetune/test.jsonl"
+  },
+  "official_test": {
+    "status": "not_created_owner_selection_required",
+    "manifest_path": null,
+    "checksum": null,
+    "evidence": [
+      "active test 148 rejected",
+      "new candidates generated but all failed hard quality gates",
+      "DB unavailable; source/entity/date fields unavailable in fallback inventory"
+    ]
+  },
+  "candidate_test": {
+    "status": "candidate_unverified_likely_contaminated",
+    "manifest_path": "data/evaluation/candidate_test_manifest.csv",
+    "checksum_path": "data/evaluation/candidate_test_manifest.sha256",
+    "checksum": "8bf1b53bd17d211c330aa404db1a5fe76897000e004d8fc6067996a1faf8a187"
+  },
+  "diagnostic_sets": [
+    {
+      "name": "r5b_hard_case_diagnostic",
+      "path": "output/prediction_research/sentiment_r5b_locked_tests/legacy_hard_case_test.jsonl",
+      "size": 153,
+      "role": "diagnostic_not_primary"
+    },
+    {
+      "name": "r5b_representative_diagnostic",
+      "path": "output/prediction_research/sentiment_r5b_locked_tests/representative_random_test.jsonl",
+      "size": 865,
+      "role": "diagnostic_not_primary"
+    }
+  ],
+  "ground_truth": {
+    "status": "manual_ground_truth_structurally_verified_provenance_unknown",
+    "owner_attestation_required": true,
+    "evidence_path": "reports/ground_truth_validation.json"
+  },
+  "primary_metric": "macro_f1",
+  "primary_metric_definition": "macro-F1 = rata-rata F1 positive, neutral, dan negative tanpa pembobotan berdasarkan jumlah kelas.",
+  "secondary_metrics": [
+    "accuracy",
+    "weighted_f1",
+    "per_class_precision",
+    "per_class_recall",
+    "per_class_f1",
+    "per_class_support",
+    "confusion_matrix"
+  ],
+  "leakage_audit": {
+    "exact_groups": "reports/exact_duplicate_groups.json",
+    "near_groups": "reports/near_duplicate_groups.json",
+    "event_candidates": "reports/event_group_candidates.csv",
+    "conflict_queue": "reports/official_test_label_review_queue.csv"
+  },
+  "owner_attestations_required": [
+    "Active 148-row test was never used for tuning/checkpoint/preprocessing/guideline/experiment selection",
+    "Manual labels are independent human labels, not copied from ML/rule outputs",
+    "Official test set choice after leakage findings"
+  ],
+  "unresolved_questions": [
+    "Should a new official test be formed because active 148 has material leakage?",
+    "Should exact duplicate texts with label conflicts be corrected before future split?",
+    "Which manifest versioning convention should be used?"
+  ],
+  "candidate_generation": {
+    "source_population": "data/evaluation/source_population_v1.csv",
+    "groups": "data/evaluation/sentiment_groups_v1.csv",
+    "candidate_dirs": [
+      "data/evaluation/candidates/candidate-a",
+      "data/evaluation/candidates/candidate-b",
+      "data/evaluation/candidates/candidate-c"
+    ],
+    "comparison": "reports/official_test_candidate_comparison.csv",
+    "recommended_candidate": "candidate-a",
+    "owner_selection_required": true
+  }
+}

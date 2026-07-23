@@ -1,0 +1,76 @@
+{
+  "candidate_id": "candidate-a",
+  "status": "candidate",
+  "seed": 42,
+  "target_rows": 283,
+  "train_rows": 1348,
+  "validation_rows": 238,
+  "test_rows": 283,
+  "train_groups": 1324,
+  "validation_groups": 236,
+  "test_groups": 280,
+  "label_distributions": {
+    "train": {
+      "positive": 268,
+      "neutral": 973,
+      "negative": 107
+    },
+    "validation": {
+      "neutral": 181,
+      "positive": 41,
+      "negative": 16
+    },
+    "test": {
+      "neutral": 215,
+      "positive": 49,
+      "negative": 19
+    }
+  },
+  "sample_method_distributions": {
+    "train": {
+      "legacy_hard_case": 762,
+      "representative_random": 586
+    },
+    "validation": {
+      "legacy_hard_case": 99,
+      "representative_random": 139
+    },
+    "test": {
+      "representative_random": 140,
+      "legacy_hard_case": 143
+    }
+  },
+  "historical_exposure": {
+    "train": {
+      "active_test_148": 122,
+      "r5b_153": 127,
+      "no_known_test_exposure": 1075,
+      "multiple_previous_test_sets": 24
+    },
+    "validation": {
+      "no_known_test_exposure": 238
+    },
+    "test": {
+      "no_known_test_exposure": 283
+    }
+  },
+  "leakage_audit": {
+    "exact_leakage_count": 0,
+    "near_duplicate_leakage_count": 0,
+    "group_crossing_count": 0,
+    "unresolved_conflict_count": 0
+  },
+  "quality_gate_pass": true,
+  "primary_metric": "macro_f1",
+  "secondary_metrics": [
+    "accuracy",
+    "weighted_f1",
+    "per_class_precision",
+    "per_class_recall",
+    "per_class_f1",
+    "per_class_support",
+    "confusion_matrix"
+  ],
+  "database_policy": "read_only",
+  "artifact_policy": "production_artifact_unchanged"
+}

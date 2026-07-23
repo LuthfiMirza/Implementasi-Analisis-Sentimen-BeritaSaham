@@ -1,0 +1,11 @@
+{
+  "article_content_groups": 1849,
+  "classification_instance_groups": 1849,
+  "singleton_article_groups": 1814,
+  "duplicate_article_groups": 35,
+  "largest_group_size": 4,
+  "true_conflict_groups": 9,
+  "mixed_labels_valid_across_entities": 0,
+  "exact_edges": 78,
+  "checksum": "5964fa3191fbe4afce43e5e3d470cfcaab77c935980ab38906be0365d65c775b"
+}

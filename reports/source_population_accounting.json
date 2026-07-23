@@ -1,0 +1,11 @@
+{
+  "source_population": 1888,
+  "eligible_records": 1869,
+  "unresolved_conflict_records": 19,
+  "invalid_records": 0,
+  "missing_text_records": 0,
+  "other_excluded_records": 0,
+  "accounted_total": 1888,
+  "unaccounted_count": 0,
+  "previous_candidates_used_about_725_reason": "fallback inventory collapsed rows into false mixed-label groups; v2 DB inventory restores 1888 rows and entity-aware grouping"
+}

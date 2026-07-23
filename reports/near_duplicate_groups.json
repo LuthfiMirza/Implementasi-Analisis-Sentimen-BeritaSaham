@@ -1,0 +1,6 @@
+{
+  "threshold": 0.92,
+  "pair_count": 3284,
+  "total_groups": 450,
+  "false_positive_risk": "medium; artifact fallback lacks titles/sources for full DB rows"
+}

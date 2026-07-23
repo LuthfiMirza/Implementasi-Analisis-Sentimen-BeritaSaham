@@ -1,0 +1,21 @@
+{
+  "raw_values": {
+    "legacy_hard_case": 1023,
+    "representative_random": 865
+  },
+  "normalized_categories": {
+    "hard_case": 1023,
+    "population_random": 865
+  },
+  "counts": {
+    "hard_case": 1023,
+    "population_random": 865
+  },
+  "percentage": {
+    "hard_case": 54.18,
+    "population_random": 45.82
+  },
+  "missing": 0,
+  "ambiguity": [],
+  "candidate_representation_impact": "official population should not be dominated by legacy_hard_case; v2 grouping enables population-representative split later"
+}

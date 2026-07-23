@@ -1,0 +1,136 @@
+{
+  "article_id": {
+    "column_name": "article_id",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 1888,
+    "length_example": 4,
+    "safe_for_grouping": true
+  },
+  "manual_label_id": {
+    "column_name": "manual_label_id",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 1888,
+    "length_example": 4,
+    "safe_for_grouping": false
+  },
+  "manual_label": {
+    "column_name": "manual_label",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 3,
+    "length_example": 8,
+    "safe_for_grouping": false
+  },
+  "stock_code": {
+    "column_name": "stock_code",
+    "non_null_count": 1636,
+    "null_count": 252,
+    "empty_string_count": 0,
+    "distinct_count": 12,
+    "length_example": 4,
+    "safe_for_grouping": true
+  },
+  "issuer_id": {
+    "column_name": "issuer_id",
+    "non_null_count": 1636,
+    "null_count": 252,
+    "empty_string_count": 0,
+    "distinct_count": 12,
+    "length_example": 2,
+    "safe_for_grouping": true
+  },
+  "title": {
+    "column_name": "title",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 1849,
+    "length_example": 255,
+    "safe_for_grouping": true
+  },
+  "summary": {
+    "column_name": "summary",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 1836,
+    "length_example": 303,
+    "safe_for_grouping": true
+  },
+  "content_snippet": {
+    "column_name": "content_snippet",
+    "non_null_count": 1876,
+    "null_count": 12,
+    "empty_string_count": 0,
+    "distinct_count": 1823,
+    "length_example": 303,
+    "safe_for_grouping": true
+  },
+  "full_text": {
+    "column_name": "full_text",
+    "non_null_count": 102,
+    "null_count": 1786,
+    "empty_string_count": 0,
+    "distinct_count": 91,
+    "length_example": 2003,
+    "safe_for_grouping": false
+  },
+  "url": {
+    "column_name": "url",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 1888,
+    "length_example": 246,
+    "safe_for_grouping": true
+  },
+  "source": {
+    "column_name": "source",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 7,
+    "length_example": 20,
+    "safe_for_grouping": false
+  },
+  "publication_timestamp": {
+    "column_name": "publication_timestamp",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 1391,
+    "length_example": 19,
+    "safe_for_grouping": false
+  },
+  "sample_method": {
+    "column_name": "sample_method",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 2,
+    "length_example": 21,
+    "safe_for_grouping": false
+  },
+  "user_id": {
+    "column_name": "user_id",
+    "non_null_count": 1888,
+    "null_count": 0,
+    "empty_string_count": 0,
+    "distinct_count": 1,
+    "length_example": 1,
+    "safe_for_grouping": false
+  },
+  "text_fields": {
+    "missing_required_text": 0,
+    "empty_title": 0,
+    "empty_summary": 0,
+    "empty_snippet": 12,
+    "empty_full_text": 1786,
+    "empty_url": 0
+  }
+}

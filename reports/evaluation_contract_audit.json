@@ -1,0 +1,96 @@
+{
+  "contract_version": "1.0",
+  "status": "likely_contaminated",
+  "near_duplicate_threshold": 0.92,
+  "sets": [
+    {
+      "set": "active_train",
+      "path": "storage/app/sentiment_finetune/train.jsonl",
+      "exists": true,
+      "sha256": "bbf9e1cdc410f5ff1bda3be74278d3f7c8dddf1508ed8a430ba4443e927ff890",
+      "size": 692,
+      "positive": 215,
+      "neutral": 403,
+      "negative": 74,
+      "sample_methods": "{\"null\": 692}",
+      "unique_article_ids": 692,
+      "duplicate_article_ids": 0,
+      "duplicate_texts": 9,
+      "invalid_labels": 0
+    },
+    {
+      "set": "active_validation",
+      "path": "storage/app/sentiment_finetune/val.jsonl",
+      "exists": true,
+      "sha256": "6e32ab4d19648b9a0db1f1c1a2e39d7f3d7272c6242784fb53b286c73b88ccc7",
+      "size": 148,
+      "positive": 46,
+      "neutral": 86,
+      "negative": 16,
+      "sample_methods": "{\"null\": 148}",
+      "unique_article_ids": 148,
+      "duplicate_article_ids": 0,
+      "duplicate_texts": 1,
+      "invalid_labels": 0
+    },
+    {
+      "set": "active_test_candidate",
+      "path": "storage/app/sentiment_finetune/test.jsonl",
+      "exists": true,
+      "sha256": "6b5a7863dfdb58c4a307983a4b9b998e89de230eb16cd07a730d721b0492c5a5",
+      "size": 148,
+      "positive": 46,
+      "neutral": 87,
+      "negative": 15,
+      "sample_methods": "{\"null\": 148}",
+      "unique_article_ids": 148,
+      "duplicate_article_ids": 0,
+      "duplicate_texts": 0,
+      "invalid_labels": 0
+    },
+    {
+      "set": "r5b_hard_case_diagnostic",
+      "path": "output/prediction_research/sentiment_r5b_locked_tests/legacy_hard_case_test.jsonl",
+      "exists": true,
+      "sha256": "538db53806305de07b315c12bf878caf34b80c2a525a65fc670d611f8dd3b60c",
+      "size": 153,
+      "positive": 47,
+      "neutral": 88,
+      "negative": 18,
+      "sample_methods": "{\"legacy_hard_case\": 153}",
+      "unique_article_ids": 153,
+      "duplicate_article_ids": 0,
+      "duplicate_texts": 0,
+      "invalid_labels": 0
+    },
+    {
+      "set": "r5b_representative_diagnostic",
+      "path": "output/prediction_research/sentiment_r5b_locked_tests/representative_random_test.jsonl",
+      "exists": true,
+      "sha256": "281a7a699f7c12435b1d98dc397bf2cbe1a1dcff80efef9ce7d09479fb34f338",
+      "size": 865,
+      "positive": 55,
+      "neutral": 789,
+      "negative": 21,
+      "sample_methods": "{\"representative_random\": 865}",
+      "unique_article_ids": 865,
+      "duplicate_article_ids": 0,
+      "duplicate_texts": 15,
+      "invalid_labels": 0
+    }
+  ],
+  "overlap_count": 554,
+  "near_duplicate_count": 104,
+  "label_conflict_count": 12,
+  "active_test_material_findings": 27,
+  "status_reasons": [
+    "No repository evidence proves active test was never used for tuning/checkpoint/preprocessing/guideline decisions.",
+    "Ground-truth labels structurally come from exported manual-label dataset, but annotator independence requires owner attestation.",
+    "Active test has overlap or near-duplicate findings with active train/validation."
+  ],
+  "historical_report": {
+    "path": "output/prediction_research/sentiment_finetune_report.json",
+    "exists": true,
+    "sha256": "8c2bd5399a7c7c388223b619a735715b861ceac1f50131a72f060620d40080f8"
+  }
+}

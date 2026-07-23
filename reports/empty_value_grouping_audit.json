@@ -1,0 +1,10 @@
+{
+  "records_with_text_empty": 0,
+  "records_with_url_empty": 0,
+  "records_with_hash_empty": 0,
+  "group_previously_formed_by_empty_value": 0,
+  "groups_changed_after_fix": "v1=502 groups; v2_article_content_groups=1849",
+  "empty_key_rejections": {
+    "title_only_not_used": 1
+  }
+}

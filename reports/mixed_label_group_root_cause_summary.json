@@ -1,0 +1,13 @@
+{
+  "previous_mixed_groups": 253,
+  "by_root_cause": {
+    "same_text_different_entity_valid": 241,
+    "transitive_overmerge": 3,
+    "same_text_same_entity_true_conflict": 9
+  },
+  "true_conflict": 9,
+  "cross_entity_valid": 241,
+  "false_grouping": 0,
+  "overmerge": 3,
+  "unresolved": 0
+}

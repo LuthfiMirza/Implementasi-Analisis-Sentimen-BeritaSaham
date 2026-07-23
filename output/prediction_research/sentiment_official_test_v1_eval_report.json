@@ -1,0 +1,31 @@
+{
+  "official_test_version": "sentiment-test-v1",
+  "candidate_source": "candidate-a (scripts/build_official_evaluation_split.py, seed=42, groups=data/evaluation/sentiment_groups_v2_adapted.csv derived from corrected sentiment_groups_v2.csv)",
+  "quality_gate": {
+    "rule": "exact_leakage_count==0 and group_crossing_count==0 and unresolved_conflict_count==0 and min_class_support>=5 and previous_test_exposure_count==0",
+    "passed": true,
+    "exact_leakage_count": 0,
+    "group_crossing_count": 0,
+    "unresolved_conflict_count": 0,
+    "previous_test_exposure_count": 0
+  },
+  "test_size": 283,
+  "label_distribution": {
+    "neutral": 215,
+    "positive": 49,
+    "negative": 19
+  },
+  "train_size": 1348,
+  "validation_size": 238,
+  "checksum_dir": "data/evaluation/official/sentiment-test-v1/SHA256SUMS",
+  "production_model": "storage/app/sentiment_model/indobert_finetuned_v1",
+  "production_macro_f1": 0.8096,
+  "production_accuracy": 0.894,
+  "production_per_class_f1": {
+    "positive": 0.7209,
+    "neutral": 0.9388,
+    "negative": 0.7692
+  },
+  "note": "Supersedes the historical 0.5816 reference, which was computed on a 120-row hard-case-biased split that no longer exists on disk (overwritten during Fase Q2's export re-run, never git-tracked). This official test set is built from the full clean label pool (1888 manual labels minus 19 true label conflicts and prior-exposure rows), using corrected v2 grouping (scripts/build_sentiment_groups.py) that fixes a v1 grouping bug where same-text-different-target-entity rows (e.g. multi-issuer recommendation articles) were incorrectly flagged as label conflicts (241/253 of v1's flagged conflicts were this false-positive pattern, per reports/mixed_label_group_root_cause_summary.json). The true positive-class weakness documented in earlier phases (F1 0.377 on the old 120-row hard-case test) reflected performance on a deliberately hard/ambiguous subset, not the model's real-world performance -- on this representative, deduplicated, conflict-free test, positive F1 is 0.7209.",
+  "evaluated_at": "2026-07-22"
+}

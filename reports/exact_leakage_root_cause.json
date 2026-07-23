@@ -1,0 +1,6 @@
+{
+  "leaks": [],
+  "root_cause": "previous splitter used v1 group_id while verifier checked exact_text_sha256 across splits; group manifest was stale/overmerged and split manifest schema did not preserve article_content_group_id consistently",
+  "fix": "sentiment_groups_v2 separates article_content_group_id and classification_instance_group_id; future splitter must constrain article_content_group_id and exact_text_sha256",
+  "current_exact_leakage": "not_applicable_no_new_candidates_generated"
+}

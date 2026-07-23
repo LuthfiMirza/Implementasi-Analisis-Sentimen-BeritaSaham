@@ -1,0 +1,7 @@
+{
+  "threshold": 0.92,
+  "buckets": {
+    ">0.95": 44
+  },
+  "pair_count": 44
+}

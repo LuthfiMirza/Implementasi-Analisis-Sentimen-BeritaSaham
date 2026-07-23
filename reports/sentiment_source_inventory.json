@@ -1,0 +1,66 @@
+{
+  "database": {
+    "connection_status": "ok",
+    "driver": "mysql",
+    "database_masked": "se***"
+  },
+  "total_articles": 1888,
+  "total_manual_labels": 1888,
+  "valid_manual_labels": 1888,
+  "invalid_labels": 0,
+  "missing_article_rows": 0,
+  "duplicate_article_ids": 0,
+  "duplicate_manual_label_ids": 0,
+  "label_distribution": {
+    "positive": 364,
+    "neutral": 1379,
+    "negative": 145
+  },
+  "sample_method_distribution": {
+    "legacy_hard_case": 1023,
+    "representative_random": 865
+  },
+  "source_distribution": {
+    "unknown": 12,
+    "rss_local": 292,
+    "ojk_rss": 90,
+    "gnews": 40,
+    "newsapi": 30,
+    "google_news_rss": 1316,
+    "business_site_search": 108
+  },
+  "target_entity_distribution": {
+    "BBCA": 165,
+    "BBRI": 203,
+    "TLKM": 203,
+    "GOTO": 177,
+    "ASII": 165,
+    "missing": 252,
+    "INDF": 90,
+    "ICBP": 78,
+    "ADRO": 78,
+    "BMRI": 163,
+    "BUMI": 124,
+    "DEWA": 82,
+    "UNVR": 108
+  },
+  "date_range": {
+    "min": "2023-08-29 09:43:00",
+    "max": "2026-07-22 14:42:11"
+  },
+  "missing_fields": {
+    "missing_required_text": 0,
+    "empty_title": 0,
+    "empty_summary": 0,
+    "empty_snippet": 12,
+    "empty_full_text": 1786,
+    "empty_url": 0
+  },
+  "historical_memberships": {
+    "active_test_148": 124,
+    "r5b_153": 129,
+    "no_known_test_exposure": 1611,
+    "multiple_previous_test_sets": 24
+  },
+  "source_population_csv": "data/evaluation/source_population_v2.csv"
+}

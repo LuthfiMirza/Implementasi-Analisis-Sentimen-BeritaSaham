@@ -1,0 +1,47 @@
+{
+  "count_per_exposure": {
+    "active_test_148": 124,
+    "r5b_153": 129,
+    "no_known_test_exposure": 1611,
+    "multiple_previous_test_sets": 24
+  },
+  "count_per_label": {
+    "active_test_148": {
+      "positive": 39,
+      "neutral": 73,
+      "negative": 12
+    },
+    "r5b_153": {
+      "neutral": 74,
+      "positive": 40,
+      "negative": 15
+    },
+    "no_known_test_exposure": {
+      "neutral": 1218,
+      "positive": 278,
+      "negative": 115
+    },
+    "multiple_previous_test_sets": {
+      "neutral": 14,
+      "positive": 7,
+      "negative": 3
+    }
+  },
+  "count_per_sample_method": {
+    "active_test_148": {
+      "legacy_hard_case": 124
+    },
+    "r5b_153": {
+      "legacy_hard_case": 129
+    },
+    "no_known_test_exposure": {
+      "legacy_hard_case": 746,
+      "representative_random": 865
+    },
+    "multiple_previous_test_sets": {
+      "legacy_hard_case": 24
+    }
+  },
+  "count_per_group": 1849,
+  "candidate_feasibility": "v2 grouping quality gate passes core grouping checks; candidate regeneration can be dry-run next, not locked"
+}

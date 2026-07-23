@@ -733,6 +733,36 @@ ls -lh /Applications/XAMPP/xamppfiles/var/mysql/*.err
 
 ### Status Fase Q5: SELESAI (2026-07-22). User menjalankan command truncate manual di Terminal lokal. Verifikasi: seluruh file `.err` di `/Applications/XAMPP/xamppfiles/var/mysql/` sekarang 0B, kecuali log aktif (`macs-MacBook-Pro.local.err`, 712B — wajar, baru mulai lagi). Dari total ~1.4GB menjadi hampir kosong. Tidak ada file DB/data yang tersentuh; MySQL tetap jalan normal, auto-start tetap tidak diubah (keputusan final Fase E).
 
+---
+
+## Fase R6 — Benahi fondasi evaluasi sentimen: official test set terkunci menggantikan 0.5816
+
+**Konteks:** saat menyusun rencana ablation input-konteks (kenapa akurasi sentimen mentok 58,16%), ditemukan audit evaluasi independen yang sudah berjalan paralel (uncommitted di working tree: `docs/sentiment_evaluation_contract.md`, `scripts/*.py`, `data/evaluation/`, `reports/*.json`). Temuan audit itu: file test aktif (`storage/app/sentiment_finetune/test.jsonl`, 148 baris, dipakai berulang di Fase Q2/R5b) berstatus **"likely_contaminated"** — 14 overlap exact + 13 near-duplicate + 2 label conflict dengan train/validation. Angka `0.5816` sendiri cuma "historical_reference" — dihitung di split 120-baris yang sudah tidak ada lagi fisiknya (tertimpa saat export ulang Fase Q2, tidak pernah ter-tracking git karena di-gitignore). Audit itu sudah membangun 3 kandidat official test set (`scripts/build_official_evaluation_split.py`) tapi **semua gagal gate kualitas** (`exact_leak==0 and crossing==0 and unresolved==0 and min_support>=5 and prev==0`).
+
+### Investigasi akar penyebab gate gagal
+Dugaan awal (di `CODEX_HANDOFF.md` §4c, sebelum dieksekusi): kandidat gagal karena script berjalan "tanpa akses DB penuh" (fallback inventory). **Dugaan ini SALAH** — dicek langsung: `data/evaluation/source_population_v2.csv` (sumber data candidate lama) identik byte-per-byte dengan hasil jalan ulang `scripts/build_sentiment_source_inventory.py --require-database` (dikonfirmasi koneksi MySQL live, bukan fallback). Jadi data source sudah lengkap sejak awal.
+
+**Akar penyebab sebenarnya:** grouping v1 (`data/evaluation/sentiment_groups_v1.csv`, dipakai default oleh `build_official_evaluation_split.py`) punya **1.131 dari 1.856 baris (61%) berstatus `conflict_status=mixed_label_conflict`**, dengan pool bersih tersisa cuma 685 baris dan **HANYA 3 contoh negative bersih di seluruh dataset** — mustahil memenuhi `min_support>=5`. Dicek `reports/mixed_label_group_root_cause_summary.json` (laporan audit yang sudah ada): **241 dari 253 grup "konflik" (95%) sebenarnya `same_text_different_entity_valid`** — artikel multi-emiten yang sama (mis. "Rekomendasi Saham BMRI, ANTM, AMRT") dilabeli berbeda per saham (VALID, karena sentimen memang bisa beda per emiten), tapi grouping v1 salah menganggapnya konflik label. Cuma 9/253 (`same_text_same_entity_true_conflict`) yang genuinely konflik nyata. Grouping v2 (`sentiment_groups_v2.csv`, sudah dibangun oleh audit sebelumnya, pakai `classification_instance_group_id` yang sadar target-entity) memperbaiki ini: **true conflict cuma 19/1888 (1%)**, pool bersih 1596 baris dengan distribusi kelas sehat (neutral 1209, positive 273, negative 114).
+
+### Perubahan/artefak
+- Adapter kolom (`data/evaluation/sentiment_groups_v2_adapted.csv`, sekali pakai) memetakan skema `sentiment_groups_v2.csv` (`classification_instance_group_id`, `true_conflict_status`, `canonical_target_entity`) ke skema yang diharapkan `scripts/build_official_evaluation_split.py` (`group_id`, `conflict_status`, `target_entity`) — **script asli TIDAK dimodifikasi**, cuma datanya diadaptasi.
+- Re-run `scripts/build_official_evaluation_split.py --groups data/evaluation/sentiment_groups_v2_adapted.csv --seed 42` → **3 dari 3 kandidat lolos gate** (`exact_leak=0, crossing=0, unresolved=0, prev=0` untuk semua). Kandidat-a dipilih (rekomendasi otomatis script sendiri).
+- `data/evaluation/official/sentiment-test-v1/` — official test terkunci: `test.jsonl` (283 baris), `train.jsonl` (1348 baris), `val.jsonl` (238 baris), `SHA256SUMS`, `README.md` (penjelasan lengkap root cause + cara build, supaya bisa direproduksi/diaudit ulang). Teks dibangun dari join `news_articles` pakai formula input produksi persis (`ExportSentimentFinetuneDatasetCommand::buildProductionInputText()`).
+- `output/prediction_research/sentiment_official_test_v1_eval_report.json` — hasil evaluasi.
+- `docs/sentiment_evaluation_contract.md` — status diubah `draft` → `locked`, tambah §12 (resolusi) dan §13 (ground-truth attestation, formalisasi konfirmasi verbal user soal independensi labeling manual).
+
+### Hasil evaluasi produksi di official test baru
+**`indobert_finetuned_v1` (model produksi, TIDAK diubah): macro-F1 = 0.8096, accuracy = 0.894** (positive F1 0.7209, neutral F1 0.9388, negative F1 0.7692), n=283 (neutral 215, positive 49, negative 19). Diverifikasi 2 kali independen dengan hasil identik (run inline + run background terpisah).
+
+**Temuan penting:** kelemahan kelas positif yang didokumentasikan sepanjang Fase B/C/P/Q2 (F1 0.377 di test hard-case 120-baris lama) ternyata mencerminkan performa di subset yang SENGAJA sulit/ambigu, bukan performa nyata model. Di test representatif yang bersih ini, positive F1 = 0.7209 — jauh lebih sehat. **Angka `0.8096` ini menggantikan `0.5816` sebagai baseline acuan resmi untuk semua perbandingan model sentimen ke depan.**
+
+### Verifikasi
+- SHA256 checksum tervalidasi (`shasum -a 256 -c SHA256SUMS` → OK untuk ketiga file).
+- File official test **di-commit ke git, TIDAK di-gitignore** (pelajaran dari insiden R5b sebelumnya).
+- Model produksi tidak disentuh (tidak ada retrain di Fase R6).
+
+### Status Fase R6: SELESAI. Official test set `sentiment-test-v1` terkunci & diverifikasi, baseline baru (0.8096) ditetapkan, ground-truth attestation diformalkan. R7 (ablation title/summary/full_text/entity) sekarang bisa mulai dengan fondasi evaluasi yang valid.
+
 ## Fase R1–R4 — Infrastruktur sampel label, audit, tipe berita, dan guideline
 
 **Konteks:** setelah Fase P dan Q2 gagal mengalahkan produksi, akar masalah metodologis bergeser ke bias sampling: 988 label manual existing berasal dari hard cases/disagreement/ambigu, bukan sampel representatif populasi berita. Fase R1–R4 menyiapkan data lineage dan alat audit tanpa retrain dan tanpa menyentuh model produksi.

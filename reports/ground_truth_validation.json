@@ -1,0 +1,16 @@
+{
+  "manual_label_rows_found": 1856,
+  "article_rows_found": "unverified_db_unavailable_used_artifact_fallback",
+  "orphan_labels": "unverified_db_unavailable",
+  "multiple_labels_per_article": 0,
+  "invalid_labels": 0,
+  "fallback_non_manual_detected": false,
+  "provenance_status": "manual_ground_truth_structurally_verified_provenance_unknown",
+  "owner_attestation_required": true,
+  "evidence_paths": [
+    "scripts/build_sentiment_source_inventory.py",
+    "reports/evaluation_manual_label_db_audit.json",
+    "data/evaluation/source_population_v1.csv"
+  ],
+  "database_policy": "read_only"
+}

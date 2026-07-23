@@ -1,0 +1,6 @@
+set,path,exists,sha256,size,positive,neutral,negative,sample_methods,unique_article_ids,duplicate_article_ids,duplicate_texts,invalid_labels
+active_train,storage/app/sentiment_finetune/train.jsonl,True,bbf9e1cdc410f5ff1bda3be74278d3f7c8dddf1508ed8a430ba4443e927ff890,692,215,403,74,"{""null"": 692}",692,0,9,0
+active_validation,storage/app/sentiment_finetune/val.jsonl,True,6e32ab4d19648b9a0db1f1c1a2e39d7f3d7272c6242784fb53b286c73b88ccc7,148,46,86,16,"{""null"": 148}",148,0,1,0
+active_test_candidate,storage/app/sentiment_finetune/test.jsonl,True,6b5a7863dfdb58c4a307983a4b9b998e89de230eb16cd07a730d721b0492c5a5,148,46,87,15,"{""null"": 148}",148,0,0,0
+r5b_hard_case_diagnostic,output/prediction_research/sentiment_r5b_locked_tests/legacy_hard_case_test.jsonl,True,538db53806305de07b315c12bf878caf34b80c2a525a65fc670d611f8dd3b60c,153,47,88,18,"{""legacy_hard_case"": 153}",153,0,0,0
+r5b_representative_diagnostic,output/prediction_research/sentiment_r5b_locked_tests/representative_random_test.jsonl,True,281a7a699f7c12435b1d98dc397bf2cbe1a1dcff80efef9ce7d09479fb34f338,865,55,789,21,"{""representative_random"": 865}",865,0,15,0
