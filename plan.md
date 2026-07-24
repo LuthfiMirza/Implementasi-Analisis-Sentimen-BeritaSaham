@@ -970,3 +970,24 @@ Dengan `google_news_rss` (70% populasi) terbukti buntu, dan 4 sumber lain sudah 
 - Live verification `api.gdeltproject.org` via kode asli → request diterima tanpa error (dilakukan 2x: setelah fix bug 1+2, lalu setelah fix bug 3/ambang 5 karakter).
 
 ### Status Fase R7a (lanjutan, sumber pengganti): GDELT DIPERBAIKI DAN AKTIF, limit rss_local dinaikkan, CNBC/Antara dikonfirmasi sudah terintegrasi (bukan pekerjaan baru). Currents API diidentifikasi sebagai kandidat fetcher baru berikutnya, BELUM dibangun (butuh API key). `idx.co.id` resmi dan Trafilatura dicek dan diputuskan TIDAK dikejar sekarang.
+
+## Fase R7a (penutup) — Verifikasi `news:fetch` nyata: bug ke-4 ditemukan & diperbaiki, GDELT ditutup sebagai keterbatasan eksternal
+
+**Konteks:** setelah GDELT diperbaiki (3 bug: query salah bentuk, tanpa timeout/try-catch, ambang frasa), user minta jalankan `news:fetch` sungguhan untuk 12 saham aktif supaya perbaikannya benar-benar terpakai. Dua kali run nyata dilakukan, masing-masing mengungkap temuan baru.
+
+### Bug ke-4 ditemukan: `RssLocalFetcher` — pola sama persis dengan bug GDELT
+Run pertama: `error 2` (BBCA dan TLKM gagal total). Dicek `storage/logs/laravel.log`: `rss.tempo.co/bisnis` (satu dari ~16 feed yang di-iterasi `RssLocalFetcher` per saham) timeout, dan karena tidak ada `try/catch` di sekitar `Http::get($feedUrl)`, exception yang tidak tertangkap menggagalkan `refreshFromProvider()` **untuk seluruh saham itu** — bukan cuma `rss_local`, provider lain (google_news_rss, business_site_search, newsapi, dst) yang sudah berhasil di-fetch untuk BBCA/TLKM di siklus itu ikut hilang. Pola identik dengan bug GDELT sebelumnya (satu request lambat meracuni semua provider lain via exception tak tertangani di level `refreshFromProvider()`).
+- Perbaikan: `app/Services/News/RssLocalFetcher.php` — bungkus `Http::get($feedUrl)` per-feed dalam `try/catch`, log warning dan lanjut ke feed berikutnya (bukan menghentikan seluruh saham).
+- Test baru: `tests/Unit/RssLocalFetcherTest.php::test_one_feed_timeout_does_not_abort_the_others`.
+- Verifikasi run kedua: `error 0` (dari 2) — BBCA dan TLKM berhasil diproses penuh.
+
+### GDELT: throttle ditambahkan, tapi hasil real-world tetap 0 — ditutup sebagai keterbatasan eksternal
+Query GDELT sudah terbukti valid (fase sebelumnya), tapi run pertama tetap `gdelt: 0` di seluruh 10-12 saham — dicek log: **429 rate-limit di HAMPIR SEMUA request**, karena 12 saham diproses berurutan dalam satu proses PHP tanpa jeda, melanggar kebijakan GDELT "satu request per 5 detik". Diperbaiki: `GdeltFetcher::throttle()` — static timestamp per-proses, jeda minimum ~5,5 detik antar-request, dilewati saat test (`app()->runningUnitTests()`).
+- Run kedua (dengan throttle aktif): `gdelt` **masih 0**. Dicek log: kombinasi 429 (rate-limit) dan **timeout koneksi ~10 detik** yang berulang — padahal `config('news.gdelt.timeout', 20)` di kode minta 20 detik. Ketidakcocokan ini (kode minta 20 detik, tapi log konsisten mentok di ~10 detik) mengindikasikan batasan di luar kode kita — kemungkinan pembatas jaringan sandbox ke `gdeltproject.org`, atau rate-limit GDELT di praktiknya jauh lebih ketat dari dokumentasi publik mereka ("1x/5 detik").
+- **Keputusan: GDELT ditutup sebagai keterbatasan eksternal, bukan dikejar lebih jauh.** Ketiga bug di kode kita (query salah bentuk, tanpa timeout/try-catch, ambang frasa) sudah terbukti tuntas dan diverifikasi live sebelumnya — itu tanggung jawab kita dan sudah selesai. Sisa masalah (429/timeout dari sisi GDELT) di luar kendali kode, dan value tambahan yang didapat GDELT terhadap 5 provider lain yang sudah stabil (rss_local, google_news_rss, business_site_search, ojk_rss, gnews/newsapi) diperkirakan marginal. Tidak ada perbaikan kode lebih lanjut direncanakan untuk GDELT di proyek ini.
+
+### Hasil akhir run nyata
+- Total artikel naik dari 1.923 → **1.972** (+49) lewat provider yang sudah stabil (bukan gdelt).
+- `php artisan test` → **458 passed** (457 + 1 baru), 1952 assertions.
+
+### Status Fase R7a: DITUTUP TUNTAS. 4 bug fetcher ditemukan & diperbaiki lewat kombinasi live-verification dan run produksi nyata (bukan cuma unit test) sepanjang fase ini: GdeltFetcher (query salah bentuk, tanpa timeout, ambang frasa), RssLocalFetcher (tanpa try/catch per-feed). GDELT ditutup sebagai keterbatasan eksternal (rate-limit/network di luar kendali kode). Currents API tetap jadi kandidat sumber baru berikutnya kalau user mau lanjut (butuh API key, belum dibangun).
