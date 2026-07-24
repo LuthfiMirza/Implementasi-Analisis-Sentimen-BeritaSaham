@@ -1,9 +1,7 @@
 R7 Ablation: Input Text Construction
 =====================================
 
-STATUS: PARTIAL. R7c (entity_prefix) interrupted by user (paused overnight, laptop needed to sleep),
-not yet run. Resume with:
-  caffeinate -i quant/.venv-sentiment/bin/python3 quant/run_r7_ablation.py --epochs 6 --variants entity_prefix
+STATUS: COMPLETE. All 3 variants finished.
 
 All variants trained on the SAME pool: data/evaluation/official/sentiment-test-v1 (train=1348, val=238) -- only input-text construction differs.
 Evaluated on the locked official test article_ids (n=283), each variant's own matching text transform.
@@ -11,13 +9,22 @@ For reference (NOT a clean ablation comparison -- different training pool): prod
 
 title_summary    test_macro_f1=0.7018  accuracy=0.8163  per_class={'positive': 0.5106, 'neutral': 0.892, 'negative': 0.7027}  <- same formula as production (local baseline for this ablation)
 title_only       test_macro_f1=0.6998  accuracy=0.8198  per_class={'positive': 0.5833, 'neutral': 0.8874, 'negative': 0.6286}
-entity_prefix    NOT RUN YET
+entity_prefix    test_macro_f1=0.6663  accuracy=0.8021  per_class={'positive': 0.5306, 'neutral': 0.8802, 'negative': 0.5882}
 
 Delta vs title_summary (this ablation's own local baseline, same training pool):
-  title_only: -0.0020 (noise, not a real difference)
+  title_only:    -0.0020 (noise, not a real difference)
+  entity_prefix: -0.0355 (real, measurable decrease)
 
-Interim finding: the 'summary' field adds negligible information beyond the title for this
-classification task -- likely because many summaries in the DB are short/generic/redundant with
-their titles. This partially answers the original "input lacks context" hypothesis: title+summary
-format itself is not the main bottleneck. entity_prefix result still needed to test the "target
-entity unclear" hypothesis before drawing final conclusions.
+CONCLUSION: None of the 3 input-text variants beat the current production formula (title+summary).
+title_only is statistically indistinguishable from title_summary. entity_prefix is measurably WORSE
+-- prepending the ticker/company name hurts rather than helps, contrary to the "target entity
+unclear" hypothesis. This is consistent with the R2 audit finding that label/model mismatch rate
+was NOT higher for multi-entity articles (4.5%) than single-entity articles (5.5%) -- entity
+ambiguity was never strongly supported as the main driver of the positive-class weakness.
+
+RECOMMENDATION: keep the current production input formula (title+summary) unchanged. Input-text
+construction (among the 3 variants tested) is not the lever that will meaningfully improve sentiment
+classification quality further. The remaining unexplored lever from the original diagnosis is
+full_text coverage (R7a/R7d), which requires a real scraping investment and was found infeasible to
+test cheaply with current data (0 negative examples among the 102 articles that currently have
+full_text).

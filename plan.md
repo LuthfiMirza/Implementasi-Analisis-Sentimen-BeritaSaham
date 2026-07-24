@@ -779,15 +779,19 @@ Percobaan awal sempat disangka "proses mati diam-diam" berkali-kali (pola famili
 ### Insiden operasional: laptop sleep menghentikan training
 User melaporkan proses training tidak maju setelah 3 jam 40 menit — dicek: benar berhenti total (0 progress), penyebabnya laptop masuk sleep (background process dibekukan OS saat sleep, bukan lanjut otomatis). Solusi: bungkus training dengan `caffeinate -i` (mencegah idle sleep) untuk run selanjutnya. Catatan: `caffeinate -i` tidak bisa mencegah sleep kalau lid laptop ditutup fisik — itu di luar kendalinya.
 
-### Hasil (2 dari 3 varian selesai)
+### Hasil (3 dari 3 varian selesai)
 
 | Varian | test macro-F1 | accuracy | positive F1 | neutral F1 | negative F1 | Waktu latih |
 |---|---|---|---|---|---|---|
 | `title_summary` (formula produksi, baseline lokal ablation ini) | **0.7018** | 0.8163 | 0.5106 | 0.892 | 0.7027 | 164 menit |
-| `title_only` | **0.6998** | 0.8198 | 0.5833 | 0.8874 | 0.6286 | 58 menit |
-| `entity_prefix` | **BELUM DIJALANKAN** | — | — | — | — | — |
+| `title_only` | 0.6998 | 0.8198 | 0.5833 | 0.8874 | 0.6286 | 58 menit |
+| `entity_prefix` | 0.6663 | 0.8021 | 0.5306 | 0.8802 | 0.5882 | ~30 menit |
 
-**Delta title_only vs title_summary: -0,0020** — secara praktis noise, bukan perbedaan nyata. **Temuan interim:** field `summary` ternyata TIDAK banyak menambah informasi dibanding judul saja untuk tugas klasifikasi ini — kemungkinan besar karena banyak `summary` di database pendek/generik/redundan dengan judulnya sendiri. Ini SEBAGIAN menjawab hipotesis awal "input kurang konteks" (dari diskusi audit sentimen sebelumnya) — format title+summary itu sendiri BUKAN bottleneck utama. `entity_prefix` (uji hipotesis "target entity tidak jelas") masih perlu dijalankan untuk kesimpulan lengkap.
+**Delta vs `title_summary`:** `title_only` -0,0020 (noise, bukan perbedaan nyata), `entity_prefix` **-0,0355 (nyata, terukur — LEBIH BURUK, bukan lebih baik)**.
+
+**Kesimpulan R7b/R7c:** Tidak satu pun dari 3 varian input mengalahkan formula produksi (title+summary). `title_only` secara statistik tidak berbeda dari `title_summary`. `entity_prefix` justru **menurunkan** performa — menambahkan prefix nama saham/ticker di depan teks TIDAK membantu, berlawanan dengan hipotesis awal "target entity tidak jelas". Temuan ini konsisten dengan hasil audit R2 sebelumnya: rate mismatch label-vs-model TIDAK lebih tinggi di artikel multi-emiten (4,5%) dibanding artikel single-emiten (5,5%) — hipotesis "ambiguitas entity" memang sejak awal tidak didukung kuat oleh data.
+
+**Rekomendasi:** pertahankan formula input produksi (title+summary) apa adanya — dari 3 varian yang diuji, tidak ada yang jadi tuas perbaikan akurasi sentimen lebih lanjut. Satu-satunya arah yang belum tuntas dieksplorasi dari diagnosis awal adalah cakupan `full_text` (R7a/R7d) — itu butuh investasi scraping nyata dan sudah terbukti tidak bisa diuji murah dengan data saat ini (0 contoh negative di antara 102 artikel yang punya `full_text`).
 
 ### R7a — Investigasi kelayakan scraping `full_text` (temuan, belum ada keputusan eksekusi)
 Ditemukan kode uncommitted (`app/Console/Commands/ResolveGoogleNewsUrlsCommand.php`, `GoogleNewsRssFetcher::resolvePublisherUrl()`) yang menyelesaikan SETENGAH masalah: resolve URL redirect Google News ke URL publisher asli (prasyarat scraping), tapi BELUM ada scraper yang benar-benar ambil isi artikel. Diskusi dengan user mengoreksi asumsi awal ("perlu parser HTML per-situs, effort besar") — pendekatan generic content-extraction (algoritma model "readability", tanpa aturan per-situs) jauh lebih murah dan itu yang biasa dipakai industri. Risiko yang TETAP ada terlepas dari metode ekstraksi: paywall (teks memang tidak ada di HTML) dan rate-limit/robots.txt per-domain. **Keputusan bangun scraper belum diambil — effort masih perlu didiskusikan lagi.**
@@ -795,7 +799,7 @@ Ditemukan kode uncommitted (`app/Console/Commands/ResolveGoogleNewsUrlsCommand.p
 ### R7d — Ablation full_text: TIDAK LAYAK dijalankan dengan data saat ini
 Dicek: dari 102 artikel yang punya `full_text` terisi (semua dari `ojk_rss`, siaran pers regulasi), yang berlabel manual cuma 95 neutral + 7 positive + **0 negative**. Macro-F1 tidak bisa dihitung valid tanpa kelas negative sama sekali. Data terlalu bias (gaya bahasa OJK sangat formal/netral) untuk kesimpulan bermakna. **Ditunda sampai full_text diperluas (tergantung keputusan R7a) atau tidak dikerjakan sama sekali.**
 
-### Status Fase R7 (parsial): R7b (title_only vs title_summary) SELESAI dengan temuan jelas (delta noise). R7c (`entity_prefix`) TERHENTI di tengah (dijeda user untuk istirahat semalam, bukan gagal) — checkpoint parsial tidak bisa di-resume (lihat bug torch di atas), harus diulang dari awal. R7a (scraper full_text) masih tahap investigasi, belum ada keputusan bangun. R7d ditutup sebagai tidak layak dengan data sekarang. **Lanjutan: jalankan ulang `entity_prefix` dari awal** — command: `caffeinate -i quant/.venv-sentiment/bin/python3 quant/run_r7_ablation.py --epochs 6 --variants entity_prefix` (estimasi ~1,5-3 jam, WAJIB pakai `caffeinate` dan jangan tutup lid laptop).
+### Status Fase R7: SELESAI TUNTAS. R7b/R7c (ablation title_only/title_summary/entity_prefix) selesai 3/3 varian — tidak ada yang mengalahkan formula produksi, `entity_prefix` malah terbukti lebih buruk. R7a (investigasi scraper full_text) selesai investigasi, keputusan bangun belum diambil (di luar scope Fase R). R7d ditutup sebagai tidak layak dengan data sekarang. **Model produksi `indobert_finetuned_v1` TIDAK diganti** — tidak ada kandidat dari eksperimen R7 yang layak dipromosikan. Sentimen ML dianggap sudah pada titik wajar untuk skripsi ini: 0,8096 macro-F1 di official test representatif (`sentiment-test-v1`, Fase R6), dengan tiga jalur perbaikan lanjutan (class weighting/Fase P, active learning/Fase Q2, ablation input/Fase R7) semuanya sudah dicoba dan didokumentasikan jujur (baik yang berhasil maupun gagal).
 
 ## Fase R1–R4 — Infrastruktur sampel label, audit, tipe berita, dan guideline
 
