@@ -883,3 +883,25 @@ Label dengan tombol Positif/Netral/Negatif atau keyboard 1/2/3 mengikuti `docs/s
 - `quant/.venv-sentiment/bin/python quant/evaluate_sentiment_models.py` → report evaluasi ganda terbentuk ulang dari locked test files; gate `FAILED`.
 
 ### Status Fase R5b: SELESAI DENGAN TEMUAN NEGATIF. Candidate R5b **TIDAK BOLEH DIPROMOSIKAN** karena kalah dari produksi pada locked hard-case test yang sama. Produksi tetap `indobert_finetuned_v1`; candidate disimpan hanya sebagai artefak riset.
+
+## Fase R7a (lanjutan) — Bangun command scraping `full_text`
+
+**Konteks:** setelah R7a (investigasi kelayakan) melaporkan bahwa scraping generic content-extraction layak dicoba, user minta lanjut membangun scraper-nya secara langsung (bukan didiskusikan/direncanakan dulu). Hanya `ojk_rss` (90 artikel) yang punya `full_text` asli; 4 sumber lain (`rss_local`, `gnews`, `newsapi`, `business_site_search`, total ~470 artikel) menyimpan `source_url` langsung ke publisher (dicek dari kode fetcher masing-masing, bukan asumsi); `google_news_rss` (1.316 dari 1.888 artikel, 70%) menyimpan URL redirect Google News yang perlu diresolve dulu ke URL publisher asli sebelum bisa di-scrape.
+
+### Keputusan desain
+- Library ekstraksi: `fivefilters/readability.php` (v3.3) — dipasang sebelumnya di sesi ini setelah `andreskrey/readability.php` ditandai **abandoned** oleh composer.
+- Resolusi URL redirect Google News: **TIDAK menulis ulang** logikanya. Ditemukan `app/Console/Commands/ResolveGoogleNewsUrlsCommand.php` + `GoogleNewsRssFetcher::resolvePublisherUrl()` sudah ada (uncommitted, kerjaan proses lain yang berjalan paralel) dan sudah solid: HTTP GET ke link Google News, ambil `effectiveUri` hasil redirect atau parse `<link rel="canonical">`/`og:url` dari HTML respons. Command baru `news:scrape-full-text` cukup **melewati (skip)** baris yang `source_url`-nya masih `https://news.google.com/%` — dijalankan `news:resolve-google-news-urls` dulu sebagai prasyarat, bukan didepend langsung di kode (menghindari fragility kalau proses lain itu berubah/belum final).
+- Command baru TIDAK menyentuh/mengubah file uncommitted milik proses lain tersebut.
+
+### Perubahan kode
+- `app/Console/Commands/ScrapeArticleFullTextCommand.php` — command baru `news:scrape-full-text` (`--limit=100`, `--dry-run`, `--provider=*`, `--min-length=200`). Query artikel `full_text` kosong dengan `source_url` terisi dan bukan redirect Google News, fetch via `Http` (timeout & user-agent dari `config/news.php`, sama seperti fetcher lain), ekstrak isi dengan `Readability::parse()`, simpan hasil strip-tags + whitespace-normalized (limit 8000 char) ke `full_text`. Toleran-kegagalan per baris (fetch gagal/hasil terlalu pendek → skip & lanjut, tidak menghentikan batch), jeda 300ms antar-request untuk sopan ke publisher.
+- `composer.json`/`composer.lock` — dependency `fivefilters/readability.php` (di-commit terpisah dari file uncommitted proses lain).
+- `tests/Feature/ScrapeArticleFullTextCommandTest.php` — 7 test baru (`Http::fake`): fetch+simpan sukses, `--dry-run` tidak menyimpan, skip artikel yang sudah punya `full_text`, skip URL redirect Google News yang belum diresolve, toleransi kegagalan fetch (satu baris gagal tidak menghentikan baris lain), penolakan hasil ekstraksi di bawah `--min-length`, filter `--provider`.
+
+### Verifikasi
+- `php artisan test --filter=ScrapeArticleFullTextCommandTest` → 7 passed, 16 assertions.
+- `php artisan test` → **449 passed** (baseline 442 + 7 baru), 1942 assertions.
+- Smoke test dengan data DB nyata (`--dry-run` lalu `--limit` kecil) **BELUM dijalankan** — MySQL sedang tidak aktif di environment ini (`Connection refused`), sesuai konvensi proyek (MySQL manual-start, LaunchDaemon sudah ditolak user sebelumnya) tidak dinyalakan otomatis. Menunggu user menyalakan MySQL lewat XAMPP Control Panel untuk lanjut smoke test nyata.
+- Command ini **belum dijadwalkan** di `routes/console.php` — sengaja belum, karena scraping ke publisher eksternal berulang otomatis punya risiko rate-limit/etika yang belum didiskusikan; dijalankan manual dulu sampai ada keputusan eksplisit soal jadwal.
+
+### Status Fase R7a (lanjutan): COMMAND SIAP, BELUM DIVERIFIKASI DENGAN DATA NYATA. Kode + test lolos di CI/unit level (mock HTTP). Langkah berikut: smoke test nyata begitu MySQL aktif kembali, lalu keputusan scope (jalankan `news:resolve-google-news-urls` dulu untuk buka akses ke 1.316 artikel `google_news_rss`, atau mulai dari 4 sumber non-Google yang sudah siap langsung).
