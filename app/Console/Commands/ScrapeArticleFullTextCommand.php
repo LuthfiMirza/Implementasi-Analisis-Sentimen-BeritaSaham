@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\NewsArticle;
 use fivefilters\Readability\Configuration;
-use fivefilters\Readability\ParseException;
 use fivefilters\Readability\Readability;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
@@ -117,7 +116,10 @@ class ScrapeArticleFullTextCommand extends Command
 
         try {
             $readability->parse($response->body());
-        } catch (ParseException $e) {
+        } catch (\Throwable $e) {
+            // Catches ParseException plus internal library errors on malformed/unusual HTML
+            // (e.g. TypeError from _cleanStyles() on certain DOM comment structures) -- a single
+            // bad page must not abort the whole batch.
             return null;
         }
 
