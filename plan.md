@@ -904,4 +904,28 @@ Label dengan tombol Positif/Netral/Negatif atau keyboard 1/2/3 mengikuti `docs/s
 - Smoke test dengan data DB nyata (`--dry-run` lalu `--limit` kecil) **BELUM dijalankan** — MySQL sedang tidak aktif di environment ini (`Connection refused`), sesuai konvensi proyek (MySQL manual-start, LaunchDaemon sudah ditolak user sebelumnya) tidak dinyalakan otomatis. Menunggu user menyalakan MySQL lewat XAMPP Control Panel untuk lanjut smoke test nyata.
 - Command ini **belum dijadwalkan** di `routes/console.php` — sengaja belum, karena scraping ke publisher eksternal berulang otomatis punya risiko rate-limit/etika yang belum didiskusikan; dijalankan manual dulu sampai ada keputusan eksplisit soal jadwal.
 
-### Status Fase R7a (lanjutan): COMMAND SIAP, BELUM DIVERIFIKASI DENGAN DATA NYATA. Kode + test lolos di CI/unit level (mock HTTP). Langkah berikut: smoke test nyata begitu MySQL aktif kembali, lalu keputusan scope (jalankan `news:resolve-google-news-urls` dulu untuk buka akses ke 1.316 artikel `google_news_rss`, atau mulai dari 4 sumber non-Google yang sudah siap langsung).
+### Smoke test nyata + 2 bug ditemukan & diperbaiki
+
+MySQL kembali aktif. Dry-run kecil (8-16 baris) di `rss_local`/`gnews`/`newsapi`/`business_site_search` sukses tinggi (7/8, 8/8) — lanjut run penuh 470 baris tanpa `--dry-run`.
+
+**Bug 1 — crash batch di baris ke-~240/470**: `fivefilters\Readability\Readability::_cleanStyles()` melempar `TypeError` internal (bukan `ParseException`) untuk HTML dengan struktur DOM comment tak lazim (`slashdot.org`, false-positive keyword match dari sumber lain). Catch block sempit (`catch (ParseException $e)`) tidak menangkapnya, seluruh proses artisan crash. Diperbaiki: `catch (\Throwable $e)` — satu halaman rusak tidak boleh menghentikan batch. Test lolos ulang (7/7), batch dilanjutkan dari titik terhenti (idempotent, query hanya ambil baris `full_text` masih kosong).
+
+**Bug 2 (lebih serius, pre-existing, bukan kode baru) — `full_text` yang baru di-scrape terhapus lagi oleh `news:backfill-historical`**: dijalankan berbarengan untuk menutup gap berita akibat MySQL mati lama. `NewsAggregationService::refreshFromProvider()` di baris `updateOrCreate(...)` menulis `'full_text' => $rawArticle['full_text'] ?? null` tanpa syarat — begitu artikel yang SAMA (matched by `source_url`) di-refetch/dedup ulang dan payload fetcher tidak membawa `full_text` (berlaku untuk hampir semua fetcher, cuma `ojk_rss` yang bawa full_text sendiri), field itu ditimpa `null`, menghapus hasil scraping. Terverifikasi nyata: `with_full_text` turun dari 521 ke 508 setelah backfill jalan. Diperbaiki: fallback ke `$existingArticle?->full_text` (pola sama seperti `published_at` yang sudah benar 2 baris di atasnya). Regression test baru `test_refetching_existing_article_does_not_wipe_backfilled_full_text` di `tests/Unit/NewsAggregationServiceTest.php`. Baris yang sempat terhapus (~13-14) sudah dipulihkan lewat run ulang scraper (idempotent).
+
+**Kegagalan sah (bukan bug)**: `tribunnews.com` mengembalikan HTTP 403 untuk User-Agent bot proyek (`SentimenaBot/1.0`), 200 untuk User-Agent browser — dites manual via curl. **Diputuskan tidak menyamar sebagai browser** untuk membypass ini (konsisten dengan konvensi semua fetcher lain di proyek yang identitas bot-nya jujur, dan menghormati keputusan publisher memblokir bot). Beberapa URL dari `newsapi`/`gnews` juga bukan berita saham sama sekali (`pypi.org/project/astra-tools`, artikel gosip `justjared.com`) — false-positive keyword match dari proses fetch berita lama, di luar scope Fase R7a.
+
+### Hasil coverage `full_text` setelah smoke test + backfill gap berita
+
+| Sumber | punya `full_text` |
+|---|---|
+| `ojk_rss` | 90/90 (sudah dari awal) |
+| `rss_local` | 289/292 |
+| `business_site_search` | 106/110 |
+| `newsapi` | 17/30 (banyak diblokir tribunnews) |
+| `gnews` | 9/40 (banyak diblokir tribunnews) |
+| `google_news_rss` | 0/1.349 (masih perlu `news:resolve-google-news-urls` dulu — BELUM dijalankan) |
+| **Total** | **523/1.923** |
+
+Bonus: `news:backfill-historical --from=2026-07-22 --to=2026-07-24` juga dijalankan untuk menutup gap berita akibat MySQL mati lama (18 done_with_data, 4 done_empty, 8 failed_retry_next_run) — total artikel naik dari 1.890 ke 1.923.
+
+### Status Fase R7a (lanjutan): COMMAND SIAP DAN TERVERIFIKASI DENGAN DATA NYATA. 2 bug ditemukan lewat run sungguhan (bukan cuma unit test) dan diperbaiki + diberi regression test. 523/1.923 artikel (27%) sekarang punya `full_text`, naik dari 90 (ojk_rss saja) sebelumnya. Langkah berikut yang BELUM dikerjakan: (1) jalankan `news:resolve-google-news-urls` untuk buka akses ke 1.349 artikel `google_news_rss` (70% dari total, potensi dampak terbesar), (2) setelah full_text coverage lebih luas, ulang R7d (ablation full_text) yang sebelumnya gagal karena 0 contoh kelas negative di 102 baris lama.
