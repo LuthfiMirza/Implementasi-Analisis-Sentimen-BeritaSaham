@@ -941,3 +941,32 @@ Dicoba jalankan `news:resolve-google-news-urls` (command uncommitted milik prose
 
 ### Status akhir cakupan `full_text`: 523/1.923 (27%) adalah PLAFON PRAKTIS saat ini
 Dengan `google_news_rss` (70% populasi) terbukti buntu, dan 4 sumber lain sudah nyaris tuntas (`ojk_rss` 100%, `rss_local` 99%, `business_site_search` 96%, sisanya dibatasi blokir bot tribunnews.com), 523/1.923 adalah plafon realistis tanpa investasi headless browser atau sumber berita tambahan (mis. RSS CNBC Indonesia/Antara News yang sudah diverifikasi bekerja tapi belum diintegrasikan sebagai fetcher baru).
+
+## Fase R7a (lanjutan) — Sumber pengganti `google_news_rss`: CNBC/Antara sudah terintegrasi, GDELT ternyata mati total (2 bug), Currents API sebagai kandidat baru
+
+**Konteks:** setelah `google_news_rss` terbukti jalan buntu, user minta cari sumber berita lain untuk naikkan cakupan `full_text`. Investigasi bertahap: (1) cek CNBC Indonesia/Antara News — ternyata SUDAH terintegrasi sejak awal lewat `RssLocalFetcher::DEFAULT_FEEDS`, bukan sumber baru (185/292 dan 16/292 artikel `rss_local` sudah dari domain ini). (2) Cek `GdeltFetcher` — terdaftar di `config('news.multi_providers')` tapi kontribusinya **0 artikel** di DB. (3) Riset proyek serupa di GitHub + API berita gratis lain.
+
+### rss_local: limit fetch dinaikkan
+`routes/console.php` — jadwal pre-market `news:fetch --limit=20 --provider=rss_local` dinaikkan ke `--limit=40`. `RssLocalFetcher` selalu fetch semua feed penuh per run terlepas dari limit (limit cuma memangkas berapa yang disimpan per saham dari hasil yang sudah ditarik) — jadi menaikkan ini tidak menambah beban request ke publisher, cuma menyimpan lebih banyak dari yang sudah didapat.
+
+### GdeltFetcher: 2 bug nyata ditemukan & diperbaiki (root cause kontribusi 0 artikel)
+- **Bug 1 — query salah bentuk**: `fetchForStock()`/`fetchHistorical()` menggabungkan `AND (sourcelang:...)` langsung ke OR-chain kata kunci dari `StockKeywordMapper` (`"A" OR "B" OR "C" AND (...)`) tanpa membungkus OR-chain-nya dengan kurung. Diverifikasi langsung ke `api.gdeltproject.org`: GDELT menolak dengan pesan eksplisit `"Boolean OR's may only appear inside of a () clause."` — SETIAP request gdelt sejak awal gagal validasi ini, diam-diam.
+- **Bug 2 — tanpa timeout/try-catch**: `fetchForStock()` (beda dari semua fetcher lain di proyek) tidak punya `->timeout()` maupun `try/catch`. GDELT terbukti bisa lambat (10-15 detik respons). Karena `refreshFromProvider()` di `NewsAggregationService` tidak membungkus per-provider call dalam try/catch, exception timeout yang tidak tertangkap ini **menggagalkan seluruh fetch untuk saham itu di siklus itu** — bukan cuma provider gdelt, provider lain yang sudah berhasil di-fetch untuk saham yang sama ikut hilang.
+- **Bug 3 (ditemukan saat verifikasi live) — ambang panjang frasa**: setelah bug 1 diperbaiki, GDELT menolak lagi dengan pesan baru `"The specified phrase is too short"` — frasa `"BCA"` (3 char) dan bahkan `"BBCA"` (4 char) masih ditolak. Diverifikasi live 2x (ambang 4 masih gagal, ambang 5 berhasil lolos tanpa error) — `dropShortPhrases()` sekarang buang frasa terkutip di bawah 5 karakter sebelum OR-chain dibangun ulang.
+- Perbaikan: `app/Services/News/GdeltFetcher.php` (`wrapQuery()` + `dropShortPhrases()`, dipakai di `fetchForStock()` dan `fetchHistorical()`). Test baru: `tests/Unit/GdeltFetcherTest.php` (7 test: mapping normal, toleransi timeout/exception, toleransi response error, toleransi payload invalid, pembungkusan kurung, pembuangan frasa pendek untuk kedua method).
+- Verifikasi live: request query yang sudah diperbaiki dites langsung ke `api.gdeltproject.org` lewat kode asli (`GdeltFetcher::fetchForStock()`, bukan simulasi) — berhasil diterima (HTTP 200, tanpa pesan error), meski 0 artikel untuk BBCA di jendela waktu spesifik itu (variasi cakupan GDELT, bukan tanda gagal).
+- **Catatan penting**: bug ini juga berarti `news:backfill-historical --source=gdelt` yang dijalankan sebelumnya (Fase R7a lanjutan, backfill gap MySQL) kemungkinan besar juga gagal senyap untuk provider gdelt — tidak diverifikasi ulang karena backfill itu sudah lewat, tapi perbaikan ini otomatis berlaku untuk backfill berikutnya.
+
+### Riset kandidat sumber lain (GitHub + API gratis)
+- **Currents API** (`currentsapi.services`) — free tier 1.000 request/hari, dukung Bahasa Indonesia, JSON bersih. Kandidat paling masuk akal untuk fetcher baru berikutnya (belum dibangun — butuh daftar API key dulu).
+- NewsCatcher/Mediastack — free tier terlalu ketat (100/hari; Mediastack malah larang pemakaian non-komersial) — tidak direkomendasikan.
+- `ExRonin/Stock-Scrapper-IDX` (GitHub) — proyek lain yang scrape `idx.co.id` **pakai Selenium (headless browser)**, mengonfirmasi independen temuan sebelumnya bahwa `idx.co.id` diblokir Cloudflare untuk HTTP biasa.
+- Trafilatura (Python) dicek sebagai alternatif `fivefilters/readability.php` — benchmark independen menunjukkan F1 sedikit lebih tinggi (0,937 vs varian readability), tapi selisihnya tipis dan hasil ekstraksi kita sudah baik — tidak direkomendasikan ganti sekarang.
+- Proyek Indonesia lain di GitHub (`idx-bei`, `idx-fundamental-analysis`, dll) mayoritas fokus data fundamental, bukan sentimen berita — tidak ditemukan proyek publik dengan metodologi evaluasi (walk-forward, test set terkunci, fine-tuned IndoBERT) sekelas proyek ini.
+
+### Verifikasi
+- `php artisan test --filter=GdeltFetcherTest` → 7 passed, 8 assertions.
+- `php artisan test` → **457 passed** (450 + 7 baru), 1951 assertions.
+- Live verification `api.gdeltproject.org` via kode asli → request diterima tanpa error (dilakukan 2x: setelah fix bug 1+2, lalu setelah fix bug 3/ambang 5 karakter).
+
+### Status Fase R7a (lanjutan, sumber pengganti): GDELT DIPERBAIKI DAN AKTIF, limit rss_local dinaikkan, CNBC/Antara dikonfirmasi sudah terintegrasi (bukan pekerjaan baru). Currents API diidentifikasi sebagai kandidat fetcher baru berikutnya, BELUM dibangun (butuh API key). `idx.co.id` resmi dan Trafilatura dicek dan diputuskan TIDAK dikejar sekarang.
