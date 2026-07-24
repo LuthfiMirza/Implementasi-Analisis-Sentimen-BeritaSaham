@@ -1,0 +1,35 @@
+{
+  "status": "partial - R7c (entity_prefix) interrupted by user, resume tomorrow",
+  "note_on_runtime": "All variants trained on the SAME pool: data/evaluation/official/sentiment-test-v1 (train=1348, val=238) -- only input-text construction differs. Evaluated on the locked official test article_ids (n=283), each variant's own matching text transform. Production indobert_finetuned_v1 official macro-F1 on sentiment-test-v1 = 0.8096 (different, smaller/older training pool -- not a clean ablation comparison, informational reference only).",
+  "results": [
+    {
+      "variant": "title_summary",
+      "note": "same formula as production (title + summary + short-fallback, 512 char truncation) -- this ablation's own local baseline (trained on the NEW 1348-row pool, unlike production which was trained on a different, older/smaller pool)",
+      "train_rows": 1348,
+      "val_rows": 238,
+      "test_rows": 283,
+      "test_macro_f1": 0.7018,
+      "test_accuracy": 0.8163,
+      "test_per_class_f1": {"positive": 0.5106, "neutral": 0.892, "negative": 0.7027},
+      "train_runtime_seconds": 9850.17
+    },
+    {
+      "variant": "title_only",
+      "train_rows": 1348,
+      "val_rows": 238,
+      "test_rows": 283,
+      "test_macro_f1": 0.6998,
+      "test_accuracy": 0.8198,
+      "test_per_class_f1": {"positive": 0.5833, "neutral": 0.8874, "negative": 0.6286},
+      "train_runtime_seconds": 3507.28,
+      "delta_vs_title_summary": -0.002,
+      "candidate_dir": "storage/app/sentiment_model/_r7_ablation/title_only"
+    },
+    {
+      "variant": "entity_prefix",
+      "status": "NOT RUN YET -- interrupted by user before any epoch completed, resume tomorrow with: caffeinate -i quant/.venv-sentiment/bin/python3 quant/run_r7_ablation.py --epochs 6 --variants entity_prefix"
+    }
+  ],
+  "production_official_macro_f1": 0.8096,
+  "interim_finding": "title_only vs title_summary delta is -0.002 -- essentially noise, not a real difference. The 'summary' field adds negligible information beyond the title for this classification task, likely because many summaries in the DB are short/generic/redundant with their titles. This partially answers the original 'input lacks context' hypothesis: title+summary format itself is not the main bottleneck -- entity_prefix result still pending to test the 'target entity unclear' hypothesis."
+}

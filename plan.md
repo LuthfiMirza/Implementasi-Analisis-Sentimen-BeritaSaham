@@ -763,6 +763,40 @@ Dugaan awal (di `CODEX_HANDOFF.md` §4c, sebelum dieksekusi): kandidat gagal kar
 
 ### Status Fase R6: SELESAI. Official test set `sentiment-test-v1` terkunci & diverifikasi, baseline baru (0.8096) ditetapkan, ground-truth attestation diformalkan. R7 (ablation title/summary/full_text/entity) sekarang bisa mulai dengan fondasi evaluasi yang valid.
 
+---
+
+## Fase R7 (sebagian) — Ablation input konteks: title vs title+summary (R7c/R7d belum tuntas)
+
+**Konteks:** setelah R6 menetapkan `sentiment-test-v1` sebagai official test yang valid, lanjut ke pertanyaan awal: apakah konstruksi teks input (judul saja / judul+ringkasan / diberi prefix nama emiten / teks penuh artikel) mempengaruhi kualitas klasifikasi sentimen. Semua varian dilatih dari pool training YANG SAMA (`data/evaluation/official/sentiment-test-v1`, train=1348, val=238) — cuma cara membangun teksnya yang beda — supaya perbandingan adil (bukan seperti membandingkan ke produksi v1 yang dilatih dari pool berbeda/lebih lama).
+
+### Perubahan kode
+- `quant/run_r7_ablation.py` — script eksperimen baru, 3 varian teks (`title_only`, `title_summary`, `entity_prefix`), reuse pola training standar proyek (Trainer API, CPU-only, `load_best_model_at_end` by val macro-F1).
+- Data varian: `data/evaluation/ablation/{variant}/{train,val,test}.jsonl` — teks dibangun ulang dari `news_articles` per varian, label & article_id tetap sama persis dengan `sentiment-test-v1` (row selection tidak berubah, cuma representasi teksnya). Sanity check: varian `title_summary` diverifikasi identik byte-per-byte dengan `sentiment-test-v1/test.jsonl` asli sebelum eksperimen jalan.
+
+### Bug ditemukan & diperbaiki: resume checkpoint gagal karena versi torch
+Percobaan awal sempat disangka "proses mati diam-diam" berkali-kali (pola familiar dari insiden serupa sebelumnya) — ternyata **bukan mati**, tapi butuh waktu jauh lebih lama dari estimasi smoke-test (1 epoch smoke test 5,4 menit tidak merepresentasikan run penuh; run nyata 6 epoch = 58 menit s/d 164 menit tergantung panjang teks varian). Resume-logic yang ditambahkan (mirror pola Fase P) ternyata **gagal** saat benar-benar dipakai: `trainer.train(resume_from_checkpoint=...)` butuh `torch>=2.6` untuk load state optimizer (pembatasan keamanan CVE-2025-32434), sementara environment ini `torch==2.2.2`. Diperbaiki: resume-from-checkpoint-mid-training dihapus (tidak reliable di versi torch ini) — kalau training terganggu di tengah, terima sunk cost dan ulang dari awal, bukan coba resume paksa.
+
+### Insiden operasional: laptop sleep menghentikan training
+User melaporkan proses training tidak maju setelah 3 jam 40 menit — dicek: benar berhenti total (0 progress), penyebabnya laptop masuk sleep (background process dibekukan OS saat sleep, bukan lanjut otomatis). Solusi: bungkus training dengan `caffeinate -i` (mencegah idle sleep) untuk run selanjutnya. Catatan: `caffeinate -i` tidak bisa mencegah sleep kalau lid laptop ditutup fisik — itu di luar kendalinya.
+
+### Hasil (2 dari 3 varian selesai)
+
+| Varian | test macro-F1 | accuracy | positive F1 | neutral F1 | negative F1 | Waktu latih |
+|---|---|---|---|---|---|---|
+| `title_summary` (formula produksi, baseline lokal ablation ini) | **0.7018** | 0.8163 | 0.5106 | 0.892 | 0.7027 | 164 menit |
+| `title_only` | **0.6998** | 0.8198 | 0.5833 | 0.8874 | 0.6286 | 58 menit |
+| `entity_prefix` | **BELUM DIJALANKAN** | — | — | — | — | — |
+
+**Delta title_only vs title_summary: -0,0020** — secara praktis noise, bukan perbedaan nyata. **Temuan interim:** field `summary` ternyata TIDAK banyak menambah informasi dibanding judul saja untuk tugas klasifikasi ini — kemungkinan besar karena banyak `summary` di database pendek/generik/redundan dengan judulnya sendiri. Ini SEBAGIAN menjawab hipotesis awal "input kurang konteks" (dari diskusi audit sentimen sebelumnya) — format title+summary itu sendiri BUKAN bottleneck utama. `entity_prefix` (uji hipotesis "target entity tidak jelas") masih perlu dijalankan untuk kesimpulan lengkap.
+
+### R7a — Investigasi kelayakan scraping `full_text` (temuan, belum ada keputusan eksekusi)
+Ditemukan kode uncommitted (`app/Console/Commands/ResolveGoogleNewsUrlsCommand.php`, `GoogleNewsRssFetcher::resolvePublisherUrl()`) yang menyelesaikan SETENGAH masalah: resolve URL redirect Google News ke URL publisher asli (prasyarat scraping), tapi BELUM ada scraper yang benar-benar ambil isi artikel. Diskusi dengan user mengoreksi asumsi awal ("perlu parser HTML per-situs, effort besar") — pendekatan generic content-extraction (algoritma model "readability", tanpa aturan per-situs) jauh lebih murah dan itu yang biasa dipakai industri. Risiko yang TETAP ada terlepas dari metode ekstraksi: paywall (teks memang tidak ada di HTML) dan rate-limit/robots.txt per-domain. **Keputusan bangun scraper belum diambil — effort masih perlu didiskusikan lagi.**
+
+### R7d — Ablation full_text: TIDAK LAYAK dijalankan dengan data saat ini
+Dicek: dari 102 artikel yang punya `full_text` terisi (semua dari `ojk_rss`, siaran pers regulasi), yang berlabel manual cuma 95 neutral + 7 positive + **0 negative**. Macro-F1 tidak bisa dihitung valid tanpa kelas negative sama sekali. Data terlalu bias (gaya bahasa OJK sangat formal/netral) untuk kesimpulan bermakna. **Ditunda sampai full_text diperluas (tergantung keputusan R7a) atau tidak dikerjakan sama sekali.**
+
+### Status Fase R7 (parsial): R7b (title_only vs title_summary) SELESAI dengan temuan jelas (delta noise). R7c (`entity_prefix`) TERHENTI di tengah (dijeda user untuk istirahat semalam, bukan gagal) — checkpoint parsial tidak bisa di-resume (lihat bug torch di atas), harus diulang dari awal. R7a (scraper full_text) masih tahap investigasi, belum ada keputusan bangun. R7d ditutup sebagai tidak layak dengan data sekarang. **Lanjutan: jalankan ulang `entity_prefix` dari awal** — command: `caffeinate -i quant/.venv-sentiment/bin/python3 quant/run_r7_ablation.py --epochs 6 --variants entity_prefix` (estimasi ~1,5-3 jam, WAJIB pakai `caffeinate` dan jangan tutup lid laptop).
+
 ## Fase R1–R4 — Infrastruktur sampel label, audit, tipe berita, dan guideline
 
 **Konteks:** setelah Fase P dan Q2 gagal mengalahkan produksi, akar masalah metodologis bergeser ke bias sampling: 988 label manual existing berasal dari hard cases/disagreement/ambigu, bukan sampel representatif populasi berita. Fase R1–R4 menyiapkan data lineage dan alat audit tanpa retrain dan tanpa menyentuh model produksi.

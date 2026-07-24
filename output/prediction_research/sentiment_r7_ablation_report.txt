@@ -1,0 +1,23 @@
+R7 Ablation: Input Text Construction
+=====================================
+
+STATUS: PARTIAL. R7c (entity_prefix) interrupted by user (paused overnight, laptop needed to sleep),
+not yet run. Resume with:
+  caffeinate -i quant/.venv-sentiment/bin/python3 quant/run_r7_ablation.py --epochs 6 --variants entity_prefix
+
+All variants trained on the SAME pool: data/evaluation/official/sentiment-test-v1 (train=1348, val=238) -- only input-text construction differs.
+Evaluated on the locked official test article_ids (n=283), each variant's own matching text transform.
+For reference (NOT a clean ablation comparison -- different training pool): production indobert_finetuned_v1 official macro-F1 on sentiment-test-v1 = 0.8096
+
+title_summary    test_macro_f1=0.7018  accuracy=0.8163  per_class={'positive': 0.5106, 'neutral': 0.892, 'negative': 0.7027}  <- same formula as production (local baseline for this ablation)
+title_only       test_macro_f1=0.6998  accuracy=0.8198  per_class={'positive': 0.5833, 'neutral': 0.8874, 'negative': 0.6286}
+entity_prefix    NOT RUN YET
+
+Delta vs title_summary (this ablation's own local baseline, same training pool):
+  title_only: -0.0020 (noise, not a real difference)
+
+Interim finding: the 'summary' field adds negligible information beyond the title for this
+classification task -- likely because many summaries in the DB are short/generic/redundant with
+their titles. This partially answers the original "input lacks context" hypothesis: title+summary
+format itself is not the main bottleneck. entity_prefix result still needed to test the "target
+entity unclear" hypothesis before drawing final conclusions.
