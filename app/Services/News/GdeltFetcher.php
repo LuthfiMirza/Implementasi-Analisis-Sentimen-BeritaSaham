@@ -139,9 +139,10 @@ class GdeltFetcher implements NewsFetcherInterface
     }
 
     /**
-     * GDELT also rejects quoted phrases under 4 characters ("The specified phrase is too
-     * short") -- StockKeywordMapper includes short ticker-only terms like "BCA" that trip this.
-     * Drop them and rejoin the remaining OR-chain rather than failing the whole query.
+     * GDELT also rejects quoted phrases under 5 characters ("The specified phrase is too
+     * short", confirmed live against api.gdeltproject.org -- a bare 4-char "BBCA" was still
+     * rejected). StockKeywordMapper includes short ticker-only terms like "BCA"/"BBCA" that
+     * trip this. Drop them and rejoin the remaining OR-chain rather than failing the whole query.
      */
     protected static function dropShortPhrases(string $query): string
     {
@@ -150,7 +151,7 @@ class GdeltFetcher implements NewsFetcherInterface
             return $query;
         }
 
-        $kept = array_values(array_filter($matches[1], fn ($phrase) => mb_strlen(trim($phrase)) >= 4));
+        $kept = array_values(array_filter($matches[1], fn ($phrase) => mb_strlen(trim($phrase)) >= 5));
         if ($kept === $matches[1]) {
             return $query;
         }

@@ -97,7 +97,7 @@ class GdeltFetcherTest extends TestCase
         });
     }
 
-    public function test_gdelt_drops_quoted_phrases_shorter_than_four_chars(): void
+    public function test_gdelt_drops_quoted_phrases_shorter_than_five_chars(): void
     {
         Http::fake([
             'api.gdeltproject.org/*' => Http::response(['articles' => []], 200),
@@ -110,9 +110,12 @@ class GdeltFetcherTest extends TestCase
         Http::assertSent(function (\Illuminate\Http\Client\Request $request) {
             $query = $request->data()['query'] ?? '';
 
-            // GDELT rejects quoted phrases under 4 chars ("The specified phrase is too
-            // short") -- StockKeywordMapper's own "BCA" alias must not survive into the request.
-            return ! str_contains($query, '"BCA"') && str_contains($query, '"BBCA"');
+            // GDELT rejects quoted phrases under 5 chars ("The specified phrase is too
+            // short", confirmed live against api.gdeltproject.org -- "BBCA" alone at 4 chars
+            // was still rejected). StockKeywordMapper's short "BCA"/"BBCA" aliases must not
+            // survive into the request; a longer alias like "Bank BCA" must.
+            return ! str_contains($query, '"BCA"') && ! str_contains($query, '"BBCA"')
+                && str_contains($query, '"Bank BCA"');
         });
     }
 
