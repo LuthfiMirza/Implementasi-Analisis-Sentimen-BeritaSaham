@@ -19,12 +19,18 @@ class GdeltFetcher implements NewsFetcherInterface
         $baseUrl = env('GDELT_BASE_URL', 'https://api.gdeltproject.org/api/v2/doc/doc');
         $query = $this->mapper->queryString($stock);
         $params = [
-            'query' => $query.' AND (sourcelang:indonesia OR sourcelang:english)',
+            'query' => self::wrapQuery($query).' AND (sourcelang:indonesia OR sourcelang:english)',
             'maxrecords' => $limit,
             'format' => 'json',
         ];
 
-        $response = Http::get($baseUrl, $params);
+        try {
+            $response = Http::timeout((int) config('news.gdelt.timeout', 20))->get($baseUrl, $params);
+        } catch (\Throwable $e) {
+            Log::warning('GDELT request exception', ['error' => $e->getMessage()]);
+            return [];
+        }
+
         if (! $response->successful()) {
             Log::warning('GDELT request failed', [
                 'status' => $response->status(),
@@ -65,7 +71,7 @@ class GdeltFetcher implements NewsFetcherInterface
         $baseUrl = env('GDELT_BASE_URL', 'https://api.gdeltproject.org/api/v2/doc/doc');
         try {
             $response = Http::timeout((int) config('news.gdelt.timeout', 20))->get($baseUrl, [
-                'query' => $query.' AND (sourcelang:indonesia OR sourcelang:english)',
+                'query' => self::wrapQuery($query).' AND (sourcelang:indonesia OR sourcelang:english)',
                 'startdatetime' => $from->copy()->utc()->format('YmdHis'),
                 'enddatetime' => $to->copy()->utc()->format('YmdHis'),
                 'maxrecords' => min($maxRecords, 250),
@@ -114,5 +120,41 @@ class GdeltFetcher implements NewsFetcherInterface
                 'raw_payload' => $item,
             ];
         })->all();
+    }
+
+    /**
+     * GDELT's query parser rejects a bare "A OR B OR C" chain once it's followed by
+     * " AND (...)" -- "Boolean OR's may only appear inside of a () clause." StockKeywordMapper
+     * builds exactly that kind of OR chain, so it must be parenthesized before being combined
+     * with the language filter. Wrapping an already-parenthesized/single-term query is harmless.
+     */
+    protected static function wrapQuery(string $query): string
+    {
+        $query = self::dropShortPhrases($query);
+        if ($query === '' || (str_starts_with($query, '(') && str_ends_with($query, ')'))) {
+            return $query;
+        }
+
+        return '('.$query.')';
+    }
+
+    /**
+     * GDELT also rejects quoted phrases under 4 characters ("The specified phrase is too
+     * short") -- StockKeywordMapper includes short ticker-only terms like "BCA" that trip this.
+     * Drop them and rejoin the remaining OR-chain rather than failing the whole query.
+     */
+    protected static function dropShortPhrases(string $query): string
+    {
+        $query = trim($query);
+        if (! preg_match_all('/"([^"]*)"/', $query, $matches)) {
+            return $query;
+        }
+
+        $kept = array_values(array_filter($matches[1], fn ($phrase) => mb_strlen(trim($phrase)) >= 4));
+        if ($kept === $matches[1]) {
+            return $query;
+        }
+
+        return implode(' OR ', array_map(fn ($phrase) => '"'.$phrase.'"', $kept));
     }
 }

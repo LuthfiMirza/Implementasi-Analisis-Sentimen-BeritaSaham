@@ -23,8 +23,12 @@ Schedule::command('stocks:fetch-history --days=1')
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
 // PRE-MARKET: 08.50 WIB
-// Refresh berita pre-market
-Schedule::command('news:fetch --limit=20 --provider=rss_local')
+// Refresh berita pre-market -- limit dinaikkan dari 20 ke 40 (Fase R7a) karena rss_local sudah
+// terbukti sumber full_text paling andal (cakupan 99%, dominan CNBC Indonesia + Antara News),
+// dan RssLocalFetcher sudah tetap fetch semua feed penuh per run -- limit cuma memangkas berapa
+// banyak dari hasil yang sudah diambil itu yang disimpan per saham, jadi menaikkannya tidak
+// menambah beban request ke publisher.
+Schedule::command('news:fetch --limit=40 --provider=rss_local')
     ->weekdays()
     ->dailyAt('08:50')
     ->timezone('Asia/Jakarta')
