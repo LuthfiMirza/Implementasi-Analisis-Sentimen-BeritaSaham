@@ -353,7 +353,9 @@ class NewsAggregationService
                     'published_at' => $rawArticle['published_at'] ?? $existingArticle?->published_at ?? Carbon::now(),
                     'summary' => $summary,
                     'content_snippet' => $rawArticle['content_snippet'] ?? null,
-                    'full_text' => $rawArticle['full_text'] ?? null,
+                    // Most fetchers don't scrape the article body -- don't let a re-fetch/dedup
+                    // update wipe out full_text backfilled separately (e.g. news:scrape-full-text).
+                    'full_text' => $rawArticle['full_text'] ?? $existingArticle?->full_text ?? null,
                     'sentiment_label' => $rawArticle['sentiment_label'] ?? $resolved['label'],
                     'sentiment_score' => $rawArticle['sentiment_score'] ?? $resolved['score'],
                     'sentiment_confidence' => $rawArticle['sentiment_confidence'] ?? $resolved['confidence'] ?? null,

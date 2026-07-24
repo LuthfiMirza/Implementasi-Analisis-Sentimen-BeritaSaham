@@ -231,6 +231,27 @@ class NewsAggregationServiceTest extends TestCase
         $this->assertFalse($saved->ml_rule_agree);
     }
 
+    public function test_refetching_existing_article_does_not_wipe_backfilled_full_text(): void
+    {
+        $stock = $this->seedStock('BBCA');
+        $url = 'https://kontan.test/bbca-laba';
+        $article = NewsArticle::factory()->create([
+            'stock_id' => $stock->id,
+            'source_url' => $url,
+            'full_text' => 'Teks lengkap hasil scraping news:scrape-full-text sebelumnya.',
+        ]);
+
+        // Simulate a re-fetch/dedup pass where the provider payload has no full_text (the normal
+        // case -- fetchers don't scrape article bodies), matched to the existing row by source_url.
+        $service = $this->serviceWithArticles([
+            $this->rawArticle($stock, ['source_url' => $url]),
+        ]);
+        $service->refreshFromProvider($stock, 10, ['fake']);
+
+        $article->refresh();
+        $this->assertSame('Teks lengkap hasil scraping news:scrape-full-text sebelumnya.', $article->full_text);
+    }
+
     private function rawArticle(Stock $stock, array $overrides = []): array
     {
         return array_merge([
