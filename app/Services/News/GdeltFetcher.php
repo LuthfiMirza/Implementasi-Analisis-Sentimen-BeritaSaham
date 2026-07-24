@@ -10,6 +10,9 @@ use Illuminate\Support\Str;
 
 class GdeltFetcher implements NewsFetcherInterface
 {
+    /** Timestamp (microtime float) of the last request sent, shared across instances within this process. */
+    protected static ?float $lastRequestAt = null;
+
     public function __construct(protected StockKeywordMapper $mapper = new StockKeywordMapper())
     {
     }
@@ -23,6 +26,8 @@ class GdeltFetcher implements NewsFetcherInterface
             'maxrecords' => $limit,
             'format' => 'json',
         ];
+
+        self::throttle();
 
         try {
             $response = Http::timeout((int) config('news.gdelt.timeout', 20))->get($baseUrl, $params);
@@ -69,6 +74,7 @@ class GdeltFetcher implements NewsFetcherInterface
     public function fetchHistorical(string $query, Carbon $from, Carbon $to, int $maxRecords = 250): ?array
     {
         $baseUrl = env('GDELT_BASE_URL', 'https://api.gdeltproject.org/api/v2/doc/doc');
+        self::throttle();
         try {
             $response = Http::timeout((int) config('news.gdelt.timeout', 20))->get($baseUrl, [
                 'query' => self::wrapQuery($query).' AND (sourcelang:indonesia OR sourcelang:english)',
@@ -128,6 +134,29 @@ class GdeltFetcher implements NewsFetcherInterface
      * builds exactly that kind of OR chain, so it must be parenthesized before being combined
      * with the language filter. Wrapping an already-parenthesized/single-term query is harmless.
      */
+    /**
+     * GDELT's free-tier docs endpoint enforces "one request every 5 seconds" (429 otherwise).
+     * A single news:fetch run iterates every active stock in one PHP process, so without this
+     * throttle every stock after the first gets rate-limited and silently returns []. Confirmed
+     * live: a 12-stock run produced 429s for every gdelt call after the first. Skipped in tests
+     * (Http::fake has no real network delay to respect).
+     */
+    protected static function throttle(): void
+    {
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
+        $minGapSeconds = 5.5;
+        if (self::$lastRequestAt !== null) {
+            $elapsed = microtime(true) - self::$lastRequestAt;
+            if ($elapsed < $minGapSeconds) {
+                usleep((int) (($minGapSeconds - $elapsed) * 1_000_000));
+            }
+        }
+        self::$lastRequestAt = microtime(true);
+    }
+
     protected static function wrapQuery(string $query): string
     {
         $query = self::dropShortPhrases($query);

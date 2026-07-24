@@ -59,10 +59,20 @@ class RssLocalFetcher implements NewsFetcherInterface
         $userAgent = config('news.rss_user_agent', env('NEWS_RSS_USER_AGENT', 'SentimenaBot/1.0 (+https://sentimena.app)'));
 
         foreach ($feeds as $feedUrl) {
-            $resp = Http::withHeaders([
-                'User-Agent' => $userAgent,
-                'Accept' => 'application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.1',
-            ])->timeout($timeout)->get($feedUrl);
+            try {
+                $resp = Http::withHeaders([
+                    'User-Agent' => $userAgent,
+                    'Accept' => 'application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.1',
+                ])->timeout($timeout)->get($feedUrl);
+            } catch (\Throwable $e) {
+                // One slow/unreachable feed (of ~16) must not abort every other feed for this
+                // stock -- an uncaught exception here bubbles all the way up through
+                // NewsAggregationService::refreshFromProvider() and kills every OTHER provider's
+                // results for this stock too, not just rss_local's. Confirmed live: rss.tempo.co
+                // timing out silently discarded a full multi-provider fetch for BBCA and TLKM.
+                Log::warning('RSS request exception', ['feed' => $feedUrl, 'error' => $e->getMessage()]);
+                continue;
+            }
 
             if (! $resp->successful()) {
                 Log::warning('RSS fetch failed', ['feed' => $feedUrl, 'status' => $resp->status()]);

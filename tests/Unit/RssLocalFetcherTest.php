@@ -100,4 +100,38 @@ class RssLocalFetcherTest extends TestCase
 
         $this->assertEmpty($articles);
     }
+
+    public function test_one_feed_timeout_does_not_abort_the_others(): void
+    {
+        Log::shouldReceive('warning')->byDefault();
+        $stock = Stock::factory()->create(['code' => 'BBCA', 'company_name' => 'Bank Central Asia']);
+        $rss = <<<XML
+        <rss version="2.0">
+          <channel>
+            <title>Market</title>
+            <item>
+              <title>Bank Central Asia umumkan dividen</title>
+              <link>https://example.com/a</link>
+              <description>BBCA bagikan dividen</description>
+              <pubDate>Mon, 01 Apr 2024 10:00:00 +0700</pubDate>
+            </item>
+          </channel>
+        </rss>
+        XML;
+
+        // One feed (of many) throwing a connection exception must not abort every other feed --
+        // confirmed live: rss.tempo.co timing out silently discarded a full multi-provider fetch
+        // for BBCA and TLKM because the original code had no try/catch around the per-feed call.
+        Http::fake([
+            'rss.tempo.co/*' => function () {
+                throw new \Illuminate\Http\Client\ConnectionException('cURL error 28: Operation timed out');
+            },
+            '*' => Http::response($rss, 200, ['Content-Type' => 'application/rss+xml']),
+        ]);
+
+        $fetcher = new RssLocalFetcher();
+        $articles = $fetcher->fetchForStock($stock, 5);
+
+        $this->assertNotEmpty($articles);
+    }
 }
