@@ -1060,3 +1060,22 @@ Ekspor nyata: 521 baris → split stratified 365/78/78 (train/val/test), label d
 - Training real (bukan simulasi): log lengkap ada, kedua varian dilatih end-to-end di data nyata, dievaluasi di test split yang sama persis.
 
 ### Status Fase R7d: SELESAI, TEMUAN POSITIF (dengan syarat). Full_text augmentation menaikkan macro-F1 +0,0696 di pool eksploratif 521-baris — arah pertama yang positif dari seluruh Fase R7. BELUM cukup bukti untuk promosi ke produksi (sampel kecil, bukan test set resmi) — kalau mau dikejar lebih jauh, langkah berikutnya adalah menambah lebih banyak label pada baris yang sudah punya `full_text`, atau ulang eksperimen ini di pool yang lebih besar begitu cakupan `full_text` naik lagi.
+
+## Fase R7a (penutup kedua) — Rebalance limit fetch per-provider, menjauh dari google_news_rss
+
+**Konteks:** user tanya kenapa cakupan `full_text` keseluruhan cuma 26% padahal 5 dari 6 sumber sudah 96-100% — jawabannya karena `google_news_rss` menampung 70% populasi artikel (1.349/1.976) dan kontribusinya 0% (jalan buntu terverifikasi, Fase R7a sebelumnya). User minta diperbaiki dari sisi berita.
+
+### Keputusan desain
+`google_news_rss` **tidak bisa diperbaiki** (URL redirect-nya terbukti tidak bisa diresolve lewat HTTP biasa, di luar kendali kode kita). Yang BISA dilakukan: kurangi porsi artikel baru yang datang dari sumber ini ke depannya, alihkan ke 5 sumber yang sudah terbukti scrape `full_text` dengan baik. Ini tidak memperbaiki 1.349 artikel yang sudah tersangkut, tapi menggeser komposisi pertumbuhan artikel baru secara bertahap.
+
+### Perubahan kode
+- `config/news.php` — `provider_limit_multiplier` baru: `google_news_rss` dipangkas ke **0.3x**, sedangkan `rss_local`/`business_site_search`/`newsapi`/`currents` dinaikkan ke **1.5x**, `ojk` ke **1.2x**.
+- `app/Services/News/NewsAggregationService.php` — `refreshFromProvider()` menerapkan multiplier ini per-provider saat memanggil `$fetcher->fetchForStock($stock, $effectiveLimit)`, menggantikan `$limit` konstan yang dulu dibagi rata ke semua provider.
+- Test baru: `tests/Unit/NewsAggregationServiceTest.php::test_provider_limit_multiplier_scales_the_per_provider_fetch_limit` — verifikasi limit 20 jadi 6 untuk provider bermultiplier 0.3, jadi 30 untuk yang 1.5.
+
+### Verifikasi
+- `php artisan test --filter=NewsAggregationServiceTest` → 13 passed (1 baru), 37 assertions.
+- `php artisan test` → **466 passed** (465 + 1 baru), 1980 assertions.
+- Smoke test config nyata: `google_news_rss` limit dasar 20 → efektif 6; `rss_local`/`business_site_search`/`newsapi`/`currents` → efektif 30; `ojk` → efektif 24. Sesuai rancangan.
+
+### Status: SELESAI. Efeknya baru terlihat di siklus fetch berikutnya (artikel baru), bukan retroaktif ke 1.349 artikel `google_news_rss` yang sudah ada.
