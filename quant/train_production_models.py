@@ -130,15 +130,28 @@ def build_estimator(algorithm: str, feature_columns: list[str]):
     raise ValueError(f"Unsupported algorithm: {algorithm}")
 
 
-def evaluate_walk_forward(frame: pd.DataFrame, feature_columns: list[str], label_column: str, algorithm: str) -> dict[str, object]:
+def evaluate_walk_forward(
+    frame: pd.DataFrame,
+    feature_columns: list[str],
+    label_column: str,
+    algorithm: str,
+    purge_days: int = 0,
+) -> dict[str, object]:
     """Genuinely re-measures macro-F1/directional-accuracy on THIS run's dataset via walk-forward
     OOS folds -- unlike `official_baseline`/`research_metrics_reference` below (which are frozen
     copies of a one-time research report), this is computed fresh every retrain so the safety gate
-    in the retrain command has a real number to compare against, not a static constant."""
+    in the retrain command has a real number to compare against, not a static constant.
+
+    `purge_days` should equal the label's forward horizon (Fase S). Both variants use a 5-day-ahead
+    label, so without a gap the final training rows before each test window carry labels computed
+    from prices inside that window -- leakage that inflates the measured score. The resulting
+    number is therefore NOT comparable to scores recorded before this was added; `purge_days` is
+    written into the metadata so the retrain gate can detect the methodology change instead of
+    misreading the correction as a model regression."""
     dated = frame.copy()
     dated["reference_date"] = pd.to_datetime(dated["reference_date"])
     unique_dates = sorted(dated["reference_date"].drop_duplicates().tolist())
-    folds = build_folds(unique_dates, EVAL_MIN_TRAIN_DAYS, EVAL_TEST_WINDOW_DAYS)[-EVAL_MAX_FOLDS:]
+    folds = build_folds(unique_dates, EVAL_MIN_TRAIN_DAYS, EVAL_TEST_WINDOW_DAYS, purge_days)[-EVAL_MAX_FOLDS:]
     class_labels = infer_class_labels(dated[label_column])
 
     fold_metrics = []
@@ -160,6 +173,7 @@ def evaluate_walk_forward(frame: pd.DataFrame, feature_columns: list[str], label
             "min_train_days": EVAL_MIN_TRAIN_DAYS,
             "test_window_days": EVAL_TEST_WINDOW_DAYS,
             "max_folds": EVAL_MAX_FOLDS,
+            "purge_days": purge_days,
             "warning": "no_folds_produced",
         }
 
@@ -171,6 +185,7 @@ def evaluate_walk_forward(frame: pd.DataFrame, feature_columns: list[str], label
         "min_train_days": EVAL_MIN_TRAIN_DAYS,
         "test_window_days": EVAL_TEST_WINDOW_DAYS,
         "max_folds": EVAL_MAX_FOLDS,
+        "purge_days": purge_days,
     }
 
 
@@ -200,7 +215,12 @@ def train_variant(variant: str, output_dir: Path, sample_rows: int | None = None
 
     # Compute a genuine fresh evaluation BEFORE the final fit-on-everything below, so retrain
     # tooling has a real macro_f1 to gate promotion on instead of a frozen historical constant.
-    retrain_evaluation = evaluate_walk_forward(frame, feature_columns, label_column, str(spec["algorithm"]))
+    # Purge gap = the label's forward horizon, so training rows whose labels peek into the test
+    # window are excluded from each fold (Fase S).
+    label_horizon_days = int(spec["official_baseline"]["horizon_days"])
+    retrain_evaluation = evaluate_walk_forward(
+        frame, feature_columns, label_column, str(spec["algorithm"]), purge_days=label_horizon_days
+    )
 
     estimator = build_estimator(str(spec["algorithm"]), feature_columns)
     estimator.fit(frame[feature_columns], frame[label_column])

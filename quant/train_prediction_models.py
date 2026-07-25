@@ -220,15 +220,36 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def build_folds(unique_dates: list[pd.Timestamp], min_train_days: int, test_window_days: int) -> list[FoldWindow]:
+def build_folds(
+    unique_dates: list[pd.Timestamp],
+    min_train_days: int,
+    test_window_days: int,
+    purge_days: int = 0,
+) -> list[FoldWindow]:
+    """Walk-forward fold windows.
+
+    `purge_days` inserts a gap between train_end and test_start. It should be set to the label's
+    forward horizon: for an N-day-ahead return label, the last N training rows' labels are derived
+    from prices that fall inside the test window, so without a gap those rows leak future
+    information into training. Defaults to 0 to keep every existing caller's results byte-identical
+    (several are frozen research findings) -- opt in explicitly where the label is forward-looking.
+    """
     folds: list[FoldWindow] = []
     train_end_idx = min_train_days - 1
-    while train_end_idx + test_window_days < len(unique_dates):
-        train_end = unique_dates[train_end_idx]
-        test_dates = unique_dates[train_end_idx + 1 : train_end_idx + 1 + test_window_days]
+    while True:
+        test_start_idx = train_end_idx + 1 + purge_days
+        if test_start_idx + test_window_days > len(unique_dates):
+            break
+        test_dates = unique_dates[test_start_idx : test_start_idx + test_window_days]
         if not test_dates:
             break
-        folds.append(FoldWindow(train_end=train_end, test_start=test_dates[0], test_end=test_dates[-1]))
+        folds.append(
+            FoldWindow(
+                train_end=unique_dates[train_end_idx],
+                test_start=test_dates[0],
+                test_end=test_dates[-1],
+            )
+        )
         train_end_idx += test_window_days
     return folds
 

@@ -160,6 +160,32 @@ class RetrainProductionPredictionModelsCommand extends Command
                 continue;
             }
 
+            if ($oldMetrics['purge_days'] !== $newMetrics['purge_days']) {
+                // The evaluation methodology itself changed (Fase S added a purge gap equal to the
+                // label horizon), so the two macro_f1 values measure different things. Gating one
+                // against the other would misread a measurement correction as a model regression
+                // and reject a model that is not actually worse. Promote and re-baseline instead --
+                // the next retrain compares like against like.
+                $this->promote($predictionDir, $candidateDir, $spec, $variant, $timestamp);
+                $this->appendHistory($historyPath, $this->historyRow($variant, 'promoted_eval_methodology_changed', $plan, $oldMetrics, $newMetrics, $force, 'storage/app/prediction/'.$spec['artifact']));
+                $this->warn(sprintf(
+                    '%s: promoted WITHOUT degradation gating -- walk-forward purge_days changed %d -> %d, so old macro F1 %.4f and new %.4f are not comparable. Next retrain re-gates normally.',
+                    $variant,
+                    $oldMetrics['purge_days'],
+                    $newMetrics['purge_days'],
+                    $oldMetrics['macro_f1'] ?? 0.0,
+                    $newMetrics['macro_f1'] ?? 0.0
+                ));
+                Log::warning('Production model promoted across an evaluation methodology change', [
+                    'variant' => $variant,
+                    'old_purge_days' => $oldMetrics['purge_days'],
+                    'new_purge_days' => $newMetrics['purge_days'],
+                    'old_macro_f1' => $oldMetrics['macro_f1'],
+                    'new_macro_f1' => $newMetrics['macro_f1'],
+                ]);
+                continue;
+            }
+
             $macroDelta = ($newMetrics['macro_f1'] ?? 0.0) - ($oldMetrics['macro_f1'] ?? 0.0);
             if ($macroDelta < -self::DEGRADATION_THRESHOLD) {
                 $candidateArtifact = $predictionDir.'/'.pathinfo($spec['artifact'], PATHINFO_FILENAME).'_candidate.joblib';
@@ -262,6 +288,9 @@ class RetrainProductionPredictionModelsCommand extends Command
             'macro_f1' => isset($eval['macro_f1']) ? (float) $eval['macro_f1'] : null,
             'directional_accuracy' => isset($eval['directional_accuracy']) ? (float) $eval['directional_accuracy'] : null,
             'fold_count' => $eval['fold_count'] ?? null,
+            // Metadata written before Fase S has no purge_days key at all; treat that as 0 (the
+            // old no-gap behaviour) so it can be compared against the new value explicitly.
+            'purge_days' => isset($eval['purge_days']) ? (int) $eval['purge_days'] : 0,
         ];
     }
 

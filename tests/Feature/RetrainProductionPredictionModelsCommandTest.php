@@ -144,6 +144,46 @@ class RetrainProductionPredictionModelsCommandTest extends TestCase
         $this->assertSame(['promoted_no_prior_baseline', 'promoted_no_prior_baseline'], array_column($history, 'decision'));
     }
 
+    public function test_purge_gap_methodology_change_promotes_instead_of_falsely_rejecting(): void
+    {
+        // Production metadata predates Fase S (no purge_days key -> treated as 0). The candidate
+        // reports a much LOWER macro F1 purely because the purge gap removed label leakage, not
+        // because the model got worse. The degradation gate must not fire here -- without the
+        // methodology check this would be rejected as candidate_only (delta -0.15 < -0.05).
+        $this->writeFakeTrainScript(0.20, purgeDays: 5);
+
+        $this->artisan('prediction:retrain-production', ['--force' => true])
+            ->expectsOutputToContain('purge_days changed 0 -> 5')
+            ->assertExitCode(0);
+
+        $this->assertSame('candidate-technical', File::get($this->modelDir.'/model_technical_v6a.joblib'));
+        $this->assertFileDoesNotExist($this->modelDir.'/model_technical_v6a_candidate.joblib');
+
+        $history = $this->historyRows();
+        $this->assertSame(
+            ['promoted_eval_methodology_changed', 'promoted_eval_methodology_changed'],
+            array_column($history, 'decision')
+        );
+        $this->assertSame(0, $history[0]['old_metrics']['purge_days']);
+        $this->assertSame(5, $history[0]['new_metrics']['purge_days']);
+    }
+
+    public function test_degradation_gate_still_applies_once_purge_days_match(): void
+    {
+        // Both sides now report purge_days=5, so the numbers are comparable again and a genuinely
+        // worse model must still be blocked -- the methodology escape hatch is one-shot, not a
+        // permanent bypass.
+        $this->writeProductionArtifacts(0.35, purgeDays: 5);
+        $this->writeFakeTrainScript(0.20, purgeDays: 5);
+
+        $this->artisan('prediction:retrain-production', ['--force' => true])
+            ->expectsOutputToContain('candidate only')
+            ->assertExitCode(0);
+
+        $this->assertSame('production-technical', File::get($this->modelDir.'/model_technical_v6a.joblib'));
+        $this->assertContains('candidate_only', array_column($this->historyRows(), 'decision'));
+    }
+
     private function seedOfficialStock(): void
     {
         $stock = Stock::factory()->create(['code' => 'BBCA', 'is_active' => true]);
@@ -158,23 +198,27 @@ class RetrainProductionPredictionModelsCommandTest extends TestCase
         ]);
     }
 
-    private function writeProductionArtifacts(float $macroF1): void
+    private function writeProductionArtifacts(float $macroF1, ?int $purgeDays = null): void
     {
         foreach ($this->specs() as $variant => $spec) {
+            $eval = [
+                'macro_f1' => $macroF1,
+                'directional_accuracy' => 0.40,
+                'fold_count' => 8,
+            ];
+            if ($purgeDays !== null) {
+                $eval['purge_days'] = $purgeDays;
+            }
             File::put($this->modelDir.'/'.$spec['artifact'], 'production-'.$variant);
             File::put($this->modelDir.'/'.$spec['metadata'], json_encode([
                 'model_variant' => $variant,
                 'trained_at' => '2026-06-21T22:43:26+07:00',
-                'retrain_evaluation' => [
-                    'macro_f1' => $macroF1,
-                    'directional_accuracy' => 0.40,
-                    'fold_count' => 8,
-                ],
+                'retrain_evaluation' => $eval,
             ], JSON_PRETTY_PRINT));
         }
     }
 
-    private function writeFakeTrainScript(float $macroF1): void
+    private function writeFakeTrainScript(float $macroF1, ?int $purgeDays = null): void
     {
         $specs = var_export($this->specs(), true);
         File::put($this->scriptPath, <<<'PHP_SCRIPT'
@@ -184,23 +228,30 @@ $variantArg = $argv[array_search('--variant', $argv, true) + 1] ?? 'all';
 if (! $outputDir) { exit(2); }
 @mkdir($outputDir, 0777, true);
 $macroF1 = __MACRO_F1__;
+$purgeDays = __PURGE_DAYS__;
 $specs = __SPECS__;
 foreach ($specs as $variant => $spec) {
     if ($variantArg !== 'all' && $variantArg !== $variant) { continue; }
     file_put_contents($outputDir.'/'.$spec['artifact'], 'candidate-'.$variant);
+    $eval = [
+        'macro_f1' => $macroF1,
+        'directional_accuracy' => 0.42,
+        'fold_count' => 8,
+    ];
+    if ($purgeDays !== null) { $eval['purge_days'] = $purgeDays; }
     file_put_contents($outputDir.'/'.$spec['metadata'], json_encode([
         'model_variant' => $variant,
         'trained_at' => date('c'),
-        'retrain_evaluation' => [
-            'macro_f1' => $macroF1,
-            'directional_accuracy' => 0.42,
-            'fold_count' => 8,
-        ],
+        'retrain_evaluation' => $eval,
     ], JSON_PRETTY_PRINT));
 }
 echo "fake train complete\n";
 PHP_SCRIPT);
-        File::put($this->scriptPath, str_replace(['__MACRO_F1__', '__SPECS__'], [(string) $macroF1, $specs], File::get($this->scriptPath)));
+        File::put($this->scriptPath, str_replace(
+            ['__MACRO_F1__', '__PURGE_DAYS__', '__SPECS__'],
+            [(string) $macroF1, $purgeDays === null ? 'null' : (string) $purgeDays, $specs],
+            File::get($this->scriptPath)
+        ));
     }
 
     private function specs(): array

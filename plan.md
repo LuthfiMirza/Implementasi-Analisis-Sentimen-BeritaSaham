@@ -1169,4 +1169,28 @@ Sinyal berkeyakinan TINGGI justru **jauh lebih merugi** daripada yang berkeyakin
 - `quant/run_confidence_signal_experiment.py` → 10.009 (h+3) / 10.011 (h+5) baris prediksi out-of-sample, 20 kombinasi ambang×sisi, semua dilaporkan termasuk yang buruk.
 - Model produksi TIDAK disentuh di seluruh Fase S. Semua murni laporan riset.
 
-### Status Fase S: SELESAI DENGAN TEMUAN NEGATIF + PENJELASAN MEKANIS. Produksi V6A/V6B tetap. Satu item terbuka: purge gap belum diterapkan ke pipeline produksi (angka 40,2% kemungkinan sedikit optimistis).
+### S5 — Purge gap diterapkan ke pipeline produksi (menutup item terbuka S1)
+
+**Perubahan kode:**
+- `quant/train_prediction_models.py` — `build_folds()` dapat parameter baru `purge_days: int = 0`. **Default 0 dipilih sengaja**: ada 13 pemanggil lain, sebagian besar script riset yang hasilnya sudah jadi temuan beku skripsi. Backward-compatibility diverifikasi terprogram di 24 konfigurasi (6 panjang seri × 4 kombinasi `min_train_days`/`test_window_days`): output `purge_days=0` **identik persis** dengan implementasi lama. Jadi tidak ada satu pun hasil riset lama yang berubah.
+- `quant/train_production_models.py` — `evaluate_walk_forward()` menerima `purge_days`, dipanggil dengan `spec["official_baseline"]["horizon_days"]` (= 5 untuk kedua varian). Nilainya ikut ditulis ke metadata `retrain_evaluation.purge_days` supaya perubahan metodologi terlacak.
+- `app/Console/Commands/RetrainProductionPredictionModelsCommand.php` — **jebakan penting yang ditangani**: gate promosi membandingkan `new_macro_f1` vs `old_macro_f1` dengan ambang degradasi 0,05. Metadata lama tidak punya `purge_days` (dibaca sebagai 0), yang baru punya 5 — dua angka itu **mengukur hal yang berbeda**, jadi membandingkannya akan salah membaca koreksi pengukuran sebagai kemunduran model dan menolak model yang sebenarnya tidak memburuk. Ditambah cabang: kalau `purge_days` lama ≠ baru, promosikan tanpa gating dengan keputusan `promoted_eval_methodology_changed` + log warning, lalu re-baseline. Retrain berikutnya (saat kedua sisi sudah 5) kembali digating normal — escape hatch ini sekali pakai, bukan bypass permanen.
+
+**Test baru** (`tests/Feature/RetrainProductionPredictionModelsCommandTest.php`):
+- `test_purge_gap_methodology_change_promotes_instead_of_falsely_rejecting` — produksi lama (tanpa `purge_days`) vs kandidat macro-F1 jauh lebih rendah (0,20 vs 0,35, delta -0,15 → normalnya DITOLAK). Memverifikasi model tetap dipromosikan dan `purge_days` 0→5 terekam di history.
+- `test_degradation_gate_still_applies_once_purge_days_match` — kedua sisi `purge_days=5`, kandidat benar-benar lebih buruk → tetap ditolak jadi `candidate_only`. Membuktikan escape hatch tidak melumpuhkan gate.
+
+**Dampak nyata ke angka produksi** (diukur langsung di dataset produksi, `output/prediction_research/purge_gap_impact.json`):
+
+| Varian | purge=0 (lama) | purge=5 (baru) | Selisih |
+|---|---|---|---|
+| V6A `technical` | macro-F1 0,3701 / akurasi 40,22% | macro-F1 0,3693 / akurasi 40,11% | **−0,0008 / −0,10pp** |
+| V6B `technical_sentiment` | macro-F1 0,3484 / akurasi 39,82% | macro-F1 0,3481 / akurasi 39,77% | **−0,0003 / −0,05pp** |
+
+**Catatan validasi:** hasil `purge=0` mereproduksi persis angka produksi yang tercatat di `retrain_history.jsonl` (0,3701 vs 0,370109) — konfirmasi bahwa setup pengukuran ini benar, bukan jalur kode berbeda.
+
+**Kesimpulan jujur:** kebocoran labelnya **nyata tapi dampaknya dapat diabaikan** (−0,08pp macro-F1). Jadi angka 40,2% yang selama ini dilaporkan **tidak menyesatkan secara material** — sekarang menjadi 40,1%. Perbaikan ini tetap layak dilakukan karena benar secara metodologi dan penting kalau nanti horizon diperpanjang (di h+30 kebocorannya akan jauh lebih besar), bukan karena angkanya berubah signifikan.
+
+**Belum dijalankan:** retrain produksi nyata belum dieksekusi — angka di atas dari pengukuran langsung, bukan dari `prediction:retrain-production`. Retrain terjadwal berikutnya (Senin 07:00 WIB) akan otomatis memakai purge gap dan memicu cabang `promoted_eval_methodology_changed` sekali, lalu kembali normal.
+
+### Status Fase S: SELESAI. Tiga eksperimen perbaikan akurasi (multi-horizon, algoritma, sinyal confidence) semuanya bertemuan negatif tapi menghasilkan penjelasan mekanis yang jelas: model belajar besaran volatilitas, bukan arah. Purge gap sudah diterapkan ke produksi dengan gate yang aman terhadap perubahan metodologi (dampak −0,08pp, dapat diabaikan). Model produksi V6A/V6B tidak diganti.

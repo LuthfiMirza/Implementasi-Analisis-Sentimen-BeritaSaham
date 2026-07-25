@@ -1,0 +1,30 @@
+{
+  "technical": {
+    "purge_0": {
+      "macro_f1": 0.370109,
+      "directional_accuracy": 0.402153,
+      "fold_count": 8
+    },
+    "purge_5": {
+      "macro_f1": 0.369277,
+      "directional_accuracy": 0.401113,
+      "fold_count": 8
+    },
+    "delta_macro_f1": -0.000832,
+    "delta_directional_accuracy": -0.00104
+  },
+  "technical_sentiment": {
+    "purge_0": {
+      "macro_f1": 0.348437,
+      "directional_accuracy": 0.398215,
+      "fold_count": 8
+    },
+    "purge_5": {
+      "macro_f1": 0.348133,
+      "directional_accuracy": 0.397686,
+      "fold_count": 8
+    },
+    "delta_macro_f1": -0.000304,
+    "delta_directional_accuracy": -0.000529
+  }
+}
