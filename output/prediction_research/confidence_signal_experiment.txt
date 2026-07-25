@@ -1,0 +1,51 @@
+Confidence-Thresholded Buy/Sell Signal Experiment
+=======================================================
+
+Only signal when the model's own probability clears a threshold, instead of always taking
+argmax (which is what production serving does today). Walk-forward with purge gap,
+technical-only features, probabilities strictly out-of-sample.
+
+THE BAR: avg_return when the signal fires must beat baseline_avg_return (the average
+forward return of ALL days in the same test windows). Beating precision alone is not
+enough -- Fase L's rule-based signal had signals too, and still lost money (-0.25% vs
++0.53% baseline). edge_vs_baseline <= 0 means the signal is worthless or harmful.
+
+All thresholds are reported, including bad ones. Do NOT cherry-pick the best row -- that
+would be data snooping. Read this as a diagnostic of whether ANY threshold shows an edge.
+
+--- h+3 (class threshold=0.0116, out-of-sample rows=10009) ---
+baseline avg forward return (all days, long) = +0.0371%
+
+side    thr  signals    rate  precision   avg_ret  baseline      EDGE  win_rate  folds
+buy    0.40      950  9.49%    39.58%  +0.135%  +0.037%  +0.098%   48.00%      8
+buy    0.45      391  3.91%    41.69%  +0.420%  +0.037%  +0.383%   48.34%      8
+buy    0.50      166  1.66%    39.76%  -0.376%  +0.037%  -0.413%   45.78%      8
+buy    0.55       34  0.34%    47.06%  -0.360%  +0.037%  -0.398%   55.88%      7
+buy    0.60        2  0.02%     0.00%  -9.272%  +0.037%  -9.309%    0.00%      2
+sell   0.40     1180 11.79%    42.37%  +0.044%  -0.037%  +0.081%   51.44%      8
+sell   0.45      232  2.32%    43.97%  -0.383%  -0.037%  -0.346%   51.29%      8
+sell   0.50       45  0.45%    55.56%  +0.967%  -0.037%  +1.004%   57.78%      7
+sell   0.55       15  0.15%    33.33%  -1.761%  -0.037%  -1.724%   33.33%      5
+sell   0.60        7  0.07%    42.86%  +1.421%  -0.037%  +1.458%   42.86%      4
+
+--- h+5 (class threshold=0.0150, out-of-sample rows=10011) ---
+baseline avg forward return (all days, long) = +0.0514%
+
+side    thr  signals    rate  precision   avg_ret  baseline      EDGE  win_rate  folds
+buy    0.40     1034 10.33%    41.20%  +0.359%  +0.051%  +0.307%   49.71%      8
+buy    0.45      338  3.38%    42.60%  +0.188%  +0.051%  +0.137%   48.22%      8
+buy    0.50       85  0.85%    42.35%  -1.051%  +0.051%  -1.103%   49.41%      8
+buy    0.55       20  0.20%    35.00%  -7.436%  +0.051%  -7.487%   40.00%      3
+buy    0.60        8  0.08%    25.00% -13.389%  +0.051% -13.440%   25.00%      1
+sell   0.40     1724 17.22%    38.11%  -0.173%  -0.051%  -0.121%   49.54%      8
+sell   0.45      422  4.22%    41.23%  -0.089%  -0.051%  -0.037%   53.08%      8
+sell   0.50       80  0.80%    43.75%  -0.170%  -0.051%  -0.119%   52.50%      8
+sell   0.55       24  0.24%    37.50%  +0.844%  -0.051%  +0.895%   50.00%      7
+sell   0.60        8  0.08%    25.00%  +2.000%  -0.051%  +2.052%   50.00%      5
+
+--- verdict ---
+9 of 20 threshold/side combinations beat baseline.
+CAUTION: with 20 combinations swept, some positive edges are expected by chance
+alone. Treat any positive row as a HYPOTHESIS to re-test on held-out data, not a
+validated signal. Check whether the edge holds across most folds (folds column)
+and whether signal_count is large enough to be meaningful.

@@ -1079,3 +1079,94 @@ Ekspor nyata: 521 baris → split stratified 365/78/78 (train/val/test), label d
 - Smoke test config nyata: `google_news_rss` limit dasar 20 → efektif 6; `rss_local`/`business_site_search`/`newsapi`/`currents` → efektif 30; `ojk` → efektif 24. Sesuai rancangan.
 
 ### Status: SELESAI. Efeknya baru terlihat di siklus fetch berikutnya (artikel baru), bukan retroaktif ke 1.349 artikel `google_news_rss` yang sudah ada.
+
+## Fase S — Menaikkan akurasi prediksi harga: multi-horizon, algoritma alternatif, dan sinyal buy/sell
+
+**Konteks:** user menyoroti akurasi model prediksi harga yang rendah (V6A 40,2% arah / 37,0% macro-F1; V6B 40,5% / 34,6%) dan minta dicari segala cara menaikkannya, plus opsi horizon h+1/h+3/h+7/h+30. Tiga eksperimen dijalankan berurutan; hasil ketiganya negatif untuk tujuan "naikkan akurasi", tapi menghasilkan penjelasan mekanis yang jelas KENAPA.
+
+### S1 — Perbaikan metodologi: purge gap (dikerjakan sebagai prasyarat, bukan hasil)
+`build_folds()` yang dipakai V6A/V6B **tidak punya jeda antara akhir train dan awal test**. Untuk label forward-return N hari, baris training terakhir labelnya dihitung dari harga yang beririsan dengan awal window test — kebocoran nyata yang membesar seiring horizon (jauh lebih parah di h+30 daripada h+5). Semua eksperimen Fase S memakai `build_folds_with_purge()` dengan jeda = panjang horizon. **Catatan penting: produksi V6A/V6B saat ini masih memakai versi tanpa purge gap** — artinya angka produksi 40,2% kemungkinan sedikit optimistis. Belum diperbaiki di produksi (perlu retrain + re-gating, keputusan terpisah).
+
+### S2 — Ablation multi-horizon (h+1/h+3/h+7/h+30) × 2 algoritma
+`quant/run_multi_horizon_experiment.py`. Fitur teknikal saja (`V2_NO_SENTIMENT_FEATURE_COLUMNS`, identik V6A), ambang kelas diskalakan `0,015 × sqrt(h/5)`, label dihitung ulang dari `data/stocks/{TICKER}.csv` (bukan menyalin label 5-hari dari dataset).
+
+| Horizon | RandomForest macro-F1 / akurasi | GradientBoosting macro-F1 / akurasi |
+|---|---|---|
+| h+1 | 0,3790 / 39,98% | 0,3676 / 38,79% |
+| **h+3** | **0,3770 / 40,51%** | 0,3743 / 39,71% |
+| h+7 | 0,3553 / 38,84% | 0,3502 / 37,69% |
+| h+30 | 0,3516 / 38,21% | 0,3546 / 38,21% |
+
+**Temuan 1 — berlawanan dengan ekspektasi literatur.** Literatur umum (dan rekomendasi awal sesi ini) menyebut horizon lebih panjang cenderung lebih mudah diprediksi. Di data ini **justru sebaliknya**: h+7 dan h+30 lebih buruk dari h+1/h+3. Konsisten dengan temuan lama proyek ini bahwa pola "korelasi menguat seiring horizon" adalah artefak smoothing, bukan sinyal.
+
+**Temuan 2 — GradientBoosting tidak mengalahkan RandomForest** di 3 dari 4 horizon. Ganti algoritma bukan tuas perbaikan di sini.
+
+**Temuan 3 — h+3 marginal lebih baik** (40,51% vs produksi 40,2%), tapi selisih 0,3pp dengan setup berbeda (ada purge gap) — **tidak cukup untuk klaim perbaikan**, dan belum diuji signifikansi statistiknya.
+
+### S3 — Diagnosis: kenapa mentok ~40%?
+`quant/diagnose_prediction_accuracy.py`, fold/purge-gap identik S2, dibandingkan dengan baseline naif.
+
+| | macro-F1 | akurasi |
+|---|---|---|
+| Tebak kelas mayoritas | 0,163–0,170 | 32,5–34,3% |
+| Tebak acak proporsional | 0,326–0,333 | 32,7–33,4% |
+| **RandomForest** | **0,377–0,379** | **40,0–40,5%** |
+
+**Model punya sinyal asli**, bukan kebetulan: +21pp macro-F1 di atas tebak-acak, +5,7 s/d +8,0pp akurasi di atas tebak-mayoritas, konsisten di 8 fold. Jadi 40% bukan berarti "model tidak belajar apa-apa".
+
+**Penyebab plafon rendah — feature importance (h+3, deskriptif):**
+
+| Fitur | Importance |
+|---|---|
+| `atr14_pct` | 0,1916 |
+| `atr_ratio` | 0,1737 |
+| `return_5d` | 0,0807 |
+| `return_3d` | 0,0784 |
+| ... | ... |
+| `market_regime_bullish` | 0,0038 |
+| `volume_spike_flag` | 0,0020 |
+
+Dua fitur teratas (36% gabungan) adalah **ukuran volatilitas — besaran gerakan, bukan arahnya**. Model lebih banyak belajar "kapan harga bergejolak" daripada "ke mana arahnya". Dua fitur (`market_regime_bullish`, `volume_spike_flag`) praktis tidak terpakai (<0,5%).
+
+### S4 — Sinyal buy/sell berbasis confidence threshold (permintaan eksplisit user)
+`quant/run_confidence_signal_experiment.py`. Alih-alih argmax (yang dipakai serving produksi sekarang), sinyal BELI hanya keluar kalau `P(up) ≥ ambang`; SELL kalau `P(down) ≥ ambang`. Ambang disapu 0,40–0,60, dua horizon (h+3, h+5), probabilitas ketat out-of-sample per fold.
+
+**Beda dari Fase L yang sudah gagal:** Fase L memakai sinyal komposit berbasis aturan (hitung konfirmasi/warning teknikal + gate R:R), bukan confidence model. Mekanismenya benar-benar berbeda, jadi layak diuji ulang — tapi diukur dengan bar yang sama: **return aktual, bukan akurasi/presisi.**
+
+**Temuan utama — hubungan confidence vs return TERBALIK:**
+
+| Ambang (buy) | h+3 edge vs baseline | h+5 edge vs baseline |
+|---|---|---|
+| 0,40 | +0,098% | +0,307% |
+| 0,45 | +0,383% | +0,137% |
+| 0,50 | **−0,413%** | **−1,103%** |
+| 0,55 | **−0,398%** | **−7,487%** |
+| 0,60 | **−9,309%** | **−13,440%** |
+
+Sinyal berkeyakinan TINGGI justru **jauh lebih merugi** daripada yang berkeyakinan rendah — kebalikan dari yang seharusnya terjadi kalau confidence model melacak skill arah. Penjelasannya nyambung langsung dengan S3: karena fitur dominan adalah volatilitas, model paling "yakin" persis saat pasar sedang bergejolak — dan di kondisi itu gerakan besar terjadi ke **dua arah**, sehingga rata-rata returnnya hancur.
+
+**Baris ber-edge positif tidak bertahan setelah biaya transaksi.** 9 dari 20 kombinasi mengalahkan baseline, tapi itu setara lemparan koin untuk 20 sapuan. Baris yang sample-nya memadai (n≥300) diuji terhadap biaya round-trip IDX (komisi beli+jual plus pajak final penjualan 0,1%; realistis ~0,4–0,5%):
+
+| side | h | thr | n | gross edge | @0,2% | @0,4% | @0,6% |
+|---|---|---|---|---|---|---|---|
+| buy | 3 | 0,45 | 391 | +0,383% | +0,183% | −0,017% | −0,217% |
+| buy | 5 | 0,40 | 1034 | +0,307% | +0,107% | −0,093% | −0,293% |
+| buy | 5 | 0,45 | 338 | +0,137% | −0,063% | −0,263% | −0,463% |
+| buy | 3 | 0,40 | 950 | +0,098% | −0,102% | −0,302% | −0,502% |
+| sell | 3 | 0,40 | 1180 | +0,081% | −0,119% | −0,319% | −0,519% |
+
+**Pada biaya IDX yang realistis, SEMUA baris jadi negatif.** Baris ber-edge besar lainnya semuanya bersampel mikro (n=7, n=8, n=15) dengan tanda yang bolak-balik antar-ambang — ciri khas noise, bukan sinyal.
+
+### Kesimpulan Fase S
+1. **Tidak ada perbaikan akurasi yang layak dipromosikan.** Multi-horizon, ganti algoritma, dan confidence thresholding semuanya gagal memberi perbaikan yang meyakinkan.
+2. **Tapi sekarang ada penjelasan mekanis yang jujur**: model belajar besaran volatilitas, bukan arah. Itu menjelaskan plafon ~40% DAN kenapa confidence tinggi justru merugi.
+3. **Sinyal buy/sell tetap tidak layak dibangun** — ini kali ketiga proyek ini sampai pada kesimpulan yang sama lewat tiga mekanisme berbeda (Fase L rule-based komposit, Fase A/C sentimen sebagai fitur, sekarang S4 confidence threshold). Konsistensi lintas metode ini justru temuan skripsi yang kuat, bukan kegagalan.
+4. **Arah yang belum tertutup**: fitur yang benar-benar informatif dan bukan turunan harga historis (mis. aliran dana asing, order book, data fundamental frekuensi tinggi). Bukan sekadar ganti algoritma/horizon.
+
+### Verifikasi
+- `quant/run_multi_horizon_experiment.py` → 8 fold walk-forward × 4 horizon × 2 algoritma, purge gap aktif, dataset 50.766 baris.
+- `quant/diagnose_prediction_accuracy.py` → fold identik, 3 model dibandingkan apple-to-apple.
+- `quant/run_confidence_signal_experiment.py` → 10.009 (h+3) / 10.011 (h+5) baris prediksi out-of-sample, 20 kombinasi ambang×sisi, semua dilaporkan termasuk yang buruk.
+- Model produksi TIDAK disentuh di seluruh Fase S. Semua murni laporan riset.
+
+### Status Fase S: SELESAI DENGAN TEMUAN NEGATIF + PENJELASAN MEKANIS. Produksi V6A/V6B tetap. Satu item terbuka: purge gap belum diterapkan ke pipeline produksi (angka 40,2% kemungkinan sedikit optimistis).
