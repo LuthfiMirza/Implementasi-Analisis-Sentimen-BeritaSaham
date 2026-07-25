@@ -1,0 +1,12 @@
+R7d Ablation: full_text augmentation
+======================================
+
+Both variants trained on the SAME 521-row pool (Fase R7a full_text backfill subset, train=365, val=78) -- only input-text construction differs.
+Evaluated on the same locked test split (n=78, only 4 negative examples -- treat as directional, not a robust estimate).
+NOT directly comparable to official production macro-F1 (0.8096) -- different, smaller, disjoint pool (sentiment-test-v1 vs this 521-row full_text subset). Reference only.
+
+title_summary            test_macro_f1=0.5803  accuracy=0.8590  per_class={'positive': 0.3077, 'neutral': 0.9333, 'negative': 0.5}  support={'positive': 10, 'neutral': 64, 'negative': 4}  <- baseline (production formula, on this pool)
+title_summary_fulltext   test_macro_f1=0.6499  accuracy=0.8462  per_class={'positive': 0.5217, 'neutral': 0.928, 'negative': 0.5}  support={'positive': 10, 'neutral': 64, 'negative': 4}
+
+Delta vs title_summary (this ablation's own local baseline, same pool/split):
+  title_summary_fulltext: +0.0696

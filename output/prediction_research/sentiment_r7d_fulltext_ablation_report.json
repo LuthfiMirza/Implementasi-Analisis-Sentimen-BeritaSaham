@@ -1,0 +1,43 @@
+{
+  "results": [
+    {
+      "variant": "title_summary",
+      "train_rows": 365,
+      "val_rows": 78,
+      "test_rows": 78,
+      "test_macro_f1": 0.5803,
+      "test_accuracy": 0.859,
+      "test_per_class_f1": {
+        "positive": 0.3077,
+        "neutral": 0.9333,
+        "negative": 0.5
+      },
+      "test_per_class_support": {
+        "positive": 10,
+        "neutral": 64,
+        "negative": 4
+      },
+      "candidate_dir": "storage/app/sentiment_model/_r7d_ablation/title_summary"
+    },
+    {
+      "variant": "title_summary_fulltext",
+      "train_rows": 365,
+      "val_rows": 78,
+      "test_rows": 78,
+      "test_macro_f1": 0.6499,
+      "test_accuracy": 0.8462,
+      "test_per_class_f1": {
+        "positive": 0.5217,
+        "neutral": 0.928,
+        "negative": 0.5
+      },
+      "test_per_class_support": {
+        "positive": 10,
+        "neutral": 64,
+        "negative": 4
+      },
+      "candidate_dir": "storage/app/sentiment_model/_r7d_ablation/title_summary_fulltext"
+    }
+  ],
+  "production_official_macro_f1": 0.8096
+}

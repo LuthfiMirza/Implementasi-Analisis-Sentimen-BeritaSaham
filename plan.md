@@ -1012,3 +1012,51 @@ Query GDELT sudah terbukti valid (fase sebelumnya), tapi run pertama tetap `gdel
 - `php artisan test` → **463 passed** (458 + 5 baru), 1960 assertions.
 
 ### Status: KODE SIAP, MENUNGGU API KEY DARI USER UNTUK AKTIF DI PRODUKSI.
+
+### Update: API key diisi user, Currents API terverifikasi hidup
+User mendaftar dan mengisi `CURRENTS_API_KEY` di `.env`. Diverifikasi langsung lewat `CurrentsFetcher::fetchForStock()` untuk BBCA: **3 artikel nyata berhasil diambil** (judul + URL valid, mis. `republika.co.id`, `viva.co.id`). Currents API resmi AKTIF di produksi, ikut siklus fetch multi-provider otomatis.
+
+## Fase R7d — Ablation full_text: dijalankan ulang, LAYAK dan menunjukkan hasil positif
+
+**Konteks:** R7d sebelumnya ditutup sebagai tidak layak (0 contoh negative di antara 102 artikel `full_text`, semua dari `ojk_rss`). Setelah backfill R7a, dicek ulang distribusi kelas pada 523 artikel yang kini punya `full_text`.
+
+### Cek kelayakan
+Join `sentiment_manual_labels` × `news_articles.full_text IS NOT NULL`: **521 baris berlabel** dengan `full_text`, distribusi kelas **negative=28, neutral=423, positive=70** (naik drastis dari 0/95/7 sebelumnya). Sumbernya juga sudah beragam, bukan cuma `ojk_rss` yang formal:
+
+| Sumber | negative | neutral | positive |
+|---|---|---|---|
+| `rss_local` | 24 | 222 | 43 |
+| `business_site_search` | 4 | 82 | 18 |
+| `ojk_rss` | 0 | 87 | 3 |
+| lainnya (gnews/newsapi/unknown) | 0 | 32 | 6 |
+
+Kesimpulan: **layak dijalankan**, dengan catatan 28 contoh negative masih tipis untuk split train/val/test (varians tinggi diperkirakan), bukan pengganti test set resmi.
+
+### Perubahan kode
+- `app/Console/Commands/ExportR7dFulltextAblationCommand.php` — command ekspor baru (`sentiment:export-r7d-fulltext-ablation`), TERPISAH dari `ExportSentimentFinetuneDatasetCommand` (command produksi, sengaja tidak disentuh untuk eksperimen sekali-pakai ini). Membangun 2 varian teks dari baris & split stratified YANG SAMA: `title_summary` (formula produksi persis, `buildProductionInputText()` disalin identik) dan `title_summary_fulltext` (formula produksi + `full_text` ditambahkan, potong 4000 karakter).
+- `quant/run_r7d_fulltext_ablation.py` — adaptasi `run_r7_ablation.py`, 2 varian, direktori kandidat/report terpisah (`storage/app/sentiment_model/_r7d_ablation/`, `output/prediction_research/sentiment_r7d_fulltext_ablation_report.*`), 4 epoch (bukan 6, pool lebih kecil).
+- Test baru: `tests/Feature/ExportR7dFulltextAblationCommandTest.php` (2 test: kedua varian punya baris/split identik cuma teksnya beda, baris tanpa `full_text` dikecualikan).
+
+### Data
+Ekspor nyata: 521 baris → split stratified 365/78/78 (train/val/test), label distribution konsisten di kedua varian (negative 20/4/4, positive 49/11/10, neutral 296/63/64).
+
+### Hasil training (4 epoch, CPU, dibungkus `caffeinate -i` — total ~1 jam 53 menit untuk 2 varian, TIDAK terganggu sleep laptop kali ini)
+
+| Varian | test macro-F1 | akurasi | positive F1 | neutral F1 | negative F1 | support (pos/neu/neg) |
+|---|---|---|---|---|---|---|
+| `title_summary` (baseline, formula produksi) | 0,5803 | 85,90% | 0,3077 | 0,9333 | 0,5000 | 10/64/4 |
+| `title_summary_fulltext` | **0,6499** | 84,62% | **0,5217** | 0,9280 | 0,5000 | 10/64/4 |
+
+**Delta vs baseline: +0,0696** — satu-satunya hasil POSITIF dari seluruh eksperimen ablation Fase R7 (R7b title_only -0,0020, R7c entity_prefix -0,0355, sekarang R7d full_text +0,0696). Kenaikan didorong terutama oleh F1 kelas positive (0,308→0,522); neutral relatif stabil; negative tidak berubah (0,500) tapi support cuma 4 baris test — angka ini tidak bisa dipercaya sebagai estimasi stabil.
+
+### Catatan kejujuran metodologis — WAJIB dibaca sebelum menyimpulkan apa pun
+- **BUKAN pengukuran ulang baseline resmi 80,96%.** Pool 521-baris ini jauh lebih kecil dan disjoint dari `sentiment-test-v1` (283-baris terkunci, Fase R6) — beda populasi, beda ukuran, tidak bisa dibandingkan head-to-head dengan angka resmi.
+- **Test set cuma 78 baris, 4 di antaranya negative.** Delta +0,0696 di kelas positive/overall bisa jadi sinyal nyata, tapi dengan sampel sekecil ini variansnya tinggi — satu-dua baris berbeda arah prediksi bisa menggeser macro-F1 signifikan. Ini temuan AWAL yang menjanjikan, bukan hasil final siap-promosi.
+- Kedua kandidat model TIDAK menyentuh produksi (`indobert_finetuned_v1` tetap tidak berubah), tersimpan terpisah di `storage/app/sentiment_model/_r7d_ablation/`.
+
+### Verifikasi
+- `php artisan test --filter=ExportR7dFulltextAblationCommandTest` → 2 passed, 19 assertions.
+- `php artisan test` → **465 passed** (463 + 2 baru), 1979 assertions.
+- Training real (bukan simulasi): log lengkap ada, kedua varian dilatih end-to-end di data nyata, dievaluasi di test split yang sama persis.
+
+### Status Fase R7d: SELESAI, TEMUAN POSITIF (dengan syarat). Full_text augmentation menaikkan macro-F1 +0,0696 di pool eksploratif 521-baris — arah pertama yang positif dari seluruh Fase R7. BELUM cukup bukti untuk promosi ke produksi (sampel kecil, bukan test set resmi) — kalau mau dikejar lebih jauh, langkah berikutnya adalah menambah lebih banyak label pada baris yang sudah punya `full_text`, atau ulang eksperimen ini di pool yang lebih besar begitu cakupan `full_text` naik lagi.
