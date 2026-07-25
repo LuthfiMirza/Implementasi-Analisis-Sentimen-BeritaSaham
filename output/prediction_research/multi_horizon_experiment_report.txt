@@ -1,0 +1,16 @@
+Multi-Horizon Prediction Experiment (h+1 / h+3 / h+7 / h+30)
+===============================================================
+
+Technical-only features (matches V6A exactly), RandomForest vs GradientBoosting, walk-forward
+with an explicit purge gap (= horizon trading days) between train and test to prevent label
+leakage from overlapping forward-return windows. min_train_days=252, test_window_days=126, max_folds=8.
+Reference: production V6A (5-day horizon, no purge gap, RandomForest) = 37.0% macro-F1, 40.2% directional accuracy on the full 10-ticker walk-forward set (different setup, not directly comparable -- shown for orientation only).
+
+h+1   random_forest        macro_f1=0.3790  directional_accuracy=0.3998  f1_up=0.3302  f1_down=0.3592  f1_flat=0.4476  folds=8  threshold=0.0067  labels={'flat': 17301, 'up': 16879, 'down': 16586}
+h+1   gradient_boosting    macro_f1=0.3676  directional_accuracy=0.3879  f1_up=0.3206  f1_down=0.3366  f1_flat=0.4457  folds=8  threshold=0.0067  labels={'flat': 17301, 'up': 16879, 'down': 16586}
+h+3   random_forest        macro_f1=0.3770  directional_accuracy=0.4051  f1_up=0.3181  f1_down=0.3581  f1_flat=0.4548  folds=8  threshold=0.0116  labels={'up': 17713, 'flat': 17038, 'down': 16015}
+h+3   gradient_boosting    macro_f1=0.3743  directional_accuracy=0.3971  f1_up=0.3548  f1_down=0.3280  f1_flat=0.4400  folds=8  threshold=0.0116  labels={'up': 17713, 'flat': 17038, 'down': 16015}
+h+7   random_forest        macro_f1=0.3553  directional_accuracy=0.3884  f1_up=0.2792  f1_down=0.3514  f1_flat=0.4354  folds=8  threshold=0.0177  labels={'up': 18284, 'flat': 17317, 'down': 15145}
+h+7   gradient_boosting    macro_f1=0.3502  directional_accuracy=0.3769  f1_up=0.3461  f1_down=0.3031  f1_flat=0.4014  folds=8  threshold=0.0177  labels={'up': 18284, 'flat': 17317, 'down': 15145}
+h+30  random_forest        macro_f1=0.3516  directional_accuracy=0.3821  f1_up=0.2794  f1_down=0.3294  f1_flat=0.4459  folds=8  threshold=0.0367  labels={'up': 20788, 'flat': 15486, 'down': 14242}
+h+30  gradient_boosting    macro_f1=0.3546  directional_accuracy=0.3821  f1_up=0.4354  f1_down=0.2950  f1_flat=0.3334  folds=8  threshold=0.0367  labels={'up': 20788, 'flat': 15486, 'down': 14242}

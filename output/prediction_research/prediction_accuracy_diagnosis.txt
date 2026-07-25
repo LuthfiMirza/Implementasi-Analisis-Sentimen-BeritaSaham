@@ -1,0 +1,33 @@
+Diagnosis: why is walk-forward accuracy ~38-40%?
+=======================================================
+
+--- horizon=1d (threshold=0.0067) ---
+label shares: {'flat': 0.340798959933814, 'up': 0.33248630973486193, 'down': 0.3267147303313241}
+  majority_class     macro_f1=0.1697  directional_accuracy=0.3426
+  random_baseline    macro_f1=0.3332  directional_accuracy=0.3337
+  random_forest      macro_f1=0.3790  directional_accuracy=0.3998
+  => edge of random_forest over majority_class: accuracy +0.0573, macro_f1 +0.2094
+
+--- horizon=3d (threshold=0.0116) ---
+label shares: {'up': 0.3489146279005634, 'flat': 0.3356183272268841, 'down': 0.3154670448725525}
+  majority_class     macro_f1=0.1633  directional_accuracy=0.3248
+  random_baseline    macro_f1=0.3258  directional_accuracy=0.3274
+  random_forest      macro_f1=0.3770  directional_accuracy=0.4051
+  => edge of random_forest over majority_class: accuracy +0.0803, macro_f1 +0.2137
+
+--- feature importance (RandomForest, full h+3 dataset, descriptive only) ---
+  atr14_pct                           0.1916
+  atr_ratio                           0.1737
+  return_5d                           0.0807
+  return_3d                           0.0784
+  price_vs_ema20_pct                  0.0750
+  price_vs_ema50                      0.0745
+  regime_duration                     0.0735
+  return_1d                           0.0528
+  return_20d                          0.0516
+  volume_ratio_5d                     0.0408
+  volume_ratio_20d                    0.0369
+  rsi_slope_5d                        0.0346
+  return_5d_cross_section_rank        0.0302
+  market_regime_bullish               0.0038
+  volume_spike_flag                   0.0020

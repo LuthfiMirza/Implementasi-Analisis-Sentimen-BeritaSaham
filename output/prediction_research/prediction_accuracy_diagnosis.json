@@ -1,0 +1,100 @@
+{
+  "h1d": {
+    "majority_class": {
+      "macro_f1": 0.169665,
+      "directional_accuracy": 0.342581
+    },
+    "random_baseline": {
+      "macro_f1": 0.333193,
+      "directional_accuracy": 0.333669
+    },
+    "random_forest": {
+      "macro_f1": 0.379034,
+      "directional_accuracy": 0.399847
+    },
+    "rf_edge_over_majority": {
+      "accuracy": 0.057265999999999984,
+      "macro_f1": 0.20936899999999997
+    }
+  },
+  "h3d": {
+    "majority_class": {
+      "macro_f1": 0.163281,
+      "directional_accuracy": 0.324826
+    },
+    "random_baseline": {
+      "macro_f1": 0.325843,
+      "directional_accuracy": 0.327358
+    },
+    "random_forest": {
+      "macro_f1": 0.377003,
+      "directional_accuracy": 0.40514
+    },
+    "rf_edge_over_majority": {
+      "accuracy": 0.080314,
+      "macro_f1": 0.21372199999999997
+    }
+  },
+  "feature_importance_h3d": [
+    [
+      "atr14_pct",
+      0.19157333434278825
+    ],
+    [
+      "atr_ratio",
+      0.17367079291660223
+    ],
+    [
+      "return_5d",
+      0.08067203575048841
+    ],
+    [
+      "return_3d",
+      0.0783888770880813
+    ],
+    [
+      "price_vs_ema20_pct",
+      0.07500242466795287
+    ],
+    [
+      "price_vs_ema50",
+      0.07450939513427447
+    ],
+    [
+      "regime_duration",
+      0.07352084001671381
+    ],
+    [
+      "return_1d",
+      0.05284583521495914
+    ],
+    [
+      "return_20d",
+      0.05156884744724084
+    ],
+    [
+      "volume_ratio_5d",
+      0.040820123735910326
+    ],
+    [
+      "volume_ratio_20d",
+      0.03690624803945688
+    ],
+    [
+      "rsi_slope_5d",
+      0.03455904293990104
+    ],
+    [
+      "return_5d_cross_section_rank",
+      0.03021822546787182
+    ],
+    [
+      "market_regime_bullish",
+      0.0037618627415004673
+    ],
+    [
+      "volume_spike_flag",
+      0.0019821144962583396
+    ]
+  ]
+}
