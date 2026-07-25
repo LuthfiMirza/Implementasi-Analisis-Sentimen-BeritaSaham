@@ -1194,3 +1194,58 @@ Sinyal berkeyakinan TINGGI justru **jauh lebih merugi** daripada yang berkeyakin
 **Belum dijalankan:** retrain produksi nyata belum dieksekusi — angka di atas dari pengukuran langsung, bukan dari `prediction:retrain-production`. Retrain terjadwal berikutnya (Senin 07:00 WIB) akan otomatis memakai purge gap dan memicu cabang `promoted_eval_methodology_changed` sekali, lalu kembali normal.
 
 ### Status Fase S: SELESAI. Tiga eksperimen perbaikan akurasi (multi-horizon, algoritma, sinyal confidence) semuanya bertemuan negatif tapi menghasilkan penjelasan mekanis yang jelas: model belajar besaran volatilitas, bukan arah. Purge gap sudah diterapkan ke produksi dengan gate yang aman terhadap perubahan metodologi (dampak −0,08pp, dapat diabaikan). Model produksi V6A/V6B tidak diganti.
+
+## Fase T — Survei sistematis semua indikator teknikal (BUMI & DEWA)
+
+**Konteks:** user mengirim link chart TradingView BUMI dan minta "coba semua indicator untuk bisa memprediksi, mana yang paling benar". Link chart tidak dipakai — data OHLCV harian BUMI (6.236 hari, 25,1 tahun) dan DEWA (4.613 hari) sudah tersedia lokal dan lebih lengkap daripada apa pun yang bisa dibaca dari gambar chart; membaca pola dari gambar justru menambah bias visual yang jadi inti masalah di sini.
+
+**Yang membedakan ini dari backtest biasa:** menyapu banyak indikator itu sah — yang membatalkan hasilnya adalah memilih pemenang setelah melihat hasil, lalu mempercayainya. Jadi survei ini sekaligus **mengukur apakah hasil survei itu sendiri layak dipercaya**.
+
+### Metodologi
+- `quant/run_technical_indicator_survey.py` — 32 sinyal (RSI, MACD, Bollinger, Stochastic, Williams %R, CCI, OBV, ATR, golden/death cross, gap, volume spike, streak, new high/low) × 4 horizon (h+1/3/5/10) × 2 saham. Indikator diimplementasi manual (bukan TA-Lib) supaya tiap formula bisa diaudit.
+- **Split kronologis 70/30**: 70% pertama = periode DISCOVERY, 30% terakhir = HOLDOUT yang tidak dipakai memilih apa pun.
+- Eksekusi konservatif: sinyal terbentuk di close hari t → **masuk di close hari t+1** (tidak boleh trading di bar yang masih terbentuk).
+- Edge = rata-rata return setelah sinyal − base rate periode itu sendiri. Net edge dikurangi biaya round-trip **0,80%** (asumsi MID yang sudah dipakai riset trading BUMI/DEWA proyek ini).
+- Sinyal dengan n<30 tidak dinilai.
+- **Metrik penentu: korelasi rank (Spearman) antara edge di discovery vs edge di holdout.** Kalau "bagus di backtest" memang membawa informasi tentang masa depan, korelasi ini harus positif kuat. Kalau nol atau negatif, seluruh premis "cari indikator terbaik" gugur — sebagus apa pun baris teratasnya.
+
+### Hasil: korelasi rank discovery → holdout
+
+| | h+1 | h+3 | h+5 | h+10 |
+|---|---|---|---|---|
+| BUMI | +0,407 | +0,263 | +0,419 | +0,494 |
+| DEWA | −0,084 | **−0,618** | **−0,504** | **−0,760** |
+
+**DEWA: korelasinya NEGATIF dan signifikan** (h+10: ρ=−0,760, p<0,001). Artinya indikator yang paling bagus di backtest justru **paling buruk** ke depannya — bukan acak, tapi terbalik secara sistematis.
+
+### Demonstrasi paling telak — DEWA h+10, 5 sinyal terbaik di backtest
+
+| Sinyal | Edge discovery | Edge holdout | Net setelah biaya |
+|---|---|---|---|
+| `rsi14_overbought_gt70` | **+8,199%** | −3,817% | −4,617% |
+| `three_consecutive_up` | +5,831% | −3,791% | −4,591% |
+| `cci_overbought_gt100` | +5,800% | −1,065% | −1,865% |
+| `atr_expansion` | +4,949% | −1,887% | −2,687% |
+| `volume_spike_down` | +4,884% | −0,254% | −1,054% |
+
+Kelimanya berbalik negatif. Kalau seseorang melakukan persis yang diminta ("cari indikator paling benar"), dia akan memilih RSI>70 dengan edge +8,2% — terlihat seperti tambang emas — dan rugi 3,8% di periode berikutnya.
+
+### BUMI: ada yang bertahan, tapi bukan sinyal timing
+
+BUMI korelasinya positif dan beberapa sinyal lolos net-of-cost di holdout (h+10): `rsi14_cross_down_70` (+3,02% net, n=34), `rsi14_overbought_gt70` (+1,93%, n=132), `macd_above_zero` (+0,99%, n=609), `macd_bullish_cross` (+0,96%, n=62).
+
+Tapi tiga catatan yang membatalkan pembacaan optimistis:
+1. `macd_above_zero` menyala di **609 dari ~1.400 hari holdout (43%)** — itu bukan sinyal masuk, itu **filter tren**: "berada di pasar saat tren naik". Sama persis dengan temuan riset lama proyek ini bahwa sumber untung di data ini adalah regime bullish + memegang saham, bukan aturan trading.
+2. **Indikator yang sama memberi hasil berlawanan di dua saham sejenis**: `rsi14_overbought_gt70` = +2,73% (BUMI) vs −3,82% (DEWA). Kalau sinyalnya asli, tidak akan berbalik arah antar-saham sebatubara.
+3. Sampel kecil pada net-positive terkuat (n=34 dan n=62).
+
+### Temuan sampingan: teori TA klasik justru terbalik di sini
+"Overbought" (RSI>70) menurut buku teks adalah sinyal JUAL. Di BUMI holdout, RSI>70 justru diikuti kenaikan (+2,73%). Ini perilaku momentum, bukan mean-reversion — kebalikan dari yang diajarkan. Sekali lagi menandakan aturan TA generik tidak bisa dipakai apa adanya di saham ini.
+
+### Kesimpulan Fase T
+1. **Pertanyaan "indikator mana yang paling benar" tidak punya jawaban yang stabil.** Di DEWA, jawabannya berbalik arah secara sistematis; di BUMI, yang bertahan hanyalah indikator tren/regime, bukan sinyal timing.
+2. **Ini bukti kuantitatif langsung** bahwa memilih indikator berdasarkan performa backtest tidak valid di data ini — ρ negatif di DEWA adalah bukti, bukan sekadar peringatan teoretis.
+3. Konsisten dengan Fase S (model belajar volatilitas, bukan arah) dan dengan riset BUMI/DEWA terdahulu (960 hipotesis TP/SL scan → DEAD; kandidat OOS gagal, retired).
+4. **Nilai untuk skripsi**: ini bab metodologi yang kuat — memperagakan overfitting/data snooping dengan data nyata dan angka sendiri, bukan mengutip teori.
+
+### Status Fase T: SELESAI. Tidak ada indikator yang layak dipromosikan jadi sinyal trading. Artefak: `quant/run_technical_indicator_survey.py`, `output/prediction_research/technical_indicator_survey.{json,txt}`.
