@@ -6,6 +6,7 @@ use App\Models\NewsArticle;
 use App\Models\NewsSource;
 use App\Models\Stock;
 use App\Services\News\ApiNewsFetcher;
+use App\Services\News\CurrentsFetcher;
 use App\Services\News\FinnhubNewsFetcher;
 use App\Services\News\GdeltFetcher;
 use App\Services\News\GNewsFetcher;
@@ -70,6 +71,7 @@ class NewsAggregationService
             'ojk' => new OjkRssFetcher(),
             'rss_local' => new RssLocalFetcher($this->keywordMapper),
             'gdelt' => new GdeltFetcher($this->keywordMapper),
+            'currents' => new CurrentsFetcher($this->keywordMapper),
         ];
     }
 

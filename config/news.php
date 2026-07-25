@@ -28,10 +28,11 @@ return [
         'gnews' => 0.9,
         'finnhub' => 0.85,
         'gdelt' => 0.7,
+        'currents' => 0.9,
         'mock' => 0.5,
     ],
-    'multi_providers' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
-    'source_priority' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt'],
+    'multi_providers' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt', 'currents'],
+    'source_priority' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt', 'currents'],
     'macro_global_providers' => ['ojk_rss'],
     'google_news_rss' => [
         'base_url' => env('NEWS_GOOGLE_RSS_BASE_URL', 'https://news.google.com/rss/search'),

@@ -58,6 +58,14 @@ return [
         'news_base_url' => env('FINNHUB_BASE_URL', 'https://finnhub.io/api/v1/company-news'),
     ],
 
+    'currents' => [
+        'api_key' => env('CURRENTS_API_KEY'),
+        'api_base_url' => env('CURRENTS_BASE_URL', 'https://api.currentsapi.services/v1/search'),
+        'language' => env('CURRENTS_LANGUAGE', 'id'),
+        'timeout' => env('CURRENTS_TIMEOUT', 8),
+        'user_agent' => env('CURRENTS_USER_AGENT', 'SentimenaNews/1.0'),
+    ],
+
     'sentiment' => [
         'python_endpoint' => env('PYTHON_SENTIMENT_ENDPOINT'),
     ],
