@@ -149,6 +149,44 @@ class NewsAggregationServiceTest extends TestCase
         $this->assertSame(1, $stats['by_provider']['fake_b']);
     }
 
+    public function test_provider_limit_multiplier_scales_the_per_provider_fetch_limit(): void
+    {
+        config([
+            'services.news.provider' => 'multi',
+            'news.multi_providers' => ['fake_a', 'fake_b'],
+            'news.preferred_providers.BBCA' => null,
+            'news.provider_limit_multiplier' => ['fake_a' => 0.3, 'fake_b' => 1.5],
+        ]);
+        $stock = $this->seedStock('BBCA');
+
+        $spyFetcher = new class implements NewsFetcherInterface {
+            public array $calls = [];
+
+            public function fetchForStock(Stock $stock, int $limit = 10): array
+            {
+                $this->calls[] = $limit;
+
+                return [];
+            }
+        };
+
+        $service = new NewsAggregationService(new class implements SentimentAnalyzerInterface {
+            public function analyze(string $text, array $context = []): array
+            {
+                return ['label' => 'neutral', 'score' => 0.0, 'confidence' => 0.5, 'method' => 'test'];
+            }
+        });
+        $ref = new ReflectionClass($service);
+        $property = $ref->getProperty('fetchers');
+        $property->setAccessible(true);
+        $property->setValue($service, ['fake_a' => $spyFetcher, 'fake_b' => $spyFetcher]);
+
+        $service->refreshFromProvider($stock, 10);
+
+        // 10 * 0.3 rounds to 3, 10 * 1.5 = 15 -- limit scales per provider, not a shared constant.
+        $this->assertSame([3, 15], $spyFetcher->calls);
+    }
+
     public function test_sentiment_is_auto_analyzed_after_save(): void
     {
         $stock = $this->seedStock('BBCA');

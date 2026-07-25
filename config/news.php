@@ -33,6 +33,19 @@ return [
     ],
     'multi_providers' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt', 'currents'],
     'source_priority' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt', 'currents'],
+    // Fase R7a: google_news_rss URLs are unresolvable (confirmed dead end -- Google now serves a
+    // client-rendered SPA, no publisher URL in static HTML), so full_text can never be backfilled
+    // for its share of articles. Shrinking its per-fetch limit and growing the sources that
+    // already scrape at 96-100% shifts future article volume toward full_text-able sources
+    // without touching google_news_rss's existing 1,349 stuck rows.
+    'provider_limit_multiplier' => [
+        'google_news_rss' => 0.3,
+        'rss_local' => 1.5,
+        'business_site_search' => 1.5,
+        'ojk' => 1.2,
+        'newsapi' => 1.5,
+        'currents' => 1.5,
+    ],
     'macro_global_providers' => ['ojk_rss'],
     'google_news_rss' => [
         'base_url' => env('NEWS_GOOGLE_RSS_BASE_URL', 'https://news.google.com/rss/search'),

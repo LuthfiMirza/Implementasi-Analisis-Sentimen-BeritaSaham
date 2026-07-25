@@ -107,7 +107,9 @@ class NewsAggregationService
                 'ojk' => 'ojk_rss',
                 default => $key,
             };
-            $fetched = collect($fetcher->fetchForStock($stock, $limit))->map(function ($item) use ($providerKeyName) {
+            $multiplier = (float) config("news.provider_limit_multiplier.{$key}", 1.0);
+            $effectiveLimit = max(1, (int) round($limit * $multiplier));
+            $fetched = collect($fetcher->fetchForStock($stock, $effectiveLimit))->map(function ($item) use ($providerKeyName) {
                 $item['provider'] = $item['provider'] ?? $providerKeyName;
                 return $item;
             });
