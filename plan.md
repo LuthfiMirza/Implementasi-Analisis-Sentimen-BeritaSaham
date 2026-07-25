@@ -991,3 +991,24 @@ Query GDELT sudah terbukti valid (fase sebelumnya), tapi run pertama tetap `gdel
 - `php artisan test` → **458 passed** (457 + 1 baru), 1952 assertions.
 
 ### Status Fase R7a: DITUTUP TUNTAS. 4 bug fetcher ditemukan & diperbaiki lewat kombinasi live-verification dan run produksi nyata (bukan cuma unit test) sepanjang fase ini: GdeltFetcher (query salah bentuk, tanpa timeout, ambang frasa), RssLocalFetcher (tanpa try/catch per-feed). GDELT ditutup sebagai keterbatasan eksternal (rate-limit/network di luar kendali kode). Currents API tetap jadi kandidat sumber baru berikutnya kalau user mau lanjut (butuh API key, belum dibangun).
+
+## Fase R7a (tambahan) — Integrasi CurrentsFetcher sebagai sumber tambahan (bukan pengganti)
+
+**Konteks:** user eksplisit meminta klarifikasi dulu sebelum implementasi: Currents API **bukan pengganti** `google_news_rss` (buntu) atau `gdelt` (rate-limited) — cuma tambahan variasi sumber kecil, mirip `gnews`/`newsapi`. Setelah dikonfirmasi, diimplementasikan.
+
+### Perubahan kode
+- `app/Services/News/CurrentsFetcher.php` — fetcher baru, pola sama seperti `GNewsFetcher`: request ke `https://api.currentsapi.services/v1/search` (endpoint dikonfirmasi dari dokumentasi resmi + repo wrapper Python resmi mereka), `try/catch` + skip aman kalau `api_key` kosong (tidak crash, konsisten dengan pola fetcher lain).
+- `config/services.php` — section `currents` baru (`api_key`, `api_base_url`, `language`, `timeout`, `user_agent`), pola identik `gnews`.
+- `config/news.php` — `currents` ditambah ke `source_weights` (0.9, sejajar `gnews`), `multi_providers`, dan `source_priority`.
+- `app/Services/News/NewsAggregationService.php` — fetcher `currents` didaftarkan ke `$this->fetchers`, otomatis ikut siklus fetch multi-provider yang sudah ada tanpa perlu ubah command/jadwal.
+- `.env.example` dan `.env` — `CURRENTS_API_KEY=` (kosong) + config lain, pola sama `GNEWS_*`.
+- Test baru: `tests/Unit/CurrentsFetcherTest.php` (5 test: mapping normal, tanpa API key, error response, exception jaringan, payload invalid).
+
+### Catatan penting: BELUM AKTIF, butuh API key
+`CURRENTS_API_KEY` di `.env` sengaja dikosongkan — mendaftar API key butuh membuat akun di `currentsapi.services`, itu tindakan milik user (bukan sesuatu yang bisa dilakukan otomatis). Selama kosong, `CurrentsFetcher::fetchForStock()` langsung `return []` tanpa request (perilaku aman, sama seperti `GNewsFetcher` tanpa key) — tidak mengganggu provider lain. Begitu user isi key-nya di `.env`, fetcher langsung aktif tanpa perubahan kode lagi.
+
+### Verifikasi
+- `php artisan test --filter=CurrentsFetcherTest` → 5 passed, 8 assertions.
+- `php artisan test` → **463 passed** (458 + 5 baru), 1960 assertions.
+
+### Status: KODE SIAP, MENUNGGU API KEY DARI USER UNTUK AKTIF DI PRODUKSI.
