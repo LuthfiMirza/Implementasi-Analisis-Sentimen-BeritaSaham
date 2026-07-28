@@ -1349,3 +1349,31 @@ Korelasi peringkat discovery→holdout: BUMI positif (+0,60 h5, +0,80 h10, TIDAK
 4. **n=2 saham, 4 titik ambang** — terlalu kecil untuk kesimpulan robust. Perlu diuji di lebih banyak saham sebelum ditindaklanjuti.
 
 ### Status Fase W: SELESAI, TEMUAN CAMPURAN (bukan gagal murni, bukan berhasil murni). Layak dicatat sebagai arah lanjutan — uji skor konfluensi serupa di 10 saham resmi (bukan cuma BUMI/DEWA) — tapi BELUM cukup bukti untuk dipromosikan jadi sinyal produksi.
+
+## Fase W (lanjutan) — Uji skor konfluensi di 10 saham resmi: BUMI ternyata pengecualian
+
+**Konteks:** menindaklanjuti Fase W (BUMI positif, DEWA negatif) — uji apakah efeknya berlaku umum di IDX dengan menambah 10 saham resmi (BBCA, BBRI, BMRI, TLKM, ASII, GOTO, INDF, ICBP, ADRO, UNVR).
+
+### Hasil ringkasan lintas 12 saham (ambang paling ketat, score≥6, net biaya)
+
+| Saham | h+5 net edge | h+10 net edge | Positif? |
+|---|---|---|---|
+| BBCA | −1,12% | −0,96% | tidak |
+| BBRI | −0,71% | −0,69% | tidak |
+| BMRI | −0,95% | −0,74% | tidak |
+| TLKM | −1,05% | −1,12% | tidak |
+| ASII | −1,03% | −1,04% | tidak |
+| INDF | −1,13% | −0,82% | tidak |
+| ICBP | −0,44% | −0,02% | tidak |
+| ADRO | −1,72% | −2,13% | tidak |
+| UNVR | +0,66% | +2,77% | **ya** |
+| BUMI | +1,25% | +2,93% | **ya** |
+| DEWA | +0,06% | +1,03% | **ya** |
+| GOTO | data kurang (holdout terlalu sedikit di ambang ketat) | | — |
+
+**6 dari 22 kombinasi ticker×horizon positif net biaya** — dan yang positif cuma 3 saham: BUMI, DEWA, UNVR. **8 dari 10 saham resmi (termasuk SEMUA blue-chip paling likuid: BBCA, BBRI, BMRI, TLKM, ASII) hasilnya negatif**, beberapa sampai −1,7% s/d −2,1%.
+
+### Kesimpulan
+Efek positif di BUMI (Fase W awal) **bukan pola umum IDX** — spesifik untuk saham kecil/volatil, gagal total di saham blue-chip besar yang lebih likuid dan stabil. Ini memperkuat, bukan membantah, temuan Fase T/S bahwa harga blue-chip jauh lebih sulit "dibaca" dari pola teknikal murni dibanding saham kecil yang pergerakannya lebih liar. Skor konfluensi teknikal **tidak layak dipromosikan sebagai sinyal umum** — kalaupun mau dipakai, cuma masuk akal dipertimbangkan khusus untuk profil saham serupa BUMI/DEWA, dan itu pun cuma separuh sistem (tanpa komponen broker/asing).
+
+### Status: Fase W DITUTUP TUNTAS. Tidak ada bukti generalisasi. Konsisten dengan seluruh pola sesi ini: teknikal murni tidak cukup untuk memprediksi arah, kecuali mungkin di segmen saham yang sangat spesifik dan itu pun belum diverifikasi cukup kuat.

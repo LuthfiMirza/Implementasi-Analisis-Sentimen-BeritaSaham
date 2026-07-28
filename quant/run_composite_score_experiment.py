@@ -36,7 +36,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-TICKERS = ["BUMI", "DEWA"]
+TICKERS = ["BBCA", "BBRI", "BMRI", "TLKM", "ASII", "GOTO", "INDF", "ICBP", "ADRO", "UNVR", "BUMI", "DEWA"]
 HORIZONS = [5, 10]
 ROUND_TRIP_COST = 0.008
 DISCOVERY_FRACTION = 0.70
@@ -165,6 +165,26 @@ def main() -> None:
                 h_edges = [r["holdout"]["edge"] for r in usable]
                 rho, pval = stats.spearmanr(d_edges, h_edges)
                 lines.append(f"  rank correlation discovery vs holdout across thresholds: rho={rho:+.3f} (p={pval:.3f})")
+
+    # Cross-ticker summary at the highest threshold (score>=6, all conditions agree) -- the
+    # single number decision-relevant to "does this generalize beyond BUMI": count of tickers
+    # where the strictest confluence signal beats holdout base rate net of cost.
+    lines.append(f"\n\n{'='*78}\nRINGKASAN LINTAS SAHAM (score >= {max(SCORE_THRESHOLDS)}, ambang paling ketat)\n{'='*78}")
+    lines.append(f"{'ticker':8s} {'horizon':>8s} {'n hold':>7s} {'net edge':>10s} {'win rate':>10s} {'positif net?':>13s}")
+    top = [r for r in results if r["score_threshold"] == max(SCORE_THRESHOLDS)]
+    positive_count, total_count = 0, 0
+    for r in top:
+        hm = r["holdout"]
+        if hm["net_edge"] is None:
+            lines.append(f"{r['ticker']:8s} {r['horizon']:8d} {'n/a':>7s} {'n/a':>10s} {'n/a':>10s} {'data kurang':>13s}")
+            continue
+        total_count += 1
+        is_pos = hm["net_edge"] > 0
+        positive_count += int(is_pos)
+        lines.append(f"{r['ticker']:8s} {r['horizon']:8d} {hm['n']:7d} {hm['net_edge']:+9.3%} "
+                     f"{hm['win_rate']:9.2%} {'YA' if is_pos else 'tidak':>13s}")
+    lines.append(f"\n-> net edge positif di {positive_count}/{total_count} kombinasi ticker x horizon "
+                 f"(ambang paling ketat, di luar biaya transaksi)")
 
     REPORT_TXT.parent.mkdir(parents=True, exist_ok=True)
     REPORT_TXT.write_text("\n".join(lines) + "\n", encoding="utf-8")

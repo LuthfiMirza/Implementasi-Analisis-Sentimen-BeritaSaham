@@ -1,6 +1,1366 @@
 {
   "results": [
     {
+      "ticker": "BBCA",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2748,
+        "edge": -0.001225,
+        "net_edge": -0.009225,
+        "win_rate": 0.52
+      },
+      "holdout": {
+        "n": 951,
+        "edge": -0.000565,
+        "net_edge": -0.008565,
+        "win_rate": 0.4963
+      }
+    },
+    {
+      "ticker": "BBCA",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2442,
+        "edge": -0.002025,
+        "net_edge": -0.010025,
+        "win_rate": 0.5082
+      },
+      "holdout": {
+        "n": 845,
+        "edge": -0.000478,
+        "net_edge": -0.008478,
+        "win_rate": 0.497
+      }
+    },
+    {
+      "ticker": "BBCA",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1805,
+        "edge": -0.00198,
+        "net_edge": -0.00998,
+        "win_rate": 0.5086
+      },
+      "holdout": {
+        "n": 583,
+        "edge": -0.001323,
+        "net_edge": -0.009323,
+        "win_rate": 0.4889
+      }
+    },
+    {
+      "ticker": "BBCA",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 422,
+        "edge": 0.000612,
+        "net_edge": -0.007388,
+        "win_rate": 0.5308
+      },
+      "holdout": {
+        "n": 152,
+        "edge": -0.003146,
+        "net_edge": -0.011146,
+        "win_rate": 0.4408
+      }
+    },
+    {
+      "ticker": "BBCA",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2748,
+        "edge": -0.001539,
+        "net_edge": -0.009539,
+        "win_rate": 0.5804
+      },
+      "holdout": {
+        "n": 946,
+        "edge": -0.000102,
+        "net_edge": -0.008102,
+        "win_rate": 0.5085
+      }
+    },
+    {
+      "ticker": "BBCA",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2442,
+        "edge": -0.001951,
+        "net_edge": -0.009951,
+        "win_rate": 0.5762
+      },
+      "holdout": {
+        "n": 840,
+        "edge": 8.8e-05,
+        "net_edge": -0.007912,
+        "win_rate": 0.5071
+      }
+    },
+    {
+      "ticker": "BBCA",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1805,
+        "edge": -0.002765,
+        "net_edge": -0.010765,
+        "win_rate": 0.5668
+      },
+      "holdout": {
+        "n": 578,
+        "edge": -0.00149,
+        "net_edge": -0.00949,
+        "win_rate": 0.4931
+      }
+    },
+    {
+      "ticker": "BBCA",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 422,
+        "edge": -0.002306,
+        "net_edge": -0.010306,
+        "win_rate": 0.5474
+      },
+      "holdout": {
+        "n": 152,
+        "edge": -0.001605,
+        "net_edge": -0.009605,
+        "win_rate": 0.4605
+      }
+    },
+    {
+      "ticker": "BBRI",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2711,
+        "edge": -0.002124,
+        "net_edge": -0.010124,
+        "win_rate": 0.505
+      },
+      "holdout": {
+        "n": 962,
+        "edge": 0.000471,
+        "net_edge": -0.007529,
+        "win_rate": 0.4917
+      }
+    },
+    {
+      "ticker": "BBRI",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2413,
+        "edge": -0.00257,
+        "net_edge": -0.01057,
+        "win_rate": 0.4973
+      },
+      "holdout": {
+        "n": 842,
+        "edge": 0.000176,
+        "net_edge": -0.007824,
+        "win_rate": 0.4905
+      }
+    },
+    {
+      "ticker": "BBRI",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1772,
+        "edge": -0.002832,
+        "net_edge": -0.010832,
+        "win_rate": 0.4972
+      },
+      "holdout": {
+        "n": 618,
+        "edge": -0.000339,
+        "net_edge": -0.008339,
+        "win_rate": 0.4887
+      }
+    },
+    {
+      "ticker": "BBRI",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 379,
+        "edge": -0.00964,
+        "net_edge": -0.01764,
+        "win_rate": 0.4195
+      },
+      "holdout": {
+        "n": 120,
+        "edge": 0.000859,
+        "net_edge": -0.007141,
+        "win_rate": 0.4917
+      }
+    },
+    {
+      "ticker": "BBRI",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2711,
+        "edge": -0.003251,
+        "net_edge": -0.011251,
+        "win_rate": 0.5566
+      },
+      "holdout": {
+        "n": 960,
+        "edge": 0.000645,
+        "net_edge": -0.007355,
+        "win_rate": 0.4844
+      }
+    },
+    {
+      "ticker": "BBRI",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2413,
+        "edge": -0.003257,
+        "net_edge": -0.011257,
+        "win_rate": 0.5516
+      },
+      "holdout": {
+        "n": 840,
+        "edge": 0.00013,
+        "net_edge": -0.00787,
+        "win_rate": 0.481
+      }
+    },
+    {
+      "ticker": "BBRI",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1772,
+        "edge": -0.004018,
+        "net_edge": -0.012018,
+        "win_rate": 0.5491
+      },
+      "holdout": {
+        "n": 618,
+        "edge": -0.00049,
+        "net_edge": -0.00849,
+        "win_rate": 0.466
+      }
+    },
+    {
+      "ticker": "BBRI",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 379,
+        "edge": -0.009962,
+        "net_edge": -0.017962,
+        "win_rate": 0.533
+      },
+      "holdout": {
+        "n": 120,
+        "edge": 0.001134,
+        "net_edge": -0.006866,
+        "win_rate": 0.5167
+      }
+    },
+    {
+      "ticker": "BMRI",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2586,
+        "edge": -0.000167,
+        "net_edge": -0.008167,
+        "win_rate": 0.5101
+      },
+      "holdout": {
+        "n": 1041,
+        "edge": 0.000562,
+        "net_edge": -0.007438,
+        "win_rate": 0.5207
+      }
+    },
+    {
+      "ticker": "BMRI",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2301,
+        "edge": -0.000323,
+        "net_edge": -0.008323,
+        "win_rate": 0.5098
+      },
+      "holdout": {
+        "n": 928,
+        "edge": 4.6e-05,
+        "net_edge": -0.007954,
+        "win_rate": 0.5194
+      }
+    },
+    {
+      "ticker": "BMRI",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1665,
+        "edge": -0.000838,
+        "net_edge": -0.008838,
+        "win_rate": 0.5069
+      },
+      "holdout": {
+        "n": 664,
+        "edge": 0.000222,
+        "net_edge": -0.007778,
+        "win_rate": 0.5271
+      }
+    },
+    {
+      "ticker": "BMRI",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 442,
+        "edge": 0.000708,
+        "net_edge": -0.007292,
+        "win_rate": 0.509
+      },
+      "holdout": {
+        "n": 122,
+        "edge": -0.001514,
+        "net_edge": -0.009514,
+        "win_rate": 0.5
+      }
+    },
+    {
+      "ticker": "BMRI",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2586,
+        "edge": -0.001273,
+        "net_edge": -0.009273,
+        "win_rate": 0.5499
+      },
+      "holdout": {
+        "n": 1039,
+        "edge": 0.000987,
+        "net_edge": -0.007013,
+        "win_rate": 0.5409
+      }
+    },
+    {
+      "ticker": "BMRI",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2301,
+        "edge": -0.001523,
+        "net_edge": -0.009523,
+        "win_rate": 0.5476
+      },
+      "holdout": {
+        "n": 927,
+        "edge": 0.000323,
+        "net_edge": -0.007677,
+        "win_rate": 0.5394
+      }
+    },
+    {
+      "ticker": "BMRI",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1665,
+        "edge": -0.000511,
+        "net_edge": -0.008511,
+        "win_rate": 0.5544
+      },
+      "holdout": {
+        "n": 663,
+        "edge": 0.002784,
+        "net_edge": -0.005216,
+        "win_rate": 0.5701
+      }
+    },
+    {
+      "ticker": "BMRI",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 442,
+        "edge": -0.001495,
+        "net_edge": -0.009495,
+        "win_rate": 0.5271
+      },
+      "holdout": {
+        "n": 122,
+        "edge": 0.000598,
+        "net_edge": -0.007402,
+        "win_rate": 0.582
+      }
+    },
+    {
+      "ticker": "TLKM",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2371,
+        "edge": -0.000982,
+        "net_edge": -0.008982,
+        "win_rate": 0.4926
+      },
+      "holdout": {
+        "n": 851,
+        "edge": -0.00194,
+        "net_edge": -0.00994,
+        "win_rate": 0.4665
+      }
+    },
+    {
+      "ticker": "TLKM",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2050,
+        "edge": -0.001218,
+        "net_edge": -0.009218,
+        "win_rate": 0.4863
+      },
+      "holdout": {
+        "n": 736,
+        "edge": -0.001758,
+        "net_edge": -0.009758,
+        "win_rate": 0.4728
+      }
+    },
+    {
+      "ticker": "TLKM",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1483,
+        "edge": -0.002216,
+        "net_edge": -0.010216,
+        "win_rate": 0.4855
+      },
+      "holdout": {
+        "n": 503,
+        "edge": -0.000981,
+        "net_edge": -0.008981,
+        "win_rate": 0.4851
+      }
+    },
+    {
+      "ticker": "TLKM",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 295,
+        "edge": -0.006293,
+        "net_edge": -0.014293,
+        "win_rate": 0.4407
+      },
+      "holdout": {
+        "n": 104,
+        "edge": -0.002484,
+        "net_edge": -0.010484,
+        "win_rate": 0.5096
+      }
+    },
+    {
+      "ticker": "TLKM",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2371,
+        "edge": -0.000534,
+        "net_edge": -0.008534,
+        "win_rate": 0.5289
+      },
+      "holdout": {
+        "n": 851,
+        "edge": -0.001902,
+        "net_edge": -0.009902,
+        "win_rate": 0.4912
+      }
+    },
+    {
+      "ticker": "TLKM",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2050,
+        "edge": -0.001571,
+        "net_edge": -0.009571,
+        "win_rate": 0.521
+      },
+      "holdout": {
+        "n": 736,
+        "edge": -0.00188,
+        "net_edge": -0.00988,
+        "win_rate": 0.4973
+      }
+    },
+    {
+      "ticker": "TLKM",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1483,
+        "edge": -0.003628,
+        "net_edge": -0.011628,
+        "win_rate": 0.5051
+      },
+      "holdout": {
+        "n": 503,
+        "edge": -0.00083,
+        "net_edge": -0.00883,
+        "win_rate": 0.503
+      }
+    },
+    {
+      "ticker": "TLKM",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 295,
+        "edge": -0.006059,
+        "net_edge": -0.014059,
+        "win_rate": 0.5051
+      },
+      "holdout": {
+        "n": 104,
+        "edge": -0.003196,
+        "net_edge": -0.011196,
+        "win_rate": 0.4808
+      }
+    },
+    {
+      "ticker": "ASII",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2914,
+        "edge": 0.000967,
+        "net_edge": -0.007033,
+        "win_rate": 0.51
+      },
+      "holdout": {
+        "n": 1030,
+        "edge": 0.001789,
+        "net_edge": -0.006211,
+        "win_rate": 0.4738
+      }
+    },
+    {
+      "ticker": "ASII",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2558,
+        "edge": 0.00097,
+        "net_edge": -0.00703,
+        "win_rate": 0.5023
+      },
+      "holdout": {
+        "n": 919,
+        "edge": 0.001969,
+        "net_edge": -0.006031,
+        "win_rate": 0.4723
+      }
+    },
+    {
+      "ticker": "ASII",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1870,
+        "edge": 0.000292,
+        "net_edge": -0.007708,
+        "win_rate": 0.4984
+      },
+      "holdout": {
+        "n": 621,
+        "edge": 0.001754,
+        "net_edge": -0.006246,
+        "win_rate": 0.4767
+      }
+    },
+    {
+      "ticker": "ASII",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 415,
+        "edge": 0.002621,
+        "net_edge": -0.005379,
+        "win_rate": 0.5084
+      },
+      "holdout": {
+        "n": 140,
+        "edge": -0.00229,
+        "net_edge": -0.01029,
+        "win_rate": 0.4214
+      }
+    },
+    {
+      "ticker": "ASII",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2914,
+        "edge": 0.003225,
+        "net_edge": -0.004775,
+        "win_rate": 0.5553
+      },
+      "holdout": {
+        "n": 1025,
+        "edge": 0.002435,
+        "net_edge": -0.005565,
+        "win_rate": 0.4859
+      }
+    },
+    {
+      "ticker": "ASII",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2558,
+        "edge": 0.004776,
+        "net_edge": -0.003224,
+        "win_rate": 0.5606
+      },
+      "holdout": {
+        "n": 915,
+        "edge": 0.003063,
+        "net_edge": -0.004937,
+        "win_rate": 0.4885
+      }
+    },
+    {
+      "ticker": "ASII",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1870,
+        "edge": 0.005822,
+        "net_edge": -0.002178,
+        "win_rate": 0.5658
+      },
+      "holdout": {
+        "n": 621,
+        "edge": 0.000632,
+        "net_edge": -0.007368,
+        "win_rate": 0.4686
+      }
+    },
+    {
+      "ticker": "ASII",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 415,
+        "edge": 0.009814,
+        "net_edge": 0.001814,
+        "win_rate": 0.5614
+      },
+      "holdout": {
+        "n": 140,
+        "edge": -0.002359,
+        "net_edge": -0.010359,
+        "win_rate": 0.45
+      }
+    },
+    {
+      "ticker": "GOTO",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 302,
+        "edge": 0.002089,
+        "net_edge": -0.005911,
+        "win_rate": 0.3841
+      },
+      "holdout": {
+        "n": 108,
+        "edge": 0.002279,
+        "net_edge": -0.005721,
+        "win_rate": 0.3611
+      }
+    },
+    {
+      "ticker": "GOTO",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 260,
+        "edge": -0.002299,
+        "net_edge": -0.010299,
+        "win_rate": 0.3615
+      },
+      "holdout": {
+        "n": 83,
+        "edge": 0.000119,
+        "net_edge": -0.007881,
+        "win_rate": 0.3494
+      }
+    },
+    {
+      "ticker": "GOTO",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 159,
+        "edge": -0.00613,
+        "net_edge": -0.01413,
+        "win_rate": 0.3522
+      },
+      "holdout": {
+        "n": 57,
+        "edge": -0.000164,
+        "net_edge": -0.008164,
+        "win_rate": 0.3509
+      }
+    },
+    {
+      "ticker": "GOTO",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 72,
+        "edge": 0.002277,
+        "net_edge": -0.005723,
+        "win_rate": 0.3889
+      },
+      "holdout": {
+        "n": 24,
+        "edge": null,
+        "net_edge": null,
+        "win_rate": null
+      }
+    },
+    {
+      "ticker": "GOTO",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 302,
+        "edge": -0.003803,
+        "net_edge": -0.011803,
+        "win_rate": 0.404
+      },
+      "holdout": {
+        "n": 108,
+        "edge": -0.004584,
+        "net_edge": -0.012584,
+        "win_rate": 0.3889
+      }
+    },
+    {
+      "ticker": "GOTO",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 260,
+        "edge": -0.011301,
+        "net_edge": -0.019301,
+        "win_rate": 0.3885
+      },
+      "holdout": {
+        "n": 83,
+        "edge": -0.011331,
+        "net_edge": -0.019331,
+        "win_rate": 0.3494
+      }
+    },
+    {
+      "ticker": "GOTO",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 159,
+        "edge": -0.014446,
+        "net_edge": -0.022446,
+        "win_rate": 0.3899
+      },
+      "holdout": {
+        "n": 57,
+        "edge": -0.011539,
+        "net_edge": -0.019539,
+        "win_rate": 0.386
+      }
+    },
+    {
+      "ticker": "GOTO",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 72,
+        "edge": -0.005141,
+        "net_edge": -0.013141,
+        "win_rate": 0.375
+      },
+      "holdout": {
+        "n": 24,
+        "edge": null,
+        "net_edge": null,
+        "win_rate": null
+      }
+    },
+    {
+      "ticker": "INDF",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2653,
+        "edge": 0.002343,
+        "net_edge": -0.005657,
+        "win_rate": 0.4685
+      },
+      "holdout": {
+        "n": 1077,
+        "edge": -0.000251,
+        "net_edge": -0.008251,
+        "win_rate": 0.4884
+      }
+    },
+    {
+      "ticker": "INDF",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2295,
+        "edge": 0.002814,
+        "net_edge": -0.005186,
+        "win_rate": 0.4749
+      },
+      "holdout": {
+        "n": 943,
+        "edge": 0.000102,
+        "net_edge": -0.007898,
+        "win_rate": 0.4878
+      }
+    },
+    {
+      "ticker": "INDF",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1665,
+        "edge": 0.004225,
+        "net_edge": -0.003775,
+        "win_rate": 0.4841
+      },
+      "holdout": {
+        "n": 642,
+        "edge": 0.00119,
+        "net_edge": -0.00681,
+        "win_rate": 0.4953
+      }
+    },
+    {
+      "ticker": "INDF",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 552,
+        "edge": 0.010145,
+        "net_edge": 0.002145,
+        "win_rate": 0.5091
+      },
+      "holdout": {
+        "n": 153,
+        "edge": -0.003272,
+        "net_edge": -0.011272,
+        "win_rate": 0.4837
+      }
+    },
+    {
+      "ticker": "INDF",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2653,
+        "edge": 0.005603,
+        "net_edge": -0.002397,
+        "win_rate": 0.5111
+      },
+      "holdout": {
+        "n": 1072,
+        "edge": 0.001771,
+        "net_edge": -0.006229,
+        "win_rate": 0.5205
+      }
+    },
+    {
+      "ticker": "INDF",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2295,
+        "edge": 0.006431,
+        "net_edge": -0.001569,
+        "win_rate": 0.5172
+      },
+      "holdout": {
+        "n": 938,
+        "edge": 0.002091,
+        "net_edge": -0.005909,
+        "win_rate": 0.5277
+      }
+    },
+    {
+      "ticker": "INDF",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1665,
+        "edge": 0.009159,
+        "net_edge": 0.001159,
+        "win_rate": 0.5273
+      },
+      "holdout": {
+        "n": 637,
+        "edge": 0.003311,
+        "net_edge": -0.004689,
+        "win_rate": 0.5432
+      }
+    },
+    {
+      "ticker": "INDF",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 552,
+        "edge": 0.018822,
+        "net_edge": 0.010822,
+        "win_rate": 0.5543
+      },
+      "holdout": {
+        "n": 153,
+        "edge": -0.000189,
+        "net_edge": -0.008189,
+        "win_rate": 0.549
+      }
+    },
+    {
+      "ticker": "ICBP",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2734,
+        "edge": 0.002618,
+        "net_edge": -0.005382,
+        "win_rate": 0.4751
+      },
+      "holdout": {
+        "n": 1047,
+        "edge": -0.000252,
+        "net_edge": -0.008252,
+        "win_rate": 0.4871
+      }
+    },
+    {
+      "ticker": "ICBP",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2380,
+        "edge": 0.002158,
+        "net_edge": -0.005842,
+        "win_rate": 0.4731
+      },
+      "holdout": {
+        "n": 886,
+        "edge": -0.000175,
+        "net_edge": -0.008175,
+        "win_rate": 0.4865
+      }
+    },
+    {
+      "ticker": "ICBP",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1749,
+        "edge": 0.004583,
+        "net_edge": -0.003417,
+        "win_rate": 0.4923
+      },
+      "holdout": {
+        "n": 577,
+        "edge": -0.000526,
+        "net_edge": -0.008526,
+        "win_rate": 0.4939
+      }
+    },
+    {
+      "ticker": "ICBP",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 542,
+        "edge": 0.008078,
+        "net_edge": 7.8e-05,
+        "win_rate": 0.4723
+      },
+      "holdout": {
+        "n": 139,
+        "edge": 0.003565,
+        "net_edge": -0.004435,
+        "win_rate": 0.5396
+      }
+    },
+    {
+      "ticker": "ICBP",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2734,
+        "edge": 0.005377,
+        "net_edge": -0.002623,
+        "win_rate": 0.5249
+      },
+      "holdout": {
+        "n": 1042,
+        "edge": 2.8e-05,
+        "net_edge": -0.007972,
+        "win_rate": 0.4904
+      }
+    },
+    {
+      "ticker": "ICBP",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2380,
+        "edge": 0.0054,
+        "net_edge": -0.0026,
+        "win_rate": 0.5256
+      },
+      "holdout": {
+        "n": 881,
+        "edge": 0.000279,
+        "net_edge": -0.007721,
+        "win_rate": 0.4915
+      }
+    },
+    {
+      "ticker": "ICBP",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1749,
+        "edge": 0.008396,
+        "net_edge": 0.000396,
+        "win_rate": 0.5443
+      },
+      "holdout": {
+        "n": 572,
+        "edge": 0.000275,
+        "net_edge": -0.007725,
+        "win_rate": 0.5017
+      }
+    },
+    {
+      "ticker": "ICBP",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 542,
+        "edge": 0.01534,
+        "net_edge": 0.00734,
+        "win_rate": 0.548
+      },
+      "holdout": {
+        "n": 139,
+        "edge": 0.007759,
+        "net_edge": -0.000241,
+        "win_rate": 0.5612
+      }
+    },
+    {
+      "ticker": "ADRO",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 1751,
+        "edge": 0.000859,
+        "net_edge": -0.007141,
+        "win_rate": 0.4672
+      },
+      "holdout": {
+        "n": 843,
+        "edge": 0.002511,
+        "net_edge": -0.005489,
+        "win_rate": 0.5196
+      }
+    },
+    {
+      "ticker": "ADRO",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 1498,
+        "edge": 0.000952,
+        "net_edge": -0.007048,
+        "win_rate": 0.4593
+      },
+      "holdout": {
+        "n": 735,
+        "edge": 0.001838,
+        "net_edge": -0.006162,
+        "win_rate": 0.502
+      }
+    },
+    {
+      "ticker": "ADRO",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1049,
+        "edge": 0.001341,
+        "net_edge": -0.006659,
+        "win_rate": 0.469
+      },
+      "holdout": {
+        "n": 524,
+        "edge": -0.001791,
+        "net_edge": -0.009791,
+        "win_rate": 0.4866
+      }
+    },
+    {
+      "ticker": "ADRO",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 234,
+        "edge": 0.001531,
+        "net_edge": -0.006469,
+        "win_rate": 0.4615
+      },
+      "holdout": {
+        "n": 105,
+        "edge": -0.009237,
+        "net_edge": -0.017237,
+        "win_rate": 0.4286
+      }
+    },
+    {
+      "ticker": "ADRO",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 1751,
+        "edge": 0.001897,
+        "net_edge": -0.006103,
+        "win_rate": 0.4786
+      },
+      "holdout": {
+        "n": 838,
+        "edge": 0.003568,
+        "net_edge": -0.004432,
+        "win_rate": 0.5537
+      }
+    },
+    {
+      "ticker": "ADRO",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 1498,
+        "edge": 0.002394,
+        "net_edge": -0.005606,
+        "win_rate": 0.4813
+      },
+      "holdout": {
+        "n": 731,
+        "edge": 0.002672,
+        "net_edge": -0.005328,
+        "win_rate": 0.5431
+      }
+    },
+    {
+      "ticker": "ADRO",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1049,
+        "edge": 0.003796,
+        "net_edge": -0.004204,
+        "win_rate": 0.4738
+      },
+      "holdout": {
+        "n": 521,
+        "edge": -0.005075,
+        "net_edge": -0.013075,
+        "win_rate": 0.4914
+      }
+    },
+    {
+      "ticker": "ADRO",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 234,
+        "edge": 0.008894,
+        "net_edge": 0.000894,
+        "win_rate": 0.4829
+      },
+      "holdout": {
+        "n": 105,
+        "edge": -0.013277,
+        "net_edge": -0.021277,
+        "win_rate": 0.4571
+      }
+    },
+    {
+      "ticker": "UNVR",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2564,
+        "edge": -0.001581,
+        "net_edge": -0.009581,
+        "win_rate": 0.4984
+      },
+      "holdout": {
+        "n": 763,
+        "edge": -0.000349,
+        "net_edge": -0.008349,
+        "win_rate": 0.4181
+      }
+    },
+    {
+      "ticker": "UNVR",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2251,
+        "edge": -0.001357,
+        "net_edge": -0.009357,
+        "win_rate": 0.5033
+      },
+      "holdout": {
+        "n": 651,
+        "edge": 0.000338,
+        "net_edge": -0.007662,
+        "win_rate": 0.4147
+      }
+    },
+    {
+      "ticker": "UNVR",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1615,
+        "edge": -0.001005,
+        "net_edge": -0.009005,
+        "win_rate": 0.5028
+      },
+      "holdout": {
+        "n": 402,
+        "edge": 0.003276,
+        "net_edge": -0.004724,
+        "win_rate": 0.4453
+      }
+    },
+    {
+      "ticker": "UNVR",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 327,
+        "edge": 0.002507,
+        "net_edge": -0.005493,
+        "win_rate": 0.5229
+      },
+      "holdout": {
+        "n": 84,
+        "edge": 0.014617,
+        "net_edge": 0.006617,
+        "win_rate": 0.3929
+      }
+    },
+    {
+      "ticker": "UNVR",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2564,
+        "edge": -0.000812,
+        "net_edge": -0.008812,
+        "win_rate": 0.5406
+      },
+      "holdout": {
+        "n": 759,
+        "edge": -0.001581,
+        "net_edge": -0.009581,
+        "win_rate": 0.3874
+      }
+    },
+    {
+      "ticker": "UNVR",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 2251,
+        "edge": -0.000335,
+        "net_edge": -0.008335,
+        "win_rate": 0.5478
+      },
+      "holdout": {
+        "n": 647,
+        "edge": 0.000201,
+        "net_edge": -0.007799,
+        "win_rate": 0.3864
+      }
+    },
+    {
+      "ticker": "UNVR",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1615,
+        "edge": 7.8e-05,
+        "net_edge": -0.007922,
+        "win_rate": 0.5498
+      },
+      "holdout": {
+        "n": 400,
+        "edge": 0.007042,
+        "net_edge": -0.000958,
+        "win_rate": 0.4275
+      }
+    },
+    {
+      "ticker": "UNVR",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 327,
+        "edge": 0.003361,
+        "net_edge": -0.004639,
+        "win_rate": 0.5688
+      },
+      "holdout": {
+        "n": 84,
+        "edge": 0.035712,
+        "net_edge": 0.027712,
+        "win_rate": 0.4286
+      }
+    },
+    {
       "ticker": "BUMI",
       "horizon": 5,
       "score_threshold": 3,

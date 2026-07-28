@@ -14,6 +14,204 @@ anything, entry one bar after the score is observed, net of 0.80% round-trip cos
 
 
 ==============================================================================
+BBCA  (discovery 2004-06-08..2019-10-07, holdout 2019-10-08..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.603%, holdout +0.135%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2748   -0.122%     951   -0.056%   -0.856%    49.63%
+        4    2442   -0.202%     845   -0.048%   -0.848%    49.70%
+        5    1805   -0.198%     583   -0.132%   -0.932%    48.89%
+        6     422   +0.061%     152   -0.315%   -1.115%    44.08%
+  rank correlation discovery vs holdout across thresholds: rho=-0.800 (p=0.200)
+
+-- h+10 (base rate: discovery +1.181%, holdout +0.245%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2748   -0.154%     946   -0.010%   -0.810%    50.85%
+        4    2442   -0.195%     840   +0.009%   -0.791%    50.71%
+        5    1805   -0.277%     578   -0.149%   -0.949%    49.31%
+        6     422   -0.231%     152   -0.161%   -0.961%    46.05%
+  rank correlation discovery vs holdout across thresholds: rho=+0.600 (p=0.400)
+
+==============================================================================
+BBRI  (discovery 2003-11-10..2019-08-02, holdout 2019-08-05..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.693%, holdout +0.139%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2711   -0.212%     962   +0.047%   -0.753%    49.17%
+        4    2413   -0.257%     842   +0.018%   -0.782%    49.05%
+        5    1772   -0.283%     618   -0.034%   -0.834%    48.87%
+        6     379   -0.964%     120   +0.086%   -0.714%    49.17%
+  rank correlation discovery vs holdout across thresholds: rho=-0.200 (p=0.800)
+
+-- h+10 (base rate: discovery +1.350%, holdout +0.260%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2711   -0.325%     960   +0.065%   -0.736%    48.44%
+        4    2413   -0.326%     840   +0.013%   -0.787%    48.10%
+        5    1772   -0.402%     618   -0.049%   -0.849%    46.60%
+        6     379   -0.996%     120   +0.113%   -0.687%    51.67%
+  rank correlation discovery vs holdout across thresholds: rho=-0.200 (p=0.800)
+
+==============================================================================
+BMRI  (discovery 2003-07-14..2019-06-28, holdout 2019-07-01..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.597%, holdout +0.258%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2586   -0.017%    1041   +0.056%   -0.744%    52.07%
+        4    2301   -0.032%     928   +0.005%   -0.795%    51.94%
+        5    1665   -0.084%     664   +0.022%   -0.778%    52.71%
+        6     442   +0.071%     122   -0.151%   -0.951%    50.00%
+  rank correlation discovery vs holdout across thresholds: rho=-0.400 (p=0.600)
+
+-- h+10 (base rate: discovery +1.175%, holdout +0.488%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2586   -0.127%    1039   +0.099%   -0.701%    54.09%
+        4    2301   -0.152%     927   +0.032%   -0.768%    53.94%
+        5    1665   -0.051%     663   +0.278%   -0.522%    57.01%
+        6     442   -0.149%     122   +0.060%   -0.740%    58.20%
+  rank correlation discovery vs holdout across thresholds: rho=+1.000 (p=0.000)
+
+==============================================================================
+TLKM  (discovery 2004-09-28..2019-11-08, holdout 2019-11-11..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.361%, holdout +0.073%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2371   -0.098%     851   -0.194%   -0.994%    46.65%
+        4    2050   -0.122%     736   -0.176%   -0.976%    47.28%
+        5    1483   -0.222%     503   -0.098%   -0.898%    48.51%
+        6     295   -0.629%     104   -0.248%   -1.048%    50.96%
+  rank correlation discovery vs holdout across thresholds: rho=+0.200 (p=0.800)
+
+-- h+10 (base rate: discovery +0.694%, holdout +0.111%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2371   -0.053%     851   -0.190%   -0.990%    49.12%
+        4    2050   -0.157%     736   -0.188%   -0.988%    49.73%
+        5    1483   -0.363%     503   -0.083%   -0.883%    50.30%
+        6     295   -0.606%     104   -0.320%   -1.120%    48.08%
+  rank correlation discovery vs holdout across thresholds: rho=+0.200 (p=0.800)
+
+==============================================================================
+ASII  (discovery 2000-10-17..2018-08-31, holdout 2018-09-03..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.663%, holdout +0.126%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2914   +0.097%    1030   +0.179%   -0.621%    47.38%
+        4    2558   +0.097%     919   +0.197%   -0.603%    47.23%
+        5    1870   +0.029%     621   +0.175%   -0.625%    47.67%
+        6     415   +0.262%     140   -0.229%   -1.029%    42.14%
+  rank correlation discovery vs holdout across thresholds: rho=-0.200 (p=0.800)
+
+-- h+10 (base rate: discovery +1.284%, holdout +0.247%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2914   +0.323%    1025   +0.244%   -0.556%    48.59%
+        4    2558   +0.478%     915   +0.306%   -0.494%    48.85%
+        5    1870   +0.582%     621   +0.063%   -0.737%    46.86%
+        6     415   +0.981%     140   -0.236%   -1.036%    45.00%
+  rank correlation discovery vs holdout across thresholds: rho=-0.800 (p=0.200)
+
+==============================================================================
+GOTO  (discovery 2022-04-11..2025-04-09, holdout 2025-04-10..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery -0.612%, holdout -0.648%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3     302   +0.209%     108   +0.228%   -0.572%    36.11%
+        4     260   -0.230%      83   +0.012%   -0.788%    34.94%
+        5     159   -0.613%      57   -0.016%   -0.816%    35.09%
+        6      72   +0.228%      24      n/a      n/a       n/a
+
+-- h+10 (base rate: discovery -1.059%, holdout -1.364%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3     302   -0.380%     108   -0.458%   -1.258%    38.89%
+        4     260   -1.130%      83   -1.133%   -1.933%    34.94%
+        5     159   -1.445%      57   -1.154%   -1.954%    38.60%
+        6      72   -0.514%      24      n/a      n/a       n/a
+
+==============================================================================
+INDF  (discovery 2000-10-02..2018-08-28, holdout 2018-08-29..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.432%, holdout +0.164%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2653   +0.234%    1077   -0.025%   -0.825%    48.84%
+        4    2295   +0.281%     943   +0.010%   -0.790%    48.78%
+        5    1665   +0.422%     642   +0.119%   -0.681%    49.53%
+        6     552   +1.014%     153   -0.327%   -1.127%    48.37%
+  rank correlation discovery vs holdout across thresholds: rho=-0.200 (p=0.800)
+
+-- h+10 (base rate: discovery +0.847%, holdout +0.318%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2653   +0.560%    1072   +0.177%   -0.623%    52.05%
+        4    2295   +0.643%     938   +0.209%   -0.591%    52.77%
+        5    1665   +0.916%     637   +0.331%   -0.469%    54.32%
+        6     552   +1.882%     153   -0.019%   -0.819%    54.90%
+  rank correlation discovery vs holdout across thresholds: rho=-0.200 (p=0.800)
+
+==============================================================================
+ICBP  (discovery 2000-10-02..2018-08-28, holdout 2018-08-29..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.509%, holdout +0.047%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2734   +0.262%    1047   -0.025%   -0.825%    48.71%
+        4    2380   +0.216%     886   -0.017%   -0.818%    48.65%
+        5    1749   +0.458%     577   -0.053%   -0.853%    49.39%
+        6     542   +0.808%     139   +0.356%   -0.443%    53.96%
+  rank correlation discovery vs holdout across thresholds: rho=+0.200 (p=0.800)
+
+-- h+10 (base rate: discovery +1.007%, holdout +0.064%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2734   +0.538%    1042   +0.003%   -0.797%    49.04%
+        4    2380   +0.540%     881   +0.028%   -0.772%    49.15%
+        5    1749   +0.840%     572   +0.028%   -0.772%    50.17%
+        6     542   +1.534%     139   +0.776%   -0.024%    56.12%
+  rank correlation discovery vs holdout across thresholds: rho=+0.800 (p=0.200)
+
+==============================================================================
+ADRO  (discovery 2008-07-16..2021-01-14, holdout 2021-01-15..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.300%, holdout +0.833%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    1751   +0.086%     843   +0.251%   -0.549%    51.96%
+        4    1498   +0.095%     735   +0.184%   -0.616%    50.20%
+        5    1049   +0.134%     524   -0.179%   -0.979%    48.66%
+        6     234   +0.153%     105   -0.924%   -1.724%    42.86%
+  rank correlation discovery vs holdout across thresholds: rho=-1.000 (p=0.000)
+
+-- h+10 (base rate: discovery +0.573%, holdout +1.698%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    1751   +0.190%     838   +0.357%   -0.443%    55.37%
+        4    1498   +0.239%     731   +0.267%   -0.533%    54.31%
+        5    1049   +0.380%     521   -0.507%   -1.307%    49.14%
+        6     234   +0.889%     105   -1.328%   -2.128%    45.71%
+  rank correlation discovery vs holdout across thresholds: rho=-1.000 (p=0.000)
+
+==============================================================================
+UNVR  (discovery 2003-09-03..2019-07-15, holdout 2019-07-16..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.468%, holdout -0.241%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2564   -0.158%     763   -0.035%   -0.835%    41.81%
+        4    2251   -0.136%     651   +0.034%   -0.766%    41.47%
+        5    1615   -0.101%     402   +0.328%   -0.472%    44.53%
+        6     327   +0.251%      84   +1.462%   +0.662%    39.29%
+  rank correlation discovery vs holdout across thresholds: rho=+1.000 (p=0.000)
+
+-- h+10 (base rate: discovery +0.916%, holdout -0.457%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2564   -0.081%     759   -0.158%   -0.958%    38.74%
+        4    2251   -0.034%     647   +0.020%   -0.780%    38.64%
+        5    1615   +0.008%     400   +0.704%   -0.096%    42.75%
+        6     327   +0.336%      84   +3.571%   +2.771%    42.86%
+  rank correlation discovery vs holdout across thresholds: rho=+1.000 (p=0.000)
+
+==============================================================================
 BUMI  (discovery 2001-06-07..2018-11-12, holdout 2018-11-13..2026-07-21)
 ==============================================================================
 
@@ -52,3 +250,35 @@ DEWA  (discovery 2007-09-26..2020-10-15, holdout 2020-10-16..2026-07-21)
         5     276   +5.669%     398   -0.116%   -0.916%    49.25%
         6     100   +4.021%     173   +1.826%   +1.026%    54.91%
   rank correlation discovery vs holdout across thresholds: rho=-0.400 (p=0.600)
+
+
+==============================================================================
+RINGKASAN LINTAS SAHAM (score >= 6, ambang paling ketat)
+==============================================================================
+ticker    horizon  n hold   net edge   win rate  positif net?
+BBCA            5     152   -1.115%    44.08%         tidak
+BBCA           10     152   -0.961%    46.05%         tidak
+BBRI            5     120   -0.714%    49.17%         tidak
+BBRI           10     120   -0.687%    51.67%         tidak
+BMRI            5     122   -0.951%    50.00%         tidak
+BMRI           10     122   -0.740%    58.20%         tidak
+TLKM            5     104   -1.048%    50.96%         tidak
+TLKM           10     104   -1.120%    48.08%         tidak
+ASII            5     140   -1.029%    42.14%         tidak
+ASII           10     140   -1.036%    45.00%         tidak
+GOTO            5     n/a        n/a        n/a   data kurang
+GOTO           10     n/a        n/a        n/a   data kurang
+INDF            5     153   -1.127%    48.37%         tidak
+INDF           10     153   -0.819%    54.90%         tidak
+ICBP            5     139   -0.443%    53.96%         tidak
+ICBP           10     139   -0.024%    56.12%         tidak
+ADRO            5     105   -1.724%    42.86%         tidak
+ADRO           10     105   -2.128%    45.71%         tidak
+UNVR            5      84   +0.662%    39.29%            YA
+UNVR           10      84   +2.771%    42.86%            YA
+BUMI            5     141   +1.252%    56.03%            YA
+BUMI           10     141   +2.933%    61.70%            YA
+DEWA            5     173   +0.057%    50.29%            YA
+DEWA           10     173   +1.026%    54.91%            YA
+
+-> net edge positif di 6/22 kombinasi ticker x horizon (ambang paling ketat, di luar biaya transaksi)
