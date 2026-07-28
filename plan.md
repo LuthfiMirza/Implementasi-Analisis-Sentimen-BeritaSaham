@@ -1377,3 +1377,24 @@ Korelasi peringkat discovery→holdout: BUMI positif (+0,60 h5, +0,80 h10, TIDAK
 Efek positif di BUMI (Fase W awal) **bukan pola umum IDX** — spesifik untuk saham kecil/volatil, gagal total di saham blue-chip besar yang lebih likuid dan stabil. Ini memperkuat, bukan membantah, temuan Fase T/S bahwa harga blue-chip jauh lebih sulit "dibaca" dari pola teknikal murni dibanding saham kecil yang pergerakannya lebih liar. Skor konfluensi teknikal **tidak layak dipromosikan sebagai sinyal umum** — kalaupun mau dipakai, cuma masuk akal dipertimbangkan khusus untuk profil saham serupa BUMI/DEWA, dan itu pun cuma separuh sistem (tanpa komponen broker/asing).
 
 ### Status: Fase W DITUTUP TUNTAS. Tidak ada bukti generalisasi. Konsisten dengan seluruh pola sesi ini: teknikal murni tidak cukup untuk memprediksi arah, kecuali mungkin di segmen saham yang sangat spesifik dan itu pun belum diverifikasi cukup kuat.
+
+## Fase X — Sumber data aliran asing: satu ditemukan, dibangun sebagai pengumpul jujur (bukan fitur siap pakai)
+
+**Konteks:** user minta dicari lagi lebih keras data net asing/broker (buntu di sesi sebelumnya via `idx.co.id` dan `sectors.app`), termasuk kemungkinan live.
+
+### Pencarian ulang
+Dicek: endpoint `idx.co.id/primary/TradingSummary/*` (403 Cloudflare, konsisten dengan temuan sebelumnya), `sahamidx.com` (226 byte, redirect/blocked), `RTI Business` (aplikasi mobile, tidak ada web publik tanpa login yang ditemukan), `KSEI` (tidak ada API terbuka yang ditemukan).
+
+**Satu sumber ditemukan yang benar-benar bisa diakses**: `infovesta.com/index/data_info/saham/{topbuy,topsell}` — HTML statis, bisa di-fetch via `curl` biasa, TIDAK diblokir Cloudflare. Berisi 5 saham dengan net-buy asing terbesar dan 5 dengan net-sell terbesar, dalam volume lembar.
+
+### Dua batasan yang membatasi penggunaannya — diverifikasi langsung, bukan diasumsikan
+1. **Parameter `?date=` diabaikan sepenuhnya** — dites dengan tanggal 2020-01-01 vs hari ini, hasilnya identik (selalu snapshot live). **Tidak ada riwayat yang bisa diambil dari sumber ini**, artinya tidak bisa divalidasi walk-forward seperti seluruh metodologi proyek ini.
+2. **Cuma top-5, bukan semua saham** — bukan data lengkap 10 saham resmi + BUMI/DEWA secara sistematis, cuma siapa pun yang kebetulan jadi top mover volume lembar hari itu.
+
+### Keputusan desain: pengumpul, bukan fitur model
+Karena tidak bisa divalidasi, memasukkan ini langsung sebagai fitur ke V6A/V6B/DSS akan mengulang pola kesalahan `buying_pressure` lama (dipakai sebelum diuji, klaim 59% ternyata 33% saat divalidasi). Yang dibangun: `quant/foreign_flow_tracker/collect_snapshot.py` — mengumpulkan snapshot ke `snapshots.jsonl` (append-only) setiap kali dijalankan, supaya beberapa bulan ke depan terkumpul riwayat milik sendiri yang BARU BISA divalidasi nanti (pola sama dengan Fase V: kalau data historis tidak ada, kumpulkan prospektif dulu, jangan pura-pura sudah tervalidasi).
+
+- **Verifikasi nyata**: dijalankan sungguhan, berhasil parsing 5 saham net-buy (IATA, BACH, BRPT, RAJA, SCMA) dan 5 net-sell (**BUMI**, BUKA, PADI, BNBR, DSSA) dari HTML asli infovesta hari ini — termasuk breakdown Buy/Sell/Net per saham, bukan cuma judul kolom.
+- Tidak dijadwalkan otomatis ke `routes/console.php` — statusnya eksploratif/pengumpulan data, bukan bagian pipeline produksi.
+
+### Status Fase X: KODE SIAP DAN TERUJI, DATA BARU MULAI TERKUMPUL. Belum ada nilai analitis — perlu bulanan pengumpulan sebelum `analyze.py` (belum dibangun, langkah berikut kalau data sudah cukup) bisa mulai menguji apakah kemunculan di daftar top-5 berkorelasi dengan return berikutnya.
