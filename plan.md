@@ -1281,3 +1281,33 @@ Reframe ini mengikuti langsung dari diagnosis Fase S: kalau `atr14_pct`+`atr_rat
 4. **Ini BUKAN sinyal beli/jual dan tidak boleh dijadikan sinyal.** Yang diprediksi adalah besaran, bukan arah — informasinya berguna untuk ukuran posisi dan lebar stop, bukan untuk memutuskan beli atau jual. Pertanyaan arah/entry sudah ditutup terpisah di Fase L, S4, dan T.
 
 ### Status Fase U: SELESAI, TEMUAN POSITIF PERTAMA UNTUK PREDIKSI (dengan syarat). Target besaran terbukti jauh lebih bisa diprediksi daripada arah, konsisten 8/8 fold. Belum diintegrasikan ke produksi/DSS — kalau mau dipakai, harus dilabeli tegas sebagai peringatan volatilitas/risiko, bukan rekomendasi transaksi, dan trend penyusutan lift-nya wajib dipantau.
+
+## Fase V — Pencatat evaluasi prospektif untuk layanan sinyal Telegram komersial
+
+**Konteks:** user menunjukkan screenshot layanan sinyal Telegram berbayar ("Zeta AI") yang mengklaim win rate 82,4% dan tabel "broker paling prediktif". Sebelum membangun apa pun, dianalisis dulu klaim yang sudah ada:
+
+### Analisis klaim yang ditunjukkan (tanpa perlu data baru)
+- **Win rate 82,4% dihitung dari penyebut yang salah.** Screenshot menunjukkan 38 sinyal, 14 TP hit, 3 SL hit → "resolved" cuma 17. `14/17=82,4%` yang dipajang; kalau semua 38 sinyal masuk penyebut (termasuk 21 yang belum selesai, kemungkinan besar didominasi posisi merah yang ditahan menunggu balik), `14/38=36,8%`. Pola tepat sama dengan yang dulu dibongkar di kode `buying_pressure` proyek ini sendiri.
+- **Tabel "broker paling prediktif" tidak signifikan secara statistik.** Dihitung peluang kebetulan (binomial, asumsi broker sama sekali tidak punya skill, p=0,5): "Phintraco 100% dari 6 trade" → 1,56% peluang kebetulan (dari ~100 broker, ~1-2 memang akan terlihat begini murni acak); "UBS 80% dari 10 trade" → 5,47%. Sampel terlalu kecil untuk disebut pola.
+- **7 indikator teknikal yang mereka pakai** (MACD, RSI, EMA, VWAP, ADX, Bollinger, ATR) **persis** subset dari 32 indikator yang sudah diuji Fase T di data BUMI/DEWA milik proyek ini — korelasi backtest→masa depan untuk DEWA sudah terbukti **−0,760**.
+
+### Sumber data net asing gratis: DICEK, BUNTU
+Endpoint `idx.co.id/primary/TradingSummary/GetBrokerSummary` dan `GetStockSummary` (dipakai berbagai scraper GitHub publik) dites langsung: **403 Cloudflare**, sama seperti temuan sebelumnya untuk endpoint IDX lain. `sectors.app` (fitur "Bandarmology"/net asing) API-nya cuma untuk paket berbayar "Insider", tidak ada tier gratis. **Tidak ada jalur gratis yang ditemukan.**
+
+### Solusi yang dibangun: evaluasi prospektif pre-registered
+`quant/signal_tracker/` — bukan mencoba scrape data broker (buntu), tapi menguji KLAIM layanan sinyal itu sendiri secara jujur, ke depan.
+
+- **`PROTOCOL.md`** — aturan evaluasi ditulis dan di-commit SEBELUM sinyal pertama dicatat: filter (BUY + confidence=5, sinyal lain tetap dicatat sebagai tidak-dilacak), horizon 30 hari kalender, semua sinyal masuk penyebut (memperbaiki celah 82,4%→36,8% di atas), biaya 0,80% round-trip, wajib dibandingkan ke beli-diamkan DAN IHSG, minimum n=20 sebelum simpulkan apa pun.
+- **`schema.sql`** — SQLite dengan trigger `BEFORE UPDATE`/`BEFORE DELETE` yang memblokir edit/hapus di level database (bukan cuma konvensi) — diverifikasi langsung: percobaan UPDATE dan DELETE keduanya gagal dengan `sqlite3.IntegrityError`.
+- **`log_signal.py`** — catat satu sinyal (CLI interaktif atau argumen), otomatis menandai `tracked=1/0` sesuai filter protokol, sinyal yang tidak lolos filter tetap tersimpan dengan alasan.
+- **`evaluate.py`** — setelah 30 hari lewat, ambil harga asli via yfinance (bukan re-baca klaim sumber), tentukan TP_HIT/SL_HIT/TIME_EXIT, hitung return net biaya + pembanding beli-diamkan + IHSG.
+- **`report.py`** — menampilkan win rate versi jujur BERDAMPINGAN dengan versi ala-dashboard, distribusi return, waktu penyelesaian per jenis hasil, dan verdict — **menolak menyimpulkan apa pun kalau n<20** (dicoba: n=0/1, program menampilkan "BELUM CUKUP DATA" bukan angka palsu).
+
+### Verifikasi end-to-end (bukan simulasi)
+- Filter diuji 3 kasus: WATCHLIST conf=5 → dikecualikan; BUY conf=5 → tracked; BUY conf=3 → dikecualikan. Semua sesuai protokol.
+- Trigger append-only diuji: UPDATE dan DELETE keduanya diblokir dengan pesan error yang jelas.
+- `evaluate.py` diuji dengan sinyal RAJA (tanggal posting sudah lewat 30 hari): berhasil fetch data RAJA.JK dan ^JKSE asli via yfinance, hasil TP_HIT, net_return +7,04% terhitung benar.
+- **Bug ditemukan & diperbaiki saat uji nyata**: fetch IHSG menempelkan `.JK` ke `^JKSE` (404) — simbol indeks yfinance tidak boleh dapat suffix itu, cuma kode saham individual. Diperbaiki.
+- Data uji coba dihapus sebelum dipakai sungguhan (bukan data sinyal asli, aman dihapus). `tracker.sqlite3` di-gitignore — akan di-commit sebagai bukti begitu terkumpul data asli dan sudah lewat 30 hari, bukan sebelum itu.
+
+### Status Fase V: KODE SIAP DAN TERUJI END-TO-END, MENUNGGU DATA ASLI. Belum ada sinyal sungguhan dicatat — itu tindakan user (mengamati channel Telegram secara live). Minimum 20 sinyal + 30 hari per sinyal dibutuhkan sebelum kesimpulan bisa ditarik.
