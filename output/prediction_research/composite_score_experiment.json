@@ -1,0 +1,277 @@
+{
+  "results": [
+    {
+      "ticker": "BUMI",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2159,
+        "edge": 0.008737,
+        "net_edge": 0.000737,
+        "win_rate": 0.415
+      },
+      "holdout": {
+        "n": 748,
+        "edge": 0.007491,
+        "net_edge": -0.000509,
+        "win_rate": 0.4372
+      }
+    },
+    {
+      "ticker": "BUMI",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 1829,
+        "edge": 0.007867,
+        "net_edge": -0.000133,
+        "win_rate": 0.4226
+      },
+      "holdout": {
+        "n": 628,
+        "edge": 0.012359,
+        "net_edge": 0.004359,
+        "win_rate": 0.457
+      }
+    },
+    {
+      "ticker": "BUMI",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1219,
+        "edge": 0.008788,
+        "net_edge": 0.000788,
+        "win_rate": 0.4348
+      },
+      "holdout": {
+        "n": 428,
+        "edge": 0.023908,
+        "net_edge": 0.015908,
+        "win_rate": 0.4907
+      }
+    },
+    {
+      "ticker": "BUMI",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 342,
+        "edge": 0.010823,
+        "net_edge": 0.002823,
+        "win_rate": 0.4386
+      },
+      "holdout": {
+        "n": 141,
+        "edge": 0.020517,
+        "net_edge": 0.012517,
+        "win_rate": 0.5603
+      }
+    },
+    {
+      "ticker": "BUMI",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 2159,
+        "edge": 0.020669,
+        "net_edge": 0.012669,
+        "win_rate": 0.4609
+      },
+      "holdout": {
+        "n": 747,
+        "edge": 0.012477,
+        "net_edge": 0.004477,
+        "win_rate": 0.4471
+      }
+    },
+    {
+      "ticker": "BUMI",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 1829,
+        "edge": 0.020455,
+        "net_edge": 0.012455,
+        "win_rate": 0.4658
+      },
+      "holdout": {
+        "n": 628,
+        "edge": 0.017565,
+        "net_edge": 0.009565,
+        "win_rate": 0.4618
+      }
+    },
+    {
+      "ticker": "BUMI",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 1219,
+        "edge": 0.021656,
+        "net_edge": 0.013656,
+        "win_rate": 0.4881
+      },
+      "holdout": {
+        "n": 428,
+        "edge": 0.032444,
+        "net_edge": 0.024444,
+        "win_rate": 0.521
+      }
+    },
+    {
+      "ticker": "BUMI",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 342,
+        "edge": 0.024054,
+        "net_edge": 0.016054,
+        "win_rate": 0.4795
+      },
+      "holdout": {
+        "n": 141,
+        "edge": 0.037325,
+        "net_edge": 0.029325,
+        "win_rate": 0.617
+      }
+    },
+    {
+      "ticker": "DEWA",
+      "horizon": 5,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 533,
+        "edge": 0.016409,
+        "net_edge": 0.008409,
+        "win_rate": 0.3846
+      },
+      "holdout": {
+        "n": 629,
+        "edge": 0.002791,
+        "net_edge": -0.005209,
+        "win_rate": 0.4897
+      }
+    },
+    {
+      "ticker": "DEWA",
+      "horizon": 5,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 434,
+        "edge": 0.019279,
+        "net_edge": 0.011279,
+        "win_rate": 0.394
+      },
+      "holdout": {
+        "n": 514,
+        "edge": 0.003213,
+        "net_edge": -0.004787,
+        "win_rate": 0.4805
+      }
+    },
+    {
+      "ticker": "DEWA",
+      "horizon": 5,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 276,
+        "edge": 0.028602,
+        "net_edge": 0.020602,
+        "win_rate": 0.442
+      },
+      "holdout": {
+        "n": 398,
+        "edge": -0.001517,
+        "net_edge": -0.009517,
+        "win_rate": 0.4548
+      }
+    },
+    {
+      "ticker": "DEWA",
+      "horizon": 5,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 100,
+        "edge": 0.003564,
+        "net_edge": -0.004436,
+        "win_rate": 0.36
+      },
+      "holdout": {
+        "n": 173,
+        "edge": 0.008568,
+        "net_edge": 0.000568,
+        "win_rate": 0.5029
+      }
+    },
+    {
+      "ticker": "DEWA",
+      "horizon": 10,
+      "score_threshold": 3,
+      "discovery": {
+        "n": 533,
+        "edge": 0.029333,
+        "net_edge": 0.021333,
+        "win_rate": 0.3659
+      },
+      "holdout": {
+        "n": 626,
+        "edge": 0.005915,
+        "net_edge": -0.002085,
+        "win_rate": 0.4952
+      }
+    },
+    {
+      "ticker": "DEWA",
+      "horizon": 10,
+      "score_threshold": 4,
+      "discovery": {
+        "n": 434,
+        "edge": 0.035966,
+        "net_edge": 0.027966,
+        "win_rate": 0.3687
+      },
+      "holdout": {
+        "n": 512,
+        "edge": 0.005266,
+        "net_edge": -0.002734,
+        "win_rate": 0.5039
+      }
+    },
+    {
+      "ticker": "DEWA",
+      "horizon": 10,
+      "score_threshold": 5,
+      "discovery": {
+        "n": 276,
+        "edge": 0.056694,
+        "net_edge": 0.048694,
+        "win_rate": 0.4167
+      },
+      "holdout": {
+        "n": 398,
+        "edge": -0.001163,
+        "net_edge": -0.009163,
+        "win_rate": 0.4925
+      }
+    },
+    {
+      "ticker": "DEWA",
+      "horizon": 10,
+      "score_threshold": 6,
+      "discovery": {
+        "n": 100,
+        "edge": 0.040209,
+        "net_edge": 0.032209,
+        "win_rate": 0.36
+      },
+      "holdout": {
+        "n": 173,
+        "edge": 0.018262,
+        "net_edge": 0.010262,
+        "win_rate": 0.5491
+      }
+    }
+  ],
+  "scope_limit": "technical_half_only_no_broker_flow_data"
+}

@@ -1,0 +1,54 @@
+Composite Technical Score Experiment (TECHNICAL HALF ONLY -- see scope limit)
+==============================================================================
+
+SCOPE LIMIT: the source's real score combines broker-flow signals (net foreign/broker
+buying) with technical confirmation. The broker-flow half could not be built -- no
+accessible free data source (Fase V: idx.co.id broker endpoints 403, sectors.app paid-
+only). This tests ONLY a technical composite (6-point score: MACD, EMA20, EMA50, ADX+
+trend direction, VWAP-proxy, RSI zone). This is a partial reconstruction, not the actual
+system -- treat results as informative about technical confluence generally, not as a
+verdict on the real service.
+
+Same discipline as Fase T: chronological 70/30 split, holdout never used to pick
+anything, entry one bar after the score is observed, net of 0.80% round-trip cost.
+
+
+==============================================================================
+BUMI  (discovery 2001-06-07..2018-11-12, holdout 2018-11-13..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery +0.765%, holdout +0.436%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2159   +0.874%     748   +0.749%   -0.051%    43.72%
+        4    1829   +0.787%     628   +1.236%   +0.436%    45.70%
+        5    1219   +0.879%     428   +2.391%   +1.591%    49.07%
+        6     342   +1.082%     141   +2.052%   +1.252%    56.03%
+  rank correlation discovery vs holdout across thresholds: rho=+0.600 (p=0.400)
+
+-- h+10 (base rate: discovery +1.546%, holdout +0.935%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3    2159   +2.067%     747   +1.248%   +0.448%    44.71%
+        4    1829   +2.046%     628   +1.757%   +0.957%    46.18%
+        5    1219   +2.166%     428   +3.244%   +2.444%    52.10%
+        6     342   +2.405%     141   +3.732%   +2.933%    61.70%
+  rank correlation discovery vs holdout across thresholds: rho=+0.800 (p=0.200)
+
+==============================================================================
+DEWA  (discovery 2007-09-26..2020-10-15, holdout 2020-10-16..2026-07-21)
+==============================================================================
+
+-- h+5 (base rate: discovery -0.099%, holdout +1.137%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3     533   +1.641%     629   +0.279%   -0.521%    48.97%
+        4     434   +1.928%     514   +0.321%   -0.479%    48.05%
+        5     276   +2.860%     398   -0.152%   -0.952%    45.48%
+        6     100   +0.356%     173   +0.857%   +0.057%    50.29%
+  rank correlation discovery vs holdout across thresholds: rho=-0.800 (p=0.200)
+
+-- h+10 (base rate: discovery -0.210%, holdout +2.217%) --
+ score >=  disc n  disc edge  hold n  hold edge   hold NET  hold win%
+        3     533   +2.933%     626   +0.592%   -0.209%    49.52%
+        4     434   +3.597%     512   +0.527%   -0.273%    50.39%
+        5     276   +5.669%     398   -0.116%   -0.916%    49.25%
+        6     100   +4.021%     173   +1.826%   +1.026%    54.91%
+  rank correlation discovery vs holdout across thresholds: rho=-0.400 (p=0.600)

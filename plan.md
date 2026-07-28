@@ -1311,3 +1311,41 @@ Endpoint `idx.co.id/primary/TradingSummary/GetBrokerSummary` dan `GetStockSummar
 - Data uji coba dihapus sebelum dipakai sungguhan (bukan data sinyal asli, aman dihapus). `tracker.sqlite3` di-gitignore — akan di-commit sebagai bukti begitu terkumpul data asli dan sudah lewat 30 hari, bukan sebelum itu.
 
 ### Status Fase V: KODE SIAP DAN TERUJI END-TO-END, MENUNGGU DATA ASLI. Belum ada sinyal sungguhan dicatat — itu tindakan user (mengamati channel Telegram secara live). Minimum 20 sinyal + 30 hari per sinyal dibutuhkan sebelum kesimpulan bisa ditarik.
+
+## Fase W — Rekonstruksi & uji skor gabungan "Zeta AI" (separuh teknikal saja)
+
+**Konteks:** user minta uji apakah sistem skor gabungan (aliran broker + indikator teknikal → BUY di atas ambang) yang teridentifikasi dari screenshot layanan Telegram bisa diimplementasikan dan berdampak.
+
+**Batasan yang dinyatakan di depan**: komponen aliran broker (DI Dominant, SM Buy, Star Buyer) TIDAK BISA dibangun — Fase V sudah membuktikan tidak ada sumber data gratis (endpoint broker `idx.co.id` 403, `sectors.app` berbayar). Yang diuji cuma separuh teknikal.
+
+### Metodologi
+`quant/run_composite_score_experiment.py` — skor 6 poin (MACD bullish, harga>EMA20, harga>EMA50, ADX>25+arah, harga>VWAP-proxy 20 hari, RSI 45-70), disiplin identik Fase T: split kronologis 70/30, holdout tersegel, entry 1 bar setelah skor terbentuk, net biaya 0,80%, ambang 3/4/5/6 disapu semua.
+
+### Hasil: BEDA per saham, bukan seragam
+
+**BUMI — meningkat monoton seiring ambang, konsisten:**
+| Ambang | n holdout | Net edge h+5 | Net edge h+10 | Win rate |
+|---|---|---|---|---|
+| ≥3 | 748 | −0,05% | +0,45% | 43,7% |
+| ≥4 | 628 | +0,44% | +0,96% | 45,7% |
+| ≥5 | 428 | +1,59% | +2,44% | 49,1% |
+| **≥6 (semua setuju)** | **141** | **+1,25%** | **+2,93%** | **56–62%** |
+
+Sinyal ≥6 menyala cuma ~7,5% hari (141/~1871 hari holdout) — selektif, bukan sekadar filter tren seperti `macd_above_zero` (43% hari) yang gagal sebelumnya.
+
+**DEWA — tidak monoton, memburuk di tengah:**
+| Ambang | n holdout | Net edge h+5 | Net edge h+10 |
+|---|---|---|---|
+| ≥3 | 629 | −0,52% | −0,21% |
+| ≥5 | 398 | **−0,95%** | **−0,92%** |
+| ≥6 | 173 | +0,06% | +1,03% |
+
+Korelasi peringkat discovery→holdout: BUMI positif (+0,60 h5, +0,80 h10, TIDAK signifikan p=0,2-0,4 karena cuma 4 titik ambang), DEWA negatif (−0,80, −0,40) — pola sama dengan Fase T.
+
+### Kesimpulan
+1. **Konfluensi (beberapa indikator setuju bersamaan) menunjukkan efek nyata di BUMI** — beda dari SEMUA eksperimen sebelumnya sesi ini yang gagal telak. Monoton, selektif, tidak sekadar filter tren.
+2. **Tapi gagal total di DEWA** — tidak konsisten antar-saham sejenis, jadi belum bisa diklaim sebagai temuan umum untuk IDX.
+3. **Cuma separuh sistem asli** yang teruji (tanpa aliran broker) — bukan verifikasi/replikasi "Zeta AI" itu sendiri.
+4. **n=2 saham, 4 titik ambang** — terlalu kecil untuk kesimpulan robust. Perlu diuji di lebih banyak saham sebelum ditindaklanjuti.
+
+### Status Fase W: SELESAI, TEMUAN CAMPURAN (bukan gagal murni, bukan berhasil murni). Layak dicatat sebagai arah lanjutan — uji skor konfluensi serupa di 10 saham resmi (bukan cuma BUMI/DEWA) — tapi BELUM cukup bukti untuk dipromosikan jadi sinyal produksi.
