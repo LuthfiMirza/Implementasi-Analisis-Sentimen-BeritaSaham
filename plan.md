@@ -1249,3 +1249,35 @@ Tapi tiga catatan yang membatalkan pembacaan optimistis:
 4. **Nilai untuk skripsi**: ini bab metodologi yang kuat — memperagakan overfitting/data snooping dengan data nyata dan angka sendiri, bukan mengutip teori.
 
 ### Status Fase T: SELESAI. Tidak ada indikator yang layak dipromosikan jadi sinyal trading. Artefak: `quant/run_technical_indicator_survey.py`, `output/prediction_research/technical_indicator_survey.{json,txt}`.
+
+## Fase U — Ganti target: dari ARAH ke BESARAN. Hasil positif pertama untuk prediksi
+
+**Konteks:** user bertanya apakah ada cara lain memprediksi — menyebut "belajar pola" dan "banyak yang jual beli" — lalu menurunkan bar sendiri: "kasih tanda-tanda saja setidaknya". Dua bagian, jawabannya berbeda.
+
+### Bagian 1 — "banyak yang jual beli": SUDAH DIUJI, GAGAL (jangan diulang)
+Proksi tekanan beli/jual dari harga+volume (`buying_pressure`) sudah divalidasi walk-forward di sesi lampau (`output/prediction_research/buying_pressure_walkforward_validation.txt`): sebagai aturan langsung dir_acc **33,06%** (kalah dari majority 38,80% DAN random 35,53%, kalah di 7/8 fold); sebagai fitur tambahan ke model justru **menurunkan** macro-F1 −0,0126 dan dir_acc −0,0136 (5-seed, di luar rentang std). Klaim "~59% vs ~50%" di komentar kode lama tidak bisa direproduksi.
+
+**Order flow yang sebenarnya tidak tersedia**: skema `stock_prices` dan CSV harga hanya berisi OHLCV — tidak ada bid/ask, net beli asing, atau order book. Menguji ide ini dengan benar butuh sumber data baru (IDX Data Services berbayar / API broker), bukan turunan lain dari volume.
+
+### Bagian 2 — "kasih tanda-tanda saja": DIUJI, HASILNYA POSITIF
+Reframe ini mengikuti langsung dari diagnosis Fase S: kalau `atr14_pct`+`atr_ratio` (ukuran BESARAN gerakan) mendominasi 36% feature importance sementara akurasi ARAH cuma ~40%, maka fitur yang sama seharusnya jauh lebih baik pada target yang memang cocok. Diuji: `|return 5 hari| >= ambang` → "big_move" vs "quiet". Fitur, fold, dan purge gap identik dengan V6A — hanya targetnya yang diganti.
+
+`quant/run_volatility_warning_experiment.py`. Ambang pre-specified 3%/5%/7%, semua dilaporkan.
+
+| Ambang | Base rate | Presisi RF | Lift vs base | Recall | macro-F1 (vs majority) |
+|---|---|---|---|---|---|
+| 3% | 39,4% | 50,59% | **+11,18pp** | 55,29% | 0,5708 (vs 0,3764) |
+| 5% | 19,5% | 32,98% | **+13,47pp** (1,7×) | 55,79% | 0,5817 (vs 0,4456) |
+| 7% | 10,3% | 23,64% | **+13,30pp** (2,3×) | 58,01% | 0,5801 (vs 0,4726) |
+
+**Konsistensi: lift positif di 8/8 fold pada KEDUA ambang 5% dan 7%** — tidak sekali pun berbalik. Ini kontras tajam dengan seluruh temuan lain sesi ini (survei indikator Fase T: tanda berbalik; autokorelasi: tanda berbalik antar-periode; kandidat DEWA: gagal OOS).
+
+**Perbandingan konteks:** prediksi ARAH memberi 40% vs 33% peluang acak = 1,2×. Prediksi BESARAN memberi hingga 2,3× — jauh lebih kuat, dengan metodologi yang sama persis.
+
+### Catatan jujur yang WAJIB dibaca bersama angka di atas
+1. **Liftnya menyusut seiring waktu.** Ambang 5%: fold 2022–2024 memberi +11,9/+25,8/+26,1/+17,4pp, tapi fold 2024–2026 cuma +13,8/+4,4/+3,8/+4,7pp. Pola sama di ambang 7%. Periode terbaru — yang paling relevan untuk penggunaan ke depan — justru yang paling lemah. Penyebab yang paling mungkin: base rate ikut naik di fold belakangan (17,6% → 25,8%), dan saat semua saham sedang bergejolak, mengetahui sesuatu akan bergejolak jadi kurang informatif.
+2. **Akurasi keseluruhan LEBIH RENDAH dari majority baseline** (67,4% vs 80,5% di ambang 5%). Itu memang konsekuensi yang benar untuk sistem peringatan — majority mendapat akurasi tinggi dengan tidak pernah membunyikan alarm sama sekali (presisi & recall kelas big_move = 0%) — tapi jangan dilaporkan sebagai "akurasi naik".
+3. **Sebagian besar alarm tetap salah.** Presisi 23,6% di ambang 7% berarti ~3 dari 4 peringatan meleset. Berguna sebagai indikator risiko, bukan sebagai kepastian.
+4. **Ini BUKAN sinyal beli/jual dan tidak boleh dijadikan sinyal.** Yang diprediksi adalah besaran, bukan arah — informasinya berguna untuk ukuran posisi dan lebar stop, bukan untuk memutuskan beli atau jual. Pertanyaan arah/entry sudah ditutup terpisah di Fase L, S4, dan T.
+
+### Status Fase U: SELESAI, TEMUAN POSITIF PERTAMA UNTUK PREDIKSI (dengan syarat). Target besaran terbukti jauh lebih bisa diprediksi daripada arah, konsisten 8/8 fold. Belum diintegrasikan ke produksi/DSS — kalau mau dipakai, harus dilabeli tegas sebagai peringatan volatilitas/risiko, bukan rekomendasi transaksi, dan trend penyusutan lift-nya wajib dipantau.

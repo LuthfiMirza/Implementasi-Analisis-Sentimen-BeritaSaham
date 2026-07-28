@@ -1,0 +1,64 @@
+Volatility Warning Experiment -- predicting MAGNITUDE instead of DIRECTION
+==============================================================================
+
+Same features as V6A, same walk-forward folds, purge gap = 5 days.
+Target: |5-day forward return| >= threshold -> 'big_move', else 'quiet'.
+Reference: the same features on 3-class DIRECTION reach ~40% accuracy / 0.37 macro-F1.
+
+Read the 'big_move' precision/recall, not overall accuracy -- accuracy is inflated whenever
+one class dominates, which is exactly what the majority_class row exists to expose.
+
+--- ambang 3% (base rate 'big_move' = 39.4%, 8 fold) ---
+model               accuracy  macro-F1  precision   recall
+random_forest         60.55%    0.5708     50.59%   55.29%
+majority_class        60.59%    0.3764      0.00%    0.00%
+random_baseline       51.99%    0.5022     39.94%   43.29%
+  -> vs majority: accuracy -0.04%, macro-F1 +0.1944
+  -> lift precision vs base rate: +11.18%
+  -> lift positif di 8/8 fold
+     per fold (cek konsistensi DAN pergeseran seiring waktu):
+       2022-03-29..2022-10-05  presisi 48.10% vs base 35.60%  lift +12.50%
+       2022-10-06..2023-04-04  presisi 53.41% vs base 35.95%  lift +17.46%
+       2023-04-05..2023-10-19  presisi 58.27% vs base 30.79%  lift +27.48%
+       2023-10-20..2024-05-06  presisi 48.81% vs base 34.44%  lift +14.37%
+       2024-05-07..2024-11-07  presisi 48.26% vs base 38.81%  lift +9.45%
+       2024-11-08..2025-06-02  presisi 50.25% vs base 48.33%  lift +1.92%
+       2025-06-03..2025-12-02  presisi 46.48% vs base 44.21%  lift +2.27%
+       2025-12-03..2026-06-24  presisi 51.12% vs base 47.14%  lift +3.98%
+
+--- ambang 5% (base rate 'big_move' = 19.5%, 8 fold) ---
+model               accuracy  macro-F1  precision   recall
+random_forest         67.35%    0.5817     32.98%   55.79%
+majority_class        80.49%    0.4456      0.00%    0.00%
+random_baseline       65.76%    0.4939     19.09%   23.37%
+  -> vs majority: accuracy -13.14%, macro-F1 +0.1361
+  -> lift precision vs base rate: +13.47%
+  -> lift positif di 8/8 fold
+     per fold (cek konsistensi DAN pergeseran seiring waktu):
+       2022-03-29..2022-10-05  presisi 29.51% vs base 17.63%  lift +11.88%
+       2022-10-06..2023-04-04  presisi 43.80% vs base 18.02%  lift +25.78%
+       2023-04-05..2023-10-19  presisi 38.01% vs base 11.90%  lift +26.10%
+       2023-10-20..2024-05-06  presisi 34.28% vs base 16.90%  lift +17.37%
+       2024-05-07..2024-11-07  presisi 32.04% vs base 18.25%  lift +13.79%
+       2024-11-08..2025-06-02  presisi 31.98% vs base 27.62%  lift +4.36%
+       2025-06-03..2025-12-02  presisi 23.71% vs base 19.92%  lift +3.79%
+       2025-12-03..2026-06-24  presisi 30.47% vs base 25.79%  lift +4.68%
+
+--- ambang 7% (base rate 'big_move' = 10.3%, 8 fold) ---
+model               accuracy  macro-F1  precision   recall
+random_forest         73.95%    0.5801     23.64%   58.01%
+majority_class        89.66%    0.4726      0.00%    0.00%
+random_baseline       79.36%    0.4910      9.16%   11.18%
+  -> vs majority: accuracy -15.71%, macro-F1 +0.1075
+  -> lift precision vs base rate: +13.30%
+  -> lift positif di 8/8 fold
+     per fold (cek konsistensi DAN pergeseran seiring waktu):
+       2022-03-29..2022-10-05  presisi 23.38% vs base 10.08%  lift +13.31%
+       2022-10-06..2023-04-04  presisi 31.61% vs base  9.52%  lift +22.08%
+       2023-04-05..2023-10-19  presisi 29.94% vs base  6.27%  lift +23.67%
+       2023-10-20..2024-05-06  presisi 26.61% vs base  8.41%  lift +18.20%
+       2024-05-07..2024-11-07  presisi 21.53% vs base  8.81%  lift +12.72%
+       2024-11-08..2025-06-02  presisi 23.44% vs base 15.95%  lift +7.49%
+       2025-06-03..2025-12-02  presisi 15.13% vs base  9.44%  lift +5.69%
+       2025-12-03..2026-06-24  presisi 17.46% vs base 14.21%  lift +3.25%
+
