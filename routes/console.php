@@ -102,6 +102,18 @@ Schedule::command('stocks:fetch-history --days=1')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// END-OF-DAY: 15.15 WIB
+// Fase X (eksploratif, BUKAN fitur produksi): kumpulkan snapshot top-5 net foreign buy/sell
+// hari ini dari infovesta.com. Sumber ini live-only (tanpa riwayat, ?date= diabaikan) dan cuma
+// top-5 saham -- tujuannya cuma membangun riwayat sendiri secara bertahap, bukan input model.
+// Lihat quant/foreign_flow_tracker/README.md.
+Schedule::command('research:collect-foreign-flow')
+    ->weekdays()
+    ->dailyAt('15:15')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // END-OF-DAY ML REANALYSIS: 15.20 WIB
 // Catatan: 'news:rescore-sentiment' (full-corpus, tanpa filter) sengaja TIDAK
 // dijadwalkan lagi -- dulu jalan 2x/hari (12:00 & 15:15) tapi redundan dan makin
