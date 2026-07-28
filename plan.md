@@ -1398,3 +1398,22 @@ Karena tidak bisa divalidasi, memasukkan ini langsung sebagai fitur ke V6A/V6B/D
 - Tidak dijadwalkan otomatis ke `routes/console.php` — statusnya eksploratif/pengumpulan data, bukan bagian pipeline produksi.
 
 ### Status Fase X: KODE SIAP DAN TERUJI, DATA BARU MULAI TERKUMPUL. Belum ada nilai analitis — perlu bulanan pengumpulan sebelum `analyze.py` (belum dibangun, langkah berikut kalau data sudah cukup) bisa mulai menguji apakah kemunculan di daftar top-5 berkorelasi dengan return berikutnya.
+
+## Fase X (lanjutan) — Jadwal otomatis harian untuk pengumpul foreign flow
+
+**Konteks:** menindaklanjuti Fase X — jadwalkan `collect_snapshot.py` supaya berjalan otomatis tiap hari bursa, bukan manual.
+
+### Perubahan kode
+- `app/Console/Commands/CollectForeignFlowSnapshotCommand.php` — command tipis (`research:collect-foreign-flow`), pola sama seperti `prediction:refresh-price-history`: proxy `Process::run([$python, $script])` dengan `env('PYTHON_BINARY', 'python3')`, semua parsing tetap di skrip Python, PHP cuma meneruskan output dan exit code.
+- `routes/console.php` — dijadwalkan **15.15 WIB, hari kerja**, di antara `stocks:fetch-history` (15.10) dan `sentiment:reanalyze` (15.20) — setelah bursa tutup (sesi 2 berakhir 15.00), supaya top-5 net-buy/sell hari itu sudah final saat diambil.
+- Test baru: `tests/Feature/CollectForeignFlowSnapshotCommandTest.php` (2 test: output sukses diteruskan, kegagalan fetch dilaporkan dengan exit code 1) — pakai `Process::fake()`, pola identik `RefreshPriceHistoryCommandTest`.
+
+### Verifikasi
+- `php artisan test --filter=CollectForeignFlowSnapshotCommandTest` → 2 passed, 6 assertions.
+- `php artisan research:collect-foreign-flow` dijalankan sungguhan (bukan simulasi) → baris kedua berhasil tersimpan ke `snapshots.jsonl`.
+- `php artisan test` → **470 passed** (468 + 2 baru), 1997 assertions.
+
+### Catatan penting yang tetap berlaku
+Jadwal ini TIDAK mengubah status Fase X — masih murni pengumpulan data, bukan fitur model. Kesimpulan analitis apa pun tetap menunggu beberapa bulan akumulasi, lalu WAJIB dibagi discovery/holdout seperti metodologi proyek ini yang lain (bukan dianalisis begitu "kelihatan ada pola" di data yang baru terkumpul sedikit).
+
+### Status: SELESAI. Pengumpulan sekarang berjalan otomatis tiap hari kerja tanpa perlu dijalankan manual.
