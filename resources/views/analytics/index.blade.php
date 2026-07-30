@@ -103,7 +103,7 @@
                             </div>
                             <x-timeframe-tabs :active="$period" :code="$stock->code" routeName="analytics.index" />
                         </div>
-                        <div class="h-80">
+                        <div class="h-[640px]">
                             @php
                                 $tvInterval = match($period ?? '30') {
                                     '7'  => 'D',
@@ -127,6 +127,16 @@
                                 error, tapi chart tetap polos tanpa overlay), mirip kasus infovesta yang
                                 mengabaikan ?date= tanpa pemberitahuan. Widget resmi ini yang didokumentasikan
                                 TradingView untuk menerima array studies dan benar-benar merendernya.
+
+                                Default studies dipangkas ke 3 (BB, Volume, ATR) -- bukan ketujuhnya sekaligus
+                                seperti versi awal. Alasan: (1) MACD/Stochastic/ADX tumpang tindih secara
+                                informasi (sama-sama ukuran momentum/tren) dan Fase Y (plan.md) sudah
+                                membuktikan tak satu pun dari keenamnya punya edge OOS di atas fitur produksi
+                                yang ada -- tidak ada alasan kuat memaksa semuanya tampil sekaligus; (2) tujuh
+                                panel sekaligus di satu chart bikin tiap panel terlalu kecil untuk dibaca,
+                                walau tingginya sudah dinaikkan ke 640px. Sisa indikator (MACD/Stochastic/
+                                ADX/VWAP/OBV) tetap bisa ditambah manual lewat tombol "Indikator" bawaan
+                                widget -- tidak hilang, cuma tidak dipaksa tampil dari awal.
                             --}}
                             <div class="tradingview-widget-container w-full h-full">
                                 <div id="{{ $tvContainerId }}" class="w-full h-full"></div>
@@ -157,13 +167,8 @@
                                             width: '100%',
                                             height: '100%',
                                             studies: [
-                                                'MACD@tv-basicstudies',
                                                 'BB@tv-basicstudies',
-                                                'Stochastic@tv-basicstudies',
-                                                'ADX@tv-basicstudies',
                                                 'ATR@tv-basicstudies',
-                                                'VWAP@tv-basicstudies',
-                                                'OBV@tv-basicstudies',
                                             ],
                                         });
                                     }
