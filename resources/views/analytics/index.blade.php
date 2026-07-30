@@ -112,28 +112,64 @@
                                     '180', '365' => 'W',
                                     default => 'D',
                                 };
+                                $tvContainerId = 'tv_chart_'.$stock->code;
+                                $tvSymbol = $stock->tradingview_symbol ?? ('IDX:'.$stock->code);
                             @endphp
-                            @php
-                                // Cocokkan overlay chart dengan panel "Indikator Teknikal Lanjutan" di bawah
-                                // (MACD/Bollinger/Stochastic/ADX/ATR/VWAP/OBV sudah dihitung sendiri oleh
-                                // DecisionSupportService untuk panel teks -- ini cuma menampilkannya visual
-                                // di chart TradingView yang sama, bukan sumber data baru).
-                                $tvStudies = urlencode(json_encode([
-                                    'MACD@tv-basicstudies',
-                                    'BB@tv-basicstudies',
-                                    'Stochastic@tv-basicstudies',
-                                    'ADX@tv-basicstudies',
-                                    'ATR@tv-basicstudies',
-                                    'VWAP@tv-basicstudies',
-                                    'OBV@tv-basicstudies',
-                                ]));
-                            @endphp
-                            <iframe
-                                src="https://s.tradingview.com/widgetembed/?symbol={{ urlencode($stock->tradingview_symbol ?? ('IDX:'.$stock->code)) }}&interval={{ $tvInterval }}&symboledit=0&saveimage=0&toolbarbg=0f172a&studies={{ $tvStudies }}&theme=dark&style=1&locale=id&hide_top_toolbar=0&hide_legend=0&allow_symbol_change=0"
-                                class="w-full h-full"
-                                allowtransparency="true"
-                                frameborder="0">
-                            </iframe>
+                            {{--
+                                Cocokkan overlay chart dengan panel "Indikator Teknikal Lanjutan" di bawah
+                                (MACD/Bollinger/Stochastic/ADX/ATR/VWAP/OBV sudah dihitung sendiri oleh
+                                DecisionSupportService untuk panel teks -- ini cuma menampilkannya visual
+                                di chart TradingView yang sama, bukan sumber data baru).
+
+                                Sengaja pakai widget resmi (script tv.js + TradingView.widget({studies:...}))
+                                BUKAN iframe s.tradingview.com/widgetembed/?studies=... -- sudah dicoba dan
+                                terbukti param `studies` di URL widgetembed diam-diam diabaikan (tidak ada
+                                error, tapi chart tetap polos tanpa overlay), mirip kasus infovesta yang
+                                mengabaikan ?date= tanpa pemberitahuan. Widget resmi ini yang didokumentasikan
+                                TradingView untuk menerima array studies dan benar-benar merendernya.
+                            --}}
+                            <div class="tradingview-widget-container w-full h-full">
+                                <div id="{{ $tvContainerId }}" class="w-full h-full"></div>
+                            </div>
+                            @once
+                                <script src="https://s3.tradingview.com/tv.js"></script>
+                            @endonce
+                            <script>
+                                (function () {
+                                    function renderTvChart() {
+                                        if (typeof TradingView === 'undefined') {
+                                            return setTimeout(renderTvChart, 100);
+                                        }
+                                        new TradingView.widget({
+                                            container_id: @json($tvContainerId),
+                                            symbol: @json($tvSymbol),
+                                            interval: @json($tvInterval),
+                                            timezone: 'Asia/Jakarta',
+                                            theme: 'dark',
+                                            style: '1',
+                                            locale: 'id',
+                                            toolbar_bg: '#0f172a',
+                                            enable_publishing: false,
+                                            allow_symbol_change: false,
+                                            save_image: false,
+                                            hide_top_toolbar: false,
+                                            hide_legend: false,
+                                            width: '100%',
+                                            height: '100%',
+                                            studies: [
+                                                'MACD@tv-basicstudies',
+                                                'BB@tv-basicstudies',
+                                                'Stochastic@tv-basicstudies',
+                                                'ADX@tv-basicstudies',
+                                                'ATR@tv-basicstudies',
+                                                'VWAP@tv-basicstudies',
+                                                'OBV@tv-basicstudies',
+                                            ],
+                                        });
+                                    }
+                                    renderTvChart();
+                                })();
+                            </script>
                         </div>
                     </div>
 
