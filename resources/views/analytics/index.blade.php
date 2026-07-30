@@ -128,15 +128,27 @@
                                 mengabaikan ?date= tanpa pemberitahuan. Widget resmi ini yang didokumentasikan
                                 TradingView untuk menerima array studies dan benar-benar merendernya.
 
-                                Default studies dipangkas ke 3 (BB, Volume, ATR) -- bukan ketujuhnya sekaligus
-                                seperti versi awal. Alasan: (1) MACD/Stochastic/ADX tumpang tindih secara
-                                informasi (sama-sama ukuran momentum/tren) dan Fase Y (plan.md) sudah
-                                membuktikan tak satu pun dari keenamnya punya edge OOS di atas fitur produksi
-                                yang ada -- tidak ada alasan kuat memaksa semuanya tampil sekaligus; (2) tujuh
-                                panel sekaligus di satu chart bikin tiap panel terlalu kecil untuk dibaca,
-                                walau tingginya sudah dinaikkan ke 640px. Sisa indikator (MACD/Stochastic/
-                                ADX/VWAP/OBV) tetap bisa ditambah manual lewat tombol "Indikator" bawaan
-                                widget -- tidak hilang, cuma tidak dipaksa tampil dari awal.
+                                Default studies: EMA 20 + EMA 50 (konteks arah/tren) + ATR (jarak stop &
+                                ukuran posisi) + Volume (partisipasi, tampil bawaan tanpa perlu study
+                                eksplisit) -- satu indikator per kategori fungsi, sengaja tidak dobel
+                                (BB dibuang karena BB+ATR dua-duanya mengukur volatilitas -- redundan;
+                                MACD/Stochastic/ADX/VWAP/OBV dibuang karena Fase Y (plan.md) sudah
+                                membuktikan tak satu pun dari 6 indikator DSS itu punya edge OOS di atas
+                                fitur produksi, dan menumpuk banyak indikator sejenis di satu chart cuma
+                                bikin tiap panel kekecilan tanpa nambah informasi baru).
+
+                                PENTING -- EMA di sini murni KONTEKS VISUAL (lagi trending atau sideways),
+                                BUKAN sinyal timing buy/sell tervalidasi: Fase T (survei 32 indikator,
+                                discovery vs holdout terpisah) dan Fase W (composite score) sudah membuktikan
+                                cross EMA/RSI/MACD/dst tidak punya edge OOS yang bisa diandalkan di saham
+                                IDX ini. Arah yang benar-benar diuji walk-forward tetap skor "Prediksi
+                                Teknikal" V6A di bawah, bukan chart ini. ATR di sini juga bukan sinyal --
+                                dipakai project untuk position sizing (lihat "Position Sizing" & "Stop Loss"
+                                di panel bawah), justifikasi yang sama dipertahankan di chart.
+
+                                Sisa indikator (BB/MACD/Stochastic/ADX/VWAP/OBV) tetap bisa ditambah manual
+                                lewat tombol "Indikator" bawaan widget -- tidak hilang, cuma tidak dipaksa
+                                tampil dari awal.
                             --}}
                             <div class="tradingview-widget-container w-full h-full">
                                 <div id="{{ $tvContainerId }}" class="w-full h-full"></div>
@@ -167,8 +179,9 @@
                                             width: '100%',
                                             height: '100%',
                                             studies: [
-                                                'BB@tv-basicstudies',
-                                                'ATR@tv-basicstudies',
+                                                { id: 'ATR@tv-basicstudies' },
+                                                { id: 'MAExp@tv-basicstudies', inputs: { length: 20 } },
+                                                { id: 'MAExp@tv-basicstudies', inputs: { length: 50 } },
                                             ],
                                         });
                                     }
