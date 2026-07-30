@@ -113,8 +113,23 @@
                                     default => 'D',
                                 };
                             @endphp
+                            @php
+                                // Cocokkan overlay chart dengan panel "Indikator Teknikal Lanjutan" di bawah
+                                // (MACD/Bollinger/Stochastic/ADX/ATR/VWAP/OBV sudah dihitung sendiri oleh
+                                // DecisionSupportService untuk panel teks -- ini cuma menampilkannya visual
+                                // di chart TradingView yang sama, bukan sumber data baru).
+                                $tvStudies = urlencode(json_encode([
+                                    'MACD@tv-basicstudies',
+                                    'BB@tv-basicstudies',
+                                    'Stochastic@tv-basicstudies',
+                                    'ADX@tv-basicstudies',
+                                    'ATR@tv-basicstudies',
+                                    'VWAP@tv-basicstudies',
+                                    'OBV@tv-basicstudies',
+                                ]));
+                            @endphp
                             <iframe
-                                src="https://s.tradingview.com/widgetembed/?symbol={{ urlencode($stock->tradingview_symbol ?? ('IDX:'.$stock->code)) }}&interval={{ $tvInterval }}&symboledit=0&saveimage=0&toolbarbg=0f172a&studies=[]&theme=dark&style=1&locale=id&hide_top_toolbar=0&hide_legend=0&allow_symbol_change=0"
+                                src="https://s.tradingview.com/widgetembed/?symbol={{ urlencode($stock->tradingview_symbol ?? ('IDX:'.$stock->code)) }}&interval={{ $tvInterval }}&symboledit=0&saveimage=0&toolbarbg=0f172a&studies={{ $tvStudies }}&theme=dark&style=1&locale=id&hide_top_toolbar=0&hide_legend=0&allow_symbol_change=0"
                                 class="w-full h-full"
                                 allowtransparency="true"
                                 frameborder="0">
