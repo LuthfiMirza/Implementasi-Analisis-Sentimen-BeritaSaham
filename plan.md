@@ -1417,3 +1417,63 @@ Karena tidak bisa divalidasi, memasukkan ini langsung sebagai fitur ke V6A/V6B/D
 Jadwal ini TIDAK mengubah status Fase X — masih murni pengumpulan data, bukan fitur model. Kesimpulan analitis apa pun tetap menunggu beberapa bulan akumulasi, lalu WAJIB dibagi discovery/holdout seperti metodologi proyek ini yang lain (bukan dianalisis begitu "kelihatan ada pola" di data yang baru terkumpul sedikit).
 
 ### Status: SELESAI. Pengumpulan sekarang berjalan otomatis tiap hari kerja tanpa perlu dijalankan manual.
+
+## Fase Y — Indikator DSS sebagai fitur ML kontinu (bukan panel display doang)
+
+**Konteks:** User melihat panel "Indikator Teknikal Lanjutan" di `/analytics` (MACD, Bollinger Bands,
+Stochastic, OBV, ADX, ATR, VWAP, Candlestick — semua dihitung `DecisionSupportService.php`) dan
+bertanya apakah semua ini bisa "dimasukkan ke indikatornya" — maksudnya dua hal: (1) tampilkan
+overlay-nya di chart TradingView, (2) uji apakah menambahkannya sebagai fitur ML kontinu ke
+pipeline prediksi V6A membantu akurasi.
+
+### Bagian 1 — Overlay indikator di chart TradingView
+`resources/views/analytics/index.blade.php`: iframe `s.tradingview.com/widgetembed` sebelumnya
+punya `studies=[]` (kosong) — 7 indikator yang sudah dihitung untuk panel teks di bawahnya tidak
+pernah tervisualisasi di chart itu sendiri. Ditambahkan `$tvStudies` berisi 7 built-in TradingView
+study ID: `MACD@tv-basicstudies`, `BB@tv-basicstudies`, `Stochastic@tv-basicstudies`,
+`ADX@tv-basicstudies`, `ATR@tv-basicstudies`, `VWAP@tv-basicstudies`, `OBV@tv-basicstudies`.
+Diverifikasi via DOM inspect (`document.querySelectorAll('iframe')` di browser) — src iframe
+sekarang membawa ketujuh study ID itu di query param `studies`.
+
+### Bagian 2 — Eksperimen: MACD/BB/Stochastic/ADX/VWAP/OBV sebagai fitur ML kontinu
+Fase T (survey 32 indikator, threshold rules) dan Fase W (composite confluence score) sudah
+menguji indikator-indikator ini sebagai SINYAL DISKRIT dan tidak menemukan edge OOS di 10 saham
+resmi. Pertanyaan Fase Y berbeda: apakah RandomForest bisa menemukan struktur non-linear kalau
+indikatornya dikasih sebagai fitur KONTINU mentah (bukan threshold biner)?
+
+- Script baru: `quant/run_dss_indicator_ml_feature_experiment.py`. 10 saham resmi, walk-forward
+  sama persis dengan produksi V6A (`min_train_days=252`, `test_window_days=126`, `max_folds=8`,
+  `purge_days=5` sesuai horizon label — disiplin Fase S5), RandomForest hyperparameter identik
+  (`build_random_forest_pipeline`).
+- 6 fitur baru dihitung langsung dari `data/stocks/{TICKER}.csv` (OHLCV, sumber training yang
+  sama): `macd_hist`, `bb_percent_b`, `stoch_k`, `adx14`, `vwap_distance_pct`, `obv_roc_20d`.
+  Coverage baris dengan keenamnya non-null: 99.9%.
+- Baseline (`V2_NO_SENTIMENT_FEATURE_COLUMNS` produksi) dievaluasi ulang di fold yang SAMA persis
+  sebagai sanity check metodologi.
+
+### Hasil
+```
+Baseline  (fitur produksi saja, 8 fold): macro_f1=0.3693  directional_accuracy=0.4011
+Candidate (+ 6 indikator DSS,   8 fold): macro_f1=0.3680  directional_accuracy=0.4111
+
+Delta macro_f1            = -0.0013
+Delta directional_accuracy = +0.0100
+```
+Baseline persis cocok dengan angka produksi tercatat di `retrain_history.jsonl`
+(purge_days=5: macro_f1 0.3693, accuracy 0.4011) — memverifikasi skrip eksperimen mereproduksi
+metodologi produksi dengan benar, bukan setup yang beda diam-diam.
+
+### Interpretasi
+Delta macro-F1 negatif tipis, delta akurasi positif tipis (+1pp) — berlawanan arah dan
+keduanya jauh di bawah ambang yang biasa dipakai proyek ini untuk menyebut sesuatu "ada edge"
+(varians antar-fold historis jauh lebih besar dari ini). **Konsisten dengan Fase T/W**: keenam
+indikator ini sudah "terkandung" secara tidak langsung lewat fitur produksi yang ada
+(`atr14_pct`, `atr_ratio`, `rsi_slope_5d`, dll saling berkorelasi dengan MACD/BB/Stochastic/ADX
+karena sama-sama turunan harga+volume jangka pendek) — menambah versi mentahnya sebagai fitur
+ML tidak memberi informasi baru yang bisa dieksploitasi RandomForest secara OOS.
+
+### Status: SELESAI. Bagian 1 (visual chart) di-commit ke produksi. Bagian 2 (fitur ML) adalah
+temuan riset NEGATIF — TIDAK diintegrasikan ke `V2_NO_SENTIMENT_FEATURE_COLUMNS` produksi,
+konsisten dengan aturan proyek "jangan bangun fitur di atas metrik yang belum tervalidasi OOS".
+Laporan lengkap: `output/prediction_research/dss_indicator_ml_feature_experiment.json` /
+`.txt` (tidak di-commit, hasil regenerable via skrip).
