@@ -1477,3 +1477,34 @@ temuan riset NEGATIF — TIDAK diintegrasikan ke `V2_NO_SENTIMENT_FEATURE_COLUMN
 konsisten dengan aturan proyek "jangan bangun fitur di atas metrik yang belum tervalidasi OOS".
 Laporan lengkap: `output/prediction_research/dss_indicator_ml_feature_experiment.json` /
 `.txt` (tidak di-commit, hasil regenerable via skrip).
+
+## Fase Y (koreksi) — iframe widgetembed?studies= ternyata diam-diam diabaikan TradingView
+
+**Konteks:** Klaim "SELESAI" di atas untuk Bagian 1 (overlay chart) hanya diverifikasi lewat
+`document.querySelectorAll('iframe')[1].src` -- itu cuma membuktikan URL query string yang KITA
+kirim sudah benar, BUKAN bukti TradingView benar-benar merendernya. User screenshot langsung
+chart real dan menunjukkan tidak ada overlay MACD/BB/Stochastic/ADX/ATR/VWAP/OBV sama sekali --
+cuma candlestick + volume polos, walau parameter `studies` sudah ada di URL. Ini kesalahan
+verifikasi yang sama persis dengan pola "silent-ignored-parameter" yang sudah ditemukan di sesi
+ini sebelumnya (infovesta `?date=` diabaikan tanpa error).
+
+### Akar masalah
+`https://s.tradingview.com/widgetembed/?...&studies=[...]` adalah endpoint iframe legacy/tidak
+resmi -- parameter `studies` di situ tidak didukung TradingView dan diabaikan tanpa error apa pun.
+Cara resmi TradingView untuk menyertakan studies adalah widget JS (`s3.tradingview.com/tv.js` +
+`new TradingView.widget({studies: [...], ...})`), bukan query string di URL iframe langsung.
+
+### Perbaikan
+`resources/views/analytics/index.blade.php` diganti dari iframe manual ke widget resmi:
+`<script src="https://s3.tradingview.com/tv.js">` + `new TradingView.widget({container_id, symbol,
+interval, studies: [...7 studies...], ...})`, dirender ke `<div id="tv_chart_{{ $stock->code }}">`.
+
+### Verifikasi (kali ini benar-benar visual, bukan cuma cek URL)
+- Screenshot browser langsung: BB (Bollinger Bands) band terlihat overlay di atas candlestick,
+  plus panel terpisah MACD, Stoch, ATR di bawah chart utama (ADX/VWAP/OBV ada di studies array
+  yang sama, kemungkinan perlu scroll dalam widget untuk terlihat semua -- widget TradingView
+  sendiri yang mengatur layout multi-panel-nya).
+- `php artisan test` → tetap 470 passed setelah perubahan.
+
+### Status: SELESAI (kali ini terverifikasi visual, bukan cuma URL). Pelajaran: verifikasi
+"parameter ada di URL" TIDAK CUKUP untuk widget pihak ketiga -- harus screenshot/render nyata.
