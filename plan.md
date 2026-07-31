@@ -1637,3 +1637,74 @@ dibuang ikut hilang bersamanya, bukan regresi).
 ### Status: SELESAI. Working tree bersih dari sisa kerjaan yang tidak selesai. Konsisten dengan
 temuan Fase R7a: resolusi URL google_news_rss ke publisher asli TETAP dead end permanen, jangan
 dicoba ulang tanpa perubahan mendasar (mis. headless browser rendering JS, di luar scope proyek ini).
+
+## Fase AB — Uji sistematis aturan "IHSG + saham crash bareng" ke seluruh histori BUMI/DEWA
+
+**Konteks:** User share screenshot akun trading BUMI/DEWA riil miliknya (equity curve Rp11,3jt→
+Rp15,5jt periode Jan-Jul 2026) dan minta baca pola 4 keputusan entry/exit real: entri 8 Jul (setelah
+drop 7 Jul), entri 9 Jul, exit ~24 Jul (setelah drop), entri lagi 29 Jul. Dicek dulu harga+berita
+riil di tanggal-tanggal itu: pergerakan besar (9 Jul, 20-23 Jul rally; 30 Jun & 24 Jul drop) ternyata
+dominan mengikuti pergerakan IHSG luas/rotasi saham tambang kecil, dan berita spesifik BUMI/DEWA di
+hari itu kebanyakan MENJELASKAN pergerakan yang sudah terjadi, bukan memberi sinyal sebelumnya.
+
+4 kejadian dari satu akun selama 5 minggu jelas tidak cukup untuk dipercaya sebagai aturan (proyek
+ini sudah berulang kali menemukan pola yang "kelihatan benar" di sedikit contoh gagal total
+walk-forward). Diusulkan uji sistematis: **entry = IHSG DAN saham sama-sama turun ≥5% kumulatif 2
+hari, exit = fixed holding period** (bukan "jual saat laba positif" -- tidak ada dataset tanggal
+earnings historis bersih untuk BUMI/DEWA, jadi diuji 4 pilihan holding period: 3/5/10/20 hari,
+semua dilaporkan, tidak cherry-pick satu).
+
+### Metodologi
+`quant/run_ihsg_drawdown_entry_experiment.py` (baru). Data IHSG diambil live via yfinance (`^JKSE`,
+2001-sekarang, 6.206 baris, disimpan `data/stocks/IHSG.csv` -- belum pernah ada di proyek ini).
+Entry dieksekusi di close hari SETELAH sinyal terbentuk (bukan hari sinyal, hindari lookahead).
+Split discovery/holdout 70/30 kronologis. Net biaya round-trip 0,80%. Baseline pembanding: rata-rata
+return semua hari (bukan cuma hari sinyal) untuk holding period yang sama.
+
+### Hasil BUMI (2001-06-11 s/d 2026-07-21, 6.090 hari)
+42 sinyal mentah. **Positif di discovery DAN holdout, di keempat holding period, jauh mengalahkan
+baseline:**
+```
+Hold 3d : discovery +0,51% (n=31, win 51,6%) | holdout +4,82% (n=11, win 63,6%) | baseline -0,40%
+Hold 5d : discovery +2,86% (n=31, win 54,8%) | holdout +7,29% (n=11, win 63,6%) | baseline -0,13%
+Hold 10d: discovery +6,47% (n=31, win 61,3%) | holdout +7,34% (n=11, win 54,5%) | baseline +0,56%
+Hold 20d: discovery +6,85% (n=31, win 64,5%) | holdout +2,47% (n=11, win 45,5%) | baseline +2,06%
+```
+
+### Hasil DEWA (2007-09-28 s/d 2026-07-21, 4.547 hari)
+38 sinyal mentah, tapi hold 10-20 hari **berbalik arah** antara discovery (negatif, sampai -12,94%
+di hold 20) dan holdout (positif, sampai +11,41%) -- tanda peringatan, bukan konfirmasi.
+
+### Cek kritis: apakah "n" ini nyata atau cuma beberapa krisis dihitung berulang?
+Sinyal di-cluster berdasar jarak tanggal (>15 hari = episode baru) untuk cek independensi:
+- **BUMI: 42 sinyal mentah → 27 episode independen**, tersebar di 22 tahun dan BANYAK rezim pasar
+  berbeda (2004, 2005, 2006, 2007, GFC 2008 x6 klaster, 2009, Eurozone 2011, taper tantrum 2013,
+  2016, 2018, 2025, 2026) -- **melewati ambang minimum proyek ini (n≥20)**, dan tidak didominasi
+  satu krisis. Ini temuan paling konsisten yang pernah keluar dari eksperimen manapun di sesi ini.
+- **DEWA: 38 sinyal mentah → cuma 18 episode independen**, dan 10 dari 38 sinyal mentah (26%)
+  berasal dari SATU episode (6-28 Okt 2008, crash Lehman) -- menjelaskan kenapa hasil discovery
+  DEWA di hold 10-20 hari aneh: itu efeknya dominan dari satu krisis ekstrem, bukan pola stabil.
+  **Di bawah ambang minimum (n≥20), dan hasil hold 10-20 hari untuk DEWA tidak bisa dipercaya.**
+
+### Interpretasi
+BUMI menunjukkan sinyal paling kredibel yang pernah ditemukan proyek ini -- konsisten arah positif
+di discovery+holdout+4 horizon, n cukup (27 episode independen), dan punya rasionalisasi ekonomi
+yang masuk akal (mean-reversion setelah panic-selling bareng index, bukan threshold indikator
+teknikal sembarang). Hold 5-10 hari kelihatan titik manis (positif kuat di kedua split). Hold 20
+hari lemah di holdout (+2,47% vs baseline +2,06%, hampir tidak beda) -- jangan dipakai.
+DEWA jangan dipakai untuk hold 10-20 hari (kontaminasi 2008), hold 3-5 hari DEWA masih kelihatan
+oke tapi n independen makin kecil kalau dipisah lagi per horizon.
+
+### Foreign flow / net asing (bagian 2 permintaan user)
+Data `quant/foreign_flow_tracker/snapshots.jsonl` dicek ulang: 4 baris tersimpan, TAPI keempatnya
+punya angka identik (infovesta cuma update sekali sehari, 4x scrape menangkap snapshot beku yang
+sama) -- **efektif cuma 1 titik data riil**. Jauh dari cukup untuk dilatih apapun. Konsisten dengan
+batasan yang sudah didokumentasikan Fase X (live-only, tidak bisa historical backfill). Tidak ada
+yang bisa dilatih dari ini sekarang -- perlu bulanan pengumpulan lagi sebelum layak dicoba.
+
+### Status: BUMI SELESAI dengan hasil positif tervalidasi lebih ketat dari eksperimen sebelumnya,
+tapi BELUM DIREKOMENDASIKAN untuk trading langsung -- baru backtest historis, belum forward-tested.
+Langkah wajar berikutnya: masukkan aturan ini ke `quant/signal_tracker/` (Fase V) untuk dipantau
+live ke depan sebelum dipercaya penuh, sesuai disiplin proyek ini (jangan percaya backtest historis
+begitu saja, backtest cuma lolos gerbang pertama). DEWA TIDAK direkomendasikan untuk hold >5 hari.
+Foreign flow tetap dalam mode pengumpulan pasif, belum ada nilai analitis.
