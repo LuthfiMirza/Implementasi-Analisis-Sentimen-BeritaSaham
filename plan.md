@@ -1600,3 +1600,40 @@ risikonya.
 
 ### Status: SELESAI. rss_local sudah bersih dari 3 URL mati + 1 URL diperbaiki. finnhub didisable
 dari siklus otomatis dengan dokumentasi lengkap kenapa (bukan cuma dihapus diam-diam).
+
+## Fase AA — Buang percobaan resolve-URL google_news_rss yang belum di-commit (uncommitted leftover)
+
+**Konteks:** Ditemukan sejak fase-fase awal sesi ini (dicatat di plan-mode note) ada file uncommitted
+di working tree: `app/Services/News/GoogleNewsRssFetcher.php` (dimodifikasi, menambah
+`resolvePublisherUrl()`), `app/Console/Commands/ResolveGoogleNewsUrlsCommand.php` (baru), dan
+`tests/Unit/GoogleNewsRssFetcherTest.php` (test baru untuk fitur itu) -- kemungkinan besar kerjaan
+sesi Codex lain yang belum selesai/dites. Karena file ini AKTIF di filesystem meski belum
+di-commit (PHP baca dari disk, bukan git), fungsinya sudah berjalan diam-diam selama sesi ini.
+
+### Live-reverify sebelum diputuskan (bukan asumsi dari catatan lama)
+`php artisan news:resolve-google-news-urls --dry-run --limit=15` di 15 URL `news.google.com/rss/
+articles/...` asli dari DB → **0 resolved, 15 skipped**. Persis sama dengan temuan Fase R7a sesi
+ini sebelumnya (0/277 URL berhasil) -- dikonfirmasi ulang hari ini, bukan basi.
+
+Test yang ditulis untuk fitur ini (`test_google_news_rss_prefers_publisher_canonical_url`) cuma
+lolos karena pakai `Http::fakeSequence()` dengan respons canonical URL PALSU yang dikarang manual
+-- tidak pernah diuji ke respons Google sungguhan (yang berupa SPA client-rendered tanpa link
+publisher di HTML statis, akar masalah yang sama seperti temuan R7a).
+
+**Efek samping tak disengaja:** karena kode ini aktif di filesystem meski uncommitted, setiap
+fetch `google_news_rss` selama sesi ini diam-diam mencoba resolve URL per-artikel (5 detik timeout
+tiap percobaan, SELALU gagal) -- kemungkinan besar ini sumber sebagian warning "Google News RSS
+canonical URL resolution failed" yang berulang kali muncul di log saat audit GDELT/backfill
+sebelumnya di sesi ini, menambah latensi nyata tanpa manfaat.
+
+### Tindakan
+`git checkout -- app/Services/News/GoogleNewsRssFetcher.php tests/Unit/GoogleNewsRssFetcherTest.php`
+(kembalikan ke versi committed terakhir) + hapus `app/Console/Commands/ResolveGoogleNewsUrlsCommand.php`.
+
+### Verifikasi
+`php artisan test` → 469 passed (turun 1 dari 470, sesuai ekspektasi -- test untuk fitur yang
+dibuang ikut hilang bersamanya, bukan regresi).
+
+### Status: SELESAI. Working tree bersih dari sisa kerjaan yang tidak selesai. Konsisten dengan
+temuan Fase R7a: resolusi URL google_news_rss ke publisher asli TETAP dead end permanen, jangan
+dicoba ulang tanpa perubahan mendasar (mis. headless browser rendering JS, di luar scope proyek ini).
