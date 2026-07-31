@@ -13,9 +13,7 @@ class GdeltFetcher implements NewsFetcherInterface
     /** Timestamp (microtime float) of the last request sent, shared across instances within this process. */
     protected static ?float $lastRequestAt = null;
 
-    public function __construct(protected StockKeywordMapper $mapper = new StockKeywordMapper())
-    {
-    }
+    public function __construct(protected StockKeywordMapper $mapper = new StockKeywordMapper) {}
 
     public function fetchForStock(Stock $stock, int $limit = 10): array
     {
@@ -29,10 +27,17 @@ class GdeltFetcher implements NewsFetcherInterface
 
         self::throttle();
 
+        // Laravel's HTTP client defaults connectTimeout to 10s independently of ->timeout() --
+        // live-verified this was silently truncating every request to GDELT (which sometimes takes
+        // >10s just to establish the connection) at exactly 10.0s regardless of the 20s ->timeout()
+        // already set below. Must set both explicitly.
         try {
-            $response = Http::timeout((int) config('news.gdelt.timeout', 20))->get($baseUrl, $params);
+            $response = Http::connectTimeout((int) config('news.gdelt.connect_timeout', 20))
+                ->timeout((int) config('news.gdelt.timeout', 20))
+                ->get($baseUrl, $params);
         } catch (\Throwable $e) {
             Log::warning('GDELT request exception', ['error' => $e->getMessage()]);
+
             return [];
         }
 
@@ -41,6 +46,7 @@ class GdeltFetcher implements NewsFetcherInterface
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
             return [];
         }
 
@@ -76,14 +82,17 @@ class GdeltFetcher implements NewsFetcherInterface
         $baseUrl = env('GDELT_BASE_URL', 'https://api.gdeltproject.org/api/v2/doc/doc');
         self::throttle();
         try {
-            $response = Http::timeout((int) config('news.gdelt.timeout', 20))->get($baseUrl, [
-                'query' => self::wrapQuery($query).' AND (sourcelang:indonesia OR sourcelang:english)',
-                'startdatetime' => $from->copy()->utc()->format('YmdHis'),
-                'enddatetime' => $to->copy()->utc()->format('YmdHis'),
-                'maxrecords' => min($maxRecords, 250),
-                'format' => 'json',
-                'sort' => 'datedesc',
-            ]);
+            // See fetchForStock() for why connectTimeout must be set explicitly alongside timeout().
+            $response = Http::connectTimeout((int) config('news.gdelt.connect_timeout', 20))
+                ->timeout((int) config('news.gdelt.timeout', 20))
+                ->get($baseUrl, [
+                    'query' => self::wrapQuery($query).' AND (sourcelang:indonesia OR sourcelang:english)',
+                    'startdatetime' => $from->copy()->utc()->format('YmdHis'),
+                    'enddatetime' => $to->copy()->utc()->format('YmdHis'),
+                    'maxrecords' => min($maxRecords, 250),
+                    'format' => 'json',
+                    'sort' => 'datedesc',
+                ]);
         } catch (\Throwable $e) {
             Log::warning('GDELT historical request exception', [
                 'error' => $e->getMessage(),
@@ -101,6 +110,7 @@ class GdeltFetcher implements NewsFetcherInterface
                 'from' => $from->toDateTimeString(),
                 'to' => $to->toDateTimeString(),
             ]);
+
             return null;
         }
 

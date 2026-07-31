@@ -1508,3 +1508,40 @@ interval, studies: [...7 studies...], ...})`, dirender ke `<div id="tv_chart_{{ 
 
 ### Status: SELESAI (kali ini terverifikasi visual, bukan cuma URL). Pelajaran: verifikasi
 "parameter ada di URL" TIDAK CUKUP untuk widget pihak ketiga -- harus screenshot/render nyata.
+
+## Fase Z — GDELT connectTimeout silently truncated to 10s, terpisah dari timeout() 20s
+
+**Konteks:** User minta cek status ingest berita setelah MySQL sempat mati semalam (~17 jam gap,
+2026-07-30 16:42 → 2026-07-31 16:30). `news:auto-recover-gap` sudah bekerja sesuai desain (self-heal
+otomatis begitu MySQL nyala), tapi saat verifikasi ditemukan provider GDELT konsisten gagal dengan
+"cURL error 28: Connection timed out after 10001 milliseconds" -- padahal `GdeltFetcher.php` sudah
+eksplisit set `Http::timeout(20)`.
+
+### Akar masalah
+Laravel HTTP client (Guzzle) punya default `connectTimeout` 10 detik yang TERPISAH dari `->timeout()`
+-- `->timeout(20)` cuma membatasi durasi total request, bukan fase connect (DNS+TCP+TLS handshake).
+GDELT dari jaringan ini butuh waktu connect >10 detik saat itu, jadi tiap request mati di fase
+connect sebelum sempat kirim query sama sekali, konsisten di angka 10.0-10.1 detik setiap kali.
+
+### Perbaikan
+`app/Services/News/GdeltFetcher.php` -- kedua method (`fetchForStock()` dan `fetchHistorical()`)
+sekarang eksplisit set `Http::connectTimeout(20)->timeout(20)`, bukan cuma `->timeout(20)`.
+
+### Verifikasi
+- Live test SEBELUM fix: `php artisan news:fetch --provider=gdelt --stock=BBCA` → `raw 0`, waktu
+  persis 10.095s, log `cURL error 28: Connection timed out after 10001 milliseconds`.
+- Live test SESUDAH fix (tinker langsung `Http::connectTimeout(20)->timeout(20)->get(...)`):
+  berhasil CONNECT dan dapat respons asli server (`status: 429`, elapsed 11.82s) -- bukan lagi
+  connect-timeout exception. Membuktikan fix-nya benar secara struktural: sekarang request
+  benar-benar sampai ke server GDELT, bukan mati di tengah jalan.
+- Sisa kegagalan (`429 Please limit requests to one every 5 seconds`) di beberapa tes berikutnya
+  murni akibat testing manual saya sendiri yang beruntun dalam waktu singkat (bukan bug) --
+  `throttle()` yang sudah ada (jeda 5.5s) hanya berlaku DALAM satu proses PHP, sedangkan saya
+  menjalankan banyak proses CLI terpisah berturut-turut saat verifikasi, masing-masing punya
+  static `$lastRequestAt` sendiri-sendiri sehingga tidak saling mengenal jeda. Di operasional
+  normal (scheduler, satu proses per run, jeda antar-run minimal 30 menit) ini tidak jadi masalah.
+- `php artisan test --filter=Gdelt` → 9 passed, `php artisan test` penuh → 470 passed.
+
+### Status: SELESAI. connectTimeout eksplisit sudah diterapkan dan diverifikasi live berhasil
+connect ke server GDELT. Tidak menjamin GDELT selalu responsif (itu di luar kendali kita), tapi
+sekarang aplikasi tidak lagi menyerah sebelum sempat mencoba.
