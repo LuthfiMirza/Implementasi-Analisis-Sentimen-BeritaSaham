@@ -1708,3 +1708,55 @@ Langkah wajar berikutnya: masukkan aturan ini ke `quant/signal_tracker/` (Fase V
 live ke depan sebelum dipercaya penuh, sesuai disiplin proyek ini (jangan percaya backtest historis
 begitu saja, backtest cuma lolos gerbang pertama). DEWA TIDAK direkomendasikan untuk hold >5 hari.
 Foreign flow tetap dalam mode pengumpulan pasif, belum ada nilai analitis.
+
+## Fase AC — Tracker prospektif untuk sinyal "IHSG+saham crash bareng" (BUMI tracked, DEWA exploratory)
+
+**Konteks:** Menindaklanjuti Fase AB (backtest historis positif untuk BUMI, 27 episode independen).
+Sesuai disiplin proyek ini (backtest historis cuma lolos gerbang pertama, harus diverifikasi live
+sebelum dipercaya -- pola sama seperti `signal_tracker/` Fase V untuk sinyal Zeta AI), dibangun
+tracker prospektif baru: `quant/drawdown_bounce_tracker/`.
+
+### Yang dibangun
+- **`PROTOCOL.md`** -- dikunci 2026-07-31, SEBELUM sinyal live pertama. Entry: IHSG+saham turun
+  kumulatif ≥5% dalam 2 hari bursa. Exit: fixed 10 hari (metrik utama) dan 5 hari (pembanding
+  sekunder) -- keduanya ditetapkan sekarang, tidak dipilih setelah lihat hasil. BUMI berlabel
+  `tracked` (boleh disimpulkan setelah n≥20), DEWA berlabel `exploratory` (JANGAN dipakai
+  kesimpulan sampai ada pencabutan label eksplisit -- kontaminasi Okt 2008 di backtem historisnya).
+- **`schema.sql`** -- SQLite append-only (trigger blokir UPDATE/DELETE), pola identik
+  `signal_tracker/`.
+- **`detect_signal.py`** -- deteksi OTOMATIS harian (bukan manual seperti Zeta tracker, karena
+  aturan ini murni hitungan dari harga OHLCV sendiri). Ambil BUMI/DEWA/IHSG langsung dari yfinance
+  tiap run, cek trigger, log sinyal kalau trigger_date ≥ 2026-07-31 (backtest historis TIDAK ikut
+  dihitung sebagai n live). Idempotent via `UNIQUE(ticker, trigger_date)`.
+- **`evaluate.py`** -- isi outcome begitu horizon 5/10 hari sudah lewat.
+- **`report.py`** -- laporan gaya P&L broker (tanggal/equity/P&L), menolak menyimpulkan di bawah
+  n≥20. Flag `--demo-historical` merender laporan dari backtest Fase AB sebagai CONTOH BENTUK
+  laporan (berlabel jelas bukan live) -- tracker live sesungguhnya masih n=0.
+- **Command Laravel**: `research:detect-drawdown-bounce-signal` + `research:evaluate-drawdown-
+  bounce-signal`, pola tipis sama seperti `research:collect-foreign-flow` (proxy Process::run,
+  parsing di Python). Dijadwalkan 15.18 & 15.19 WIB hari kerja (setelah harga EOD 15.10 settle).
+- Test: `DetectDrawdownBounceSignalCommandTest` + `EvaluateDrawdownBounceSignalCommandTest`, 6 test,
+  pola `Process::fake()` sama seperti command lain.
+
+### Temuan penting saat membangun laporan contoh
+Percobaan pertama report.py pakai position sizing 100% modal per trade (all-in, redeploy penuh tiap
+sinyal). Hasilnya BUMI +843% (22 tahun) tapi **DEWA ambruk -76,6%** -- bukan karena strateginya jelek
+(rata-rata per-trade DEWA cuma -0,63%), tapi karena beberapa sinyal nyambung BERURUTAN dalam satu
+episode krisis (Okt 2008) meng-compound kerugian secara artifisial saat modal 100% langsung
+dipertaruhkan lagi tanpa jeda. Diperbaiki ke 20% modal per trade (`POSITION_FRACTION=0.20`) --
+hasil jadi jauh lebih representatif: BUMI +71,14%, DEWA -8,57% (kecil, sesuai rata-rata sebenarnya).
+Ini pelajaran position-sizing yang nyata, bukan cuma kosmetik -- dicatat sebagai temuan, bukan
+disembunyikan.
+
+### Verifikasi
+- `php artisan research:detect-drawdown-bounce-signal` (real run) → "Tidak ada sinyal baru" (benar,
+  tidak ada trigger sejak 31 Jul 2026 kemarin).
+- `php artisan research:evaluate-drawdown-bounce-signal` (real run) → "Belum ada horizon yang lewat"
+  (benar, n=0).
+- `php artisan test` → 475 passed (469+6 baru).
+
+### Status: SELESAI. Tracker aktif dan terjadwal, tapi **n=0 sinyal live** -- laporan P&L
+sesungguhnya baru akan berisi apa pun setelah trigger pertama live terjadi (realistis: sinyal ini
+langka, ~1,2 kejadian/tahun untuk BUMI di backtest 22 tahun, jadi mencapai n≥20 bisa makan waktu
+bertahun-tahun). Ini BUKAN rekomendasi trading -- baru mulai fase verifikasi forward, sesuai
+disiplin proyek ini yang sudah berkali-kali menemukan pola bagus di backtest gagal saat live.

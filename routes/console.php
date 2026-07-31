@@ -114,6 +114,25 @@ Schedule::command('research:collect-foreign-flow')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// END-OF-DAY: 15.18 WIB
+// Fase AC (prospektif, BUKAN fitur produksi): deteksi otomatis aturan "IHSG+saham crash bareng"
+// (Fase AB) untuk BUMI/DEWA, lalu isi outcome sinyal yang horizon-nya sudah lewat. Dijalankan
+// setelah harga EOD final (15.10) supaya data hari itu sudah settle. Lihat
+// quant/drawdown_bounce_tracker/PROTOCOL.md -- protokol dikunci SEBELUM sinyal live pertama.
+Schedule::command('research:detect-drawdown-bounce-signal')
+    ->weekdays()
+    ->dailyAt('15:18')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+Schedule::command('research:evaluate-drawdown-bounce-signal')
+    ->weekdays()
+    ->dailyAt('15:19')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // END-OF-DAY ML REANALYSIS: 15.20 WIB
 // Catatan: 'news:rescore-sentiment' (full-corpus, tanpa filter) sengaja TIDAK
 // dijadwalkan lagi -- dulu jalan 2x/hari (12:00 & 15:15) tapi redundan dan makin

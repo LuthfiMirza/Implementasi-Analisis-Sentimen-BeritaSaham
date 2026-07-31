@@ -1,0 +1,54 @@
+-- Append-only log for the "IHSG + stock crash together" bounce signal (Fase AB -> AC).
+-- UPDATE/DELETE blocked by triggers, not just convention -- see PROTOCOL.md.
+
+CREATE TABLE IF NOT EXISTS signals (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    detected_at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    ticker              TEXT NOT NULL,          -- BUMI or DEWA
+    label               TEXT NOT NULL,          -- 'tracked' (BUMI) or 'exploratory' (DEWA) per PROTOCOL.md
+    trigger_date        TEXT NOT NULL,          -- trading day the 2-day drawdown condition was met
+    ihsg_ret_2d         REAL NOT NULL,
+    stock_ret_2d        REAL NOT NULL,
+    entry_date          TEXT NOT NULL,          -- next trading day after trigger_date
+    entry_price         REAL NOT NULL,
+    notes               TEXT,
+    UNIQUE(ticker, trigger_date)
+);
+
+CREATE TABLE IF NOT EXISTS outcomes (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    signal_id           INTEGER NOT NULL REFERENCES signals(id),
+    horizon_days        INTEGER NOT NULL,       -- 5 or 10 (trading days)
+    evaluated_at        TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    exit_date           TEXT NOT NULL,
+    exit_price          REAL NOT NULL,
+    gross_return        REAL NOT NULL,
+    net_return          REAL NOT NULL,          -- gross_return - 0.008 round-trip cost
+    buy_hold_return     REAL NOT NULL,           -- same ticker, same window, no signal filter
+    ihsg_return         REAL NOT NULL,           -- IHSG over the same window
+    UNIQUE(signal_id, horizon_days)
+);
+
+CREATE TRIGGER IF NOT EXISTS signals_no_update
+BEFORE UPDATE ON signals
+BEGIN
+    SELECT RAISE(ABORT, 'signals is append-only: log a new row instead of editing');
+END;
+
+CREATE TRIGGER IF NOT EXISTS signals_no_delete
+BEFORE DELETE ON signals
+BEGIN
+    SELECT RAISE(ABORT, 'signals is append-only: rows cannot be deleted');
+END;
+
+CREATE TRIGGER IF NOT EXISTS outcomes_no_update
+BEFORE UPDATE ON outcomes
+BEGIN
+    SELECT RAISE(ABORT, 'outcomes is append-only: re-running evaluate.py skips already-evaluated rows');
+END;
+
+CREATE TRIGGER IF NOT EXISTS outcomes_no_delete
+BEFORE DELETE ON outcomes
+BEGIN
+    SELECT RAISE(ABORT, 'outcomes is append-only: rows cannot be deleted');
+END;
