@@ -12,11 +12,13 @@ is the Fase AB historical backtest, not part of this live protocol (see PROTOCOL
 """
 from __future__ import annotations
 
+import os
 import sqlite3
 from datetime import date
 from pathlib import Path
 
 import pandas as pd
+import requests
 import yfinance as yf
 
 TRACKING_START_DATE = date(2026, 7, 31)  # PROTOCOL.md lock date -- do not backdate
@@ -25,6 +27,45 @@ LABELS = {"BUMI": "tracked", "DEWA": "exploratory"}
 
 DB_PATH = Path(__file__).parent / "tracker.sqlite3"
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
+ENV_PATH = Path(__file__).parent.parent.parent / ".env"
+
+
+def load_telegram_credentials() -> tuple[str | None, str | None]:
+    """Read TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID. When run via `php artisan ...`, Laravel's
+    Dotenv already exports these into the OS environment (putenv), so os.environ has them.
+    When run directly (`python3 detect_signal.py`, e.g. for manual testing), fall back to
+    parsing .env ourselves so the script still works standalone."""
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if token and chat_id:
+        return token, chat_id
+
+    if ENV_PATH.is_file():
+        for line in ENV_PATH.read_text(encoding="utf-8").splitlines():
+            if line.startswith("TELEGRAM_BOT_TOKEN="):
+                token = line.split("=", 1)[1].strip()
+            elif line.startswith("TELEGRAM_CHAT_ID="):
+                chat_id = line.split("=", 1)[1].strip()
+
+    return token, chat_id
+
+
+def send_telegram_alert(text: str) -> None:
+    token, chat_id = load_telegram_credentials()
+    if not token or not chat_id:
+        print("Telegram belum dikonfigurasi (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID kosong) -- alert dilewati.")
+        return
+
+    try:
+        resp = requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            json={"chat_id": chat_id, "text": text},
+            timeout=10,
+        )
+        if not resp.ok:
+            print(f"Gagal kirim alert Telegram: HTTP {resp.status_code} {resp.text}")
+    except Exception as e:  # network failure must never break signal detection itself
+        print(f"Gagal kirim alert Telegram: {e}")
 
 
 def get_connection() -> sqlite3.Connection:
@@ -93,6 +134,15 @@ def main() -> None:
             inserted += 1
             print(f"SIGNAL BARU: {s['ticker']} ({s['label']}) trigger {s['trigger_date']} "
                   f"-> entry {s['entry_date']} @ {s['entry_price']:.0f}")
+
+            label_note = "" if s["label"] == "tracked" else "\n(Exploratory -- JANGAN dipakai kesimpulan, lihat PROTOCOL.md)"
+            send_telegram_alert(
+                f"Sinyal drawdown-bounce baru: {s['ticker']}\n"
+                f"Trigger: {s['trigger_date']} (IHSG {s['ihsg_ret_2d']:+.1%}, {s['ticker']} {s['stock_ret_2d']:+.1%})\n"
+                f"Entry: {s['entry_date']} @ Rp{s['entry_price']:.0f}\n"
+                f"Rencana exit: tahan 10 hari bursa (lihat report.py untuk P&L)."
+                f"{label_note}"
+            )
         except sqlite3.IntegrityError:
             pass  # already logged, UNIQUE(ticker, trigger_date) makes this idempotent
 

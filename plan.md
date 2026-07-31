@@ -1760,3 +1760,16 @@ sesungguhnya baru akan berisi apa pun setelah trigger pertama live terjadi (real
 langka, ~1,2 kejadian/tahun untuk BUMI di backtest 22 tahun, jadi mencapai n≥20 bisa makan waktu
 bertahun-tahun). Ini BUKAN rekomendasi trading -- baru mulai fase verifikasi forward, sesuai
 disiplin proyek ini yang sudah berkali-kali menemukan pola bagus di backtest gagal saat live.
+
+## Fase AC (lanjutan) — Alert Telegram untuk tracker drawdown-bounce
+
+**Catatan:** ini alat monitoring operasional pribadi (bukan bagian metodologi/temuan riset), atas
+permintaan eksplisit user JANGAN dimasukkan ke naskah skripsi -- didokumentasikan di sini murni
+untuk jejak teknis proyek.
+
+`detect_signal.py` sekarang kirim notifikasi Telegram otomatis begitu sinyal baru tercatat (bukan
+duplikat). Kredensial (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) di `.env` (gitignored, tidak pernah
+masuk kode/git, konsisten dengan API key lain di proyek ini). Gagal kirim Telegram (mis. jaringan
+mati) tidak menggagalkan pencatatan sinyal itu sendiri -- dibungkus try/except, cuma print warning.
+
+Live-verified: `sendMessage` API Telegram dites langsung, berhasil (`ok: true`), pesan tes diterima.
