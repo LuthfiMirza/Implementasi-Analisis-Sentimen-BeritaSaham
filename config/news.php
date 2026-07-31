@@ -31,8 +31,17 @@ return [
         'currents' => 0.9,
         'mock' => 0.5,
     ],
-    'multi_providers' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt', 'currents'],
-    'source_priority' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'finnhub', 'gdelt', 'currents'],
+    // 'finnhub' intentionally excluded from these two lists (still registered in
+    // NewsAggregationService's $fetchers so `--provider=finnhub` still works for manual testing).
+    // Live-verified 2026-07-31: Finnhub's free tier rejects any '.JK'-suffixed IDX symbol with
+    // "You don't have access to this resource" (403) -- confirmed by testing the same API key
+    // successfully against a US ticker (AAPL, real data returned). Also confirmed stripping the
+    // '.JK' suffix is NOT a safe workaround: "BBCA" without the suffix returns real Finnhub data,
+    // but for an unrelated US-listed collision on that ticker symbol, not Bank Central Asia --
+    // ingesting that would silently attribute wrong-company news. This is an account/plan
+    // limitation, not fixable in code; every request against IDX tickers is guaranteed to fail.
+    'multi_providers' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'gdelt', 'currents'],
+    'source_priority' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'gdelt', 'currents'],
     // Fase R7a: google_news_rss URLs are unresolvable (confirmed dead end -- Google now serves a
     // client-rendered SPA, no publisher URL in static HTML), so full_text can never be backfilled
     // for its share of articles. Shrinking its per-fetch limit and growing the sources that

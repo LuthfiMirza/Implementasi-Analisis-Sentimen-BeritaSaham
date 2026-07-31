@@ -23,14 +23,10 @@ class RssLocalFetcher implements NewsFetcherInterface
         // detikFinance helps fill local issuer and macro policy coverage gaps.
         'https://finance.detik.com/bursa-dan-valas/rss',
         'https://finance.detik.com/moneter/rss',
-        // Kontan carries frequent BEI issuer, earnings, and corporate action updates.
-        'https://www.kontan.co.id/feed',
-        // Bisnis.com broadens listed-company and market desk coverage beyond Antara/CNBC/detik.
-        'https://www.bisnis.com/rss',
         // Katadata often covers corporate and capital-market developments around listed issuers.
-        'https://katadata.co.id/feed',
-        // Investor Daily is useful for issuer headlines when larger portals are quiet.
-        'https://investor.id/rss',
+        // Live-verified 2026-07-31: old '/feed' URL now redirects (307) to an HTML page instead of
+        // XML; '/rss/finansial' still serves real RSS with current items.
+        'https://katadata.co.id/rss/finansial',
         // IDX Channel is IDX-affiliated media with frequent per-issuer market news.
         'https://www.idxchannel.com/rss',
         // CNN Indonesia adds macro/economy coverage that complements the issuer-focused feeds above.

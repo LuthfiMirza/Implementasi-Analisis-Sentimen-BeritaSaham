@@ -27,10 +27,13 @@ class RssLocalFetcherTest extends TestCase
 
         $this->assertContains('https://www.antaranews.com/rss/ekonomi-bisnis.xml', $feeds);
         $this->assertContains('https://www.antaranews.com/rss/ekonomi-bursa.xml', $feeds);
-        $this->assertContains('https://www.kontan.co.id/feed', $feeds);
-        $this->assertContains('https://www.bisnis.com/rss', $feeds);
-        $this->assertContains('https://katadata.co.id/feed', $feeds);
-        $this->assertContains('https://investor.id/rss', $feeds);
+        // kontan.co.id/feed, bisnis.com/rss, and investor.id/rss dropped -- live-verified
+        // 2026-07-31 as permanently dead (404/blocked, no working RSS replacement found).
+        // katadata.co.id/feed replaced with /rss/finansial (old URL now redirects to HTML).
+        $this->assertContains('https://katadata.co.id/rss/finansial', $feeds);
+        $this->assertNotContains('https://www.kontan.co.id/feed', $feeds);
+        $this->assertNotContains('https://www.bisnis.com/rss', $feeds);
+        $this->assertNotContains('https://investor.id/rss', $feeds);
     }
 
     public function test_parses_valid_rss(): void

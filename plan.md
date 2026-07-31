@@ -1545,3 +1545,58 @@ sekarang eksplisit set `Http::connectTimeout(20)->timeout(20)`, bukan cuma `->ti
 ### Status: SELESAI. connectTimeout eksplisit sudah diterapkan dan diverifikasi live berhasil
 connect ke server GDELT. Tidak menjamin GDELT selalu responsif (itu di luar kendali kita), tapi
 sekarang aplikasi tidak lagi menyerah sebelum sempat mencoba.
+
+## Fase Z (lanjutan) — Audit menyeluruh semua provider berita, perbaiki 2 temuan lagi
+
+**Konteks:** Menindaklanjuti Fase Z (GDELT connectTimeout), user minta cek status SEMUA provider
+berita lainnya. Dijalankan `php artisan news:fetch --stock=BBCA` (multi-provider, tanpa filter)
+untuk mendapat gambaran lengkap satu kali jalan: `raw 32, saved 10, updated 7` dari breakdown
+`idx_disclosure:0, google_news_rss:2, business_site_search:6, rss_local:7, ojk_rss:3, gnews:0,
+newsapi:8, finnhub:0, gdelt:0, currents:6`.
+
+### Temuan 1 (diperbaiki): 4 URL RSS di `rss_local` sudah mati
+Live-verified via curl langsung ke tiap URL (dengan & tanpa User-Agent browser):
+- `kontan.co.id/feed` dan `/rss` — HTTP 200 tapi isinya HTML, bukan RSS lagi (situs tidak lagi
+  publish RSS di endpoint itu, tidak ketemu endpoint XML pengganti setelah cek homepage untuk
+  link RSS -- tidak ada sama sekali).
+- `bisnis.com/rss` dan variasi lain — HTTP 403 konsisten (Cloudflare bot-block), termasuk dengan
+  User-Agent browser asli. Tidak ada workaround aman tanpa scraping HTML penuh.
+- `katadata.co.id/feed` — HTTP 307 redirect ke halaman HTML. **Diganti** ke
+  `katadata.co.id/rss/finansial` yang live-verified HTTP 200 dengan XML RSS asli dan artikel
+  terbaru (bukan cuma feed umum, tapi kanal finansial yang lebih relevan untuk saham).
+- `investor.id/rss` dan variasi lain — semua 404, tidak ketemu endpoint RSS pengganti setelah
+  cek homepage.
+
+Perbaikan: `app/Services/News/RssLocalFetcher.php` -- 3 URL mati (kontan, bisnis, investor.id)
+dihapus dari `DEFAULT_FEEDS`, katadata diganti ke URL yang benar. Test
+`tests/Unit/RssLocalFetcherTest.php::test_default_feeds_are_expanded` diupdate untuk assert URL
+baru dan assert URL lama TIDAK ADA lagi (bukan cuma dihapus assertion-nya).
+
+### Temuan 2 (didisable, bukan diperbaiki -- tidak bisa diperbaiki lewat kode): Finnhub tidak
+mendukung ticker IDX di tier gratis
+Live-verified via curl langsung pakai API key produksi:
+- `symbol=BBCA.JK` (format yang dipakai `FinnhubNewsFetcher.php`) → `403 "You don't have access
+  to this resource."`
+- Sanity check API key masih valid: `symbol=AAPL` (ticker AS) → berhasil, data asli dikembalikan.
+  Jadi bukan API key invalid/kadaluarsa -- murni batasan tier gratis Finnhub yang tidak
+  mengizinkan endpoint company-news untuk exchange non-AS.
+- **Dicek juga apakah strip suffix `.JK` bisa jadi workaround** -- `symbol=BBCA` (tanpa suffix)
+  ternyata BERHASIL dapat data, tapi datanya tentang ticker AS lain yang kebetulan sama kodenya
+  "BBCA" (bukan Bank Central Asia). Kalau ini diikuti, sistem akan salah atribusi berita
+  perusahaan lain sebagai berita BBCA -- lebih berbahaya daripada 0 hasil.
+
+Kesimpulan: ini keterbatasan akun/plan, bukan bug kode -- setiap request finnhub untuk ticker IDX
+dijamin gagal, tidak ada perbaikan kode yang bisa mengatasinya. **Didisable** dari
+`config/news.php` `multi_providers` dan `source_priority` (bukan dihapus total dari
+`NewsAggregationService`'s `$fetchers` -- `--provider=finnhub` manual tetap bisa dipakai untuk
+testing/kalau suatu saat upgrade plan). Dikomentari jelas di config kenapa dan bagaimana
+diverifikasi, supaya tidak ada yang "memperbaiki" dengan strip `.JK` di masa depan tanpa tahu
+risikonya.
+
+### Verifikasi
+- `php artisan news:fetch --provider=rss_local --stock=BBCA --debug` setelah fix: `raw 5, saved 1,
+  updated 3` -- tidak ada lagi warning 404/HTML untuk kontan/bisnis/katadata/investor.id.
+- `php artisan test` → 470 passed (1 test diupdate untuk assertion baru, bukan gagal).
+
+### Status: SELESAI. rss_local sudah bersih dari 3 URL mati + 1 URL diperbaiki. finnhub didisable
+dari siklus otomatis dengan dokumentasi lengkap kenapa (bukan cuma dihapus diam-diam).
