@@ -59,13 +59,41 @@ def send_telegram_alert(text: str) -> None:
     try:
         resp = requests.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
-            json={"chat_id": chat_id, "text": text},
+            json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
             timeout=10,
         )
         if not resp.ok:
             print(f"Gagal kirim alert Telegram: HTTP {resp.status_code} {resp.text}")
     except Exception as e:  # network failure must never break signal detection itself
         print(f"Gagal kirim alert Telegram: {e}")
+
+
+def format_signal_alert(signal: dict) -> str:
+    """HTML-formatted, scannable Telegram alert for one new signal (live-verified readable on
+    mobile: bold labels, blank-line-separated sections, plain numbers not a wall of text)."""
+    entry_date = date.fromisoformat(signal["entry_date"])
+    exit_estimate = entry_date + pd.tseries.offsets.BDay(10)
+
+    icon = "\U0001F7E2" if signal["label"] == "tracked" else "\U0001F7E1"
+    header = f"{icon} <b>SINYAL BELI: {signal['ticker']}</b>"
+
+    warning = ""
+    if signal["label"] != "tracked":
+        warning = (
+            "\n\n⚠️ <b>EXPLORATORY</b> — JANGAN dijadikan kesimpulan sendirian, "
+            "lihat PROTOCOL.md (sample historisnya belum cukup meyakinkan untuk DEWA)."
+        )
+
+    return (
+        f"{header}\n\n"
+        f"<b>Trigger</b>: {signal['trigger_date']}\n"
+        f"IHSG {signal['ihsg_ret_2d']:+.1%} | {signal['ticker']} {signal['stock_ret_2d']:+.1%} (2 hari)\n\n"
+        f"<b>Entry</b>: {signal['entry_date']}\n"
+        f"Harga: Rp{signal['entry_price']:.0f}\n\n"
+        f"<b>Rencana exit</b>: tahan 10 hari bursa\n"
+        f"≈ {exit_estimate.date().isoformat()}"
+        f"{warning}"
+    )
 
 
 def get_connection() -> sqlite3.Connection:
@@ -135,14 +163,7 @@ def main() -> None:
             print(f"SIGNAL BARU: {s['ticker']} ({s['label']}) trigger {s['trigger_date']} "
                   f"-> entry {s['entry_date']} @ {s['entry_price']:.0f}")
 
-            label_note = "" if s["label"] == "tracked" else "\n(Exploratory -- JANGAN dipakai kesimpulan, lihat PROTOCOL.md)"
-            send_telegram_alert(
-                f"Sinyal drawdown-bounce baru: {s['ticker']}\n"
-                f"Trigger: {s['trigger_date']} (IHSG {s['ihsg_ret_2d']:+.1%}, {s['ticker']} {s['stock_ret_2d']:+.1%})\n"
-                f"Entry: {s['entry_date']} @ Rp{s['entry_price']:.0f}\n"
-                f"Rencana exit: tahan 10 hari bursa (lihat report.py untuk P&L)."
-                f"{label_note}"
-            )
+            send_telegram_alert(format_signal_alert(s))
         except sqlite3.IntegrityError:
             pass  # already logged, UNIQUE(ticker, trigger_date) makes this idempotent
 
