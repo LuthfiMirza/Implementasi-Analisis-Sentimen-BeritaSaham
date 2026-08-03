@@ -1843,3 +1843,32 @@ puncak sejak entry -- trailing stop-nya tetap dipasang manual sendiri di StockBi
 ### Status: SELESAI. Alert-only, TIDAK ada order otomatis dipasang/dieksekusi -- keputusan trading
 tetap sepenuhnya di tangan user. `open_positions.json` perlu diupdate manual tiap kali user
 buka/tutup posisi baru (belum otomatis sinkron dengan Trade Journal).
+
+## Fase AC (lanjutan) — Perintah /open /close /status lewat Telegram
+
+**Konteks:** User minta cara kelola `open_positions.json` (posisi yang dipantau trailing-stop)
+langsung dari HP, tanpa perlu bilang ke Claude tiap kali buka/tutup posisi.
+
+### Perubahan kode
+- `quant/drawdown_bounce_tracker/telegram_commands.py` (baru) -- long-polling `getUpdates` (bukan
+  webhook, tidak perlu endpoint HTTPS publik, cocok untuk mesin dev lokal). Parsing perintah:
+  `/open TICKER HARGA [TANGGAL]`, `/close TICKER HARGA [TANGGAL]`, `/status`. Cuma memproses pesan
+  dari `TELEGRAM_CHAT_ID` yang terdaftar di `.env` -- kalau token bocor, orang lain tidak bisa
+  suntik posisi palsu lewat bot ini. Offset update_id disimpan di `telegram_update_offset.txt`
+  (gitignored, state lokal) supaya tidak memproses pesan lama berulang.
+- `app/Console/Commands/CheckTelegramCommandsCommand.php` (baru) -- `research:check-telegram-
+  commands`, pola tipis sama seperti command lain di tracker ini.
+- `routes/console.php` -- dijadwalkan tiap 5 menit, 08.00-20.00 WIB (bukan cuma jam bursa, posisi
+  bisa ditutup kapan saja).
+- Test: `CheckTelegramCommandsCommandTest`, 3 test.
+
+### Verifikasi
+- `handle_command()` dites langsung: `/close BUMI 172` menghapus BUMI dari daftar + balasan
+  konfirmasi; `/open ADRO 2510` menambah posisi baru; perintah tidak dikenal dapat balasan bantuan.
+- Real run via Python langsung & via `php artisan research:check-telegram-commands` -- keduanya
+  sukses, "Tidak ada perintah baru" (benar, belum ada pesan real terkirim ke bot).
+- `php artisan test` -> 480 passed.
+
+### Status: SELESAI. User sekarang bisa kirim `/open`, `/close`, `/status` langsung ke
+@IDX_alert_keysentimen_bot dari HP untuk kelola posisi yang dipantau trailing-stop, tanpa perlu
+lewat chat ke Claude.

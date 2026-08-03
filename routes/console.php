@@ -145,6 +145,17 @@ Schedule::command('research:check-trailing-stop-alert')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// Polling perintah Telegram (/open, /close, /status) supaya user bisa kelola posisi yang dipantau
+// trailing-stop langsung dari HP tanpa nunggu siklus 15.21 WIB -- dicek tiap 5 menit, 08.00-20.00
+// WIB (jam wajar orang aktif trading/ngecek HP), bukan cuma jam bursa (posisi bisa ditutup di luar
+// jam bursa juga).
+Schedule::command('research:check-telegram-commands')
+    ->everyFiveMinutes()
+    ->between('08:00', '20:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // END-OF-DAY ML REANALYSIS: 15.20 WIB
 // Catatan: 'news:rescore-sentiment' (full-corpus, tanpa filter) sengaja TIDAK
 // dijadwalkan lagi -- dulu jalan 2x/hari (12:00 & 15:15) tapi redundan dan makin
