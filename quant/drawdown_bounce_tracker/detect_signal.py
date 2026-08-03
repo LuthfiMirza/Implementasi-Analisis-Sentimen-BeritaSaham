@@ -52,15 +52,23 @@ def load_telegram_credentials() -> tuple[str | None, str | None]:
     return token, chat_id
 
 
+# Telegram sends whatever text is on the button back as the message -- these icon labels are
+# translated back to the real /status, /close BUMI, /close DEWA commands in telegram_commands.py's
+# BUTTON_LABELS map, so the parsing logic only has to understand the canonical command form.
+BUTTON_STATUS = "\U0001F4CA Status"
+BUTTON_CLOSE_BUMI = "\U0001F534 Tutup BUMI"
+BUTTON_CLOSE_DEWA = "\U0001F534 Tutup DEWA"
+
+
 def default_keyboard() -> dict:
     """Persistent tappable keyboard shown under the message box -- tapping a button just sends
-    its text as a normal message, same as typing it. Price is omitted on purpose: handle_command()
-    fills it in from the live market price when a command arrives without one, so these buttons
-    work with a single tap."""
+    its label as a normal message, same as typing it. Price is deliberately not on the button:
+    handle_command() fills it in from the live market price when a command arrives without one,
+    so these buttons work with a single tap."""
     return {
         "keyboard": [
-            ["/status"],
-            ["/close BUMI", "/close DEWA"],
+            [BUTTON_STATUS],
+            [BUTTON_CLOSE_BUMI, BUTTON_CLOSE_DEWA],
         ],
         "resize_keyboard": True,
         "is_persistent": True,

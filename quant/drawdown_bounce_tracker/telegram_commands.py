@@ -24,10 +24,25 @@ import requests
 import yfinance as yf
 
 sys.path.insert(0, str(Path(__file__).parent))
-from detect_signal import default_keyboard, load_telegram_credentials, send_telegram_alert  # noqa: E402
+from detect_signal import (  # noqa: E402
+    BUTTON_CLOSE_BUMI,
+    BUTTON_CLOSE_DEWA,
+    BUTTON_STATUS,
+    default_keyboard,
+    load_telegram_credentials,
+    send_telegram_alert,
+)
 
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
 OFFSET_PATH = Path(__file__).parent / "telegram_update_offset.txt"
+
+# Icon button labels -> canonical command text, so handle_command()'s parsing only needs to know
+# the /open, /close, /status forms.
+BUTTON_LABELS = {
+    BUTTON_STATUS: "/status",
+    BUTTON_CLOSE_BUMI: "/close BUMI",
+    BUTTON_CLOSE_DEWA: "/close DEWA",
+}
 
 # HARGA is optional -- a bare "/close BUMI" (as sent by the keyboard button, no price typed) falls
 # through to fetch_live_price() below.
@@ -145,6 +160,8 @@ def main() -> None:
             continue  # ignore anyone except the configured owner chat
 
         text = message.get("text", "")
+        text = BUTTON_LABELS.get(text.strip(), text)  # translate a tapped icon button, if any
+
         if text.strip() == "/status":
             send_telegram_alert(format_status(positions), reply_markup=default_keyboard())
             processed += 1
