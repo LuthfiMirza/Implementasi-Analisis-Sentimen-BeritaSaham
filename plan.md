@@ -1895,3 +1895,67 @@ harus ketik perintah manual tiap kali.
 
 ### Status: SELESAI. User sekarang bisa tap tombol langsung dari Telegram tanpa ketik perintah,
 harga otomatis terisi dari harga pasar live kalau tidak disebutkan manual.
+
+## Fase AE — Exit Stoch RSI 1 jam diuji ke 3 tahun data (GAGAL, tapi mekanismenya informatif)
+
+**Konteks:** User mengoreksi dua kesalahan nyata di Fase AD, dan koreksinya BENAR:
+1. Fase AD menguji *Stochastic klasik* (posisi harga dalam rentang 14 hari); user memakai
+   **Stoch RSI** (stochastic di atas nilai RSI) -- indikator berbeda. Di 23 Jul 2026 keduanya
+   berbeda tajam: Stoch RSI = 100,0 vs Stochastic klasik = 78,3 (di bawah ambang 80).
+2. Semua backtest proyek ini sejauh ini memakai data HARIAN; user trading di chart **1 jam**.
+
+Live-check membuktikan observasi user tepat: di bar 1 jam, Stoch RSI %K menyentuh **100,0 pada
+23 Jul 11:00 WIB dengan harga 194** -- puncak pergerakan, jam yang sama trailing stop asli mereka
+tereksekusi. Klaim saya sebelumnya ("Stoch 78,3 jadi tidak akan menyuruh jual") salah untuk
+indikator yang mereka pakai, dan sudah dikoreksi eksplisit ke user.
+
+### Metodologi
+`quant/run_hourly_stochrsi_exit_experiment.py` (baru). Data 1 jam diunduh via yfinance ke
+`data/intraday/{TICKER}_1h.csv` (4.870 bar BUMI, 4.865 DEWA, mulai 2023-07-18 -- batas maksimum
+histori intraday yang tersedia). Stoch RSI (14,14,3,3) persis setting TradingView user. Entry
+tidak diubah (aturan harian Fase AB); yang dibandingkan HANYA cara keluar. Exit diisi di CLOSE
+bar pemicu (bukan high -- tanpa lookahead), cap 20 hari, biaya 0,80%, split 70/30 kronologis.
+
+### Hasil: SEMUA varian kalah telak dari baseline
+```
+BUMI   discovery / holdout            rata2 hari tahan
+daily_fixed_10d    +9,11% / +4,24%          10,0   <-- baseline, terbaik
+hourly_k_gt80      +0,61% / +2,93%           2,2
+hourly_k_gt90      +0,47% / +2,93%           2,2
+hourly_kd_cross    -0,45% / +7,99%           2,5
+
+DEWA
+daily_fixed_10d    +6,98% / +14,09%         10,0   <-- baseline, terbaik
+hourly_k_gt80      +0,34% / +3,18%           2,0
+hourly_k_gt90      +0,76% / +3,18%           2,2
+hourly_kd_cross    -0,36% / +14,15%          2,5
+```
+
+### Kenapa gagal -- ini bagian yang paling berguna
+Lihat kolom "rata2 hari tahan": exit Stoch RSI 1 jam rata-rata keluar **2,0-2,5 hari** setelah
+entry, bukan 10. Stoch RSI di bar 1 jam berosilasi sangat cepat, jadi hampir selalu menyentuh >80
+dalam 2 hari pertama -- posisi ditutup **sebelum pantulan sempat berkembang**. Untung dipotong
+di awal.
+
+Ini kebalikan persis dari kegagalan Fase AD (exit overbought HARIAN justru menahan 15-20 hari,
+kelamaan). Jadi dua-duanya gagal karena alasan berlawanan: harian kelamaan, per-jam kecepetan.
+Ini menguatkan bahwa masalahnya bukan "ambangnya kurang pas", tapi indikator overbought memang
+bukan alat yang tepat untuk menentukan kapan keluar dari trade pantulan.
+
+### Catatan sample size (penting)
+Data 1 jam cuma 3 tahun, jadi hanya **11 sinyal** yang tercakup (dari 42 sinyal BUMI di histori
+harian 22 tahun) -- **di bawah ambang minimum n>=20 proyek ini**. Angka holdout yang terlihat
+bagus (`hourly_kd_cross` +7,99% BUMI / +14,15% DEWA) berasal dari **4 trade saja** dan TIDAK
+boleh dipercaya. Discovery-nya negatif untuk kedua saham, jadi tetap tidak konsisten.
+
+### Kenapa ini TIDAK bertentangan dengan kejadian 23 Juli
+Stoch RSI memang menandai puncak dengan tepat hari itu. Bedanya: saat itu posisi sudah untung
+~40% dan sudah berjalan >3 minggu. Yang menyelamatkan profit adalah **trailing stop** (keluar
+karena harga benar-benar berbalik dari puncak), bukan prediksi puncak. Trailing stop membiarkan
+posisi yang menang terus berjalan dan baru keluar saat pembalikan nyata -- persis yang tidak
+dilakukan aturan overbought, yang keluar 2 hari setelah entry apa pun kondisinya.
+
+### Status: GAGAL, tidak diintegrasikan. Aturan jual tetap: (1) fixed 10 hari bursa (paling
+untung di semua uji), (2) trailing-stop alert 4% (proteksi, sudah live, terbukti nyata di akun
+user 23 Jul). Stoch RSI boleh tetap dipakai user sebagai konteks visual di TradingView, tapi
+tidak dijadikan pemicu keputusan otomatis di sistem ini.
