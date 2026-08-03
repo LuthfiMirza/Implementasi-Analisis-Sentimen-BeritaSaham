@@ -12,11 +12,16 @@ order -- it watches each position in open_positions.json and sends Telegram aler
 
 Both fire at most once per position (flags stored back into open_positions.json).
 
-Uses HOURLY bars, not daily closes. Live-verified on the 21-23 Jul 2026 spike: hourly checking
-would have alerted at 23 Jul 14:00 (peak 196, price 184, +36.3% on a 30 Jun entry), whereas the
-old daily-close version only saw it at the 15:21 end-of-day run. Same rule, ~1.5h earlier.
-Hourly data also gives a truer peak, since an intraday spike high is captured as it happens
-rather than only after the daily bar closes.
+Uses 15-MINUTE bars, not daily closes. Live-verified on the 21-23 Jul 2026 spike: checking every
+15 minutes with a 2% threshold would have alerted at 23 Jul 13:30 (peak 196, price 192, +35.8% on
+a 30 Jun entry) -- the SAME clock time as the user's real StockBit trailing stop (13:30 @ 189),
+just a few points higher because this only sees 15-min bar closes, not continuous tick data like
+a real broker order. That's a ~45-minute improvement over the previous hourly/4% version, which
+lagged the real stop by ~1.5h (14:00 @ 184).
+
+Tradeoff, stated plainly: 2% is tighter than BUMI/DEWA's daily ATR (~5.8-6.0%), so this WILL fire
+on ordinary intraday noise sometimes, not just genuine reversals -- the user chose this explicitly
+after seeing the lag-vs-false-alarm tradeoff on real numbers.
 
 Positions live in a local JSON file (not the Laravel Trade Journal / MySQL) so this keeps working
 when MySQL is off, matching detect_signal.py's resilience. Manage it from Telegram with /open and
@@ -35,7 +40,9 @@ import yfinance as yf
 sys.path.insert(0, str(Path(__file__).parent))
 from detect_signal import send_telegram_alert  # noqa: E402
 
-PULLBACK_THRESHOLD = 0.04  # 4% -- the more sensitive end of the 4-5% range the user chose
+PULLBACK_THRESHOLD = 0.02  # 2% -- tighter than daily ATR (~5.8-6.0%), chosen deliberately by the
+# user after seeing this WILL fire on ordinary intraday noise sometimes, in exchange for catching
+# genuine reversals close to real-time instead of lagging by up to 1.5h.
 TARGET_HOLD_DAYS = 10  # trading days -- the exit that won in Fase AB/AD/AE
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
 
@@ -50,10 +57,11 @@ def save_positions(positions: list[dict]) -> None:
     POSITIONS_PATH.write_text(json.dumps(positions, indent=2), encoding="utf-8")
 
 
-def fetch_hourly_since(ticker: str, entry_date: str) -> pd.DataFrame | None:
-    """Hourly bars from entry_date onward. yfinance caps hourly history at ~730 days, which is far
-    more than any position we track will need."""
-    df = yf.download(f"{ticker}.JK", period="730d", interval="1h", progress=False, auto_adjust=False)
+def fetch_15m_since(ticker: str, entry_date: str) -> pd.DataFrame | None:
+    """15-minute bars from entry_date onward. yfinance/Yahoo caps 15m history at 60 days -- far
+    more than the ~10-20 trading day holding periods this system's exit rules use, so it's never
+    a binding constraint for a real open position."""
+    df = yf.download(f"{ticker}.JK", period="60d", interval="15m", progress=False, auto_adjust=False)
     if df.empty:
         return None
     df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
@@ -67,9 +75,9 @@ def check_position(position: dict) -> None:
     entry_date = position["entry_date"]
     entry_price = float(position["entry_price"])
 
-    df = fetch_hourly_since(ticker, entry_date)
+    df = fetch_15m_since(ticker, entry_date)
     if df is None:
-        print(f"{ticker}: tidak ada data 1 jam sejak {entry_date}, dilewati.")
+        print(f"{ticker}: tidak ada data 15 menit sejak {entry_date}, dilewati.")
         return
 
     peak = float(df["High"].max())

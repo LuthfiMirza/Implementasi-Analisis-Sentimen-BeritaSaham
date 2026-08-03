@@ -1998,3 +1998,52 @@ Selisih harga kecil di kasus ini, tapi pada penurunan yang lebih cepat bedanya j
 (1) trailing stop 4% dicek per 30 menit saat jam bursa, (2) pengingat target waktu 10 hari bursa.
 Tidak ada yang memakai indikator overbought sebagai pemicu -- dua-duanya sudah terbukti gagal
 (Fase AD harian, Fase AE Stoch RSI 1 jam).
+
+## Fase AG — Perketat trailing stop: 4%/30 menit -> 2%/15 menit
+
+**Konteks:** User menunjuk momen spesifik BUMI 23 Jul jam 11.30 (puncak 196 di 11.45) dan
+bertanya kenapa alertnya baru bunyi jam 14.00 (Fase AF), minta alert lebih cepat "jam 9/10-an".
+
+### Koreksi kesalahpahaman dulu, sebelum ubah apa pun
+Alert TIDAK BISA lebih cepat dari puncak itu sendiri -- puncak baru terbentuk 11.45, jadi alert
+sebelum jam itu berarti jual SEBELUM harga mencapai tertinggi (profit lebih KECIL, bukan lebih
+besar). Lever yang benar-benar bisa diperbaiki cuma satu: jarak waktu antara puncak terbentuk dan
+alert bunyi (lag), bukan menggeser alert ke pagi.
+
+### Perbandingan real (granularitas 15 menit, data 21-23 Jul 2026)
+```
+Ambang 4% (15 menit): alert 23 Jul 14:15, harga 186
+Ambang 3% (15 menit): alert 23 Jul 13:45, harga 189
+Ambang 2% (15 menit): alert 23 Jul 13:30, harga 192  <-- SAMA PERSIS dgn jam stop StockBit user (13:30 @ 189)
+```
+User memilih **2% + granularitas 15 menit** setelah melihat tabel ini secara eksplisit ("2% aja +
+cek 15 menit").
+
+### Perubahan kode
+- `quant/drawdown_bounce_tracker/check_trailing_stop.py`: `PULLBACK_THRESHOLD` 0,04 -> 0,02;
+  `fetch_hourly_since()` (interval 1h, 730 hari) diganti `fetch_15m_since()` (interval 15m, 60
+  hari -- batas maksimum Yahoo untuk granularitas ini, tapi tidak jadi soal karena horizon exit
+  proyek ini cuma ~10-20 hari bursa).
+- `routes/console.php`: `research:check-trailing-stop-alert` dari `everyThirtyMinutes()` menjadi
+  `everyFifteenMinutes()`, komentar diperbarui.
+
+### Trade-off yang disadari (bukan cuma "lebih cepat = lebih baik")
+2% lebih ketat dari ATR harian BUMI/DEWA (~5,8-6,0%), jadi ambang ini AKAN kadang bunyi karena
+noise intraday biasa, bukan cuma pembalikan sungguhan. User memilih ini secara sadar melihat
+trade-off lag-vs-alarm-palsu di angka nyata, bukan diam-diam diubah oleh sistem.
+
+### Verifikasi
+- `python3 quant/drawdown_bounce_tracker/check_trailing_stop.py`: BUMI mundur 2,9% dari puncak
+  173 (3 Agu 09.45) -> **ALERT TRAILING STOP terkirim** (P&L +5,7%). DEWA mundur 3,7% dari puncak
+  482 (3 Agu 09.00) -> **ALERT TRAILING STOP terkirim** (P&L +5,5%). Dengan ambang lama (4%) dua
+  posisi ini TIDAK akan dapat alert -- perubahan ambang langsung menangkap pullback nyata yang
+  sebelumnya terlewat. Alert Telegram nyata terkirim, `open_positions.json` ter-update
+  (`alerted_pullback_pct` terisi untuk keduanya).
+- `php artisan research:check-trailing-stop-alert` dijalankan ulang setelahnya: output identik,
+  TIDAK kirim alert dobel (flag `alerted_pullback_pct` sudah terisi) -- guard sekali-per-posisi
+  bekerja benar.
+- `php artisan test`: 480 passed (tidak ada test yang menyentuh script Python ini secara langsung,
+  jadi hijau seperti sebelumnya).
+
+### Status: SELESAI. Ambang trailing stop sekarang 2%, dicek tiap 15 menit jam bursa 09.00-16.00
+WIB. Target waktu 10 hari bursa tidak berubah.

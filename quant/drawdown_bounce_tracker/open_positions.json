@@ -3,12 +3,12 @@
     "ticker": "BUMI",
     "entry_date": "2026-07-29",
     "entry_price": 159,
-    "alerted_pullback_pct": null
+    "alerted_pullback_pct": 0.028901734104046242
   },
   {
     "ticker": "DEWA",
     "entry_date": "2026-07-29",
     "entry_price": 440,
-    "alerted_pullback_pct": null
+    "alerted_pullback_pct": 0.03734439834024896
   }
 ]

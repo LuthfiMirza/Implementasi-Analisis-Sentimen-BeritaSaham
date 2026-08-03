@@ -133,19 +133,24 @@ Schedule::command('research:evaluate-drawdown-bounce-signal')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
-// JAM BURSA: tiap 30 menit, 09.00-16.00 WIB
+// JAM BURSA: tiap 15 menit, 09.00-16.00 WIB
 // Alert-only (BUKAN eksekusi order) untuk posisi BUMI/DEWA yang sedang open, terdaftar di
 // quant/drawdown_bounce_tracker/open_positions.json (dikelola via /open dan /close di Telegram).
-// Dua alert: (1) trailing stop saat harga mundur >=4% dari puncak sejak entry, (2) target waktu
+// Dua alert: (1) trailing stop saat harga mundur >=2% dari puncak sejak entry, (2) target waktu
 // 10 hari bursa -- exit yang menang di semua backtest Fase AB/AD/AE.
 //
-// Sengaja intraday, bukan sekali sehari seperti versi awal: dicek ulang ke data 1 jam 21-23 Jul
-// 2026, versi per-jam mengirim alert 23 Jul 14.00 (puncak 196, harga 184, +36,3%) sementara versi
-// harian baru melihatnya di run 15.21 sore. Aturannya sama persis, cuma ~1,5 jam lebih cepat dan
-// puncak intraday tertangkap saat terjadi, bukan setelah bar harian tutup.
+// Diperketat dari 4%/30-menit ke 2%/15-menit (dikonfirmasi user langsung setelah dikasih lihat
+// perbandingan angka nyata): dicek ulang ke data 15 menit 21-23 Jul 2026, ambang 2% di granularitas
+// 15 menit mengirim alert 23 Jul 13.30 (puncak 196, harga 192, +35,8%) -- persis jam yang sama
+// dengan trailing stop StockBit user sendiri (13.30 @ 189), cuma beberapa poin lebih tinggi karena
+// ini cuma melihat penutupan bar 15 menit, bukan data tick kontinu seperti order broker asli. Itu
+// perbaikan ~45 menit dari versi hourly/4% sebelumnya (14.00 @ 184). Trade-off yang disadari: 2%
+// lebih ketat dari ATR harian BUMI/DEWA (~5,8-6,0%), jadi INI AKAN kadang bunyi karena noise
+// intraday biasa, bukan cuma pembalikan sungguhan -- user memilih ini secara sadar setelah melihat
+// trade-off lag-vs-alarm-palsu di angka nyata (bukan cuma "makin cepat makin bagus").
 Schedule::command('research:check-trailing-stop-alert')
     ->weekdays()
-    ->everyThirtyMinutes()
+    ->everyFifteenMinutes()
     ->between('09:00', '16:00')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
