@@ -1959,3 +1959,42 @@ dilakukan aturan overbought, yang keluar 2 hari setelah entry apa pun kondisinya
 untung di semua uji), (2) trailing-stop alert 4% (proteksi, sudah live, terbukti nyata di akun
 user 23 Jul). Stoch RSI boleh tetap dipakai user sebagai konteks visual di TradingView, tapi
 tidak dijadikan pemicu keputusan otomatis di sistem ini.
+
+## Fase AF — Alert intraday: trailing stop per-jam + target waktu 10 hari
+
+**Konteks:** User bertanya kenapa momen bagus 21-23 Jul 2026 (spike BUMI ke 196 lalu jatuh)
+"terlewatkan". Dicek ulang: **tidak terlewat** -- versi harian tetap mengirim alert di run 15.21
+tanggal 23 Jul (mundur 6,6% dari puncak 196 ke close 183). Tapi waktunya sore, bukan saat
+kejadian.
+
+### Verifikasi empiris sebelum membangun
+Disimulasikan trailing stop 4% dicek TIAP JAM ke data 1 jam asli 20-24 Jul 2026:
+```
+23 Jul 11:00 | H=196 C=194 | puncak=196 | mundur 1,0%
+23 Jul 13:00 | H=195 C=189 | puncak=196 | mundur 3,6%
+23 Jul 14:00 | H=191 C=184 | puncak=196 | mundur 6,1%  <<< ALERT, profit +36,3%
+23 Jul 15:00 | H=185 C=182 | puncak=196 | mundur 7,1%
+```
+Alert datang **23 Jul 14.00** vs versi harian 15.21 -- ~1,5 jam lebih cepat, harga 184 vs 183.
+Selisih harga kecil di kasus ini, tapi pada penurunan yang lebih cepat bedanya jauh lebih besar.
+
+### Perubahan kode
+- `quant/drawdown_bounce_tracker/check_trailing_stop.py` -- diubah dari daily close ke **bar 1 jam**
+  (`period=730d, interval=1h`). Puncak diambil dari `High` intraday (tertangkap saat terjadi, bukan
+  setelah bar harian tutup). Ditambah **alert kedua: target waktu 10 hari bursa** -- exit yang
+  menang di semua backtest (Fase AB/AD/AE), sebelumnya cuma dicatat diam-diam tanpa notifikasi.
+  Kedua alert masing-masing cuma sekali per posisi (flag `alerted_pullback_pct`, `alerted_day10`
+  disimpan ke `open_positions.json`).
+- `routes/console.php` -- `research:check-trailing-stop-alert` dari `dailyAt('15:21')` menjadi
+  **tiap 30 menit, 09.00-16.00 WIB hari kerja**.
+
+### Verifikasi
+- Real run: BUMI puncak 173 (3 Agu 09.00), sekarang 168, mundur 2,9%, hari bursa ke-4, P&L +5,7%.
+  DEWA puncak 482, sekarang 464, mundur 3,7%, hari ke-4, P&L +5,5%. Keduanya di bawah ambang 4%
+  dan belum 10 hari -- benar, belum ada alert.
+- Jalan via `php artisan research:check-trailing-stop-alert` -- output sama dengan Python langsung.
+
+### Status: SELESAI. Sistem jual sekarang lengkap dan semuanya berbasis aturan yang lolos uji:
+(1) trailing stop 4% dicek per 30 menit saat jam bursa, (2) pengingat target waktu 10 hari bursa.
+Tidak ada yang memakai indikator overbought sebagai pemicu -- dua-duanya sudah terbukti gagal
+(Fase AD harian, Fase AE Stoch RSI 1 jam).

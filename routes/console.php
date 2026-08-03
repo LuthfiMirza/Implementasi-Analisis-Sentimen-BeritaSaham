@@ -133,20 +133,26 @@ Schedule::command('research:evaluate-drawdown-bounce-signal')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
-// END-OF-DAY: 15.21 WIB
-// Alert-only (BUKAN eksekusi order) untuk posisi BUMI/DEWA yang sedang open, terdaftar manual di
-// quant/drawdown_bounce_tracker/open_positions.json. User pasang trailing stop-nya sendiri secara
-// manual di StockBit -- ini cuma mengirim notifikasi Telegram begitu harga mundur >=4% dari titik
-// tertinggi sejak entry.
+// JAM BURSA: tiap 30 menit, 09.00-16.00 WIB
+// Alert-only (BUKAN eksekusi order) untuk posisi BUMI/DEWA yang sedang open, terdaftar di
+// quant/drawdown_bounce_tracker/open_positions.json (dikelola via /open dan /close di Telegram).
+// Dua alert: (1) trailing stop saat harga mundur >=4% dari puncak sejak entry, (2) target waktu
+// 10 hari bursa -- exit yang menang di semua backtest Fase AB/AD/AE.
+//
+// Sengaja intraday, bukan sekali sehari seperti versi awal: dicek ulang ke data 1 jam 21-23 Jul
+// 2026, versi per-jam mengirim alert 23 Jul 14.00 (puncak 196, harga 184, +36,3%) sementara versi
+// harian baru melihatnya di run 15.21 sore. Aturannya sama persis, cuma ~1,5 jam lebih cepat dan
+// puncak intraday tertangkap saat terjadi, bukan setelah bar harian tutup.
 Schedule::command('research:check-trailing-stop-alert')
     ->weekdays()
-    ->dailyAt('15:21')
+    ->everyThirtyMinutes()
+    ->between('09:00', '16:00')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
 // Polling perintah Telegram (/open, /close, /status) supaya user bisa kelola posisi yang dipantau
-// trailing-stop langsung dari HP tanpa nunggu siklus 15.21 WIB -- dicek tiap 5 menit, 08.00-20.00
+// trailing-stop langsung dari HP kapan saja -- dicek tiap 5 menit, 08.00-20.00
 // WIB (jam wajar orang aktif trading/ngecek HP), bukan cuma jam bursa (posisi bisa ditutup di luar
 // jam bursa juga).
 Schedule::command('research:check-telegram-commands')
