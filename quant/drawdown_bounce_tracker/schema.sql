@@ -11,6 +11,12 @@ CREATE TABLE IF NOT EXISTS signals (
     stock_ret_2d        REAL NOT NULL,
     entry_date          TEXT NOT NULL,          -- next trading day after trigger_date
     entry_price         REAL NOT NULL,
+    rsi14               REAL,                   -- context only, NOT part of the entry rule -- see
+    stoch_k             REAL,                   -- PROTOCOL.md. Live-checked: overbought/oversold
+                                                  -- readings matched the entry direction in only
+                                                  -- ~3/8 of the user's own hindsight examples, so
+                                                  -- these are shown as supporting info, never a
+                                                  -- second trigger condition.
     notes               TEXT,
     UNIQUE(ticker, trigger_date)
 );

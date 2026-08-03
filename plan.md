@@ -1773,3 +1773,39 @@ masuk kode/git, konsisten dengan API key lain di proyek ini). Gagal kirim Telegr
 mati) tidak menggagalkan pencatatan sinyal itu sendiri -- dibungkus try/except, cuma print warning.
 
 Live-verified: `sendMessage` API Telegram dites langsung, berhasil (`ok: true`), pesan tes diterima.
+
+## Fase AC (lanjutan) — RSI14/Stochastic %K sebagai info tambahan di alert Telegram
+
+**Konteks:** User minta cek apakah "buy pressure/sell pressure tinggi" bisa dipakai untuk deteksi
+puncak-lembah, dengan narasi 8 titik dari akun trading riilnya (7-8 Mei jual, 8 Jun beli, 15 Jun
+jual, 30 Jun beli, 22-23 Jul jual, 29 Jul beli). Live-checked RSI14 + Stochastic %K BUMI/DEWA di
+kedelapan tanggal itu: **cuma 3/8 titik (8 Jun, 30 Jun, 22-23 Jul) yang cocok kuat dengan kondisi
+oversold/overbought ekstrem**; sisanya netral atau malah kontradiktif (8 Mei: Stoch 0 di kedua
+saham, itu oversold/beli, bukan jual seperti klaim). Konsisten dengan temuan Fase T lama: RSI/
+Stochastic KADANG bekerja tapi tidak cukup konsisten untuk jadi aturan sendiri.
+
+### Keputusan
+Tidak dibangun sebagai sinyal berdiri sendiri (sudah terbukti gagal di 5/8 kasus). Ditambahkan
+sebagai **info tambahan** di alert Telegram drawdown-bounce yang sudah ada -- ditampilkan tapi
+dilabeli eksplisit "bukan bagian aturan" dan dicantumkan rasio 3/8 supaya user tidak salah kira ini
+sinyal terpisah yang sudah tervalidasi.
+
+### Perubahan kode
+- `quant/drawdown_bounce_tracker/schema.sql` -- tambah kolom `rsi14`, `stoch_k` (nullable, context
+  only) ke tabel `signals`. Database kosong (0 baris) di-recreate untuk pakai skema baru (aman,
+  tidak ada data hilang).
+- `quant/drawdown_bounce_tracker/detect_signal.py` -- tambah `rsi()`/`stochastic_k()` (auditable
+  inline, pola sama seperti skrip riset lain di proyek ini), `fetch_recent()` window diperpanjang
+  20d -> 60d supaya rolling RSI14/Stoch14 sudah warm-up di tanggal trigger, `describe_rsi()`/
+  `describe_stoch()` untuk label oversold/netral/overbought, `format_signal_alert()` menampilkan
+  info tambahan ini dengan disclaimer rasio 3/8 di badan pesan.
+
+### Verifikasi
+- Live test: dikirim contoh alert sungguhan ke Telegram (`@IDX_alert_keysentimen_bot`) dengan
+  RSI14/Stoch %K BUMI hari ini (57/43, netral) -- terkirim sukses, format terbaca jelas.
+- `php artisan research:detect-drawdown-bounce-signal` real run -> tetap jalan normal tanpa error
+  setelah perubahan skema.
+- `php artisan test` -> 475 passed.
+
+### Status: SELESAI. RSI/Stochastic sekarang tampil di tiap alert sebagai konteks, bukan sinyal
+kedua -- user tetap yang menilai, sistem tidak berpura-pura ini sudah tervalidasi.

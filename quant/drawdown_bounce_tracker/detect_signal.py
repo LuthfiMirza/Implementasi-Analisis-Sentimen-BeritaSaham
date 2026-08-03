@@ -17,6 +17,7 @@ import sqlite3
 from datetime import date
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import requests
 import yfinance as yf
@@ -68,6 +69,26 @@ def send_telegram_alert(text: str) -> None:
         print(f"Gagal kirim alert Telegram: {e}")
 
 
+def describe_rsi(rsi14: float | None) -> str:
+    if rsi14 is None or np.isnan(rsi14):
+        return "n/a"
+    if rsi14 < 30:
+        return f"{rsi14:.0f} (oversold)"
+    if rsi14 > 70:
+        return f"{rsi14:.0f} (overbought)"
+    return f"{rsi14:.0f} (netral)"
+
+
+def describe_stoch(stoch_k: float | None) -> str:
+    if stoch_k is None or np.isnan(stoch_k):
+        return "n/a"
+    if stoch_k < 20:
+        return f"{stoch_k:.0f} (oversold)"
+    if stoch_k > 80:
+        return f"{stoch_k:.0f} (overbought)"
+    return f"{stoch_k:.0f} (netral)"
+
+
 def format_signal_alert(signal: dict) -> str:
     """HTML-formatted, scannable Telegram alert for one new signal (live-verified readable on
     mobile: bold labels, blank-line-separated sections, plain numbers not a wall of text)."""
@@ -91,7 +112,10 @@ def format_signal_alert(signal: dict) -> str:
         f"<b>Entry</b>: {signal['entry_date']}\n"
         f"Harga: Rp{signal['entry_price']:.0f}\n\n"
         f"<b>Rencana exit</b>: tahan 10 hari bursa\n"
-        f"≈ {exit_estimate.date().isoformat()}"
+        f"≈ {exit_estimate.date().isoformat()}\n\n"
+        f"<b>Info tambahan</b> (bukan bagian aturan -- live-checked hanya cocok ~3/8 kasus):\n"
+        f"RSI14: {describe_rsi(signal.get('rsi14'))}\n"
+        f"Stoch %K: {describe_stoch(signal.get('stoch_k'))}"
         f"{warning}"
     )
 
@@ -102,13 +126,31 @@ def get_connection() -> sqlite3.Connection:
     return conn
 
 
-def fetch_recent(symbol: str, days: int = 20) -> pd.DataFrame:
+def rsi(close: pd.Series, period: int = 14) -> pd.Series:
+    delta = close.diff()
+    gain = delta.clip(lower=0).ewm(alpha=1 / period, adjust=False).mean()
+    loss = (-delta.clip(upper=0)).ewm(alpha=1 / period, adjust=False).mean()
+    rs = gain / loss.replace(0, np.nan)
+    return 100 - (100 / (1 + rs))
+
+
+def stochastic_k(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14) -> pd.Series:
+    lowest = low.rolling(period).min()
+    highest = high.rolling(period).max()
+    return 100 * (close - lowest) / (highest - lowest).replace(0, np.nan)
+
+
+def fetch_recent(symbol: str, days: int = 60) -> pd.DataFrame:
+    # 60d (not 20d) so RSI14/Stoch14's rolling windows are warmed up by the trigger date --
+    # context-only indicators, not used in the entry/exit rule itself (see PROTOCOL.md).
     df = yf.download(symbol, period=f"{days}d", progress=False, auto_adjust=False)
     df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
     df = df.reset_index().rename(columns={"Date": "date", "Adj Close": "adj_close"})
     df["date"] = pd.to_datetime(df["date"]).dt.date
     df["ret_2d"] = df["adj_close"].pct_change(2)
-    return df[["date", "adj_close", "ret_2d"]]
+    df["rsi14"] = rsi(df["adj_close"])
+    df["stoch_k"] = stochastic_k(df["High"], df["Low"], df["adj_close"])
+    return df[["date", "adj_close", "ret_2d", "rsi14", "stoch_k"]]
 
 
 def detect() -> list[dict]:
@@ -140,6 +182,8 @@ def detect() -> list[dict]:
                 "stock_ret_2d": float(trigger_row["ret_2d_stock"]),
                 "entry_date": entry_row["date"].isoformat(),
                 "entry_price": float(entry_row["adj_close"]),
+                "rsi14": None if pd.isna(trigger_row["rsi14_stock"]) else float(trigger_row["rsi14_stock"]),
+                "stoch_k": None if pd.isna(trigger_row["stoch_k_stock"]) else float(trigger_row["stoch_k_stock"]),
             })
 
     return found
@@ -154,10 +198,11 @@ def main() -> None:
         try:
             conn.execute(
                 """INSERT INTO signals
-                (ticker, label, trigger_date, ihsg_ret_2d, stock_ret_2d, entry_date, entry_price)
-                VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (ticker, label, trigger_date, ihsg_ret_2d, stock_ret_2d, entry_date, entry_price,
+                 rsi14, stoch_k)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (s["ticker"], s["label"], s["trigger_date"], s["ihsg_ret_2d"], s["stock_ret_2d"],
-                 s["entry_date"], s["entry_price"]),
+                 s["entry_date"], s["entry_price"], s["rsi14"], s["stoch_k"]),
             )
             inserted += 1
             print(f"SIGNAL BARU: {s['ticker']} ({s['label']}) trigger {s['trigger_date']} "
