@@ -2,10 +2,11 @@
 """Poll Telegram for /open and /close commands, update open_positions.json directly -- no need
 to tell Claude in chat every time a position changes.
 
-Commands (send to @IDX_alert_keysentimen_bot):
-  /open TICKER HARGA [TANGGAL]   -- tambah posisi baru (TANGGAL default hari ini, format YYYY-MM-DD)
-  /close TICKER HARGA [TANGGAL]  -- tutup posisi (dihapus dari pemantauan, TANGGAL cuma untuk catatan)
-  /status                        -- tampilkan posisi yang lagi dipantau
+Commands (send to @IDX_alert_keysentimen_bot -- or tap the keyboard buttons under the message box):
+  /open TICKER [HARGA] [TANGGAL]   -- tambah posisi baru (HARGA/TANGGAL opsional -- kalau HARGA
+                                       tidak disebut, dipakai harga penutupan terakhir live)
+  /close TICKER [HARGA] [TANGGAL]  -- tutup posisi (HARGA opsional, sama seperti /open)
+  /status                          -- tampilkan posisi yang lagi dipantau
 
 Uses long-polling (getUpdates with an offset), not a webhook -- no public HTTPS endpoint needed,
 works fine from a local dev machine. Only processes messages from TELEGRAM_CHAT_ID (the user's own
@@ -20,16 +21,27 @@ from datetime import date
 from pathlib import Path
 
 import requests
+import yfinance as yf
 
 sys.path.insert(0, str(Path(__file__).parent))
-from detect_signal import load_telegram_credentials, send_telegram_alert  # noqa: E402
+from detect_signal import default_keyboard, load_telegram_credentials, send_telegram_alert  # noqa: E402
 
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
 OFFSET_PATH = Path(__file__).parent / "telegram_update_offset.txt"
 
+# HARGA is optional -- a bare "/close BUMI" (as sent by the keyboard button, no price typed) falls
+# through to fetch_live_price() below.
 COMMAND_PATTERN = re.compile(
-    r"^/(open|close)\s+([A-Za-z]{2,6})\s+([\d.,]+)(?:\s+(\d{4}-\d{2}-\d{2}))?", re.IGNORECASE
+    r"^/(open|close)\s+([A-Za-z]{2,6})(?:\s+([\d.,]+))?(?:\s+(\d{4}-\d{2}-\d{2}))?", re.IGNORECASE
 )
+
+
+def fetch_live_price(ticker: str) -> float | None:
+    df = yf.download(f"{ticker}.JK", period="5d", progress=False, auto_adjust=False)
+    if df.empty:
+        return None
+    df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
+    return float(df["Close"].iloc[-1])
 
 
 def load_positions() -> list[dict]:
@@ -56,16 +68,23 @@ def handle_command(text: str, positions: list[dict]) -> tuple[list[dict], str]:
     match = COMMAND_PATTERN.match(text.strip())
     if not match:
         return positions, (
-            "Perintah tidak dikenali. Pakai:\n"
-            "/open TICKER HARGA [TANGGAL]\n"
-            "/close TICKER HARGA [TANGGAL]\n"
-            "/status"
+            "Perintah tidak dikenali. Pakai tombol di bawah, atau ketik:\n"
+            "/open TICKER [HARGA] [TANGGAL]\n"
+            "/close TICKER [HARGA] [TANGGAL]\n"
+            "/status\n\n"
+            "(HARGA boleh dikosongkan -- otomatis pakai harga live terakhir)"
         )
 
     action, ticker, price_str, cmd_date = match.groups()
     ticker = ticker.upper()
-    price = float(price_str.replace(",", ""))
     cmd_date = cmd_date or date.today().isoformat()
+
+    if price_str:
+        price = float(price_str.replace(",", ""))
+    else:
+        price = fetch_live_price(ticker)
+        if price is None:
+            return positions, f"Tidak bisa ambil harga live {ticker} sekarang -- coba lagi dengan menyebut harganya: /{action} {ticker} HARGA"
 
     if action.lower() == "close":
         before = len(positions)
@@ -127,13 +146,13 @@ def main() -> None:
 
         text = message.get("text", "")
         if text.strip() == "/status":
-            send_telegram_alert(format_status(positions))
+            send_telegram_alert(format_status(positions), reply_markup=default_keyboard())
             processed += 1
             continue
 
         if text.startswith("/open") or text.startswith("/close"):
             positions, reply = handle_command(text, positions)
-            send_telegram_alert(reply)
+            send_telegram_alert(reply, reply_markup=default_keyboard())
             processed += 1
             print(f"Diproses: {text.strip()} -> {reply}")
 

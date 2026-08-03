@@ -1872,3 +1872,26 @@ langsung dari HP, tanpa perlu bilang ke Claude tiap kali buka/tutup posisi.
 ### Status: SELESAI. User sekarang bisa kirim `/open`, `/close`, `/status` langsung ke
 @IDX_alert_keysentimen_bot dari HP untuk kelola posisi yang dipantau trailing-stop, tanpa perlu
 lewat chat ke Claude.
+
+## Fase AC (lanjutan) — Keyboard tombol Telegram + harga otomatis live
+
+**Konteks:** User minta tombol yang bisa di-tap langsung (seperti composer app chat lain), bukan
+harus ketik perintah manual tiap kali.
+
+### Perubahan kode
+- `detect_signal.py` -- `send_telegram_alert()` sekarang terima parameter opsional `reply_markup`
+  (dikirim sebagai `ReplyKeyboardMarkup` Telegram, JSON-encoded). `default_keyboard()` baru:
+  tombol `/status`, `/close BUMI`, `/close DEWA` -- persistent di bawah kotak pesan.
+- `telegram_commands.py` -- `COMMAND_PATTERN` diubah supaya HARGA jadi opsional (tombol `/close
+  BUMI` tanpa argumen harga). `fetch_live_price()` baru: kalau HARGA tidak disebut, ambil harga
+  penutupan terakhir live dari yfinance otomatis. Semua balasan sekarang menyertakan
+  `default_keyboard()` supaya tombolnya tetap muncul terus-menerus.
+
+### Verifikasi
+- `handle_command('/close BUMI', ...)` (tanpa harga) -> berhasil ambil harga live otomatis
+  (Rp168, harga real saat itu), bukan error.
+- Live test: keyboard tombol dikirim sungguhan ke Telegram (`@IDX_alert_keysentimen_bot`).
+- `php artisan test` -> 480 passed.
+
+### Status: SELESAI. User sekarang bisa tap tombol langsung dari Telegram tanpa ketik perintah,
+harga otomatis terisi dari harga pasar live kalau tidak disebutkan manual.

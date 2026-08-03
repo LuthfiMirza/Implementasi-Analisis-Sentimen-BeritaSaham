@@ -12,6 +12,7 @@ is the Fase AB historical backtest, not part of this live protocol (see PROTOCOL
 """
 from __future__ import annotations
 
+import json
 import os
 import sqlite3
 from datetime import date
@@ -51,16 +52,35 @@ def load_telegram_credentials() -> tuple[str | None, str | None]:
     return token, chat_id
 
 
-def send_telegram_alert(text: str) -> None:
+def default_keyboard() -> dict:
+    """Persistent tappable keyboard shown under the message box -- tapping a button just sends
+    its text as a normal message, same as typing it. Price is omitted on purpose: handle_command()
+    fills it in from the live market price when a command arrives without one, so these buttons
+    work with a single tap."""
+    return {
+        "keyboard": [
+            ["/status"],
+            ["/close BUMI", "/close DEWA"],
+        ],
+        "resize_keyboard": True,
+        "is_persistent": True,
+    }
+
+
+def send_telegram_alert(text: str, reply_markup: dict | None = None) -> None:
     token, chat_id = load_telegram_credentials()
     if not token or not chat_id:
         print("Telegram belum dikonfigurasi (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID kosong) -- alert dilewati.")
         return
 
+    payload = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
+    if reply_markup is not None:
+        payload["reply_markup"] = json.dumps(reply_markup)
+
     try:
         resp = requests.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
-            json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
+            json=payload,
             timeout=10,
         )
         if not resp.ok:
