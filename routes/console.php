@@ -133,6 +133,18 @@ Schedule::command('research:evaluate-drawdown-bounce-signal')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// END-OF-DAY: 15.21 WIB
+// Alert-only (BUKAN eksekusi order) untuk posisi BUMI/DEWA yang sedang open, terdaftar manual di
+// quant/drawdown_bounce_tracker/open_positions.json. User pasang trailing stop-nya sendiri secara
+// manual di StockBit -- ini cuma mengirim notifikasi Telegram begitu harga mundur >=4% dari titik
+// tertinggi sejak entry.
+Schedule::command('research:check-trailing-stop-alert')
+    ->weekdays()
+    ->dailyAt('15:21')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // END-OF-DAY ML REANALYSIS: 15.20 WIB
 // Catatan: 'news:rescore-sentiment' (full-corpus, tanpa filter) sengaja TIDAK
 // dijadwalkan lagi -- dulu jalan 2x/hari (12:00 & 15:15) tapi redundan dan makin

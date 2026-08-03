@@ -1809,3 +1809,37 @@ sinyal terpisah yang sudah tervalidasi.
 
 ### Status: SELESAI. RSI/Stochastic sekarang tampil di tiap alert sebagai konteks, bukan sinyal
 kedua -- user tetap yang menilai, sistem tidak berpura-pura ini sudah tervalidasi.
+
+## Fase AC (lanjutan) — Alert trailing-stop manual (bukan eksekusi) untuk posisi BUMI/DEWA open
+
+**Konteks:** User verifikasi real trailing stop 4% di StockBit (beli BUMI 30 Jun ~Rp130-135, jual
+otomatis 23 Jul jam 13:30 di Rp189 setelah spike intraday ke Rp196, profit ~40%). Angka di
+screenshot dicek cocok persis dengan data harga riil (High 23 Jul = 196, 196*0.96=188.16≈189).
+User minta: bukan eksekusi otomatis, cuma **alert Telegram** begitu posisi open mundur 4-5% dari
+puncak sejak entry -- trailing stop-nya tetap dipasang manual sendiri di StockBit.
+
+### Perubahan kode
+- `quant/drawdown_bounce_tracker/open_positions.json` (baru) -- daftar posisi open yang dipantau,
+  dikelola manual (bukan baca dari Trade Journal/MySQL, supaya tetap jalan walau MySQL mati, sama
+  seperti prinsip resiliensi `detect_signal.py`). Isi awal: BUMI Rp159 (29 Jul), DEWA Rp440 (29 Jul)
+  -- posisi open yang sudah tercatat di Trade Journal sebelumnya.
+- `quant/drawdown_bounce_tracker/check_trailing_stop.py` (baru) -- untuk tiap posisi: ambil harga
+  sejak entry_date via yfinance, cari puncak (`High` tertinggi), hitung persen mundur dari puncak
+  ke harga penutupan terbaru. Kalau >=4%, kirim alert Telegram SEKALI (`alerted_pullback_pct`
+  disimpan ke JSON supaya tidak spam berulang tiap hari untuk pullback yang sama).
+- `app/Console/Commands/CheckTrailingStopAlertCommand.php` (baru) -- `research:check-trailing-
+  stop-alert`, pola tipis sama seperti command drawdown-bounce lainnya.
+- `routes/console.php` -- dijadwalkan 15.21 WIB hari kerja (setelah evaluate-drawdown-bounce-signal
+  15.19, sebelum sentiment:reanalyze 15.20 selesai).
+- Test: `CheckTrailingStopAlertCommandTest`, 2 test (`Process::fake()`).
+
+### Verifikasi
+- Real run: BUMI mundur 2,9% dari puncak (Rp173, 3 Agu), DEWA mundur 3,7% dari puncak (Rp482) --
+  keduanya di bawah ambang 4%, belum ada alert terkirim (benar, sesuai kondisi harga saat ini).
+- `php artisan research:check-trailing-stop-alert` (real run via Laravel) -> sukses, sama dengan
+  output Python langsung.
+- `php artisan test` -> 477 passed.
+
+### Status: SELESAI. Alert-only, TIDAK ada order otomatis dipasang/dieksekusi -- keputusan trading
+tetap sepenuhnya di tangan user. `open_positions.json` perlu diupdate manual tiap kali user
+buka/tutup posisi baru (belum otomatis sinkron dengan Trade Journal).

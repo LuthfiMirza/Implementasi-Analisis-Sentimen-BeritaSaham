@@ -1,0 +1,14 @@
+[
+  {
+    "ticker": "BUMI",
+    "entry_date": "2026-07-29",
+    "entry_price": 159,
+    "alerted_pullback_pct": null
+  },
+  {
+    "ticker": "DEWA",
+    "entry_date": "2026-07-29",
+    "entry_price": 440,
+    "alerted_pullback_pct": null
+  }
+]
