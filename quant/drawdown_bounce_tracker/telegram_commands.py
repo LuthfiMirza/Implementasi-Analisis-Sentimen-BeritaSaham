@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Poll Telegram for /open, /close, /status, /history, /price commands, update
+"""Poll Telegram for /open, /close, /status, /history, /price, /help commands, update
 open_positions.json directly -- no need to tell Claude in chat every time a position changes.
 
 Commands (send to @IDX_alert_keysentimen_bot -- or tap the keyboard buttons under the message box):
@@ -10,6 +10,7 @@ Commands (send to @IDX_alert_keysentimen_bot -- or tap the keyboard buttons unde
   /history                         -- 10 posisi terakhir yang sudah ditutup (dari Trade Journal)
   /price TICKER                    -- cek harga live TICKER APA SAJA (bukan cuma BUMI/DEWA yang
                                        lagi dipantau) -- buat mantau kandidat sebelum entry
+  /help                            -- daftar perintah ini, dikirim balik ke chat
 
 Uses long-polling (getUpdates with an offset), not a webhook -- no public HTTPS endpoint needed,
 works fine from a local dev machine. Only processes messages from TELEGRAM_CHAT_ID (the user's own
@@ -35,6 +36,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from detect_signal import (  # noqa: E402
     BUTTON_CLOSE_BUMI,
     BUTTON_CLOSE_DEWA,
+    BUTTON_HELP,
     BUTTON_HISTORY,
     BUTTON_STATUS,
     default_keyboard,
@@ -53,6 +55,7 @@ BUTTON_LABELS = {
     BUTTON_HISTORY: "/history",
     BUTTON_CLOSE_BUMI: "/close BUMI",
     BUTTON_CLOSE_DEWA: "/close DEWA",
+    BUTTON_HELP: "/help",
 }
 
 # HARGA is optional -- a bare "/close BUMI" (as sent by the keyboard button, no price typed) falls
@@ -117,13 +120,7 @@ def handle_command(text: str, positions: list[dict]) -> tuple[list[dict], str]:
     match = COMMAND_PATTERN.match(text.strip())
     if not match:
         return positions, (
-            "Perintah tidak dikenali. Pakai tombol di bawah, atau ketik:\n"
-            "/open TICKER [HARGA] [TANGGAL]\n"
-            "/close TICKER [HARGA] [TANGGAL]\n"
-            "/status\n"
-            "/history\n"
-            "/price TICKER\n\n"
-            "(HARGA boleh dikosongkan -- otomatis pakai harga live terakhir)"
+            "Perintah tidak dikenali. Ketik /help untuk daftar lengkap, atau pakai tombol di bawah."
         )
 
     action, ticker, price_str, cmd_date = match.groups()
@@ -212,6 +209,28 @@ def format_history(trades: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def format_help() -> str:
+    return (
+        "<b>Perintah yang tersedia:</b>\n\n"
+        "\U0001F4CA <b>/status</b>\n"
+        "Lihat posisi yang lagi dipantau trailing-stop.\n\n"
+        "\U0001F4DC <b>/history</b>\n"
+        "10 posisi terakhir yang sudah ditutup, dari Trade Journal.\n\n"
+        "\U0001F50D <b>/price TICKER</b>\n"
+        "Cek harga live ticker apa saja, contoh: <code>/price BBCA</code>.\n\n"
+        "➕ <b>/open TICKER [HARGA] [TANGGAL]</b>\n"
+        "Tambah posisi baru ke pemantauan. HARGA/TANGGAL boleh dikosongkan -- "
+        "otomatis pakai harga live &amp; tanggal hari ini. Contoh: <code>/open BUMI 159</code>.\n\n"
+        "\U0001F534 <b>/close TICKER [HARGA] [TANGGAL]</b>\n"
+        "Tutup posisi dari pemantauan (tidak akan ada alert lagi untuknya). "
+        "Contoh: <code>/close BUMI</code> atau tombol Tutup di bawah.\n\n"
+        "❓ <b>/help</b>\n"
+        "Tampilkan pesan ini.\n\n"
+        "Tombol di bawah kotak pesan cuma jalan pintas untuk /status, /history, /close BUMI/DEWA, "
+        "dan /help -- /price dan /open harus diketik karena ticker-nya bebas."
+    )
+
+
 def format_price(ticker: str, snapshot: dict | None) -> str:
     if snapshot is None:
         return f"Tidak ada data harga untuk {ticker} -- cek lagi penulisan ticker-nya (tanpa .JK)."
@@ -268,6 +287,11 @@ def main() -> None:
 
         if text.strip() == "/history":
             send_telegram_alert(format_history(load_closed_trades()), reply_markup=default_keyboard())
+            processed += 1
+            continue
+
+        if text.strip() == "/help":
+            send_telegram_alert(format_help(), reply_markup=default_keyboard())
             processed += 1
             continue
 

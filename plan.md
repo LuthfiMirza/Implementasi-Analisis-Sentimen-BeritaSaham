@@ -2146,3 +2146,27 @@ buka aplikasi lain.
 - `php artisan test`: 482 passed (tidak ada perubahan PHP, angka tetap sama seperti Fase AI).
 
 ### Status: SELESAI.
+
+## Fase AK — Fitur `/help` di Telegram bot
+
+**Konteks:** Terakhir dari daftar saran fitur -- `/help` menampilkan daftar semua perintah yang
+tersedia, biar tidak perlu ingat syntax `/open`/`/close`/`/price` dari luar kepala.
+
+### Implementasi
+- `detect_signal.py`: tombol baru "❓ Bantuan", ditambah sebagai baris ketiga di
+  `default_keyboard()` (Status+Riwayat, Tutup BUMI+Tutup DEWA, Bantuan).
+- `telegram_commands.py`: `format_help()` -- daftar lengkap 6 perintah dengan contoh pemakaian
+  untuk yang butuh argumen (`/open`, `/close`, `/price`). Pesan "perintah tidak dikenali" yang
+  lama (daftar panjang di-inline) disederhanakan jadi arahan ke `/help`, tidak dobel-maintain dua
+  tempat.
+
+### Verifikasi
+- Struktur keyboard dicek langsung -- 3 baris benar, tombol Bantuan muncul di baris terpisah.
+- `BUTTON_LABELS` mapping dicek -- "❓ Bantuan" -> "/help" benar.
+- Pesan `/help` beneran dikirim ke Telegram user, dikonfirmasi terkirim, format rapi (emoji per
+  perintah, contoh dengan `<code>`).
+- `php artisan test`: 482 passed (tidak ada perubahan PHP).
+
+### Status: SELESAI. Semua 4 fitur dari daftar saran (kecuali peringatan H-1 hari ke-9, belum
+diminta) sudah dibangun: /history, /price, /help, plus /status /open /close yang sudah ada
+sebelumnya.

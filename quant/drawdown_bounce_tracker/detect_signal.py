@@ -59,17 +59,20 @@ BUTTON_STATUS = "\U0001F4CA Status"
 BUTTON_HISTORY = "\U0001F4DC Riwayat"
 BUTTON_CLOSE_BUMI = "\U0001F534 Tutup BUMI"
 BUTTON_CLOSE_DEWA = "\U0001F534 Tutup DEWA"
+BUTTON_HELP = "❓ Bantuan"
 
 
 def default_keyboard() -> dict:
     """Persistent tappable keyboard shown under the message box -- tapping a button just sends
     its label as a normal message, same as typing it. Price is deliberately not on the button:
     handle_command() fills it in from the live market price when a command arrives without one,
-    so these buttons work with a single tap."""
+    so these buttons work with a single tap. /price and /open TICKER aren't buttons because they
+    need a free-typed ticker -- Bantuan (/help) tells the user how to type those."""
     return {
         "keyboard": [
             [BUTTON_STATUS, BUTTON_HISTORY],
             [BUTTON_CLOSE_BUMI, BUTTON_CLOSE_DEWA],
+            [BUTTON_HELP],
         ],
         "resize_keyboard": True,
         "is_persistent": True,
