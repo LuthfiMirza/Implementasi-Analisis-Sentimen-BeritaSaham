@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Intraday manual-trailing-stop + day-10 exit ALERTS (never execution) for open BUMI/DEWA
+"""Intraday manual-trailing-stop + day-9/day-10 exit ALERTS (never execution) for open BUMI/DEWA
 positions.
 
 User explicitly wants alert-only: "kasi sinyal aja di telegram... nanti saya pasang sendiri
@@ -7,10 +7,12 @@ manual trailing stop 4-5% di stockbitnya manual". This script never places or mo
 order -- it watches each position in open_positions.json and sends Telegram alerts:
 
   1. TRAILING STOP -- first time price pulls back >= 4% from the peak since entry.
-  2. TARGET WAKTU  -- when the position reaches 10 trading days, the exit rule that won every
+  2. H-1 TARGET WAKTU -- hari bursa ke-9, peringatan awal sebelum target hari ke-10 (Fase AL) --
+     supaya ada waktu bersiap, bukan mendadak di hari-H.
+  3. TARGET WAKTU  -- when the position reaches 10 trading days, the exit rule that won every
      backtest in Fase AB/AD/AE (fixed 10-day hold beat every overbought-indicator variant).
 
-Both fire at most once per position (flags stored back into open_positions.json).
+Each fires at most once per position (flags stored back into open_positions.json).
 
 Uses 15-MINUTE bars, not daily closes. Live-verified on the 21-23 Jul 2026 spike: checking every
 15 minutes with a 2% threshold would have alerted at 23 Jul 13:30 (peak 196, price 192, +35.8% on
@@ -44,6 +46,7 @@ PULLBACK_THRESHOLD = 0.02  # 2% -- tighter than daily ATR (~5.8-6.0%), chosen de
 # user after seeing this WILL fire on ordinary intraday noise sometimes, in exchange for catching
 # genuine reversals close to real-time instead of lagging by up to 1.5h.
 TARGET_HOLD_DAYS = 10  # trading days -- the exit that won in Fase AB/AD/AE
+WARN_HOLD_DAYS = TARGET_HOLD_DAYS - 1  # H-1 (Fase AL): peringatan sehari sebelum target
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
 
 
@@ -108,6 +111,20 @@ def check_position(position: dict) -> None:
         )
         position["alerted_pullback_pct"] = pullback
         print(f"  -> ALERT TRAILING STOP terkirim ({pullback:.1%}).")
+
+    # --- Alert 1.5: H-1 warning (day 9), before the day-10 target below ---
+    if WARN_HOLD_DAYS <= trading_days < TARGET_HOLD_DAYS and position.get("alerted_day9") is None:
+        send_telegram_alert(
+            f"\U0001F7E1 <b>H-1 TARGET WAKTU: {ticker}</b>\n\n"
+            f"Posisi sudah <b>{trading_days} hari bursa</b> sejak entry -- besok (hari bursa "
+            f"berikutnya) kena target waktu {TARGET_HOLD_DAYS} hari.\n\n"
+            f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
+            f"<b>Sekarang</b>: Rp{current:.0f} ({unrealized_pct:+.1%})\n\n"
+            f"Peringatan awal supaya ada waktu bersiap, bukan mendadak di hari-H. Alert saja -- "
+            f"keputusan tetap di kamu."
+        )
+        position["alerted_day9"] = trading_days
+        print(f"  -> ALERT H-1 TARGET WAKTU terkirim (hari ke-{trading_days}).")
 
     # --- Alert 2: 10-trading-day target ---
     if trading_days >= TARGET_HOLD_DAYS and position.get("alerted_day10") is None:

@@ -2170,3 +2170,34 @@ tersedia, biar tidak perlu ingat syntax `/open`/`/close`/`/price` dari luar kepa
 ### Status: SELESAI. Semua 4 fitur dari daftar saran (kecuali peringatan H-1 hari ke-9, belum
 diminta) sudah dibangun: /history, /price, /help, plus /status /open /close yang sudah ada
 sebelumnya.
+
+## Fase AL — Peringatan H-1 (hari bursa ke-9) sebelum target waktu 10 hari
+
+**Konteks:** Item terakhir dari daftar saran fitur -- alert hari ke-10 (Fase AF) selama ini
+langsung "mendadak" tanpa pemanasan; peringatan sehari sebelumnya (hari ke-9) kasih waktu
+bersiap-siap alih-alih kaget di hari-H.
+
+### Implementasi
+- `check_trailing_stop.py`: `WARN_HOLD_DAYS = TARGET_HOLD_DAYS - 1` (=9). Alert baru
+  "\U0001F7E1 H-1 TARGET WAKTU" disisipkan di antara alert trailing-stop dan alert target hari
+  ke-10, kondisi `WARN_HOLD_DAYS <= trading_days < TARGET_HOLD_DAYS` (guard `< TARGET_HOLD_DAYS`
+  sengaja supaya tidak ikut menyala lagi setelah hari ke-10 lewat). Flag baru `alerted_day9`,
+  sekali per posisi seperti dua alert lain.
+- `routes/console.php`: komentar jadwal `research:check-trailing-stop-alert` diperbarui dari
+  "dua alert" jadi "tiga alert".
+
+### Verifikasi (posisi sintetis, TIDAK menyentuh open_positions.json asli -- BUMI/DEWA real
+masih hari ke-5, belum kena H-1)
+- Dicari dulu `entry_date` yang menghasilkan tepat hari bursa ke-9 lewat data 15 menit real
+  (`2026-07-23` -> 9 hari bursa per `04 Aug`).
+- `check_position()` dipanggil langsung dengan posisi sintetis (`{"ticker": "BUMI", "entry_date":
+  "2026-07-23", ...}`) -- ALERT H-1 TARGET WAKTU beneran terkirim ke Telegram di hari ke-9, flag
+  `alerted_day9` tersimpan.
+- Re-run dengan flag yang sama -- tidak ada alert baru tercetak/terkirim (idempotent, terverifikasi).
+- Posisi sintetis lain di hari ke-10 (`entry_date=2026-07-22`) dengan `alerted_day9` SUDAH terisi
+  -- ALERT TARGET WAKTU (hari ke-10) tetap terkirim normal, H-1 tidak nyangkut/ikut menyala lagi.
+- `open_positions.json` real dicek ulang setelah semua percobaan -- BUMI/DEWA tidak berubah sama
+  sekali (percobaan pakai dict terpisah, bukan file production).
+- `php artisan test`: 482 passed (tidak ada perubahan PHP kecuali komentar di routes/console.php).
+
+### Status: SELESAI. Semua 4 fitur dari daftar saran (termasuk H-1) sudah dibangun lengkap.

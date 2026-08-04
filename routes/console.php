@@ -136,8 +136,9 @@ Schedule::command('research:evaluate-drawdown-bounce-signal')
 // JAM BURSA: tiap 15 menit, 09.00-16.00 WIB
 // Alert-only (BUKAN eksekusi order) untuk posisi BUMI/DEWA yang sedang open, terdaftar di
 // quant/drawdown_bounce_tracker/open_positions.json (dikelola via /open dan /close di Telegram).
-// Dua alert: (1) trailing stop saat harga mundur >=2% dari puncak sejak entry, (2) target waktu
-// 10 hari bursa -- exit yang menang di semua backtest Fase AB/AD/AE.
+// Tiga alert: (1) trailing stop saat harga mundur >=2% dari puncak sejak entry, (2) H-1 di hari
+// bursa ke-9 (Fase AL) -- peringatan awal sebelum target, (3) target waktu 10 hari bursa -- exit
+// yang menang di semua backtest Fase AB/AD/AE.
 //
 // Diperketat dari 4%/30-menit ke 2%/15-menit (dikonfirmasi user langsung setelah dikasih lihat
 // perbandingan angka nyata): dicek ulang ke data 15 menit 21-23 Jul 2026, ambang 2% di granularitas
