@@ -45,6 +45,9 @@ class TradeController extends Controller
         return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks'));
     }
 
+    // 1 Lot = 100 lembar -- standar papan perdagangan IDX sejak 2014.
+    private const LEMBAR_PER_LOT = 100;
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -55,7 +58,7 @@ class TradeController extends Controller
             'target_2' => 'nullable|numeric|min:0',
             'entry_zone_low' => 'nullable|numeric|min:0',
             'entry_zone_high' => 'nullable|numeric|min:0',
-            'lot_size' => 'required|integer|min:1',
+            'lot' => 'required|integer|min:1',
             'entry_date' => 'required|date',
             'signal_quality' => 'nullable|string',
             'dss_score' => 'nullable|numeric',
@@ -64,6 +67,11 @@ class TradeController extends Controller
             'rr_ratio' => 'nullable|numeric',
             'notes' => 'nullable|string|max:500',
         ]);
+
+        // User input jumlah Lot (kebiasaan broker, mis. StockBit) -- disimpan ke kolom lot_size
+        // sebagai lembar karena itu yang dipakai langsung oleh perhitungan PnL/position_value.
+        $validated['lot_size'] = $validated['lot'] * self::LEMBAR_PER_LOT;
+        unset($validated['lot']);
 
         $validated['user_id'] = auth()->id();
         $validated['status'] = 'open';

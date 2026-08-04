@@ -18,7 +18,7 @@ class TradeJournalTest extends TestCase
             'stop_loss' => 950,
             'target_1' => 1100,
             'target_2' => 1200,
-            'lot_size' => 100,
+            'lot' => 5,
             'entry_date' => '2026-04-30',
             'signal_quality' => 'A',
         ]);
@@ -26,6 +26,30 @@ class TradeJournalTest extends TestCase
         // Trade entries must be scoped to the authenticated user.
         $response->assertRedirect('/trades');
         $this->assertDatabaseHas('trades', ['user_id' => $user->id, 'stock_id' => $stock->id, 'status' => 'open']);
+    }
+
+    public function test_lot_input_is_converted_to_lembar_at_100_per_lot(): void
+    {
+        $user = $this->user();
+        $stock = $this->seedStock('BBCA');
+
+        $this->actingAs($user)->post('/trades', [
+            'stock_id' => $stock->id,
+            'entry_price' => 1000,
+            'stop_loss' => 950,
+            'target_1' => 1100,
+            'lot' => 5,
+            'entry_date' => '2026-04-30',
+        ])->assertRedirect('/trades');
+
+        // Konvensi IDX: 1 Lot = 100 lembar -- form minta Lot (kebiasaan broker), kolom lot_size
+        // di DB tetap menyimpan lembar karena itu yang dipakai perhitungan PnL.
+        $this->assertDatabaseHas('trades', [
+            'user_id' => $user->id,
+            'stock_id' => $stock->id,
+            'lot_size' => 500,
+            'position_value' => 500000,
+        ]);
     }
 
     public function test_guest_cannot_create_trade_entry(): void

@@ -2201,3 +2201,91 @@ masih hari ke-5, belum kena H-1)
 - `php artisan test`: 482 passed (tidak ada perubahan PHP kecuali komentar di routes/console.php).
 
 ### Status: SELESAI. Semua 4 fitur dari daftar saran (termasuk H-1) sudah dibangun lengkap.
+
+## Fase AM — Audit & isi ulang statistik Trade Journal yang kosong
+
+**Konteks:** User curiga dashboard "Total Trade 19 / Win Rate 47,1% / dst" tidak masuk akal
+dibanding "Riwayat Trading (17)" yang dia lihat.
+
+### Temuan (dicek langsung ke DB, bukan asumsi)
+19 trade di `trades` (`user_id=2`) ternyata **campuran dua sumber**:
+- **15 trade SIMULASI BACKTEST** (id #82-#155, `created_at` sama persis 2026-07-08 23:15:17,
+  `notes` eksplisit "SIMULASI BACKTEST (bukan transaksi riil)") -- dibuat sesi sebelumnya untuk
+  evaluasi volatilitas Des2025-Jul2026, BUKAN transaksi riil user (lihat memori
+  `stock-prices-seed-contamination.md`).
+- **4 trade REAL** (#157-#160, `created_at` 2026-07-31), dikoreksi manual sebelumnya dari data
+  StockBit user (lot size di-reverse-engineer, R²=1,0).
+
+Semua angka dashboard (`TradeController::index()`) **akurat secara kalkulasi** (diverifikasi
+manual satu-satu: Win Rate 8/17=47,06%, Total PnL Rp46.899.197 exact, Avg R:R 5,08, Expectancy
+12,28%) -- TAPI didominasi data simulasi: Win Rate 100% dari simulasi (2 trade real result-nya
+`manual_close`, tidak masuk hitungan win/loss), Total PnL 93% dari simulasi (Rp43,4jt dari 15
+trade simulasi vs Rp3,47jt dari 2 trade real), dan **Avg R:R + Avg Holding 100% dari simulasi**
+(field `actual_rr`/`holding_days` #157/#158 kosong -- dibuat lewat tinker langsung, bukan lewat
+alur `Trade::close()` yang otomatis menghitungnya).
+
+User sempat klaim 15 trade simulasi itu "sesuai dengan yang saya lakukan di StockBit" --
+DITOLAK tanpa bukti, mengacu ke catatan eksplisit di memori bahwa user pernah minta data
+"seolah profit" dan itu sudah ditolak sebelumnya; prinsip yang sama dipertahankan di sini.
+
+### Perbaikan (persetujuan user)
+Isi `actual_rr` dan `holding_days` untuk #157/#158, pakai formula yang SAMA persis dengan
+`Trade::close()` (`pnlPerShare/risk` untuk R:R, `entry_date` ke `exit_date` untuk holding --
+bukan ke `now()` seperti bug kecil di `close()` yang cuma valid saat dipanggil real-time):
+- #157 BUMI: (171-136)/(136-129,2) = 35/6,8 = **R:R 5,15**, 8→24 Jul = **16 hari**
+- #158 DEWA: (442-332)/(332-315,4) = 110/16,6 = **R:R 6,63**, 9→24 Jul = **15 hari**
+
+Avg R:R dashboard naik dari 1:5,08 (100% simulasi) jadi **1:5,17** (ikut 2 trade real). Avg
+Holding naik dari 4,3 hari jadi **5,6 hari**. Win Rate/Total PnL/Expectancy tidak berubah
+(sudah termasuk real sejak awal).
+
+### Status: SELESAI. Update data murni (2 UPDATE query), tidak ada perubahan kode -- tidak perlu
+`php artisan test`.
+
+## Fase AN — Form Trade Journal input Lot, bukan lembar mentah
+
+**Konteks:** User tunjukkan form "Catat Trade Baru" (field "Lot Size (lembar)", minta ketik
+50000) vs screenshot order StockBit asli (field "Lot", cuma ketik 2) -- minta disederhanakan
+ikut kebiasaan broker: ketik Lot, bukan hitung lembar manual.
+
+### Investigasi sebelum eksekusi
+- Kolom `lot_size` di DB **sebenarnya menyimpan lembar** (dipakai langsung di
+  `Trade::close()` untuk `pnlTotal = pnlPerShare * lot_size`, dan di `position_value`). Standar
+  IDX: **1 Lot = 100 lembar** (berlaku sejak 2014) -- konsisten dengan data yang sudah ada
+  (BUMI 500 Lot = 50.000 lembar, DEWA 156 Lot = 15.600 lembar, keduanya kelipatan 100 bersih).
+  Cuma dipakai di 3 titik: form input, validasi controller, tampilan daftar -- perubahan aman
+  dan terisolasi, tidak perlu migrasi DB.
+- Ditemukan bug kecil yang belum disadari: kolom tabel Riwayat Trading judulnya sudah "LOT"
+  tapi isinya nampilin `lot_size` MENTAH (lembar, bukan lot) -- salah label dari awal.
+- Ditemukan titik lain yang akan ikut rusak kalau tidak disesuaikan: link "Catat Trade Manual"
+  dari halaman Analytics (pre-fill dari sinyal DSS) mengirim query param `lot_size` mentah --
+  kalau form berubah baca `lot`, pre-fill DSS jadi kosong.
+
+### Perubahan kode
+- `TradeController::store()`: validasi `lot` (bukan `lot_size`), dikonversi
+  `lot_size = lot * 100` (konstanta `LEMBAR_PER_LOT`) sebelum `Trade::create()`.
+- `resources/views/trades/index.blade.php`:
+  - Form: label "Lot Size (lembar)" -> **"Jumlah Lot"**, `name="lot"`, placeholder "mis. 500",
+    helper text live `= X lembar` (JS `oninput`, plus server-rendered untuk pre-fill DSS).
+  - Kartu posisi terbuka: tampilan diubah jadi "500 Lot" (utama) + "50.000 lbr" (kecil, sekunder).
+  - Tabel Riwayat Trading: kolom "Lot" diperbaiki dari nampilin lembar mentah jadi
+    `lot_size / 100` (lot beneran).
+- `resources/views/analytics/index.blade.php`: link pre-fill DSS diubah dari
+  `'lot_size' => $signal['lot_size']` jadi `'lot' => max(1, intdiv($signal['lot_size'], 100))`
+  -- dibulatkan ke bawah ke lot terdekat karena order riil IDX memang cuma bisa lot utuh
+  (nilai lembar mentah dari `DecisionSupportService` tidak selalu kelipatan 100).
+- `tests/Feature/TradeJournalTest.php`: test lama diupdate pakai `lot` bukan `lot_size`, tambah
+  test baru khusus verifikasi konversi 1 Lot = 100 lembar.
+
+### Verifikasi
+- `php artisan test --filter=TradeJournalTest`: 5 passed (test baru lolos).
+- `php artisan test` penuh: 483 passed (naik dari 482).
+- Verifikasi visual real di browser (login `user@sentimena.test`, data asli, bukan data uji):
+  - Kartu posisi terbuka BUMI menampilkan **"500 Lot" / "50.000 lbr"** dengan benar.
+  - Tabel Riwayat Trading: DEWA #158 kolom Lot menampilkan **156** (sebelumnya salah nampilin
+    15600), BUMI #157 menampilkan **500** -- cocok persis dengan hasil Fase AM.
+  - Form "Catat Trade Baru" dibuka -- label "Jumlah Lot" muncul, ketik "500" di kolom -> helper
+    text langsung update jadi **"= 50.000 lembar"** (live, terverifikasi lewat interaksi
+    browser sungguhan, bukan cuma baca kode).
+
+### Status: SELESAI.

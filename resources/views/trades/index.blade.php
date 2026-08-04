@@ -148,10 +148,11 @@
           </div>
           @endif
           <div class="bg-slate-900/60 rounded-xl p-3">
-            <p class="text-[10px] text-slate-500 mb-1">Lot Size</p>
+            <p class="text-[10px] text-slate-500 mb-1">Lot</p>
             <p class="font-mono font-bold text-slate-200">
-              {{ number_format($trade->lot_size) }} lbr
+              {{ number_format($trade->lot_size / 100) }} Lot
             </p>
+            <p class="text-[10px] text-slate-600">{{ number_format($trade->lot_size) }} lbr</p>
           </div>
         </div>
 
@@ -244,7 +245,7 @@
                 {{ $trade->pnl_per_share >= 0 ? '+' : '' }}{{ number_format($trade->pnl_per_share, 0, ',', '.') }}
               </td>
               <td class="px-4 py-3 text-right text-slate-400">
-                {{ number_format($trade->lot_size) }}
+                {{ number_format($trade->lot_size / 100) }}
               </td>
               <td class="px-4 py-3 text-right font-mono font-bold
                 {{ $trade->pnl_total >= 0 ? 'text-green-400' : 'text-rose-400' }}">
@@ -438,11 +439,15 @@
       {{-- Lot + R:R --}}
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-xs text-slate-400 font-medium mb-1.5">Lot Size (lembar)</label>
-          <input type="number" name="lot_size" required min="1"
-                 value="{{ request('lot_size') }}"
+          <label class="block text-xs text-slate-400 font-medium mb-1.5">Jumlah Lot</label>
+          <input type="number" name="lot" required min="1" id="tradeLotInput"
+                 value="{{ request('lot') }}" oninput="updateLotHelper()"
+                 placeholder="mis. 500"
                  class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5
                         text-sm text-slate-200 focus:border-sky-500 focus:outline-none font-mono">
+          <p class="text-[11px] text-slate-500 mt-1" id="tradeLotHelper">
+            = {{ number_format((int) request('lot', 0) * 100) }} lembar
+          </p>
         </div>
         <div>
           <label class="block text-xs text-slate-400 font-medium mb-1.5">R:R Ratio</label>
@@ -585,6 +590,13 @@
 
 @push('scripts')
 <script>
+function updateLotHelper() {
+    const input = document.getElementById('tradeLotInput');
+    const helper = document.getElementById('tradeLotHelper');
+    const lot = parseInt(input.value, 10) || 0;
+    helper.textContent = `= ${(lot * 100).toLocaleString('id-ID')} lembar`;
+}
+
 function openCloseModal(tradeId, stockCode, entryPrice) {
     const modal = document.getElementById('closeTradeModal');
     const form  = document.getElementById('closeTradeForm');

@@ -268,7 +268,10 @@
                                     'stop_loss' => $signal['stop_recommended'],
                                     'target_1' => $signal['target_2r'],
                                     'target_2' => $signal['target_3r'],
-                                    'lot_size' => $signal['lot_size'],
+                                    // Form Catat Trade sekarang minta Jumlah Lot (kebiasaan broker), bukan
+                                    // lembar mentah -- dibulatkan ke bawah ke kelipatan lot terdekat karena
+                                    // order riil di IDX memang cuma bisa dalam satuan lot utuh.
+                                    'lot' => max(1, intdiv($signal['lot_size'], 100)),
                                     'rr_ratio' => $signal['rr_ratio_2r'],
                                     'dss_score' => $decision['final_score'] ?? 0,
                                     'dss_prediction' => $decision['prediction'] ?? 'flat',
