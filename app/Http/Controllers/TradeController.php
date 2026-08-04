@@ -18,14 +18,20 @@ class TradeController extends Controller
         $closed = $trades->where('status', 'closed');
         $open = $trades->where('status', 'open');
 
+        // Menang/kalah dari PnL AKTUAL, bukan dari kategori `result` -- exit berbasis waktu
+        // (manual_close, mis. aturan drawdown-bounce Fase AB/AC) valid juga dan sebelumnya
+        // hilang sama sekali dari Win Rate karena bukan hit_target_1/2 maupun stop_loss.
+        $winners = $closed->where('pnl_total', '>', 0);
+        $losers = $closed->where('pnl_total', '<=', 0);
+
         $stats = [
             'total' => $trades->count(),
             'open' => $open->count(),
             'closed' => $closed->count(),
-            'win' => $closed->whereIn('result', ['hit_target_1', 'hit_target_2'])->count(),
-            'loss' => $closed->where('result', 'stop_loss')->count(),
+            'win' => $winners->count(),
+            'loss' => $losers->count(),
             'win_rate' => $closed->count() > 0
-                ? round($closed->whereIn('result', ['hit_target_1', 'hit_target_2'])->count() / $closed->count() * 100, 1)
+                ? round($winners->count() / $closed->count() * 100, 1)
                 : 0,
             'total_pnl' => $closed->sum('pnl_total'),
             'avg_rr' => $closed->count() > 0 ? round($closed->avg('actual_rr'), 2) : 0,
@@ -35,8 +41,8 @@ class TradeController extends Controller
             'expectancy' => 0,
         ];
 
-        $avgWin = $closed->whereIn('result', ['hit_target_1', 'hit_target_2'])->avg('pnl_percent') ?? 0;
-        $avgLoss = abs($closed->where('result', 'stop_loss')->avg('pnl_percent') ?? 0);
+        $avgWin = $winners->avg('pnl_percent') ?? 0;
+        $avgLoss = abs($losers->avg('pnl_percent') ?? 0);
         $winRate = $stats['win_rate'] / 100;
         $stats['expectancy'] = round(($winRate * $avgWin) - ((1 - $winRate) * $avgLoss), 2);
 

@@ -79,6 +79,32 @@ class TradeJournalTest extends TestCase
         ]);
     }
 
+    public function test_win_rate_counts_profitable_manual_close_trades_as_wins(): void
+    {
+        $user = $this->user();
+
+        // manual_close (exit berbasis waktu, mis. aturan drawdown-bounce) dengan PnL positif
+        // HARUS terhitung sebagai "menang" walau result-nya bukan hit_target_1/2 -- sebelumnya
+        // trade seperti ini hilang sama sekali dari Win Rate.
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'result' => 'manual_close', 'pnl_total' => 500000, 'pnl_percent' => 10,
+        ]);
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'result' => 'manual_close', 'pnl_total' => -200000, 'pnl_percent' => -5,
+        ]);
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'result' => 'hit_target_2', 'pnl_total' => 300000, 'pnl_percent' => 8,
+        ]);
+
+        $response = $this->actingAs($user)->get('/trades');
+
+        $response->assertOk()->assertViewHas('stats', function ($stats) {
+            // 2 menang (1 manual_close positif + 1 hit_target_2), 1 kalah (manual_close negatif).
+            return $stats['win'] === 2 && $stats['loss'] === 1
+                && abs($stats['win_rate'] - 66.7) < 0.1;
+        });
+    }
+
     public function test_listing_returns_only_current_users_trades(): void
     {
         $user = $this->user();

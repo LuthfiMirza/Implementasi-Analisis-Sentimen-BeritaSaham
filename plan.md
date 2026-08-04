@@ -2289,3 +2289,64 @@ ikut kebiasaan broker: ketik Lot, bukan hitung lembar manual.
     browser sungguhan, bukan cuma baca kode).
 
 ### Status: SELESAI.
+
+## Fase AO — Uji drawdown-bounce di 9 saham produksi + backfill Trade Journal + perbaiki bug Win Rate
+
+**Konteks:** User minta uji aturan drawdown-bounce (Fase AB/AC, dipakai bot Telegram) ke 9 saham
+produksi (bukan cuma BUMI/DEWA), lalu masukkan hasilnya ke Trade Journal untuk dibahas di skripsi.
+
+### AO-1: Backtest 8 bulan (5 Des 2025 - 4 Agu 2026)
+Data segar via yfinance (CSV statis mentok 21 Jul). 33 trade, 73% menang, rata2 +5,60%/trade net.
+Simulasi modal Rp33jt -> Rp47,4jt (+43,8%) exit 10 hari; trailing stop 2% MERUSAK hasil jadi cuma
++11,8% (bunyi 33/33 kali, rata2 1,5 hari -- ambang 2% terlalu sempit untuk blue chip, volatilitas
+harian BBCA cuma 1,75% vs BUMI/DEWA 4,4-4,8%). **33 trade ternyata cuma 5 episode pasar
+independen** (IHSG anjlok -> semua saham anjlok bareng) -- jauh di bawah n>=20.
+
+### AO-2: Uji histori panjang (18-26 tahun, discovery/holdout 70/30)
+432 trade, 37 episode independen (n>=20 TERPENUHI, pertama kali di luar BUMI). Discovery +1,21%
+DAN holdout +2,01% -- konsisten, tidak ganti tanda. TAPI uji ketahanan gagal: buang 5 dari 37
+episode (semua pemulihan pasca-krisis: Mei 2009, Okt 2002, Sep 2011, Agu 2007, Apr 2025), seluruh
+profit hilang (rata2 jadi -0,20%). Per saham: **5 dari 9 saham ganti tanda** antara discovery dan
+holdout (ASII, BBRI, BMRI, ICBP, INDF gagal). Cuma **BBCA dan UNVR** lolos dua syarat (konsisten
++ n cukup) dengan margin meyakinkan; TLKM lolos syarat tapi rata2 cuma +0,45% (tipis pasca-biaya).
+INDF dan ICBP malah **rugi** sepanjang histori (-2,81% dan -2,49%/trade).
+
+**Rekomendasi ke user:** JANGAN aktifkan 9 saham borongan -- edge-nya bergantung pada segelintir
+krisis dan mayoritas saham tidak konsisten. Kalau mau aktifkan, cuma BBCA+UNVR yang layak.
+**Belum dieksekusi** (aktivasi live) -- user minta backfill Trade Journal dulu untuk skripsi.
+
+### AO-3: Backfill 33 trade (5 Des 2025 - 4 Agu 2026) ke Trade Journal
+Insert via tinker, label eksplisit di `notes`: "SIMULASI BACKTEST (bukan transaksi riil) --
+aturan drawdown-bounce ... exit BERBASIS WAKTU, bukan harga ...". Kolom `stop_loss`/`target_1`
+NOT NULL di DB tapi strategi ini tidak punya aturan stop/target harga (exit murni 10 hari bursa)
+-- diisi REFERENSI INFORMATIF (stop_loss = harga terendah selama dipegang/MAE, target_1 = harga
+exit aktual), dijelaskan eksplisit di notes supaya tidak disalahartikan sebagai aturan operasional.
+`result` = `manual_close` untuk semua (exit waktu, bukan hit_target/stop_loss beneran).
+
+**Verifikasi:** 33 trade dibuat (ID 161-193, dicek presisi -- filter `LIKE '%drawdown-bounce%'`
+sempat salah hitung 34 karena notes lama #157 juga mengandung kata itu, dikoreksi pakai filter ID).
+PnL total trade baru Rp11.853.723 -- cocok persis dengan laporan sebelum insert.
+
+### AO-4: Bug ditemukan setelah insert -- Win Rate dashboard jadi 16% (salah menyesatkan)
+33 trade baru semuanya `result=manual_close` (exit waktu, bukan target/stop harga). Formula lama
+`TradeController::index()` cuma hitung `result IN (hit_target_1, hit_target_2)` sebagai "menang" --
+28 dari 33 trade baru (untung beneran) SAMA SEKALI TIDAK KEHITUNG, bukan menang bukan kalah, hilang
+dari Win Rate. Total 37 dari 50 closed trade (74%) berstatus manual_close, dan 28 di antaranya
+positif.
+
+**Perbaikan (persetujuan user):** `win`/`loss`/`win_rate`/`expectancy` di `TradeController::index()`
+diubah dari berbasis kategori `result` menjadi berbasis **PnL aktual** (`pnl_total > 0` = menang,
+`<= 0` = kalah) -- benar untuk semua jenis strategi exit (target harga, stop harga, ATAU waktu),
+bukan cuma yang exit-nya lewat target/stop.
+
+### Verifikasi
+- `php artisan test --filter=TradeJournalTest`: 6 passed (test baru
+  `test_win_rate_counts_profitable_manual_close_trades_as_wins` mengunci perilaku benar).
+- `php artisan test` penuh: 484 passed (naik dari 483).
+- Data real setelah perbaikan: Total 52 trade (2 open, 50 closed), **Win Rate 72% (36W/14L)**
+  -- sebelumnya 16%. Total PnL Rp58.752.920, Avg R:R 1:3,88, Expectancy +9,44%, Avg Holding 8,5
+  hari. Dicek visual di browser (data user asli): dashboard dan tabel "Riwayat Trading (50)"
+  tampil benar, termasuk baris-baris trade baru dengan PnL negatif terformat benar.
+
+### Status: SELESAI (backfill + fix bug). Keputusan aktivasi live BBCA/UNVR belum diambil --
+menunggu arahan user selanjutnya.
