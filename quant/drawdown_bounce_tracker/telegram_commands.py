@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
-"""Poll Telegram for /open and /close commands, update open_positions.json directly -- no need
-to tell Claude in chat every time a position changes.
+"""Poll Telegram for /open, /close, /status, /history commands, update open_positions.json
+directly -- no need to tell Claude in chat every time a position changes.
 
 Commands (send to @IDX_alert_keysentimen_bot -- or tap the keyboard buttons under the message box):
   /open TICKER [HARGA] [TANGGAL]   -- tambah posisi baru (HARGA/TANGGAL opsional -- kalau HARGA
                                        tidak disebut, dipakai harga penutupan terakhir live)
   /close TICKER [HARGA] [TANGGAL]  -- tutup posisi (HARGA opsional, sama seperti /open)
   /status                          -- tampilkan posisi yang lagi dipantau
+  /history                         -- 10 posisi terakhir yang sudah ditutup (dari Trade Journal)
 
 Uses long-polling (getUpdates with an offset), not a webhook -- no public HTTPS endpoint needed,
 works fine from a local dev machine. Only processes messages from TELEGRAM_CHAT_ID (the user's own
 chat), ignores everything else, so a leaked bot token can't be used to inject fake positions.
+
+/history reads closed_trades_cache.json, a snapshot written by CheckTelegramCommandsCommand.php
+right before this script runs (see refreshClosedTradesCache() there). This script deliberately
+never queries MySQL directly -- same resilience pattern as open_positions.json -- so if the DB was
+down at refresh time, /history just serves the last-known snapshot instead of failing outright.
 """
 from __future__ import annotations
 
@@ -27,6 +33,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from detect_signal import (  # noqa: E402
     BUTTON_CLOSE_BUMI,
     BUTTON_CLOSE_DEWA,
+    BUTTON_HISTORY,
     BUTTON_STATUS,
     default_keyboard,
     load_telegram_credentials,
@@ -35,11 +42,13 @@ from detect_signal import (  # noqa: E402
 
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
 OFFSET_PATH = Path(__file__).parent / "telegram_update_offset.txt"
+CLOSED_TRADES_CACHE_PATH = Path(__file__).parent / "closed_trades_cache.json"
 
 # Icon button labels -> canonical command text, so handle_command()'s parsing only needs to know
 # the /open, /close, /status forms.
 BUTTON_LABELS = {
     BUTTON_STATUS: "/status",
+    BUTTON_HISTORY: "/history",
     BUTTON_CLOSE_BUMI: "/close BUMI",
     BUTTON_CLOSE_DEWA: "/close DEWA",
 }
@@ -86,7 +95,8 @@ def handle_command(text: str, positions: list[dict]) -> tuple[list[dict], str]:
             "Perintah tidak dikenali. Pakai tombol di bawah, atau ketik:\n"
             "/open TICKER [HARGA] [TANGGAL]\n"
             "/close TICKER [HARGA] [TANGGAL]\n"
-            "/status\n\n"
+            "/status\n"
+            "/history\n\n"
             "(HARGA boleh dikosongkan -- otomatis pakai harga live terakhir)"
         )
 
@@ -128,6 +138,54 @@ def format_status(positions: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def load_closed_trades() -> list[dict]:
+    if not CLOSED_TRADES_CACHE_PATH.is_file():
+        return []
+    try:
+        return json.loads(CLOSED_TRADES_CACHE_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+
+
+RESULT_LABELS = {
+    "hit_target_1": "kena target 1",
+    "hit_target_2": "kena target 2",
+    "stop_loss": "stop loss",
+    "manual_close": "tutup manual",
+}
+
+
+def format_history(trades: list[dict]) -> str:
+    if not trades:
+        return (
+            "Belum ada riwayat posisi yang ditutup, atau cache-nya belum sempat di-refresh "
+            "(butuh MySQL nyala minimal sekali sejak posisi terakhir ditutup)."
+        )
+    lines = ["<b>Riwayat 10 posisi terakhir yang ditutup:</b>\n"]
+    for t in trades:
+        entry = float(t["entry_price"])
+        exit_ = float(t["exit_price"]) if t.get("exit_price") is not None else None
+        pnl_total = t.get("pnl_total")
+        pnl_pct = t.get("pnl_percent")
+        result = RESULT_LABELS.get(t.get("result"), t.get("result") or "-")
+        sign = "\U0001F7E2" if (pnl_total or 0) >= 0 else "\U0001F534"
+
+        exit_txt = f"Rp{exit_:.0f}" if exit_ is not None else "-"
+        if pnl_total is not None and pnl_pct is not None:
+            pnl_sign = "-" if pnl_total < 0 else ""
+            pnl_txt = f"{pnl_sign}Rp{abs(pnl_total):,.0f} ({pnl_pct:+.1f}%)".replace(",", ".")
+        else:
+            pnl_txt = "-"
+        holding_txt = f", {t['holding_days']} hari" if t.get("holding_days") is not None else ""
+
+        lines.append(
+            f"{sign} <b>{t['ticker']}</b>: Rp{entry:.0f} → {exit_txt} "
+            f"({t.get('entry_date', '?')} s/d {t.get('exit_date', '?')}{holding_txt})\n"
+            f"   P&amp;L {pnl_txt} -- {result}"
+        )
+    return "\n".join(lines)
+
+
 def main() -> None:
     token, chat_id = load_telegram_credentials()
     if not token or not chat_id:
@@ -164,6 +222,11 @@ def main() -> None:
 
         if text.strip() == "/status":
             send_telegram_alert(format_status(positions), reply_markup=default_keyboard())
+            processed += 1
+            continue
+
+        if text.strip() == "/history":
+            send_telegram_alert(format_history(load_closed_trades()), reply_markup=default_keyboard())
             processed += 1
             continue
 

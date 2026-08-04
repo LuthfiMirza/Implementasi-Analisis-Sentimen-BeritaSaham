@@ -2078,3 +2078,42 @@ tapi perlu dibereskan suatu saat (pilih salah satu: cron ATAU launchd, bukan dua
 - `php artisan test`: 480 passed.
 
 ### Status: SELESAI. Worst-case delay respons Telegram turun dari ~5 menit menjadi ~1 menit.
+
+## Fase AI — Fitur `/history` di Telegram bot
+
+**Konteks:** Ditanya fitur tambahan apa lagi yang masuk akal selain `/status` dan `/close`.
+Rekomendasi: `/history` (riwayat posisi yang sudah ditutup) -- gap nyata, P&L cuma bisa dilihat
+lewat web Trade Journal sekarang, padahal semua interaksi lain sudah bisa dari Telegram.
+
+### Tantangan desain
+`telegram_commands.py` sengaja TIDAK pernah menyentuh MySQL langsung (pola resiliensi yang sama
+dengan `open_positions.json` -- tetap jalan walau MySQL mati). Tapi riwayat trade cuma ada di
+Trade Journal (MySQL, tabel `trades`), bukan di `open_positions.json` (itu cuma posisi yang lagi
+dipantau trailing-stop, konsep berbeda).
+
+### Solusi: cache file yang di-refresh tiap run
+- `CheckTelegramCommandsCommand.php` (`refreshClosedTradesCache()`): sebelum panggil Python,
+  query `Trade::where('status','closed')->orderByDesc('exit_date')->limit(10)` dan tulis ke
+  `quant/drawdown_bounce_tracker/closed_trades_cache.json`. Dibungkus try/catch -- kalau MySQL
+  mati, skip diam-diam dan biarkan cache lama (self-heal begitu MySQL nyala lagi, sama seperti
+  `news:auto-recover-gap`). File ini di-gitignore (murni turunan dari DB, regenerasi tiap 1 menit
+  sekarang karena Fase AH).
+- `telegram_commands.py`: `/history` baca cache itu (tidak pernah query DB langsung), format jadi
+  pesan HTML rapi -- ticker, entry->exit, tanggal, lama hari, P&L (Rp + %, tanda +/- dan emoji
+  hijau/merah), hasil (kena target/stop loss/tutup manual).
+- `detect_signal.py`: tombol baru "📜 Riwayat" ditambah ke `default_keyboard()` di baris yang sama
+  dengan Status (jadi 2 tombol sebaris: Status | Riwayat).
+
+### Verifikasi
+- `php artisan test --filter=CheckTelegramCommandsCommandTest`: 5 passed (2 test baru --
+  cache terisi benar saat ada trade closed, cache `[]` saat tidak ada, ticker DEWA yang masih
+  `open` sengaja dikecualikan dari cache).
+- Real run `php artisan research:check-telegram-commands`: cache terisi 10 trade asli dari Trade
+  Journal (BUMI 136->171 +Rp1.750.000, DEWA 332->442 +Rp1.716.000, dst).
+- `format_history()` dites langsung ke data cache asli -- output rapi, termasuk kasus P&L negatif
+  (`-Rp528.623`, bukan `Rp-528.623` seperti percobaan pertama -- diperbaiki).
+- Pesan `/history` beneran dikirim ke Telegram user (bukan cuma print lokal) -- dikonfirmasi
+  terkirim.
+- `php artisan test` penuh: 482 passed (naik dari 480 -- 2 test baru untuk cache refresh).
+
+### Status: SELESAI.

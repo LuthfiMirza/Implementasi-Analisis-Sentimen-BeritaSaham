@@ -56,6 +56,7 @@ def load_telegram_credentials() -> tuple[str | None, str | None]:
 # translated back to the real /status, /close BUMI, /close DEWA commands in telegram_commands.py's
 # BUTTON_LABELS map, so the parsing logic only has to understand the canonical command form.
 BUTTON_STATUS = "\U0001F4CA Status"
+BUTTON_HISTORY = "\U0001F4DC Riwayat"
 BUTTON_CLOSE_BUMI = "\U0001F534 Tutup BUMI"
 BUTTON_CLOSE_DEWA = "\U0001F534 Tutup DEWA"
 
@@ -67,7 +68,7 @@ def default_keyboard() -> dict:
     so these buttons work with a single tap."""
     return {
         "keyboard": [
-            [BUTTON_STATUS],
+            [BUTTON_STATUS, BUTTON_HISTORY],
             [BUTTON_CLOSE_BUMI, BUTTON_CLOSE_DEWA],
         ],
         "resize_keyboard": True,
