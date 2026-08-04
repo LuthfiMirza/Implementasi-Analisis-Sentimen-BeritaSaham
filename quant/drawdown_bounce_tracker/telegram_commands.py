@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Poll Telegram for /open, /close, /status, /history commands, update open_positions.json
-directly -- no need to tell Claude in chat every time a position changes.
+"""Poll Telegram for /open, /close, /status, /history, /price commands, update
+open_positions.json directly -- no need to tell Claude in chat every time a position changes.
 
 Commands (send to @IDX_alert_keysentimen_bot -- or tap the keyboard buttons under the message box):
   /open TICKER [HARGA] [TANGGAL]   -- tambah posisi baru (HARGA/TANGGAL opsional -- kalau HARGA
@@ -8,6 +8,8 @@ Commands (send to @IDX_alert_keysentimen_bot -- or tap the keyboard buttons unde
   /close TICKER [HARGA] [TANGGAL]  -- tutup posisi (HARGA opsional, sama seperti /open)
   /status                          -- tampilkan posisi yang lagi dipantau
   /history                         -- 10 posisi terakhir yang sudah ditutup (dari Trade Journal)
+  /price TICKER                    -- cek harga live TICKER APA SAJA (bukan cuma BUMI/DEWA yang
+                                       lagi dipantau) -- buat mantau kandidat sebelum entry
 
 Uses long-polling (getUpdates with an offset), not a webhook -- no public HTTPS endpoint needed,
 works fine from a local dev machine. Only processes messages from TELEGRAM_CHAT_ID (the user's own
@@ -58,6 +60,7 @@ BUTTON_LABELS = {
 COMMAND_PATTERN = re.compile(
     r"^/(open|close)\s+([A-Za-z]{2,6})(?:\s+([\d.,]+))?(?:\s+(\d{4}-\d{2}-\d{2}))?", re.IGNORECASE
 )
+PRICE_PATTERN = re.compile(r"^/price\s+([A-Za-z]{2,6})", re.IGNORECASE)
 
 
 def fetch_live_price(ticker: str) -> float | None:
@@ -66,6 +69,28 @@ def fetch_live_price(ticker: str) -> float | None:
         return None
     df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
     return float(df["Close"].iloc[-1])
+
+
+def fetch_price_snapshot(ticker: str) -> dict | None:
+    """Last close + previous close for /price -- any ticker, not just the ones being tracked.
+    Uses the same 5d-daily yfinance call as fetch_live_price(), just keeps one extra row so a
+    day-over-day change can be shown."""
+    df = yf.download(f"{ticker}.JK", period="5d", progress=False, auto_adjust=False)
+    if df.empty:
+        return None
+    df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
+
+    last_close = float(df["Close"].iloc[-1])
+    last_date = df.index[-1]
+    snapshot = {"price": last_close, "as_of": last_date, "prev_close": None, "change_pct": None}
+
+    if len(df) >= 2:
+        prev_close = float(df["Close"].iloc[-2])
+        snapshot["prev_close"] = prev_close
+        if prev_close:
+            snapshot["change_pct"] = (last_close - prev_close) / prev_close
+
+    return snapshot
 
 
 def load_positions() -> list[dict]:
@@ -96,7 +121,8 @@ def handle_command(text: str, positions: list[dict]) -> tuple[list[dict], str]:
             "/open TICKER [HARGA] [TANGGAL]\n"
             "/close TICKER [HARGA] [TANGGAL]\n"
             "/status\n"
-            "/history\n\n"
+            "/history\n"
+            "/price TICKER\n\n"
             "(HARGA boleh dikosongkan -- otomatis pakai harga live terakhir)"
         )
 
@@ -186,6 +212,21 @@ def format_history(trades: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def format_price(ticker: str, snapshot: dict | None) -> str:
+    if snapshot is None:
+        return f"Tidak ada data harga untuk {ticker} -- cek lagi penulisan ticker-nya (tanpa .JK)."
+
+    price = snapshot["price"]
+    as_of = snapshot["as_of"].strftime("%d %b %Y")
+    change_pct = snapshot["change_pct"]
+
+    if change_pct is None:
+        return f"<b>{ticker}</b>: Rp{price:.0f} (per {as_of})"
+
+    arrow = "\U0001F7E2▲" if change_pct >= 0 else "\U0001F534▼"
+    return f"{arrow} <b>{ticker}</b>: Rp{price:.0f} ({change_pct:+.1%} dari penutupan sebelumnya, per {as_of})"
+
+
 def main() -> None:
     token, chat_id = load_telegram_credentials()
     if not token or not chat_id:
@@ -227,6 +268,13 @@ def main() -> None:
 
         if text.strip() == "/history":
             send_telegram_alert(format_history(load_closed_trades()), reply_markup=default_keyboard())
+            processed += 1
+            continue
+
+        price_match = PRICE_PATTERN.match(text.strip())
+        if price_match:
+            ticker = price_match.group(1).upper()
+            send_telegram_alert(format_price(ticker, fetch_price_snapshot(ticker)), reply_markup=default_keyboard())
             processed += 1
             continue
 

@@ -2117,3 +2117,32 @@ dipantau trailing-stop, konsep berbeda).
 - `php artisan test` penuh: 482 passed (naik dari 480 -- 2 test baru untuk cache refresh).
 
 ### Status: SELESAI.
+
+## Fase AJ — Fitur `/price TICKER` di Telegram bot
+
+**Konteks:** Lanjutan daftar saran fitur -- `/price` biar bisa cek harga live ticker APA SAJA
+(bukan cuma BUMI/DEWA yang lagi dipantau), berguna buat mantau kandidat sebelum entry baru tanpa
+buka aplikasi lain.
+
+### Implementasi
+- `telegram_commands.py`: `PRICE_PATTERN` regex (`/price TICKER`, case-insensitive), fungsi baru
+  `fetch_price_snapshot(ticker)` -- reuse pola yfinance yang sama dengan `fetch_live_price()`
+  (period 5d, auto_adjust=False), tapi simpan 2 baris terakhir supaya bisa hitung perubahan
+  harian (harga sekarang vs penutupan sebelumnya). `format_price()` -- tampilkan harga + panah
+  hijau/merah + % perubahan + tanggal data, atau pesan jelas kalau ticker tidak ditemukan.
+- Tidak perlu tombol keyboard baru (ticker-nya bebas, tidak bisa di-fix ke satu tombol) -- murni
+  perintah teks `/price TICKER`.
+- Tidak ada perubahan sisi Laravel/PHP -- murni logic Python, tidak butuh data MySQL sama sekali.
+
+### Verifikasi
+- Regex dites: `/price BUMI`, `/PRICE bumi` (case-insensitive), `/price   ADRO` (spasi ganda) --
+  semua cocok benar. `/open BUMI 159` dan `/pricebumi` (tanpa spasi) benar-benar TIDAK cocok --
+  tidak akan salah tangkap perintah lain.
+- Real fetch: BUMI Rp169 (+0,6%), BBCA Rp6.375 (+1,2%), DEWA Rp464 (+0,0%) -- semua akurat
+  dibanding harga yang sudah diverifikasi di Fase AG/AH hari yang sama.
+- Ticker tidak valid (`XXXX`): tidak crash, balas pesan jelas "Tidak ada data harga ... cek lagi
+  penulisan ticker-nya".
+- Pesan `/price BBCA` beneran dikirim ke Telegram user, dikonfirmasi terkirim.
+- `php artisan test`: 482 passed (tidak ada perubahan PHP, angka tetap sama seperti Fase AI).
+
+### Status: SELESAI.
