@@ -2047,3 +2047,34 @@ trade-off lag-vs-alarm-palsu di angka nyata, bukan diam-diam diubah oleh sistem.
 
 ### Status: SELESAI. Ambang trailing stop sekarang 2%, dicek tiap 15 menit jam bursa 09.00-16.00
 WIB. Target waktu 10 hari bursa tidak berubah.
+
+## Fase AH — Percepat polling perintah Telegram: 5 menit -> 1 menit
+
+**Konteks:** User kirim `/status` jam 11:02, baru dijawab jam 11:05 -- tanya kenapa lambat.
+Dicek langsung di `storage/logs/cron.log`: siklus `research:check-telegram-commands` jam
+11:00:06 sudah lewat duluan sebelum pesan masuk, jadi baru ketangkap siklus berikutnya 11:05:03
+-- delay 3 menit murni dari interval polling 5 menit, bukan bug.
+
+### Temuan tambahan saat investigasi (di luar scope langsung, dicatat)
+Ditemukan dua LaunchAgent macOS (`com.sentimena.prediction-api`, `com.sentimena.sentiment-api`)
+dengan `KeepAlive: true` yang selama ini menjalankan API Python otomatis di background --
+tidak diketahui sebelumnya dalam sesi ini. Juga ditemukan `com.luthfimirza.sentimena.scheduler`
+(LaunchAgent, `php artisan schedule:run` tiap 60 detik) berjalan REDUNDAN paralel dengan crontab
+sistem yang sudah ada (`* * * * * php artisan schedule:run`) -- scheduler jalan dobel dari dua
+sumber. Dibiarkan apa adanya (tidak mengganggu, `withoutOverlapping()` mencegah eksekusi ganda),
+tapi perlu dibereskan suatu saat (pilih salah satu: cron ATAU launchd, bukan dua-duanya).
+
+### Perubahan kode
+- `routes/console.php`: `research:check-telegram-commands` dari `everyFiveMinutes()` menjadi
+  `everyMinute()`. Feasible tanpa infrastruktur tambahan karena cron sistem sudah jalan tiap
+  menit -- cuma nambah request `getUpdates` kosong ke Telegram tiap menit saat tidak ada pesan
+  baru, murah.
+
+### Verifikasi
+- `php artisan schedule:list` menunjukkan entry `* * * * *` untuk
+  `research:check-telegram-commands`.
+- `php artisan research:check-telegram-commands` dijalankan manual -- "Tidak ada perintah baru."
+  (tidak error).
+- `php artisan test`: 480 passed.
+
+### Status: SELESAI. Worst-case delay respons Telegram turun dari ~5 menit menjadi ~1 menit.

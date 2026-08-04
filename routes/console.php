@@ -157,11 +157,17 @@ Schedule::command('research:check-trailing-stop-alert')
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
 // Polling perintah Telegram (/open, /close, /status) supaya user bisa kelola posisi yang dipantau
-// trailing-stop langsung dari HP kapan saja -- dicek tiap 5 menit, 08.00-20.00
+// trailing-stop langsung dari HP kapan saja -- dicek tiap 1 menit, 08.00-20.00
 // WIB (jam wajar orang aktif trading/ngecek HP), bukan cuma jam bursa (posisi bisa ditutup di luar
 // jam bursa juga).
+//
+// Diperketat dari 5 menit ke 1 menit: user kirim /status jam 11:02, siklus 5-menit paling dekat
+// (11:00:06) sudah lewat duluan, jadi baru dijawab siklus berikutnya 11:05:03 -- delay 3 menit,
+// dikonfirmasi langsung dari storage/logs/cron.log. Cron sistem sendiri sudah jalan tiap menit
+// (crontab: '* * * * * php artisan schedule:run'), jadi 1 menit teknis memungkinkan tanpa
+// infrastruktur tambahan -- cuma nambah request getUpdates kosong ke Telegram tiap menit, murah.
 Schedule::command('research:check-telegram-commands')
-    ->everyFiveMinutes()
+    ->everyMinute()
     ->between('08:00', '20:00')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
