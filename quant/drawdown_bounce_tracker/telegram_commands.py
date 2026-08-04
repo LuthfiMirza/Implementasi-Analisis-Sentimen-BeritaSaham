@@ -75,23 +75,32 @@ def fetch_live_price(ticker: str) -> float | None:
 
 
 def fetch_price_snapshot(ticker: str) -> dict | None:
-    """Last close + previous close for /price -- any ticker, not just the ones being tracked.
-    Uses the same 5d-daily yfinance call as fetch_live_price(), just keeps one extra row so a
-    day-over-day change can be shown."""
-    df = yf.download(f"{ticker}.JK", period="5d", progress=False, auto_adjust=False)
-    if df.empty:
+    """Harga & jam TERKINI (bar 15 menit terakhir, sama pola dengan check_trailing_stop.py) untuk
+    /price -- ticker apa saja, bukan cuma yang lagi dipantau. Persentase perubahan tetap dihitung
+    terhadap penutupan HARIAN kemarin (bukan bar 15 menit sebelumnya) -- itu yang bermakna sebagai
+    "naik/turun hari ini", bukan noise antar-bar."""
+    daily = yf.download(f"{ticker}.JK", period="5d", progress=False, auto_adjust=False)
+    if daily.empty:
         return None
-    df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
+    daily.columns = [c[0] if isinstance(c, tuple) else c for c in daily.columns]
 
-    last_close = float(df["Close"].iloc[-1])
-    last_date = df.index[-1]
-    snapshot = {"price": last_close, "as_of": last_date, "prev_close": None, "change_pct": None}
+    intraday = yf.download(f"{ticker}.JK", period="5d", interval="15m", progress=False, auto_adjust=False)
+    if not intraday.empty:
+        intraday.columns = [c[0] if isinstance(c, tuple) else c for c in intraday.columns]
+        intraday.index = intraday.index.tz_convert("Asia/Jakarta")
+        price = float(intraday["Close"].iloc[-1])
+        as_of = intraday.index[-1]
+    else:
+        # fallback kalau data 15 menit kosong (mis. ticker jarang diperdagangkan)
+        price = float(daily["Close"].iloc[-1])
+        as_of = daily.index[-1]
 
-    if len(df) >= 2:
-        prev_close = float(df["Close"].iloc[-2])
+    snapshot = {"price": price, "as_of": as_of, "prev_close": None, "change_pct": None}
+    if len(daily) >= 2:
+        prev_close = float(daily["Close"].iloc[-2])
         snapshot["prev_close"] = prev_close
         if prev_close:
-            snapshot["change_pct"] = (last_close - prev_close) / prev_close
+            snapshot["change_pct"] = (price - prev_close) / prev_close
 
     return snapshot
 
@@ -236,7 +245,7 @@ def format_price(ticker: str, snapshot: dict | None) -> str:
         return f"Tidak ada data harga untuk {ticker} -- cek lagi penulisan ticker-nya (tanpa .JK)."
 
     price = snapshot["price"]
-    as_of = snapshot["as_of"].strftime("%d %b %Y")
+    as_of = snapshot["as_of"].strftime("%d %b %H:%M")
     change_pct = snapshot["change_pct"]
 
     if change_pct is None:

@@ -2350,3 +2350,28 @@ bukan cuma yang exit-nya lewat target/stop.
 
 ### Status: SELESAI (backfill + fix bug). Keputusan aktivasi live BBCA/UNVR belum diambil --
 menunggu arahan user selanjutnya.
+
+## Fase AP — `/price` tampilkan jam, bukan cuma tanggal
+
+**Konteks:** User cek `/price BUMI`, balasannya "per 04 Aug 2026" -- cuma tanggal, tidak ada jam,
+padahal harga live seharusnya berubah beberapa kali sehari.
+
+### Penyebab
+`fetch_price_snapshot()` sebelumnya cuma pakai data HARIAN (`interval` default 1d) -- timestamp-nya
+memang tidak pernah punya komponen jam yang berarti.
+
+### Perbaikan
+`fetch_price_snapshot()` sekarang ambil harga TERKINI dari bar 15 menit (pola sama dengan
+`check_trailing_stop.py`), tapi persentase perubahan tetap dihitung terhadap penutupan HARIAN
+kemarin (bukan bar 15 menit sebelumnya) -- supaya tetap bermakna sebagai "naik/turun hari ini",
+bukan noise antar-bar 15 menit. Fallback ke data harian kalau data 15 menit kosong (ticker jarang
+diperdagangkan). `format_price()`: `%d %b %Y` -> `%d %b %H:%M`.
+
+### Verifikasi
+- Real fetch: BUMI, BBCA, DEWA semua nampilin jam sekarang, mis. "per 04 Aug 14:30" (bar 15 menit
+  terakhir yang tersedia).
+- Ticker tidak valid (XXXX): tetap tidak crash, pesan error jelas.
+- Pesan `/price BUMI` beneran dikirim ke Telegram user, dikonfirmasi terkirim.
+- `php artisan test`: 484 passed (murni Python, tidak ada perubahan PHP).
+
+### Status: SELESAI.
