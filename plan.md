@@ -2484,3 +2484,51 @@ sudah disetujui user, bukan cuma di satu percobaan.
 - `php artisan test`: 484 passed (murni Python, tidak ada perubahan PHP).
 
 ### Status: SELESAI.
+
+## Fase AT — `/status` tampilkan progres live + `/ihsg` (progres sinyal entry)
+
+**Konteks:** User minta 2 fitur: (1) `/status` upgrade dari cuma "entry Rp159 (tanggal)" jadi
+progres live lengkap terhadap 3 aturan exit (trailing stop, H-1, target 10 hari), (2) command baru
+`/ihsg` cek seberapa dekat IHSG + saham yang dipantau ke ambang entry -5%.
+
+### AT-1: Refactor `check_trailing_stop.py` -- pisah kalkulasi dari alerting
+`compute_snapshot(ticker, entry_date, entry_price)` fungsi baru, READ-ONLY (tidak pernah kirim
+alert/ubah `open_positions.json`) -- diekstrak dari `check_position()` yang lama supaya logika
+sama persis bisa dipakai ulang di Telegram `/status` on-demand, bukan cuma nunggu alert otomatis.
+`check_position()` di-refactor pakai fungsi ini juga -- perilakunya TIDAK berubah (diverifikasi:
+output print sama persis dengan sebelum refactor).
+
+### AT-2: `format_status()` di `telegram_commands.py`
+Sekarang tiap posisi tampil: harga sekarang + P&L%, hari bursa ke berapa dari 10, puncak, %
+mundur dari puncak, plus catatan kalau sudah lewat ambang trailing stop 2% atau masuk H-1/target
+waktu -- semua dari `compute_snapshot()` yang sama dengan sistem alert asli (angka selalu
+konsisten).
+
+### AT-3: `/ihsg` -- progres sinyal entry
+`fetch_2d_return()` (fungsi baru) hitung return 2-hari PAKAI 'Close' MENTAH (bukan 'Adj Close' --
+menghindari bug yang sama seperti Fase AR). `format_ihsg_progress()` tampilkan: IHSG turun berapa
+% dalam 2 hari + progres menuju ambang -5%, plus tiap saham di `LABELS` (BUMI/DEWA) statusnya
+masing-masing. `DROP_THRESHOLD`/`LABELS` diimpor dari `detect_signal.py` supaya konsisten persis
+dengan aturan deteksi sinyal live (bukan angka duplikat yang bisa drift).
+
+### Temuan sampingan (dicatat, TIDAK diperbaiki sekarang)
+`detect_signal.py::fetch_recent()` menyimpan `entry_price` sinyal LIVE dari kolom `adj_close`
+(Adj Close), bug yang sama persis dengan Fase AR. Dampak praktis kecil untuk BUMI/DEWA karena
+dividennya nyaris nol (sudah dikonfirmasi Fase AR), tapi tetap salah secara prinsip kalau nanti
+ticker lain (yang bayar dividen besar) ditambahkan ke `LABELS`. Perlu diperbaiki kalau BBCA/UNVR
+jadi diaktifkan live.
+
+### Verifikasi
+- `check_position()` real run setelah refactor: output print identik formatnya dengan sebelum
+  refactor (BUMI hari ke-6 P&L +12,6%, DEWA hari ke-6 P&L +9,5%).
+- `format_status()` real run: menampilkan persis format yang diminta user (entry->sekarang,
+  P&L%, hari bursa ke-X dari 10, puncak, % mundur).
+- `format_ihsg_progress()` real run: IHSG +1,95% 2 hari (belum kena ambang), BUMI +6,55%, DEWA
+  +3,88% (bukan penurunan, jadi tidak "KENA" -- logika threshold bekerja benar).
+- Regex `IHSG_PATTERN` dicek: `/ihsg`, `/IHSG` cocok; `/ihsg BUMI`, `/price BUMI` TIDAK cocok
+  (tidak salah tangkap perintah lain).
+- Kedua pesan (`/status` baru, `/ihsg`) beneran dikirim ke Telegram user, dikonfirmasi terkirim.
+- `php artisan research:check-telegram-commands`: jalan normal, tidak error.
+- `php artisan test`: 484 passed (tidak ada perubahan PHP).
+
+### Status: SELESAI.

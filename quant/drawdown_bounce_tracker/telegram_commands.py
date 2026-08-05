@@ -10,6 +10,7 @@ Commands (send to @IDX_alert_keysentimen_bot -- or tap the keyboard buttons unde
   /history                         -- 10 posisi terakhir yang sudah ditutup (dari Trade Journal)
   /price TICKER                    -- cek harga live TICKER APA SAJA (bukan cuma BUMI/DEWA yang
                                        lagi dipantau) -- buat mantau kandidat sebelum entry
+  /ihsg                            -- progres IHSG + saham yang dipantau menuju ambang entry -5%
   /help                            -- daftar perintah ini, dikirim balik ke chat
 
 Uses long-polling (getUpdates with an offset), not a webhook -- no public HTTPS endpoint needed,
@@ -41,10 +42,18 @@ from detect_signal import (  # noqa: E402
     BUTTON_HELP,
     BUTTON_HISTORY,
     BUTTON_STATUS,
+    DROP_THRESHOLD,
+    LABELS,
     default_keyboard,
     load_allowed_chat_ids,
     load_telegram_credentials,
     send_telegram_alert,
+)
+from check_trailing_stop import (  # noqa: E402
+    PULLBACK_THRESHOLD,
+    TARGET_HOLD_DAYS,
+    WARN_HOLD_DAYS,
+    compute_snapshot,
 )
 
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
@@ -67,6 +76,7 @@ COMMAND_PATTERN = re.compile(
     r"^/(open|close)\s+([A-Za-z]{2,6})(?:\s+([\d.,]+))?(?:\s+(\d{4}-\d{2}-\d{2}))?", re.IGNORECASE
 )
 PRICE_PATTERN = re.compile(r"^/price\s+([A-Za-z]{2,6})", re.IGNORECASE)
+IHSG_PATTERN = re.compile(r"^/ihsg\s*$", re.IGNORECASE)
 
 
 def fetch_live_price(ticker: str) -> float | None:
@@ -165,11 +175,44 @@ def handle_command(text: str, positions: list[dict]) -> tuple[list[dict], str]:
 
 
 def format_status(positions: list[dict]) -> str:
+    """Progres LIVE tiap posisi terhadap 3 aturan exit yang aktif (trailing stop 2%, H-1 hari
+    ke-9, target waktu hari ke-10) -- dipanggil on-demand tiap /status, bukan cuma nunggu alert
+    otomatis bunyi. Pakai compute_snapshot() dari check_trailing_stop.py (read-only, tidak
+    pernah kirim alert/ubah open_positions.json), jadi angkanya selalu konsisten dengan yang
+    dipakai sistem alert asli."""
     if not positions:
         return "Tidak ada posisi yang sedang dipantau."
-    lines = ["<b>Posisi yang dipantau:</b>"]
+
+    lines = ["<b>Posisi yang dipantau:</b>\n"]
     for p in positions:
-        lines.append(f"- {p['ticker']}: entry Rp{p['entry_price']:.0f} ({p['entry_date']})")
+        ticker = p["ticker"]
+        entry_price = float(p["entry_price"])
+        snap = compute_snapshot(ticker, p["entry_date"], entry_price)
+
+        if snap is None:
+            lines.append(
+                f"- <b>{ticker}</b>: entry Rp{entry_price:.0f} ({p['entry_date']}) "
+                f"-- data harga live tidak tersedia saat ini"
+            )
+            continue
+
+        sign = "\U0001F7E2" if snap["unrealized_pct"] >= 0 else "\U0001F534"
+
+        notes = []
+        if snap["trading_days"] >= TARGET_HOLD_DAYS:
+            notes.append(f"sudah kena target waktu {TARGET_HOLD_DAYS} hari")
+        elif snap["trading_days"] >= WARN_HOLD_DAYS:
+            notes.append("H-1 menuju target waktu")
+        if snap["pullback"] >= PULLBACK_THRESHOLD:
+            notes.append(f"sudah lewat ambang trailing stop {PULLBACK_THRESHOLD:.0%}")
+        note_txt = f" ({', '.join(notes)})" if notes else ""
+
+        lines.append(
+            f"{sign} <b>{ticker}</b>: entry Rp{entry_price:.0f} → sekarang Rp{snap['current']:.0f} "
+            f"({snap['unrealized_pct']:+.1%})\n"
+            f"   Hari bursa ke-{snap['trading_days']} dari {TARGET_HOLD_DAYS} | "
+            f"Puncak Rp{snap['peak']:.0f}, mundur {snap['pullback']:.1%}{note_txt}\n"
+        )
     return "\n".join(lines)
 
 
@@ -251,6 +294,8 @@ def format_help() -> str:
         "10 posisi terakhir yang sudah ditutup, dari Trade Journal.\n\n"
         "\U0001F50D <b>/price TICKER</b>\n"
         "Cek harga live ticker apa saja, contoh: <code>/price BBCA</code>.\n\n"
+        "\U0001F30F <b>/ihsg</b>\n"
+        "Progres IHSG + saham yang dipantau menuju ambang entry -5% dalam 2 hari.\n\n"
         "➕ <b>/open TICKER [HARGA] [TANGGAL]</b>\n"
         "Tambah posisi baru ke pemantauan. HARGA/TANGGAL boleh dikosongkan -- "
         "otomatis pakai harga live &amp; tanggal hari ini. Contoh: <code>/open BUMI 159</code>.\n\n"
@@ -277,6 +322,61 @@ def format_price(ticker: str, snapshot: dict | None) -> str:
 
     arrow = "\U0001F7E2▲" if change_pct >= 0 else "\U0001F534▼"
     return f"{arrow} <b>{ticker}</b>: Rp{price:.0f} ({change_pct:+.1%} dari penutupan sebelumnya, per {as_of})"
+
+
+def fetch_2d_return(symbol: str) -> dict | None:
+    """Return 2-hari kumulatif (penutupan hari ini vs 2 hari bursa sebelumnya) -- PAKAI 'Close'
+    MENTAH, bukan 'Adj Close' (lihat Fase AR: Adj Close sudah dikurangi dividen masa depan,
+    salah untuk perbandingan harga apa adanya). Dipakai /ihsg untuk cek progres menuju ambang
+    entry -5% aturan drawdown-bounce (DROP_THRESHOLD, sama persis dengan detect_signal.py)."""
+    df = yf.download(symbol, period="10d", progress=False, auto_adjust=False)
+    if df.empty:
+        return None
+    df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
+    close = df["Close"]
+    if len(close) < 3:
+        return None
+    ret_2d = float(close.iloc[-1] / close.iloc[-3] - 1)
+    return {"ret_2d": ret_2d, "last_close": float(close.iloc[-1]), "last_date": df.index[-1]}
+
+
+def format_ihsg_progress() -> str:
+    ihsg = fetch_2d_return("^JKSE")
+    if ihsg is None:
+        return "Tidak bisa ambil data IHSG sekarang -- coba lagi nanti."
+
+    ihsg_hit = ihsg["ret_2d"] <= DROP_THRESHOLD
+    progress_pct = min(1.0, ihsg["ret_2d"] / DROP_THRESHOLD) if ihsg["ret_2d"] < 0 else 0.0
+    ihsg_status = "\U0001F6A8 SUDAH LEWAT AMBANG" if ihsg_hit else f"{progress_pct:.0%} menuju ambang -5%"
+
+    last_close_txt = f"{ihsg['last_close']:,.0f}".replace(",", ".")
+    lines = [
+        "<b>Progres sinyal entry drawdown-bounce</b>",
+        "(aturan: IHSG DAN saham sama-sama turun ≥5% dalam 2 hari)\n",
+        f"<b>IHSG</b>: {ihsg['ret_2d']:+.2%} dalam 2 hari -- {ihsg_status}",
+        f"   Penutupan terakhir: {last_close_txt} ({ihsg['last_date'].strftime('%d %b')})\n",
+    ]
+
+    if not ihsg_hit:
+        lines.append(
+            "IHSG belum turun cukup dalam -- sinyal entry TIDAK akan muncul hari ini walau "
+            "ada saham yang jatuh tajam sendirian.\n"
+        )
+    else:
+        lines.append("IHSG sudah lewat ambang -- tinggal cek saham mana yang ikut turun juga.\n")
+
+    lines.append("<b>Progres saham yang dipantau:</b>")
+    for ticker, label in LABELS.items():
+        snap = fetch_2d_return(f"{ticker}.JK")
+        if snap is None:
+            lines.append(f"- {ticker}: data tidak tersedia")
+            continue
+        hit = snap["ret_2d"] <= DROP_THRESHOLD
+        tag = "\U0001F6A8 KENA" if hit else f"{snap['ret_2d']:+.2%}"
+        label_tag = "" if label == "tracked" else " <i>(exploratory)</i>"
+        lines.append(f"- <b>{ticker}</b>{label_tag}: {tag} dalam 2 hari")
+
+    return "\n".join(lines)
 
 
 def main() -> None:
@@ -337,6 +437,11 @@ def main() -> None:
                 format_price(ticker, fetch_price_snapshot(ticker)),
                 reply_markup=default_keyboard(), chat_id=sender_chat_id,
             )
+            processed += 1
+            continue
+
+        if IHSG_PATTERN.match(text.strip()):
+            send_telegram_alert(format_ihsg_progress(), reply_markup=default_keyboard(), chat_id=sender_chat_id)
             processed += 1
             continue
 

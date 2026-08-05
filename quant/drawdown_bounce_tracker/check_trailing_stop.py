@@ -73,15 +73,14 @@ def fetch_15m_since(ticker: str, entry_date: str) -> pd.DataFrame | None:
     return df if not df.empty else None
 
 
-def check_position(position: dict) -> None:
-    ticker = position["ticker"]
-    entry_date = position["entry_date"]
-    entry_price = float(position["entry_price"])
-
+def compute_snapshot(ticker: str, entry_date: str, entry_price: float) -> dict | None:
+    """Read-only: puncak, harga terkini, mundur dari puncak, hari bursa ke berapa -- TIDAK PERNAH
+    mengirim alert atau mengubah open_positions.json. Dipakai oleh check_position() di bawah
+    (yang bisa kirim alert) dan oleh telegram_commands.py::format_status() (murni tampilan on-
+    demand pas user ketik /status, terlepas dari apakah alert otomatis sudah pernah terkirim)."""
     df = fetch_15m_since(ticker, entry_date)
     if df is None:
-        print(f"{ticker}: tidak ada data 15 menit sejak {entry_date}, dilewati.")
-        return
+        return None
 
     peak = float(df["High"].max())
     peak_ts = df["High"].idxmax()
@@ -90,6 +89,28 @@ def check_position(position: dict) -> None:
     pullback = (peak - current) / peak
     unrealized_pct = (current - entry_price) / entry_price
     trading_days = df.index.normalize().nunique()
+
+    return {
+        "peak": peak, "peak_ts": peak_ts, "current": current, "current_ts": current_ts,
+        "pullback": pullback, "unrealized_pct": unrealized_pct, "trading_days": trading_days,
+    }
+
+
+def check_position(position: dict) -> None:
+    ticker = position["ticker"]
+    entry_date = position["entry_date"]
+    entry_price = float(position["entry_price"])
+
+    snap = compute_snapshot(ticker, entry_date, entry_price)
+    if snap is None:
+        print(f"{ticker}: tidak ada data 15 menit sejak {entry_date}, dilewati.")
+        return
+
+    peak, peak_ts = snap["peak"], snap["peak_ts"]
+    current, current_ts = snap["current"], snap["current_ts"]
+    pullback = snap["pullback"]
+    unrealized_pct = snap["unrealized_pct"]
+    trading_days = snap["trading_days"]
 
     print(
         f"{ticker}: entry {entry_price:.0f} ({entry_date}) | puncak {peak:.0f} "
