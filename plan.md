@@ -2413,3 +2413,54 @@ proteksi keamanan (`chat.id == TELEGRAM_CHAT_ID`), bukan bug. User minta ditamba
 
 ### Status: SELESAI. Kedua akun Telegram sekarang bisa kirim /status, /open, /close, /history,
 /price, /help dan dapat balasan yang benar ke nomor masing-masing.
+
+## Fase AR — Perbaiki 33 trade Trade Journal: bug Adj Close vs Close
+
+**Konteks:** Cross-check manual (user minta) ke data pasar asli menemukan 27 dari 50 trade
+meleset dari range harga High-Low hari itu, dengan pola persentase TETAP per ticker (TLKM selalu
+-7,54%, BBCA -4,19%, dst). Diinvestigasi: **bukan** stock split (dicek `yfinance actions` --
+tidak ada split di periode ini untuk 9 ticker), tapi **dividen** -- besarnya selisih berbanding
+lurus dengan total dividen tiap saham di periode itu (BMRI dividen terbesar = selisih terbesar
+-8,14%, dst).
+
+### Akar masalah sebenarnya (bukan cuma dividen)
+`run_bluechip_backtest.py::load()` (skrip Fase AO yang menghasilkan 33 trade ini) salah pilih
+kolom CSV: `df.rename(columns={"Adj Close": "close"})` -- padahal fetch pakai `auto_adjust=False`
+yang seharusnya dipakai kolom `Close` (harga mentah/asli), bukan `Adj Close` (harga yang sudah
+dikurangi dividen masa depan sampai tanggal fetch). Bug ini terpakai dari laporan PERTAMA yang
+sudah disetujui user, bukan cuma di satu percobaan.
+
+### Perbaikan
+- Data historis 9 saham (`INDF,BBCA,ICBP,BBRI,ASII,BMRI,TLKM,ADRO,UNVR`) ditarik ulang segar
+  via yfinance, dihitung ulang PAKAI kolom `Close` (bukan `Adj Close`).
+- 33 trade lama (ID 161-193) **dihapus**, diganti 33 trade baru (ID 194-226) dengan harga yang
+  benar. Notes diperbarui menyebut koreksi ini eksplisit ("dikoreksi ulang dari versi awal yang
+  salah pakai harga tersesuaikan dividen").
+- `stop_loss`/`target_1` (kolom NOT NULL, bukan aturan operasional untuk strategi berbasis waktu
+  ini) diisi ulang dari MAE (harga terendah selama posisi dipegang) yang dihitung bareng harga
+  yang sudah benar.
+
+### Perubahan angka
+| | Sebelum (salah) | Sesudah (benar) |
+|---|---|---|
+| Win Rate (33 trade drawdown-bounce) | 24/33 (72,7%) | **22/33 (66,7%)** |
+| PnL 33 trade | +Rp11.853.723 | **+Rp10.797.840** |
+| Win Rate dashboard (52 trade total) | 72% | **68%** |
+| Total PnL dashboard | +Rp58.752.920 | **+Rp57.697.037** |
+| Avg R:R dashboard | 1:3,88 | **1:3,36** |
+
+2 trade ganti dari MENANG jadi RUGI setelah dikoreksi (BMRI 27 Apr, TLKM 9 Jun).
+
+### Verifikasi
+- Cross-check ulang ke pasar SETELAH insert: **0 dari 33 trade baru** bermasalah (semua dalam
+  range High-Low hari itu, 100% cocok).
+- Ditemukan (tapi TIDAK disentuh, di luar scope perbaikan ini): 8 dari 15 trade simulasi LAMA
+  (BUMI/DEWA, ID 82-155, dari Fase D, metodologi/skrip berbeda) masih punya masalah serupa
+  (tanggal bukan hari bursa / harga di luar range) -- dicatat sebagai temuan terpisah untuk
+  audit lanjutan, bukan bagian dari perbaikan Fase AR ini.
+- Dicek visual di browser: dashboard menampilkan 68%/34W16L/+Rp57.697.037 persis sesuai
+  perhitungan; baris tabel (mis. TLKM 29 Jan: 3.450->3.560) cocok persis dengan tabel yang
+  sudah disetujui user sebelum insert.
+- `php artisan test`: 484 passed (murni perubahan data, tidak ada perubahan kode).
+
+### Status: SELESAI.
