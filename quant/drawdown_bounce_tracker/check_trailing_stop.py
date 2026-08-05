@@ -6,13 +6,20 @@ User explicitly wants alert-only: "kasi sinyal aja di telegram... nanti saya pas
 manual trailing stop 4-5% di stockbitnya manual". This script never places or modifies any
 order -- it watches each position in open_positions.json and sends Telegram alerts:
 
-  1. TRAILING STOP -- first time price pulls back >= 4% from the peak since entry.
-  2. H-1 TARGET WAKTU -- hari bursa ke-9, peringatan awal sebelum target hari ke-10 (Fase AL) --
+  0. PUNCAK BARU -- price sets a new high since entry that's >=5% above the last-notified peak
+     (Fase AU). Positive counterpart to the trailing stop below: tells the user the "safe level"
+     just moved up, without them having to ask.
+  1. TRAILING STOP -- price pulls back >= 2% from the CURRENT peak. Re-triggerable per peak
+     (Fase AU) -- previously fired ONCE EVER per position; now resets whenever a new higher peak
+     is set, so it can catch a fresh reversal even after an earlier pullback already alerted from
+     a lower peak. Mirrors how a real trailing stop trails upward with price.
+  1.5 H-1 TARGET WAKTU -- hari bursa ke-9, peringatan awal sebelum target hari ke-10 (Fase AL) --
      supaya ada waktu bersiap, bukan mendadak di hari-H.
-  3. TARGET WAKTU  -- when the position reaches 10 trading days, the exit rule that won every
+  2. TARGET WAKTU  -- when the position reaches 10 trading days, the exit rule that won every
      backtest in Fase AB/AD/AE (fixed 10-day hold beat every overbought-indicator variant).
 
-Each fires at most once per position (flags stored back into open_positions.json).
+Alerts 0 and 1 can each fire multiple times over a position's life (once per new peak). Alerts
+1.5 and 2 still fire at most once (flags stored back into open_positions.json).
 
 Uses 15-MINUTE bars, not daily closes. Live-verified on the 21-23 Jul 2026 spike: checking every
 15 minutes with a 2% threshold would have alerted at 23 Jul 13:30 (peak 196, price 192, +35.8% on
@@ -45,6 +52,8 @@ from detect_signal import send_telegram_alert  # noqa: E402
 PULLBACK_THRESHOLD = 0.02  # 2% -- tighter than daily ATR (~5.8-6.0%), chosen deliberately by the
 # user after seeing this WILL fire on ordinary intraday noise sometimes, in exchange for catching
 # genuine reversals close to real-time instead of lagging by up to 1.5h.
+NEW_HIGH_THRESHOLD = 0.05  # 5% -- Fase AU: new peak counts as a "milestone" worth a PUNCAK BARU
+# alert once it's this much above the last-notified peak (or entry price, before the first one).
 TARGET_HOLD_DAYS = 10  # trading days -- the exit that won in Fase AB/AD/AE
 WARN_HOLD_DAYS = TARGET_HOLD_DAYS - 1  # H-1 (Fase AL): peringatan sehari sebelum target
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
@@ -119,8 +128,31 @@ def check_position(position: dict) -> None:
         f"hari bursa ke-{trading_days} | P&L {unrealized_pct:+.1%}"
     )
 
-    # --- Alert 1: trailing stop ---
-    if pullback >= PULLBACK_THRESHOLD and position.get("alerted_pullback_pct") is None:
+    # --- Alert 0: puncak baru (milestone +5% dari puncak terakhir yang sudah diberi tahu) ---
+    milestone_base = position.get("milestone_peak") or entry_price
+    if peak >= milestone_base * (1 + NEW_HIGH_THRESHOLD):
+        gain_from_last = (peak - milestone_base) / milestone_base
+        new_stop_level = peak * (1 - PULLBACK_THRESHOLD)
+        send_telegram_alert(
+            f"\U0001F389 <b>PUNCAK BARU: {ticker}</b>\n\n"
+            f"Harga bikin rekor tertinggi baru sejak entry: <b>Rp{peak:.0f}</b> "
+            f"({peak_ts.strftime('%d %b %H:%M')}), naik <b>{gain_from_last:+.1%}</b> dari puncak "
+            f"sebelumnya (Rp{milestone_base:.0f}).\n\n"
+            f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
+            f"<b>P&amp;L saat ini</b>: {unrealized_pct:+.1%}\n\n"
+            f"Level trailing stop ikut naik ke sekitar <b>Rp{new_stop_level:.0f}</b> "
+            f"({PULLBACK_THRESHOLD:.0%} di bawah puncak baru ini). Alert saja -- keputusan tetap "
+            f"di kamu."
+        )
+        position["milestone_peak"] = peak
+        print(f"  -> ALERT PUNCAK BARU terkirim (Rp{peak:.0f}, {gain_from_last:+.1%} dari puncak sebelumnya).")
+
+    # --- Alert 1: trailing stop -- reset tiap kali ada puncak baru yang lebih tinggi dari puncak
+    # saat alert TERAKHIR terkirim (bukan sekali seumur posisi seperti versi lama), supaya kalau
+    # harga pulih ke rekor baru lalu berbalik lagi, tetap dapat peringatan -- persis cara kerja
+    # trailing stop beneran yang ikut naik seiring harga.
+    alerted_at_peak = position.get("alerted_pullback_at_peak") or 0
+    if pullback >= PULLBACK_THRESHOLD and peak > alerted_at_peak:
         send_telegram_alert(
             f"\U0001F534 <b>TRAILING STOP: {ticker}</b>\n\n"
             f"Harga mundur <b>{pullback:.1%}</b> dari puncak sejak entry.\n\n"
@@ -131,7 +163,8 @@ def check_position(position: dict) -> None:
             f"Alert saja -- tidak ada order otomatis. Pasang trailing stop sendiri di StockBit."
         )
         position["alerted_pullback_pct"] = pullback
-        print(f"  -> ALERT TRAILING STOP terkirim ({pullback:.1%}).")
+        position["alerted_pullback_at_peak"] = peak
+        print(f"  -> ALERT TRAILING STOP terkirim ({pullback:.1%}, puncak Rp{peak:.0f}).")
 
     # --- Alert 1.5: H-1 warning (day 9), before the day-10 target below ---
     if WARN_HOLD_DAYS <= trading_days < TARGET_HOLD_DAYS and position.get("alerted_day9") is None:

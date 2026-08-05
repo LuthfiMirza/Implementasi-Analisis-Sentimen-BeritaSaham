@@ -2532,3 +2532,44 @@ jadi diaktifkan live.
 - `php artisan test`: 484 passed (tidak ada perubahan PHP).
 
 ### Status: SELESAI.
+
+## Fase AU — Trailing stop reset per puncak baru + alert "Puncak Baru" (naik >=5%)
+
+**Konteks:** User sadar dari `/status` bahwa BUMI/DEWA sudah bikin puncak baru (181/486) lebih
+tinggi dari puncak saat alert trailing-stop pertama kali (173/482), tapi karena alert lama
+"sekali seumur posisi", tidak akan pernah bunyi lagi walau mundur lebih dalam dari puncak baru
+itu. Minta 2 hal: (1) trailing-stop reset tiap ada puncak baru (bukan sekali selamanya), (2)
+alert baru saat harga bikin puncak >=5% lebih tinggi dari puncak terakhir yang diberi tahu.
+
+### AU-1: Trailing stop reset per puncak
+Field lama `alerted_pullback_pct` (boolean-like, `None`=belum pernah) diganti mekanismenya jadi
+berbasis level puncak: field baru `alerted_pullback_at_peak` menyimpan PUNCAK saat alert
+terakhir terkirim. Kondisi baru: `pullback >= PULLBACK_THRESHOLD and peak > alerted_at_peak`.
+Ini otomatis "reset" begitu ada puncak baru yang lebih tinggi dari alert sebelumnya -- sama
+persis cara kerja trailing stop asli (level naik seiring harga, bukan dipatok mati di titik
+pertama).
+
+### AU-2: Alert "Puncak Baru" (milestone +5%)
+`NEW_HIGH_THRESHOLD = 0.05`. Field baru `milestone_peak` menyimpan puncak terakhir yang sudah
+diumumkan (baseline awal = entry_price kalau belum pernah). Kondisi: `peak >= milestone_base *
+1.05`. Pasangan positif dari trailing-stop -- kasih tahu user kapan "level aman" baru saja naik,
+tanpa perlu tanya manual.
+
+### Verifikasi
+- Real run terhadap posisi BUMI/DEWA asli: ALERT PUNCAK BARU terkirim (BUMI Rp181 +13,8% dari
+  baseline entry, DEWA Rp486 +10,5%) -- wajar karena ini pertama kali fitur ini aktif, langsung
+  "menangkap" puncak historis yang belum pernah diumumkan. `open_positions.json` terverifikasi
+  terisi `milestone_peak` dengan benar.
+- Simulasi 3-langkah terkontrol (monkey-patch `compute_snapshot`, bukan data palsu -- alur kode
+  ASLI `check_position()` yang dites, cuma input snapshot-nya dikontrol) membuktikan reset
+  bekerja benar:
+  1. Puncak 173, mundur 3% (belum pernah alert) -> PUNCAK BARU + TRAILING STOP dua-duanya
+     terkirim, `alerted_pullback_at_peak` tersimpan 173.
+  2. Puncak baru 183 (+5,8% dari 173), tapi cuma mundur 0,5% -> cuma PUNCAK BARU terkirim,
+     trailing stop TIDAK ikut bunyi (pullback di bawah ambang, benar).
+  3. Masih puncak 183 (tidak ada puncak baru lagi), mundur 2,5% -> TRAILING STOP terkirim LAGI
+     (karena `peak(183) > alerted_at_peak(173)` dari langkah 1) -- walau sudah pernah alert di
+     puncak sebelumnya. Ini bukti utama reset-nya jalan.
+- `php artisan test`: 484 passed (murni Python, tidak ada perubahan PHP).
+
+### Status: SELESAI.
