@@ -2464,3 +2464,23 @@ sudah disetujui user, bukan cuma di satu percobaan.
 - `php artisan test`: 484 passed (murni perubahan data, tidak ada perubahan kode).
 
 ### Status: SELESAI.
+
+## Fase AS — Perapikan tampilan `/history` di Telegram
+
+**Konteks:** User tunjukkan hasil `/history` (10 baris riwayat trade) minta saran biar enak dibaca.
+
+### Perubahan
+- `format_history()`: tambah baris ringkasan di atas daftar (jumlah menang/rugi + total P&L 10
+  trade yang ditampilkan) -- biar tidak perlu hitung manual satu-satu.
+- Tanggal ISO (`2026-07-08`) diringkas jadi `08 Jul` (fungsi baru `_short_date()`) -- lebih
+  ringkas dibaca di layar HP.
+- Tiap entry diberi baris kosong eksplisit setelahnya (bukan cuma newline tunggal) supaya jarak
+  antar-entry konsisten kelihatan lega, tidak numpuk.
+
+### Verifikasi
+- Real run pakai data cache asli: ringkasan tampil benar ("8 menang - 2 rugi - Total P&L
+  +Rp7.175.663"), tanggal semua entry berhasil diringkas format "DD Mon".
+- Pesan beneran dikirim ke Telegram user, dikonfirmasi terkirim.
+- `php artisan test`: 484 passed (murni Python, tidak ada perubahan PHP).
+
+### Status: SELESAI.

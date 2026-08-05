@@ -190,13 +190,34 @@ RESULT_LABELS = {
 }
 
 
+def _short_date(iso_date: str | None) -> str:
+    """'2026-07-08' -> '08 Jul' -- lebih ringkas dibaca di layar HP daripada tanggal ISO penuh."""
+    if not iso_date:
+        return "?"
+    try:
+        from datetime import datetime
+        return datetime.strptime(iso_date, "%Y-%m-%d").strftime("%d %b")
+    except ValueError:
+        return iso_date
+
+
 def format_history(trades: list[dict]) -> str:
     if not trades:
         return (
             "Belum ada riwayat posisi yang ditutup, atau cache-nya belum sempat di-refresh "
             "(butuh MySQL nyala minimal sekali sejak posisi terakhir ditutup)."
         )
-    lines = ["<b>Riwayat 10 posisi terakhir yang ditutup:</b>\n"]
+
+    win_count = sum(1 for t in trades if (t.get("pnl_total") or 0) > 0)
+    loss_count = len(trades) - win_count
+    total_pnl = sum(t.get("pnl_total") or 0 for t in trades)
+    total_sign = "-" if total_pnl < 0 else "+"
+    total_txt = f"{total_sign}Rp{abs(total_pnl):,.0f}".replace(",", ".")
+
+    lines = [
+        f"<b>Riwayat {len(trades)} posisi terakhir yang ditutup:</b>",
+        f"\U0001F7E2 {win_count} menang • \U0001F534 {loss_count} rugi • Total P&amp;L {total_txt}\n",
+    ]
     for t in trades:
         entry = float(t["entry_price"])
         exit_ = float(t["exit_price"]) if t.get("exit_price") is not None else None
@@ -211,12 +232,12 @@ def format_history(trades: list[dict]) -> str:
             pnl_txt = f"{pnl_sign}Rp{abs(pnl_total):,.0f} ({pnl_pct:+.1f}%)".replace(",", ".")
         else:
             pnl_txt = "-"
-        holding_txt = f", {t['holding_days']} hari" if t.get("holding_days") is not None else ""
+        holding_txt = f", {t['holding_days']}h" if t.get("holding_days") is not None else ""
+        date_range = f"{_short_date(t.get('entry_date'))} → {_short_date(t.get('exit_date'))}{holding_txt}"
 
         lines.append(
-            f"{sign} <b>{t['ticker']}</b>: Rp{entry:.0f} → {exit_txt} "
-            f"({t.get('entry_date', '?')} s/d {t.get('exit_date', '?')}{holding_txt})\n"
-            f"   P&amp;L {pnl_txt} -- {result}"
+            f"{sign} <b>{t['ticker']}</b>: Rp{entry:.0f} → {exit_txt} ({date_range})\n"
+            f"   P&amp;L {pnl_txt} -- {result}\n"
         )
     return "\n".join(lines)
 
