@@ -102,30 +102,42 @@ def default_keyboard() -> dict:
 
 
 def send_telegram_alert(text: str, reply_markup: dict | None = None, chat_id: str | None = None) -> None:
-    """chat_id opsional -- kalau tidak diisi, pakai nomor UTAMA (perilaku lama, dipakai untuk
-    alert otomatis: sinyal baru, trailing stop, dst). telegram_commands.py mengisi chat_id
-    eksplisit supaya balasan perintah (/status dst) balik ke nomor yang MENGIRIM, bukan selalu
-    ke nomor utama -- penting begitu ada nomor kedua (TELEGRAM_CHAT_ID_2)."""
-    token, default_chat_id = load_telegram_credentials()
-    target_chat_id = chat_id or default_chat_id
-    if not token or not target_chat_id:
-        print("Telegram belum dikonfigurasi (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID kosong) -- alert dilewati.")
+    """chat_id opsional, dan artinya beda tergantung dipakai dari mana (Fase AV):
+    - Diisi EKSPLISIT (dipakai telegram_commands.py untuk balas perintah /status dst) -> kirim
+      HANYA ke chat_id itu. Balasan perintah harus balik ke akun yang MENGIRIM, bukan broadcast
+      ke semua akun -- kalau akun A ketik /status, akun B tidak perlu ikut dapat balasannya.
+    - DIKOSONGKAN (dipakai semua alert OTOMATIS: sinyal baru, trailing stop, H-1, target waktu,
+      puncak baru) -> broadcast ke SEMUA akun yang diizinkan (load_allowed_chat_ids() -- primary
+      + TELEGRAM_CHAT_ID_2 kalau ada). Sebelumnya cuma ke primary, jadi alert otomatis tidak
+      pernah nyampe ke akun kedua walau user sehari-hari pakai akun itu."""
+    token, _ = load_telegram_credentials()
+    if not token:
+        print("Telegram belum dikonfigurasi (TELEGRAM_BOT_TOKEN kosong) -- alert dilewati.")
         return
 
-    payload = {"chat_id": target_chat_id, "text": text, "parse_mode": "HTML"}
-    if reply_markup is not None:
-        payload["reply_markup"] = json.dumps(reply_markup)
+    if chat_id is not None:
+        targets = [chat_id]
+    else:
+        targets = sorted(load_allowed_chat_ids())
+        if not targets:
+            print("Telegram belum dikonfigurasi (TELEGRAM_CHAT_ID kosong) -- alert dilewati.")
+            return
 
-    try:
-        resp = requests.post(
-            f"https://api.telegram.org/bot{token}/sendMessage",
-            json=payload,
-            timeout=10,
-        )
-        if not resp.ok:
-            print(f"Gagal kirim alert Telegram: HTTP {resp.status_code} {resp.text}")
-    except Exception as e:  # network failure must never break signal detection itself
-        print(f"Gagal kirim alert Telegram: {e}")
+    for target in targets:
+        payload = {"chat_id": target, "text": text, "parse_mode": "HTML"}
+        if reply_markup is not None:
+            payload["reply_markup"] = json.dumps(reply_markup)
+
+        try:
+            resp = requests.post(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                json=payload,
+                timeout=10,
+            )
+            if not resp.ok:
+                print(f"Gagal kirim alert Telegram ke {target}: HTTP {resp.status_code} {resp.text}")
+        except Exception as e:  # network failure must never break signal detection itself
+            print(f"Gagal kirim alert Telegram ke {target}: {e}")
 
 
 def describe_rsi(rsi14: float | None) -> str:

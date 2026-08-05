@@ -2573,3 +2573,30 @@ tanpa perlu tanya manual.
 - `php artisan test`: 484 passed (murni Python, tidak ada perubahan PHP).
 
 ### Status: SELESAI.
+
+## Fase AV — Alert otomatis broadcast ke kedua akun Telegram
+
+**Konteks:** Fase AU (Puncak Baru) dites kirim ke akun utama, tapi user ternyata sudah pindah
+cek dari akun kedua (Luthfi, 8870402966, ditambah Fase AQ) -- pesannya tidak pernah kelihatan.
+Investigasi (`getUpdates`): `/status` terakhir user memang datang dari 8870402966, sementara
+`send_telegram_alert()` tanpa `chat_id` eksplisit (dipakai SEMUA alert otomatis) selalu kirim ke
+nomor utama saja (`load_telegram_credentials()`). Bukan bug kirim gagal -- salah target chat_id
+sejak awal desain nomor kedua (Fase AQ cuma benerin ARAH BALASAN perintah, bukan alert otomatis).
+
+### Perubahan
+`send_telegram_alert()` di `detect_signal.py`: kalau `chat_id` diisi eksplisit (dipakai
+`telegram_commands.py` buat balas /status dst) -> perilaku SAMA seperti sebelumnya, kirim cuma
+ke situ. Kalau `chat_id` DIKOSONGKAN (dipakai semua alert otomatis: sinyal baru, trailing stop,
+H-1, target waktu, puncak baru) -> sekarang **broadcast ke SEMUA `load_allowed_chat_ids()`**
+(loop kirim satu-satu, gagal di satu akun tidak menggagalkan akun lain).
+
+### Verifikasi
+- Real test: `send_telegram_alert()` tanpa chat_id dipanggil, dicek eksplisit ke API Telegram
+  langsung untuk KEDUA chat_id -- `ok:true` + `message_id` valid untuk 7162558029 (101) dan
+  8870402966 (102).
+- `php artisan research:check-trailing-stop-alert` dan `research:check-telegram-commands`
+  dijalankan real setelah perubahan -- tidak error.
+- `php artisan test`: 484 passed (murni Python, tidak ada perubahan PHP).
+
+### Status: SELESAI. Semua alert otomatis (Puncak Baru, trailing stop, H-1, target waktu, sinyal
+baru drawdown-bounce) sekarang nyampe ke dua-duanya akun, bukan cuma akun utama.
