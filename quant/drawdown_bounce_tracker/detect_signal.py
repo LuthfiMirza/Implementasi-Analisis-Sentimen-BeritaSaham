@@ -33,9 +33,9 @@ ENV_PATH = Path(__file__).parent.parent.parent / ".env"
 
 
 def load_telegram_credentials() -> tuple[str | None, str | None]:
-    """Read TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID. When run via `php artisan ...`, Laravel's
-    Dotenv already exports these into the OS environment (putenv), so os.environ has them.
-    When run directly (`python3 detect_signal.py`, e.g. for manual testing), fall back to
+    """Read TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID (nomor UTAMA). When run via `php artisan ...`,
+    Laravel's Dotenv already exports these into the OS environment (putenv), so os.environ has
+    them. When run directly (`python3 detect_signal.py`, e.g. for manual testing), fall back to
     parsing .env ourselves so the script still works standalone."""
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -50,6 +50,28 @@ def load_telegram_credentials() -> tuple[str | None, str | None]:
                 chat_id = line.split("=", 1)[1].strip()
 
     return token, chat_id
+
+
+def load_allowed_chat_ids() -> set[str]:
+    """Kumpulan chat_id yang boleh mengirim perintah ke bot -- nomor utama (TELEGRAM_CHAT_ID)
+    plus nomor kedua opsional (TELEGRAM_CHAT_ID_2), supaya user bisa kelola posisi dari dua
+    akun Telegram. Tidak memengaruhi ke mana alert OTOMATIS (sinyal/trailing-stop) dikirim --
+    itu tetap ke nomor utama lewat send_telegram_alert() tanpa argumen chat_id."""
+    ids: set[str] = set()
+    primary_token, primary_chat_id = load_telegram_credentials()
+    if primary_chat_id:
+        ids.add(str(primary_chat_id))
+
+    second = os.environ.get("TELEGRAM_CHAT_ID_2")
+    if not second and ENV_PATH.is_file():
+        for line in ENV_PATH.read_text(encoding="utf-8").splitlines():
+            if line.startswith("TELEGRAM_CHAT_ID_2="):
+                second = line.split("=", 1)[1].strip()
+                break
+    if second:
+        ids.add(str(second))
+
+    return ids
 
 
 # Telegram sends whatever text is on the button back as the message -- these icon labels are
@@ -79,13 +101,18 @@ def default_keyboard() -> dict:
     }
 
 
-def send_telegram_alert(text: str, reply_markup: dict | None = None) -> None:
-    token, chat_id = load_telegram_credentials()
-    if not token or not chat_id:
+def send_telegram_alert(text: str, reply_markup: dict | None = None, chat_id: str | None = None) -> None:
+    """chat_id opsional -- kalau tidak diisi, pakai nomor UTAMA (perilaku lama, dipakai untuk
+    alert otomatis: sinyal baru, trailing stop, dst). telegram_commands.py mengisi chat_id
+    eksplisit supaya balasan perintah (/status dst) balik ke nomor yang MENGIRIM, bukan selalu
+    ke nomor utama -- penting begitu ada nomor kedua (TELEGRAM_CHAT_ID_2)."""
+    token, default_chat_id = load_telegram_credentials()
+    target_chat_id = chat_id or default_chat_id
+    if not token or not target_chat_id:
         print("Telegram belum dikonfigurasi (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID kosong) -- alert dilewati.")
         return
 
-    payload = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
+    payload = {"chat_id": target_chat_id, "text": text, "parse_mode": "HTML"}
     if reply_markup is not None:
         payload["reply_markup"] = json.dumps(reply_markup)
 

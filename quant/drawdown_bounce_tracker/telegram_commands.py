@@ -13,8 +13,10 @@ Commands (send to @IDX_alert_keysentimen_bot -- or tap the keyboard buttons unde
   /help                            -- daftar perintah ini, dikirim balik ke chat
 
 Uses long-polling (getUpdates with an offset), not a webhook -- no public HTTPS endpoint needed,
-works fine from a local dev machine. Only processes messages from TELEGRAM_CHAT_ID (the user's own
-chat), ignores everything else, so a leaked bot token can't be used to inject fake positions.
+works fine from a local dev machine. Only processes messages from an ALLOWED chat -- TELEGRAM_CHAT_ID
+(primary) plus the optional TELEGRAM_CHAT_ID_2 (Fase AQ, a second Telegram account/number), ignores
+everyone else, so a leaked bot token can't be used to inject fake positions. Replies always go back
+to whichever allowed chat actually sent the command, not always the primary one.
 
 /history reads closed_trades_cache.json, a snapshot written by CheckTelegramCommandsCommand.php
 right before this script runs (see refreshClosedTradesCache() there). This script deliberately
@@ -40,6 +42,7 @@ from detect_signal import (  # noqa: E402
     BUTTON_HISTORY,
     BUTTON_STATUS,
     default_keyboard,
+    load_allowed_chat_ids,
     load_telegram_credentials,
     send_telegram_alert,
 )
@@ -256,8 +259,9 @@ def format_price(ticker: str, snapshot: dict | None) -> str:
 
 
 def main() -> None:
-    token, chat_id = load_telegram_credentials()
-    if not token or not chat_id:
+    token, _ = load_telegram_credentials()
+    allowed_ids = load_allowed_chat_ids()
+    if not token or not allowed_ids:
         print("Telegram belum dikonfigurasi -- tidak bisa cek perintah.")
         return
 
@@ -283,37 +287,41 @@ def main() -> None:
         message = update.get("message")
         if not message:
             continue
-        if str(message.get("chat", {}).get("id")) != str(chat_id):
-            continue  # ignore anyone except the configured owner chat
+        sender_chat_id = str(message.get("chat", {}).get("id"))
+        if sender_chat_id not in allowed_ids:
+            continue  # ignore anyone except the allowed chat(s) -- primary + TELEGRAM_CHAT_ID_2
 
         text = message.get("text", "")
         text = BUTTON_LABELS.get(text.strip(), text)  # translate a tapped icon button, if any
 
         if text.strip() == "/status":
-            send_telegram_alert(format_status(positions), reply_markup=default_keyboard())
+            send_telegram_alert(format_status(positions), reply_markup=default_keyboard(), chat_id=sender_chat_id)
             processed += 1
             continue
 
         if text.strip() == "/history":
-            send_telegram_alert(format_history(load_closed_trades()), reply_markup=default_keyboard())
+            send_telegram_alert(format_history(load_closed_trades()), reply_markup=default_keyboard(), chat_id=sender_chat_id)
             processed += 1
             continue
 
         if text.strip() == "/help":
-            send_telegram_alert(format_help(), reply_markup=default_keyboard())
+            send_telegram_alert(format_help(), reply_markup=default_keyboard(), chat_id=sender_chat_id)
             processed += 1
             continue
 
         price_match = PRICE_PATTERN.match(text.strip())
         if price_match:
             ticker = price_match.group(1).upper()
-            send_telegram_alert(format_price(ticker, fetch_price_snapshot(ticker)), reply_markup=default_keyboard())
+            send_telegram_alert(
+                format_price(ticker, fetch_price_snapshot(ticker)),
+                reply_markup=default_keyboard(), chat_id=sender_chat_id,
+            )
             processed += 1
             continue
 
         if text.startswith("/open") or text.startswith("/close"):
             positions, reply = handle_command(text, positions)
-            send_telegram_alert(reply, reply_markup=default_keyboard())
+            send_telegram_alert(reply, reply_markup=default_keyboard(), chat_id=sender_chat_id)
             processed += 1
             print(f"Diproses: {text.strip()} -> {reply}")
 

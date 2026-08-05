@@ -2375,3 +2375,41 @@ diperdagangkan). `format_price()`: `%d %b %Y` -> `%d %b %H:%M`.
 - `php artisan test`: 484 passed (murni Python, tidak ada perubahan PHP).
 
 ### Status: SELESAI.
+
+## Fase AQ — Bot Telegram bisa dipakai dari 2 akun (nomor kedua)
+
+**Konteks:** User tanya kenapa bot tidak respons dari nomor Telegram lain. Sengaja begitu --
+proteksi keamanan (`chat.id == TELEGRAM_CHAT_ID`), bukan bug. User minta ditambah nomor kedua.
+
+### Perubahan kode
+- `detect_signal.py`: fungsi baru `load_allowed_chat_ids()` -- kumpulan chat_id yang diizinkan
+  (`TELEGRAM_CHAT_ID` utama + `TELEGRAM_CHAT_ID_2` opsional). `send_telegram_alert()` sekarang
+  terima parameter `chat_id` opsional (default ke nomor utama -- tidak mengubah perilaku alert
+  otomatis/sinyal/trailing-stop yang lama).
+- `telegram_commands.py`: cek otorisasi diganti dari `chat.id == chat_id tunggal` jadi
+  `chat.id in allowed_ids`. **Perbaikan penting yang ikut ditemukan**: sebelumnya SEMUA balasan
+  (`/status`, `/history`, dst) selalu dikirim ke nomor UTAMA lewat `load_telegram_credentials()`
+  di dalam `send_telegram_alert()` -- kalau nomor kedua kirim perintah, balasannya akan salah
+  alamat (ke nomor utama, bukan ke pengirim). Sekarang tiap balasan eksplisit dikirim ke
+  `sender_chat_id` (chat_id pengirim asli), bukan selalu default.
+- `.env.example`: tambah `TELEGRAM_CHAT_ID_2=` (placeholder kosong).
+
+### Aktivasi nyata
+- User kirim `/start` dari akun Telegram kedua (nama "Luthfi", beda dari akun utama).
+- `chat_id` diambil dari `getUpdates` API langsung (bukan diminta manual dari user): **8870402966**
+  (akun utama tetap 7162558029).
+- `.env` real diisi `TELEGRAM_CHAT_ID_2=8870402966`, `php artisan config:clear`.
+
+### Verifikasi
+- `load_allowed_chat_ids()` dicek langsung: sebelum diisi -> `{'7162558029'}`, dengan
+  `TELEGRAM_CHAT_ID_2` contoh -> `{'999999999', '7162558029'}`, setelah `.env` real diisi ->
+  `{'7162558029', '8870402966'}`.
+- Semua modul (`detect_signal`, `telegram_commands`, `check_trailing_stop`) tetap ter-import
+  tanpa error -- signature `send_telegram_alert` backward-compatible (`chat_id=None` default).
+- `php artisan research:check-telegram-commands` dijalankan real, tidak error.
+- Pesan konfirmasi beneran dikirim ke chat_id akun kedua (8870402966) via `send_telegram_alert(
+  ..., chat_id='8870402966')` -- membuktikan jalur kirim-ke-chat_id-tertentu bekerja.
+- `php artisan test`: 484 passed (tidak ada perubahan PHP di luar `.env.example`).
+
+### Status: SELESAI. Kedua akun Telegram sekarang bisa kirim /status, /open, /close, /history,
+/price, /help dan dapat balasan yang benar ke nomor masing-masing.
