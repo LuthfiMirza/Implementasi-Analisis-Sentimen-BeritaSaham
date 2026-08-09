@@ -113,42 +113,58 @@
                 @endphp
                 <div class="border border-slate-800 rounded-xl p-4 bg-slate-900/50 hover:border-slate-600 transition border-l-4
                     {{ ($displaySentiment === 'positive') ? 'border-l-green-500' : (($displaySentiment === 'negative') ? 'border-l-rose-500' : (($displaySentiment === 'unavailable') ? 'border-l-amber-400' : 'border-l-slate-600')) }}">
-                        <div class="flex items-start justify-between gap-3">
-                            <div>
-                                <p class="text-xs uppercase text-slate-400">{{ $article->stock?->code ?? 'GEN' }} • {{ $article->source?->name ?? 'Sumber' }}</p>
-                                <h3 class="font-semibold leading-tight mt-1">{{ $article->title }}</h3>
-                                <p class="text-[12px] text-slate-500 mt-1">{{ $article->published_at?->format('d M Y H:i') }}</p>
+                    <div class="flex items-start gap-3">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-xs uppercase text-slate-400">{{ $article->stock?->code ?? 'GEN' }} • {{ $article->source?->name ?? 'Sumber' }}</p>
+                                    <h3 class="font-semibold leading-tight mt-1">{{ $article->title }}</h3>
+                                </div>
+                                <div class="flex flex-col items-end gap-1 shrink-0">
+                                    <x-sentiment-badge :label="$displaySentiment" />
+                                </div>
                             </div>
-                            <div class="flex flex-col items-end gap-1">
-                                <x-sentiment-badge :label="$displaySentiment" />
-                                <span class="px-2 py-1 rounded-full text-[11px] border border-slate-700 bg-slate-800/50 text-slate-100">
-                                    {{ $article->quality_band ? ucfirst($article->quality_band) : 'Quality?' }}
-                                </span>
-                            </div>
+                            <p class="text-sm text-slate-300 mt-2 leading-relaxed">{{ \Illuminate\Support\Str::limit($article->summary ?? $article->content_snippet ?? 'Ringkasan belum tersedia untuk artikel ini.', 220) }}</p>
+                            <p class="text-[12px] text-slate-500 mt-2">{{ $article->source?->name ?? 'Sumber' }} • {{ $article->published_at?->format('d M Y, H:i') }}</p>
                         </div>
-                    @if($article->ml_sentiment_label && $article->rule_sentiment_label)
-                        <div class="flex flex-wrap gap-2 mt-2 text-[10px]">
-                            <span class="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-300">
-                                ML: {{ ucfirst($article->ml_sentiment_label) }} ({{ round(($article->ml_confidence ?? 0) * 100) }}%)
-                            </span>
-                            <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
-                                Rule: {{ ucfirst($article->rule_sentiment_label) }}
-                            </span>
-                            @if($article->ml_rule_agree === false)
-                                <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                                    ⚡ Berbeda
-                                </span>
+                        <div class="shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-slate-800 border border-slate-700 flex items-center justify-center">
+                            @if($article->image_url)
+                                <img src="{{ $article->image_url }}" alt="" loading="lazy"
+                                     class="w-full h-full object-cover"
+                                     onerror="this.closest('.shrink-0').innerHTML='<span class=&quot;text-slate-600&quot;>📰</span>'">
+                            @else
+                                <span class="text-2xl text-slate-600">📰</span>
                             @endif
                         </div>
-                    @endif
-                    <p class="text-sm text-slate-300 mt-2">{{ \Illuminate\Support\Str::limit($article->summary ?? $article->content_snippet, 160) }}</p>
-                    <div class="flex flex-wrap items-center justify-between mt-3 text-[12px] text-slate-400 gap-2">
-                        <span>Skor: {{ ($article->sentiment_method ?? null) === 'python_unavailable' ? 'unavailable' : ($article->sentiment_score ?? '-') }} | Conf: {{ ($article->sentiment_method ?? null) === 'python_unavailable' ? '-' : ($article->sentiment_confidence ?? '-') }}</span>
-                        <span class="px-2 py-1 rounded-full border border-slate-700 bg-slate-800/50">{{ $article->sentiment_method ?? 'python_unavailable' }}</span>
-                        <span class="px-2 py-1 rounded-full border border-emerald-700/60 bg-emerald-900/30 text-emerald-100">Relevansi: {{ $article->relevance_band ?? '-' }}</span>
-                        <span class="px-2 py-1 rounded-full border border-indigo-700/60 bg-indigo-900/30 text-indigo-100">Q: {{ $article->final_quality_score ?? '-' }}</span>
-                        <a href="{{ $article->source_url }}" target="_blank" class="text-sky-400 hover:underline">Buka artikel</a>
                     </div>
+                    <details class="mt-3 group">
+                        <summary class="text-[12px] text-slate-500 cursor-pointer select-none hover:text-slate-300 list-none flex items-center gap-1">
+                            <span class="group-open:rotate-90 transition-transform">▸</span> Detail teknis
+                            <span class="ml-auto ...">
+                                <a href="{{ $article->source_url }}" target="_blank" class="text-sky-400 hover:underline">Buka artikel</a>
+                            </span>
+                        </summary>
+                        <div class="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-slate-400">
+                            @if($article->ml_sentiment_label && $article->rule_sentiment_label)
+                                <span class="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                                    ML: {{ ucfirst($article->ml_sentiment_label) }} ({{ round(($article->ml_confidence ?? 0) * 100) }}%)
+                                </span>
+                                <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                                    Rule: {{ ucfirst($article->rule_sentiment_label) }}
+                                </span>
+                                @if($article->ml_rule_agree === false)
+                                    <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                                        ⚡ Berbeda
+                                    </span>
+                                @endif
+                            @endif
+                            <span class="px-2 py-1 rounded-full border border-slate-700 bg-slate-800/50">{{ $article->quality_band ? ucfirst($article->quality_band) : 'Quality?' }}</span>
+                            <span>Skor: {{ ($article->sentiment_method ?? null) === 'python_unavailable' ? 'unavailable' : ($article->sentiment_score ?? '-') }} | Conf: {{ ($article->sentiment_method ?? null) === 'python_unavailable' ? '-' : ($article->sentiment_confidence ?? '-') }}</span>
+                            <span class="px-2 py-1 rounded-full border border-slate-700 bg-slate-800/50">{{ $article->sentiment_method ?? 'python_unavailable' }}</span>
+                            <span class="px-2 py-1 rounded-full border border-emerald-700/60 bg-emerald-900/30 text-emerald-100">Relevansi: {{ $article->relevance_band ?? '-' }}</span>
+                            <span class="px-2 py-1 rounded-full border border-indigo-700/60 bg-indigo-900/30 text-indigo-100">Q: {{ $article->final_quality_score ?? '-' }}</span>
+                        </div>
+                    </details>
                 </div>
             @empty
                 <x-panel padding="p-6" class="col-span-2">

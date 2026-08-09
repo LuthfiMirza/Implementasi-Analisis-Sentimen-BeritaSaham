@@ -2968,3 +2968,48 @@ StockBit. Disepakati: cek dulu apakah sumber ASLI (bukan agregatornya) punya RSS
 - `php artisan test --filter="News"`: 75 passed, tidak ada regresi.
 
 ### Status: SELESAI.
+
+## Fase BE — Redesain kartu berita: ringkasan + thumbnail gambar (mirip StockBit)
+
+### Konteks
+User bandingkan kartu berita proyek ini vs StockBit (screenshot): kartu proyek terlalu padat badge
+teknis (ML/Rule/Skor/Conf/Relevansi/Q-score), tidak ada gambar thumbnail, ringkasan tidak
+menonjol -- padahal StockBit nampilin judul + 2-3 baris ringkasan + sumber/tanggal + gambar.
+
+### Temuan sebelum implementasi
+- Kolom `summary` SUDAH ADA isinya di DB, cuma dirender kecil/terkubur di antara badge -- bukan
+  data yang hilang, cuma masalah hierarki visual.
+- Kolom gambar TIDAK ADA sama sekali di skema `news_articles`.
+- 3 dari ~10 fetcher (newsapi, gnews, currents) TERNYATA SUDAH menyimpan URL gambar di kolom
+  `raw_payload` (field `urlToImage`/`image`), cuma tidak pernah diekstrak ke kolom sendiri --
+  data sebenarnya sudah ada, tinggal diambil, bukan perlu fetch ulang.
+- Provider lain (business_site_search, rss_local, emitentrust, google_news_rss, ojk) TIDAK
+  punya data gambar dari sumbernya sama sekali -- dicek langsung (grep tag media:content/
+  enclosure di RSS mentah, cek struktur JSON response) -- bukan bug, keterbatasan sumber.
+
+### Perubahan kode
+- Migration baru: `news_articles.image_url` (string 1000, nullable).
+- `NewsApiFetcher.php`, `GNewsFetcher.php` (2 lokasi: fetchForStock & fetchHistorical),
+  `CurrentsFetcher.php`: tambah `'image_url' => $item['urlToImage'|'image'] ?? null` di array
+  yang dikembalikan.
+- `NewsAggregationService::persistRawArticles()`: tambah mapping `image_url` ke
+  `updateOrCreate()` (sebelumnya field ini sudah ada di array fetcher tapi tidak pernah ditulis
+  ke DB -- root cause kenapa gambar tidak pernah muncul walau datanya sudah difetch).
+- `NewsArticle.php`: tambah `image_url` ke `$fillable`.
+- `resources/views/news/index.blade.php`: kartu didesain ulang -- gambar/placeholder (ikon 📰)
+  24x24 di kanan, ringkasan dipindah jadi paragraf utama (leading-relaxed, limit 220 char, naik
+  dari 160), sumber+tanggal jadi baris sendiri, badge teknis (ML/Rule/Skor/Conf/Relevansi/Q)
+  dipindah ke `<details>` collapsible "Detail teknis" (defaultnya tertutup, tidak lagi dominan).
+  `onerror` di `<img>` fallback ke ikon placeholder kalau URL gambar broken/hilang.
+- Backfill data lama: script sekali-jalan (tinker) ekstrak `image_url` dari `raw_payload` yang
+  sudah tersimpan untuk artikel newsapi/gnews/currents lama -- 86 artikel ter-backfill tanpa
+  fetch ulang ke API manapun.
+
+### Verifikasi
+- `php artisan test --filter="News"`: 75 passed, tidak ada regresi.
+- Screenshot browser: placeholder ikon tampil rapi untuk artikel tanpa gambar (business_site_
+  search, google_news_rss), layout konsisten di semua sentimen (border warna tetap jalan),
+  "Detail teknis" collapsible berfungsi.
+- Cek DB langsung: artikel ID 41 (provider detik/newsapi) punya `image_url` valid hasil backfill.
+
+### Status: SELESAI.

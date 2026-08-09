@@ -128,6 +128,7 @@ class NewsApiFetcher implements NewsFetcherInterface
                 'slug' => $slug,
                 'source_name' => data_get($item, 'source.name'),
                 'source_url' => $item['url'] ?? null,
+                'image_url' => $item['urlToImage'] ?? null,
                 'published_at' => $item['publishedAt'] ? Carbon::parse($item['publishedAt']) : Carbon::now(),
                 'summary' => $item['description'] ?? null,
                 'content_snippet' => $item['content'] ?? null,

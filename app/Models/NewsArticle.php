@@ -17,6 +17,7 @@ class NewsArticle extends Model
         'title',
         'slug',
         'source_url',
+        'image_url',
         'published_at',
         'summary',
         'content_snippet',

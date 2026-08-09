@@ -354,6 +354,10 @@ class NewsAggregationService
                     'source_weight' => $rawArticle['source_weight'] ?? null,
                     'title' => $storedTitle,
                     'source_url' => $sourceUrl,
+                    // Cuma newsapi/gnews/currents membawa gambar dari sumbernya; fetcher lain (rss_local,
+                    // business_site_search, emitentrust, dll) tidak punya field ini sama sekali -- null itu
+                    // valid, bukan bug, ditangani di UI lewat placeholder (Fase BE).
+                    'image_url' => $rawArticle['image_url'] ?? $existingArticle?->image_url ?? null,
                     // Fetcher gagal mem-parse tanggal asli -> pertahankan published_at lama (jangan reset ke "sekarang"
                     // setiap kali artikel yang sama di-refetch), fallback ke now() hanya untuk artikel baru.
                     'published_at' => $rawArticle['published_at'] ?? $existingArticle?->published_at ?? Carbon::now(),

@@ -74,6 +74,7 @@ class CurrentsFetcher implements NewsFetcherInterface
                     'slug' => Str::slug($title).'-'.Str::random(4),
                     'source_name' => $item['author'] ?? 'Currents',
                     'source_url' => $item['url'] ?? null,
+                    'image_url' => $item['image'] ?? null,
                     'published_at' => isset($item['published']) ? Carbon::parse($item['published']) : Carbon::now(),
                     'summary' => Str::limit(strip_tags($item['description'] ?? ''), 300),
                     'content_snippet' => Str::limit(strip_tags($item['description'] ?? ''), 500),
