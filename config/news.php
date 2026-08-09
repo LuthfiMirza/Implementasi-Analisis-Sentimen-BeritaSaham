@@ -40,8 +40,8 @@ return [
     // but for an unrelated US-listed collision on that ticker symbol, not Bank Central Asia --
     // ingesting that would silently attribute wrong-company news. This is an account/plan
     // limitation, not fixable in code; every request against IDX tickers is guaranteed to fail.
-    'multi_providers' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'gdelt', 'currents'],
-    'source_priority' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'gdelt', 'currents'],
+    'multi_providers' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'gdelt', 'currents', 'emitentrust'],
+    'source_priority' => ['idx_disclosure', 'google_news_rss', 'business_site_search', 'rss_local', 'ojk', 'gnews', 'newsapi', 'gdelt', 'currents', 'emitentrust'],
     // Fase R7a: google_news_rss URLs are unresolvable (confirmed dead end -- Google now serves a
     // client-rendered SPA, no publisher URL in static HTML), so full_text can never be backfilled
     // for its share of articles. Shrinking its per-fetch limit and growing the sources that

@@ -2928,3 +2928,43 @@ dilakukan (retrain adalah keputusan besar, bukan default, sesuai konvensi proyek
 
 ### Status: SELESAI untuk integrasi berita/sentimen/harga. TERBUKA untuk keputusan model
 prediksi V6A/V6B (perlu diskusi user dulu).
+
+## Fase BC — EmitentrustFetcher: sumber berita baru (RSS resmi, bukan scraping StockBit)
+
+### Konteks
+User awalnya minta scraping halaman `/stream` `/news` StockBit (pakai sesi login pribadi) untuk
+narik berita. Ditolak dengan penjelasan: scraping otomatis halaman berlogin kemungkinan besar
+melanggar ToS StockBit (risiko akun di-suspend/banned), dan kontennya sendiri berlisensi dari
+penerbit asli (IDN Financials, Emitentrust) yang ditampilkan di StockBit -- bukan konten asli
+StockBit. Disepakati: cek dulu apakah sumber ASLI (bukan agregatornya) punya RSS/API resmi.
+
+### Riset RSS/API resmi
+- **IDN Financials**: TIDAK ADA RSS publik (dicek homepage, /news, robots.txt, tag
+  `<link rel="alternate" type="application/rss+xml">` di HTML -- nihil). Kemungkinan jual data
+  lewat API berbayar terpisah, tidak diverifikasi lebih lanjut (di luar scope tanpa akun/kontak
+  mereka).
+- **Emitentrust.com**: ADA, WordPress standard feed di `https://emitentrust.com/feed/` -- publik,
+  tidak butuh login/API key, `robots.txt` tidak melarang (cuma disallow /wp-admin/), update per jam,
+  50 item terbaru per fetch, sudah ada kategori/tag per topik (termasuk nama emiten kadang).
+
+### Perubahan kode
+- File baru `app/Services/News/EmitentrustFetcher.php`: implements `NewsFetcherInterface`, pola
+  sama persis dengan `RssLocalFetcher` (parse RSS 2.0 via simplexml, filter relevansi via
+  `StockKeywordMapper::directHits()`), tapi scoped ke SATU feed (emitentrust) bukan daftar banyak
+  feed seperti rss_local.
+- `NewsAggregationService.php`: import `EmitentrustFetcher`, didaftarkan di `$fetchers` dengan key
+  `'emitentrust'`.
+- `config/news.php`: `multi_providers` dan `source_priority` ditambah `'emitentrust'` di akhir
+  array (provider ini sebelumnya tidak akan pernah dipanggil walau sudah didaftarkan di
+  `$fetchers`, karena mode 'multi' cuma iterasi provider yang ada di config ini).
+
+### Verifikasi
+- Test manual `EmitentrustFetcher::fetchForStock()` langsung: 50 item RSS mentah ter-parse benar;
+  filter relevansi bekerja (BBCA 2 hit, BBRI 1 hit, ESSA/TLKM/ASII/BUMI 0 hit di snapshot saat itu
+  -- wajar, feed general/macro-heavy, bukan bug).
+  - Real run `php artisan news:fetch --stock=BBCA`: provider breakdown menunjukkan
+  `emitentrust: 2`, terintegrasi penuh ke pipeline (relevance scoring, dedup, sentiment analysis
+  inline) -- bukan cuma jalan sendirian di luar sistem.
+- `php artisan test --filter="News"`: 75 passed, tidak ada regresi.
+
+### Status: SELESAI.
