@@ -3,14 +3,16 @@
     "ticker": "BUMI",
     "entry_date": "2026-07-29",
     "entry_price": 159,
-    "alerted_pullback_pct": 0.028901734104046242,
-    "milestone_peak": 181.0
+    "alerted_pullback_pct": 0.026455026455026454,
+    "milestone_peak": 181.0,
+    "alerted_pullback_at_peak": 189.0
   },
   {
     "ticker": "DEWA",
     "entry_date": "2026-07-29",
     "entry_price": 440,
-    "alerted_pullback_pct": 0.03734439834024896,
-    "milestone_peak": 486.0
+    "alerted_pullback_pct": 0.024390243902439025,
+    "milestone_peak": 486.0,
+    "alerted_pullback_at_peak": 492.0
   }
 ]

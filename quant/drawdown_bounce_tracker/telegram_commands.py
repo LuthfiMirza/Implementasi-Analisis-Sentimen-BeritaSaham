@@ -39,6 +39,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 from detect_signal import (  # noqa: E402
     BUTTON_CLOSE_BUMI,
     BUTTON_CLOSE_DEWA,
+    BUTTON_CLOSE_BRPT,
+    BUTTON_CLOSE_SMGR,
+    BUTTON_CLOSE_ESSA,
+    BUTTON_CLOSE_UNVR,
     BUTTON_HELP,
     BUTTON_HISTORY,
     BUTTON_STATUS,
@@ -67,6 +71,10 @@ BUTTON_LABELS = {
     BUTTON_HISTORY: "/history",
     BUTTON_CLOSE_BUMI: "/close BUMI",
     BUTTON_CLOSE_DEWA: "/close DEWA",
+    BUTTON_CLOSE_BRPT: "/close BRPT",
+    BUTTON_CLOSE_SMGR: "/close SMGR",
+    BUTTON_CLOSE_ESSA: "/close ESSA",
+    BUTTON_CLOSE_UNVR: "/close UNVR",
     BUTTON_HELP: "/help",
 }
 

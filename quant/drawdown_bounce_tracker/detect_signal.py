@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
-"""Daily automatic detector for the 'IHSG + stock crash together' bounce signal (Fase AB -> AC).
+"""Daily automatic detector for the BUMI/DEWA drawdown-bounce signal (Fase AB -> AC, loosened to
+stock-only in Fase AW).
 
 Run daily (see routes/console.php: research:detect-drawdown-bounce-signal). Fetches the latest
 BUMI/DEWA/IHSG prices directly via yfinance (no dependency on the Laravel DB or the static
 data/stocks/*.csv snapshot, which lags), checks whether the trigger condition (2-day cumulative
-return <= -5% for both IHSG and the stock) fired on the most recently completed trading day, and
-if the next day's close is already available, logs the signal with its entry price.
+return <= -5% for the STOCK ITSELF -- IHSG is no longer a requirement, see Fase AW below) fired on
+the most recently completed trading day, and if the next day's close is already available, logs
+the signal with its entry price.
+
+Fase AW (post-sidang, real-trading use, bukan lagi murni skripsi): syarat IHSG ikut ambruk >=5%
+DIHAPUS dari trigger. Backtest Jan-Agu 2026 menunjukkan versi BUMI-only -5% (20 trade, win rate
+75%, total return net +54.6%) mengalahkan aturan dual-condition lama (5 trade, win rate 80%,
++24.5%) dari sisi jumlah kesempatan dan total return, dan tetap konsisten kuat di backtest jangka
+panjang sejak 2024 (discovery/holdout split, median return positif di keduanya -- lihat plan.md
+Fase AW). IHSG ret_2d TETAP dihitung dan ditampilkan di alert sebagai info konteks, cuma bukan lagi
+syarat wajib.
 
 Deliberately only logs signals with trigger_date >= TRACKING_START_DATE -- everything before that
 is the Fase AB historical backtest, not part of this live protocol (see PROTOCOL.md).
@@ -25,7 +35,30 @@ import yfinance as yf
 
 TRACKING_START_DATE = date(2026, 7, 31)  # PROTOCOL.md lock date -- do not backdate
 DROP_THRESHOLD = -0.05
-LABELS = {"BUMI": "tracked", "DEWA": "exploratory"}
+LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "tracked",
+          "ESSA": "tracked", "UNVR": "tracked"}  # DEWA dinaikkan dari
+# "exploratory" ke "tracked" di Fase AX -- backtest BUMI-only -5% khusus DEWA (2024-sekarang)
+# menunjukkan win rate 86% discovery / 88% holdout, median return tetap positif & MENINGKAT di
+# holdout (tidak overfit), bahkan lebih kuat dari hasil BUMI sendiri. Lihat plan.md Fase AX.
+#
+# BRPT ditambahkan di Fase AY setelah screening 53 saham universe proyek + verifikasi episode
+# independence (jeda >15 hari kalender = episode baru, supaya penurunan panjang berkelanjutan
+# tidak dihitung sebagai banyak trade independen palsu). Per-episode: n=21, win rate 81%, median
+# +1.17% -- tetap kuat setelah dikoreksi, beda dari TPIA (kandidat lain yang DITOLAK karena
+# per-episode win rate cuma 52%, median ~0%, edge-nya nyaris hilang setelah koreksi). Lihat
+# plan.md Fase AY untuk detail lengkap.
+#
+# SMGR & ESSA ditambahkan setelah episode-check terpisah: SMGR (n=18 episode, win rate 89%,
+# median +1.64%, konsisten discovery 92%/holdout 83%) dan ESSA (n=19 episode, win rate 79%,
+# median +1.25%, holdout MENINGKAT ke 83%/+3.58%) -- keduanya tidak ada konsentrasi episode
+# besar (episode terbesar cuma ~14% dari total trade, beda dari BRPT/TPIA). INDY dicek juga tapi
+# TIDAK ditambahkan -- lolos ambang tapi marginnya lebih tipis (win rate discovery cuma 57%).
+#
+# UNVR ditambahkan di Fase BB -- salah satu dari 12 saham RESMI proyek (sudah ada di tabel
+# `stocks`, sudah terintegrasi penuh ke news/sentimen/model V6A-V6B, beda dari BRPT/SMGR/ESSA yang
+# cuma dipantau lewat script ini). Backtest Des 2025-Agu 2026: n=12, win rate 83%, total return net
+# +39.7% -- konsisten dengan screening awal sejak 2024 (win rate 68%, total +65.2%). Lihat plan.md
+# Fase BB.
 
 DB_PATH = Path(__file__).parent / "tracker.sqlite3"
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
@@ -81,6 +114,10 @@ BUTTON_STATUS = "\U0001F4CA Status"
 BUTTON_HISTORY = "\U0001F4DC Riwayat"
 BUTTON_CLOSE_BUMI = "\U0001F534 Tutup BUMI"
 BUTTON_CLOSE_DEWA = "\U0001F534 Tutup DEWA"
+BUTTON_CLOSE_BRPT = "\U0001F534 Tutup BRPT"  # Fase AY -- BRPT ditambahkan sebagai saham ke-3
+BUTTON_CLOSE_SMGR = "\U0001F534 Tutup SMGR"
+BUTTON_CLOSE_ESSA = "\U0001F534 Tutup ESSA"
+BUTTON_CLOSE_UNVR = "\U0001F534 Tutup UNVR"
 BUTTON_HELP = "❓ Bantuan"
 
 
@@ -94,6 +131,8 @@ def default_keyboard() -> dict:
         "keyboard": [
             [BUTTON_STATUS, BUTTON_HISTORY],
             [BUTTON_CLOSE_BUMI, BUTTON_CLOSE_DEWA],
+            [BUTTON_CLOSE_BRPT, BUTTON_CLOSE_SMGR],
+            [BUTTON_CLOSE_ESSA, BUTTON_CLOSE_UNVR],
             [BUTTON_HELP],
         ],
         "resize_keyboard": True,
@@ -179,7 +218,8 @@ def format_signal_alert(signal: dict) -> str:
     return (
         f"{header}\n\n"
         f"<b>Trigger</b>: {signal['trigger_date']}\n"
-        f"IHSG {signal['ihsg_ret_2d']:+.1%} | {signal['ticker']} {signal['stock_ret_2d']:+.1%} (2 hari)\n\n"
+        f"{signal['ticker']} {signal['stock_ret_2d']:+.1%} (2 hari) -- syarat sinyal\n"
+        f"IHSG {signal['ihsg_ret_2d']:+.1%} (2 hari) -- info konteks saja, bukan syarat\n\n"
         f"<b>Entry</b>: {signal['entry_date']}\n"
         f"Harga: Rp{signal['entry_price']:.0f}\n\n"
         f"<b>Rencana exit</b>: tahan 10 hari bursa\n"
@@ -228,7 +268,7 @@ def detect() -> list[dict]:
     ihsg = fetch_recent("^JKSE")
     found = []
 
-    for ticker in ["BUMI", "DEWA"]:
+    for ticker in ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR"]:
         stock = fetch_recent(f"{ticker}.JK")
         merged = stock.merge(ihsg, on="date", suffixes=("_stock", "_ihsg")).dropna()
         if len(merged) < 2:
@@ -242,7 +282,10 @@ def detect() -> list[dict]:
 
             if trigger_date < TRACKING_START_DATE:
                 continue
-            if not (trigger_row["ret_2d_stock"] <= DROP_THRESHOLD and trigger_row["ret_2d_ihsg"] <= DROP_THRESHOLD):
+            # Fase AW: BUMI-only -- syarat IHSG ikut ambruk DIHAPUS (dulu wajib
+            # ret_2d_ihsg <= DROP_THRESHOLD juga). ihsg_ret_2d masih dicatat & ditampilkan di
+            # alert sebagai info konteks, bukan lagi filter.
+            if not (trigger_row["ret_2d_stock"] <= DROP_THRESHOLD):
                 continue
 
             found.append({
