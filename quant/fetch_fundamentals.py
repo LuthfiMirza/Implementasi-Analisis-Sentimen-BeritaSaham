@@ -18,7 +18,8 @@ import sys
 
 import yfinance as yf
 
-TICKERS = ["BBCA", "BBRI", "BMRI", "TLKM", "ASII", "GOTO", "INDF", "ICBP", "ADRO", "UNVR", "BUMI", "DEWA"]
+TICKERS = ["BBCA", "BBRI", "BMRI", "TLKM", "ASII", "GOTO", "INDF", "ICBP", "ADRO", "UNVR", "BUMI", "DEWA",
+           "BRPT", "SMGR", "ESSA"]
 
 BOUNDS = {
     "pbv": (0, 100),
