@@ -114,6 +114,20 @@ Schedule::command('research:collect-foreign-flow')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// SESI 1: 12.05 WIB
+// Fase BA: peringatan AWAL (bukan sinyal resmi) kalau saham yang dipantau sudah menembus ambang
+// -5%/2hari di closing sesi 1. Murni informasional -- tidak mengubah aturan trigger/entry resmi
+// (itu tetap di research:detect-drawdown-bounce-signal, closing 15.18, entry T+1). Backtest Fase
+// AZ menolak usulan mengubah aturan entry jadi 2x/hari (win rate turun 75% -> 68% tanpa nambah
+// return) -- job ini cuma heads-up dini, bukan perubahan strategi. Dijadwalkan 12.05 (bukan pas
+// 12.00) supaya sesi 1 benar-benar sudah tutup dulu.
+Schedule::command('research:check-session1-warning')
+    ->weekdays()
+    ->dailyAt('12:05')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // END-OF-DAY: 15.18 WIB
 // Fase AC (prospektif, BUKAN fitur produksi): deteksi otomatis aturan "IHSG+saham crash bareng"
 // (Fase AB) untuk BUMI/DEWA, lalu isi outcome sinyal yang horizon-nya sudah lewat. Dijalankan
