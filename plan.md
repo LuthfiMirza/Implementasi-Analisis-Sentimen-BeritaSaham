@@ -3013,3 +3013,57 @@ menonjol -- padahal StockBit nampilin judul + 2-3 baris ringkasan + sumber/tangg
 - Cek DB langsung: artikel ID 41 (provider detik/newsapi) punya `image_url` valid hasil backfill.
 
 ### Status: SELESAI.
+
+## Fase BF — Backfill 108 trade (6 saham, Rp10jt/saham) ke Trade Journal -- berdampingan dengan data lama
+
+### Konteks
+User minta backtest 6 saham yang dipantau Telegram (BUMI/DEWA/BRPT/SMGR/ESSA/UNVR), Des 2025-
+sekarang, modal Rp10.000.000 TERPISAH per saham (bukan satu modal gabung), lalu dicatat ke Trade
+Journal beneran (`/trades`). Diminta diskusi dulu soal potensi tabrakan dengan data lama sebelum
+eksekusi (bukan langsung insert).
+
+### Temuan tabrakan (sebelum eksekusi)
+- BRPT/SMGR/ESSA: 0 trade lama di Journal -- aman, tidak ada tabrakan.
+- BUMI (11 trade lama, ID 120-159), DEWA (8 trade lama, ID 82-160), UNVR (4 trade lama, ID 197-
+  208): SEMUA tumpang tindih periode dengan 58 trade baru (22+24+12) yang mau dimasukkan.
+  Dibuktikan konkret: BUMI entry 9 Feb 2026 @Rp240 di data LAMA exit 28 Feb @Rp232,8, tapi
+  backtest BARU untuk trigger yang SAMA (entry sama persis) exit 10 Feb @Rp259 -- strategi/exit
+  logic beda, bukan cuma duplikat tanggal.
+- 2 trade lama BUMI (ID 159) & DEWA (ID 160) berstatus OPEN -- posisi live yang masih dipantau
+  bot Telegram (entry 29 Jul 2026), TIDAK disentuh oleh backtest baru (backtest baru tidak
+  mencakup tanggal itu).
+
+### Keputusan user
+Ditanya lewat AskUserQuestion: skip BUMI/DEWA/UNVR vs hapus-ganti vs masukkan berdampingan tetap
+dobel. User pilih opsi ke-3 (masukkan berdampingan, TIDAK menghapus/mengganti data lama) meski
+itu bukan opsi yang direkomendasikan.
+
+### Eksekusi
+- Backtest 6 saham, modal Rp10.000.000/saham TERPISAH (compounding per saham, bukan gabung),
+  metodologi sama seperti sebelumnya (stock-only <=-5%/2hari, entry T+1, exit trailing-stop 2%/
+  target 10 hari, biaya net 0.80%).
+- Hasil ringkas: BRPT 27 trade (81% WR, Rp10jt->Rp38,2jt, +281,8%), DEWA 24 trade (83% WR,
+  ->Rp22,4jt, +123,9%), BUMI 22 trade (73% WR, ->Rp17jt, +70,0%), UNVR 12 trade (83% WR,
+  ->Rp14,7jt, +47,2%), ESSA 11 trade (91% WR, ->Rp13,9jt, +38,9%), SMGR 12 trade (83% WR,
+  ->Rp13,5jt, +34,9%). Total: 108 trade, modal Rp60jt -> Rp119,7jt (+99,43%).
+- File CSV lengkap (108 baris) dikirim ke user via SendUserFile sebelum insert ke DB.
+- Insert via script tinker (`Trade::create()` per baris), `result` = 'manual_close' (konsisten
+  dengan precedent 33 trade drawdown-bounce sebelumnya, ID 194-226), `stop_loss`/`target_1` diisi
+  referensi non-operasional (entry*0.98 / entry*1.05, kolom NOT NULL tapi tidak dipakai strategi
+  time-based-exit ini), `notes` eksplisit menjelaskan: SIMULASI BACKTEST, modal Rp10jt KHUSUS per
+  saham (bukan gabung), DAN untuk BUMI/DEWA/UNVR eksplisit mencatat bahwa ini berdampingan dengan
+  data lama yang strategi/exit logic-nya berbeda (user sudah diberi tahu, memilih tetap masukkan).
+
+### Verifikasi
+- Jumlah trade per ticker setelah insert cocok persis (lama+baru): BUMI 11+22=33, DEWA 8+24=32,
+  BRPT 0+27=27, SMGR 0+12=12, ESSA 0+11=11, UNVR 4+12=16. Total Trade Journal: 155 (2 open + 153
+  closed).
+- `php artisan test --filter="Trade"`: 34 passed, tidak ada regresi.
+- Dashboard `/trades` (browser, live): Total Trade 155, Win Rate 83% (127W/26L), Total PnL
+  +Rp129.931.xxx, Avg R:R 1:3,59 -- semua angka konsisten dengan gabungan data lama+baru.
+- 2 posisi OPEN (BUMI/DEWA entry 29 Jul, live di Telegram) dikonfirmasi TIDAK tersentuh oleh
+  insert ini.
+
+### Status: SELESAI. Dicatat sebagai keputusan sadar user (bukan default rekomendasi) -- kalau
+nanti perlu dirapikan/dipilah data lama vs baru untuk BUMI/DEWA/UNVR, tinggal filter dari `notes`
+(yang lama tidak punya frasa "Fase AX-AY-BB", yang baru punya).
