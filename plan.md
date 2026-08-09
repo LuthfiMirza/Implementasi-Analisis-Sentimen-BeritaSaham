@@ -2600,3 +2600,331 @@ H-1, target waktu, puncak baru) -> sekarang **broadcast ke SEMUA `load_allowed_c
 
 ### Status: SELESAI. Semua alert otomatis (Puncak Baru, trailing stop, H-1, target waktu, sinyal
 baru drawdown-bounce) sekarang nyampe ke dua-duanya akun, bukan cuma akun utama.
+
+## Fase AW — Diskusi pasca-sidang: eksplorasi pelonggaran aturan sinyal beli BUMI (belum diimplementasikan)
+
+### Konteks
+Skripsi sudah selesai sidang (nilai A). User lanjut mengeksplorasi apakah aturan sinyal beli
+`detect_signal.py` (dual-condition: BUMI DAN IHSG sama-sama <=-5% dalam 2 hari bursa) bisa
+dilonggarkan untuk real-trading (bukan lagi keperluan skripsi). Ini catatan diskusi/backtest,
+BELUM ada perubahan kode.
+
+### Temuan 1: Backtest strategi RESMI (dual-condition) yang sedang berjalan, Jan-Agu 2026
+5 trade, win rate 80% (4 profit, 1 rugi tipis), total return net (biaya 0.80% dipotong) +24.5%
+non-compound, rata-rata +4.9%/trade. Simulasi modal Rp10jt all-in tiap trade -> jadi Rp12.656.167.
+Trigger: 28 Jan (BUMI -11.4%/IHSG -7.3%), 4 Mar, 24 Apr, 19 Mei, 4 Jun. Semua exit via trailing
+stop 2% (tidak ada yang sampai target waktu 10 hari).
+
+### Temuan 2: Backtest usulan "BUMI-only" (syarat IHSG dihapus, threshold tetap -5%/2 hari)
+Sejak 2024: 58 trade (vs 7 dual-condition), win rate 71% (sama dengan dual-condition), rata-rata
+net +2.19%/trade, total non-compound +126.87%. Dicek discovery (70%, n=40) vs holdout (30%, n=18):
+win rate 70%->72%, median return tetap POSITIF di kedua split (+1.39% -> +1.71%) -- beda dari
+trend-following (Golden Cross) yang gagal karena median negatif di holdout. Kesimpulan: aturan
+BUMI-only lebih longgar tapi TIDAK terlihat overfit ke masa lalu, konsisten kuat di data terbaru.
+Risiko yang dicatat: tanpa filter IHSG, sistem tidak bisa bedakan "ikut market crash" vs "masalah
+spesifik BUMI sendiri" (regulasi/tambang/dsb) -- kalau ada berita buruk beneran serius, strategi
+ini tetap akan coba "beli waktu turun" padahal situasinya beda. Juga sinyal jadi ~1x/bulan (lebih
+sering, butuh disiplin eksekusi lebih tinggi), dan 70% profit holdout disumbang cuma 5 trade
+terbaik (konsentrasi tinggi).
+
+### Belum diputuskan / next
+User masih membandingkan varian lain (ambang lebih ketat -15% BUMI-only) sebelum memutuskan mau
+ubah `detect_signal.py::detect()` yang mana. TIDAK ADA perubahan kode di fase ini -- murni riset
+angka. Kalau nanti jadi diimplementasikan, WAJIB dokumentasikan sebagai fase terpisah dengan
+detail perubahan kode + verifikasi test.
+
+### Status: RISET, BELUM DIEKSEKUSI.
+
+## Fase AX — Implementasi BUMI-only -5% (eksekusi hasil riset Fase AW)
+
+### Konteks
+Skripsi sudah selesai (nilai A). User memutuskan pakai varian BUMI-only -5% untuk real-trading
+setelah membandingkan 5 varian (dual-condition resmi, BUMI-only -5%/-10%/-15%) -- BUMI-only -5%
+menang telak di backtest Jan-Agu 2026 (20 trade, win rate 75%, total return net +54.6%, vs dual-
+condition 5 trade/80%/+24.5%) dan tetap konsisten di backtest jangka panjang sejak 2024
+(discovery/holdout, median tetap positif). Detail lengkap di Fase AW.
+
+### Perubahan kode: quant/drawdown_bounce_tracker/detect_signal.py
+- `detect()`: syarat trigger diubah dari `ret_2d_stock <= DROP_THRESHOLD AND ret_2d_ihsg <=
+  DROP_THRESHOLD` jadi HANYA `ret_2d_stock <= DROP_THRESHOLD` (DROP_THRESHOLD tetap -5%, tidak
+  berubah -- yang dihapus cuma syarat IHSG-nya).
+- `ihsg_ret_2d` TETAP dihitung & disimpan di setiap signal (merge dengan data IHSG tidak dihapus),
+  cuma tidak lagi dipakai sebagai filter -- murni info konteks.
+- `format_signal_alert()`: pesan Telegram diupdate, baris IHSG diberi label eksplisit "info
+  konteks saja, bukan syarat" supaya user tidak salah paham ini masih syarat wajib.
+- Docstring modul diupdate menjelaskan histori keputusan (Fase AB/AC dual-condition -> Fase AW
+  riset -> Fase AX eksekusi BUMI-only).
+- `TRACKING_START_DATE` (31 Juli 2026) TIDAK diubah -- perubahan ini cuma mempengaruhi sinyal ke
+  depan, tidak backdate sinyal historis.
+
+### Verifikasi
+- `detect()` dijalankan dry-run (send_telegram_alert di-monkeypatch, tidak ada side-effect real):
+  0 sinyal baru ditemukan sejak TRACKING_START_DATE (konsisten -- BUMI cuma naik terus sejak 29
+  Juli, belum ada momen turun >=5%/2 hari lagi).
+- `format_signal_alert()` dites manual pakai data sinyal 8 Juni 2026 (real historical case), pesan
+  Telegram tampil rapi dengan baris IHSG yang sudah dilabeli info konteks.
+- Tidak menyentuh kode PHP -- `php artisan test` tidak perlu dijalankan ulang (tidak ada
+  dependensi Laravel yang berubah).
+- DEWA tetap pakai jalur yang sama (loop `for ticker in ["BUMI", "DEWA"]` tidak diubah) -- syarat
+  BUMI-only sebenarnya jadi "stock-only" untuk KEDUANYA, bukan spesifik BUMI saja. Perlu dicatat:
+  backtest yang mendasari keputusan ini HANYA diuji di BUMI, belum di DEWA -- risiko terbuka kalau
+  DEWA punya karakteristik beda (lihat catatan "exploratory" di PROTOCOL.md).
+
+### Status: SELESAI. Live mulai job scheduler berikutnya (harian 15:18 WIB).
+
+## Fase AX (lanjutan) — Validasi & aktivasi DEWA setara BUMI
+
+### Konteks
+User minta strategi BUMI-only -5% yang baru diimplementasikan (Fase AX di atas) juga diterapkan
+ke DEWA. Ternyata loop `detect()` sudah otomatis mencakup BUMI & DEWA sejak awal Fase AX (tidak
+per-ticker) -- jadi secara kode tidak ada yang perlu diubah, tapi keputusan ini butuh divalidasi
+dulu karena DEWA sebelumnya berlabel "exploratory" (sample historis dianggap belum cukup
+meyakinkan, per PROTOCOL.md).
+
+### Backtest DEWA-only -5% (Jan-Agu 2026 & sejak 2024)
+- Jan-Agu 2026: 22 trade, win rate 86%, total return net +76.5% (vs dual-condition lama: 5 trade,
+  80%, +19.3%).
+- Sejak 2024 (discovery/holdout 70/30): discovery n=37 win rate 86% median +1.76%; holdout n=16
+  win rate 88% median +2.91% -- performa MENINGKAT di holdout, tidak ada tanda overfit. Lebih kuat
+  dari hasil BUMI sendiri (holdout BUMI: 72% win rate, median +1.71%).
+
+### Perubahan kode
+- `LABELS = {"BUMI": "tracked", "DEWA": "exploratory"}` -> `{"BUMI": "tracked", "DEWA": "tracked"}`.
+  Efeknya di `format_signal_alert()`: ikon DEWA jadi 🟢 (sama seperti BUMI, sebelumnya 🟡), dan
+  peringatan "⚠️ EXPLORATORY -- JANGAN dijadikan kesimpulan sendirian" tidak lagi muncul di alert
+  DEWA.
+- User dikonfirmasi via pertanyaan eksplisit sebelum eksekusi (naikkan status vs biarkan
+  exploratory) -- user pilih naikkan ke "tracked".
+
+### Verifikasi
+- Backtest dijalankan dengan disiplin sama seperti riset BUMI (chronological discovery/holdout,
+  entry defer 1 hari, net biaya 0.80%, exit trailing-stop 2% / target 10 hari).
+- Tidak ada perubahan ke `detect()` -- sudah otomatis dari perubahan sebelumnya di Fase AX.
+
+### Status: SELESAI.
+
+## Fase AY — Screening kandidat saham baru + tambah BRPT ke tracker
+
+### Konteks
+Setelah BUMI/DEWA stabil dengan aturan stock-only -5%, user minta dicarikan saham lain yang cocok
+dengan strategi yang sama. Discovery via screening 53 saham universe proyek (data/stocks/*.csv),
+bukan feed live Top Value/Volume/Frequency BEI (tidak tersedia di proyek ini) -- overlap besar
+karena universe ini sendiri sudah saham aktif/likuid.
+
+### Temuan: episode independence adalah pembeda kunci
+Screening awal (per-trade) menobatkan BRPT & TPIA sebagai kandidat terbaik (win rate 78-89%, total
+return >100% sejak 2024). TAPI setelah dicek episode independence (jeda >15 hari kalender = episode
+baru, mencegah satu penurunan panjang dihitung sebagai banyak trade independen palsu -- pola yang
+sama yang menjatuhkan validasi trend-following sebelumnya):
+- BRPT: n=58 trade -> cuma 21 episode independen. 1 episode (12 Jan - 5 Jun 2026, 144 hari)
+  menyumbang 25/58 trade (43%). TAPI per-episode win rate TETAP kuat: 81%, median +1.17%. LOLOS.
+- TPIA: n=51 trade -> 21 episode. Per-episode win rate cuma 52%, median +0.01% (praktis nol) --
+  edge-nya nyaris seluruhnya artefak dari trade-count inflation. DITOLAK, tidak diimplementasikan.
+
+### Perubahan kode
+- `quant/drawdown_bounce_tracker/detect_signal.py`:
+  - `LABELS`: tambah `"BRPT": "tracked"`.
+  - `detect()`: loop ticker jadi `["BUMI", "DEWA", "BRPT"]`.
+  - Tambah `BUTTON_CLOSE_BRPT = "🔴 Tutup BRPT"`, ditambahkan ke `default_keyboard()` (baris baru
+    di keyboard, di bawah baris BUMI/DEWA).
+- `quant/drawdown_bounce_tracker/telegram_commands.py`: import `BUTTON_CLOSE_BRPT`, ditambahkan ke
+  `BUTTON_LABELS` map (-> `/close BRPT`).
+- `/open`, `/close`, `/price`, `check_trailing_stop.py::compute_snapshot()` semua SUDAH generik
+  (terima ticker apa saja lewat regex, tidak ada whitelist BUMI/DEWA hardcoded) -- tidak perlu
+  diubah untuk mendukung BRPT.
+
+### Verifikasi
+- Dry-run `detect()` (monkeypatch, tanpa efek samping): 0 sinyal baru sejak TRACKING_START_DATE,
+  LABELS & keyboard tampil benar mencakup BRPT.
+- Dijalankan real lewat `php artisan research:detect-drawdown-bounce-signal`: "Tidak ada sinyal
+  baru. Tidak ada trigger sejak 2026-07-31. Total tercatat: 0." -- konsisten.
+- TPIA TIDAK ditambahkan kemanapun di kode -- keputusan sadar berbasis bukti episode-level yang
+  lemah, bukan terlewat.
+
+### Status: SELESAI.
+
+## Fase AY (lanjutan) — Episode-check & tambah SMGR, ESSA
+
+### Konteks
+Lanjutan Fase AY: user minta episode-check 3 kandidat tambahan (ESSA, INDY, SMGR) sebelum
+diputuskan mana yang ditambahkan.
+
+### Hasil episode-check (per-episode, sejak 2024)
+- SMGR: n=18 episode, win rate 89%, median +1.64%. Discovery (n=12) 92%/+1.29%, holdout (n=6)
+  83%/+1.83%. Episode terbesar cuma 5/35 trade (14%) -- tidak ada konsentrasi masalah.
+- ESSA: n=19 episode, win rate 79%, median +1.25%. Discovery (n=13) 77%/+1.02%, holdout (n=6)
+  83%/+3.58% (MENINGKAT di holdout). Episode terbesar 4/29 trade (14%).
+- INDY: n=21 episode, win rate 62%, median +1.03%. Discovery (n=14) 57%/+0.52%, holdout (n=7)
+  71%/+2.41%. Masih lolos ambang (positif di semua split) tapi margin lebih tipis dari SMGR/ESSA.
+
+User pilih: tambahkan SMGR & ESSA saja, skip INDY (marginnya lebih tipis).
+
+### Perubahan kode
+- `detect_signal.py`: `LABELS` tambah `SMGR` & `ESSA` (keduanya "tracked"). Loop ticker di
+  `detect()` jadi `["BUMI", "DEWA", "BRPT", "SMGR", "ESSA"]`.
+- Tombol Telegram baru: `BUTTON_CLOSE_SMGR`, `BUTTON_CLOSE_ESSA`, ditambahkan ke
+  `default_keyboard()` (layout dirapikan jadi 2 tombol/baris: [BRPT, SMGR], [ESSA]).
+- `telegram_commands.py`: import & `BUTTON_LABELS` map diupdate untuk SMGR/ESSA.
+
+### Verifikasi
+- Dry-run `detect()`: LABELS & keyboard tampil benar mencakup 5 ticker.
+- Real run `php artisan research:detect-drawdown-bounce-signal`: "Tidak ada sinyal baru... Total
+  tercatat: 0." -- konsisten, tidak ada error.
+- INDY TIDAK ditambahkan kemanapun di kode -- keputusan sadar, bukan terlewat.
+
+### Status: SELESAI. Tracker sekarang memantau 5 saham: BUMI, DEWA, BRPT, SMGR, ESSA.
+
+## Fase AZ — Backtest usulan cek sinyal 2x/hari (sesi 1 + EOD) -- DITOLAK
+
+### Konteks
+User mengusulkan pecah cek sinyal beli jadi 2x/hari: tambahan cek di sesi 1 (~12:00 WIB) selain
+cek EOD (15:18) yang sudah ada, biar alert lebih cepat kalau crash sudah kelihatan di sesi 1.
+Didiskusikan dulu risikonya (whipsaw, harga belum settled, belum ada bukti) sebelum dibacktest.
+
+### Backtest
+Untuk 259 trigger historis (5 saham, sejak 2024, dibatasi data 1h yfinance 729 hari terakhir),
+165 trigger (64%) sudah menembus -5%/2hari di closing sesi 1 -- kasus di mana cek sesi 1 akan
+kasih alert lebih cepat. Dibandingkan entry HARI YANG SAMA (early) vs entry T+1 (current, aturan
+sekarang), exit rule sama (trailing-stop 2%/target 10 hari):
+- Win rate: current 75% vs early 68% -- TURUN.
+- Rata-rata return: current +2.90% vs early +2.87% -- PRAKTIS SAMA, tidak ada gain nyata.
+- Head-to-head: early menang 83/165 (50%), kalah 64/165 (39%), sama 18/165.
+
+### Kesimpulan
+Jeda T+1 yang sudah ada BUKAN cuma proteksi anti-data-snooping teoretis -- ternyata berfungsi
+sebagai filter kualitas nyata: menunggu closing settle membantu menyaring penurunan sesi 1 yang
+cuma noise sesaat (recover di sesi 2), bukan penurunan genuine. Split 2x/hari TIDAK memberi edge
+tambahan, malah berpotensi menurunkan win rate.
+
+### Keputusan
+TIDAK DIIMPLEMENTASIKAN. Tidak ada perubahan kode -- aturan cek 1x/hari EOD (15:18) tetap
+dipertahankan berdasarkan bukti.
+
+### Status: RISET SELESAI, DITOLAK berdasarkan bukti.
+
+## Fase BA — Peringatan awal sesi 1 (bukan ubah aturan entry)
+
+### Konteks
+Klarifikasi dari user setelah Fase AZ (yang menolak ubah aturan ENTRY jadi 2x/hari karena win
+rate turun 75%->68%): maksud user bukan ubah strategi, tapi tambah NOTIFIKASI PERINGATAN di sesi
+1 (~12:00 WIB) sebagai heads-up, sementara aturan resmi (trigger + entry T+1) tetap 100% sama
+persis seperti sekarang di closing 15:18. Ini murni informasional, tidak menyentuh logika trading
+yang sudah divalidasi sama sekali.
+
+### File baru: quant/drawdown_bounce_tracker/check_session1_warning.py
+- `fetch_daily_closes()`: Close MENTAH (bukan Adj Close) -- sengaja beda dari `fetch_recent()` di
+  detect_signal.py yang masih pakai Adj Close (bug lama belum diperbaiki di sana) -- penting
+  terutama untuk SMGR yang bagi dividen nyata (beda dari BUMI/DEWA/BRPT/ESSA yang dividennya
+  minimal).
+- `fetch_session1_price()`: closing sesi 1 (bar 1-jam terakhir sebelum jam 12:00 WIB) HARI INI,
+  dari data intraday 1-jam yfinance.
+- `format_session1_warning()`: pesan Telegram ⚠️ WASPADA, EKSPLISIT bilang "INI BELUM SINYAL
+  RESMI" + statistik "~39% kasus recover di sesi 2" (dari temuan Fase AZ) supaya user tidak buru-
+  buru entry cuma dari peringatan ini.
+- `check_session1_warning()`: loop 5 ticker di LABELS (BUMI/DEWA/BRPT/SMGR/ESSA), cek ret_2d pakai
+  harga sesi 1 vs Close 2 hari lalu, kirim peringatan kalau <= DROP_THRESHOLD (-5%, threshold SAMA
+  dengan detect_signal.py). Idempotent per hari per ticker via `session1_warning_state.json`
+  (state direset otomatis tiap tanggal berubah, tidak perlu cleanup manual).
+- TIDAK PERNAH tulis ke tracker.sqlite3, TIDAK PERNAH ubah open_positions.json -- murni kirim
+  pesan, tidak ada efek samping ke data lain.
+
+### File baru: app/Console/Commands/CheckSession1WarningCommand.php
+- `research:check-session1-warning` -- pola sama persis dengan `DetectDrawdownBounceSignalCommand`
+  (tipis, panggil script Python via Process).
+
+### routes/console.php
+- Jadwal baru: `research:check-session1-warning` weekdays, 12:05 WIB (bukan pas 12:00 -- kasih
+  buffer 5 menit biar sesi 1 beneran sudah tutup dulu), `withoutOverlapping()`.
+- Job `research:detect-drawdown-bounce-signal` (15:18) TIDAK DIUBAH SAMA SEKALI.
+
+### Verifikasi
+- `php artisan schedule:list` menunjukkan job baru terjadwal benar (weekdays 12:05 WIB).
+- Real run manual `php artisan research:check-session1-warning`: berhasil cek 5 ticker
+  (BUMI/DEWA/BRPT/SMGR/ESSA), semua ret_2d positif/mendekati nol hari ini (tidak ada yang trigger
+  peringatan) -- konsisten, tidak ada error.
+- Preview `format_session1_warning()` dengan data simulasi (-6.2%) menghasilkan pesan yang rapi
+  dan eksplisit menyatakan "belum sinyal resmi".
+
+### Status: SELESAI.
+
+### Verifikasi tambahan: tes Telegram beneran (bukan cuma dry-run)
+User minta pastikan bot Telegram benar-benar tersambung ke command baru ini. Dua tes real terkirim
+via `send_telegram_alert()` (jalur asli, broadcast ke semua chat_id):
+1. Pesan format lengkap (`format_session1_warning()` dengan data simulasi -6.2%), dilabeli jelas
+   "TES KONEKSI" supaya tidak disangka kondisi pasar beneran.
+2. Tes eksplisit cek respons API Telegram langsung (bukan cuma print generik dari
+   `send_telegram_alert()`): kedua chat_id (7162558029 utama, 8870402966 Luthfi) menerima
+   `ok=True`, message_id 129 & 130.
+
+Kesimpulan: koneksi Telegram bot <-> check_session1_warning.py <-> research:check-session1-warning
+terverifikasi jalan end-to-end, bukan cuma asumsi dari dry-run.
+
+## Fase BB — UNVR ditambahkan ke tracker + BRPT/SMGR/ESSA diintegrasikan ke sistem utama
+
+### Konteks
+User minta 2 hal: (1) tambahkan UNVR ke tracker drawdown-bounce Telegram (sudah lolos backtest Des
+2025-Agu 2026: n=12, win rate 83%, total return net +39.7%), dan (2) integrasikan BRPT/SMGR/ESSA
+(yang sebelumnya cuma "hidup sendiri" via script Python, terpisah dari sistem utama) ke tabel
+`stocks` resmi supaya ikut fetch berita, sentimen, dan tampil di `/analytics` -- BUKAN cuma UNVR.
+
+Klarifikasi penting yang didiskusikan sebelum eksekusi: UNVR sudah ADA di tabel `stocks` sejak
+awal (salah satu dari 12 saham resmi, terintegrasi penuh news/sentimen/V6A-V6B), beda dari
+BRPT/SMGR/ESSA yang TIDAK ADA di tabel `stocks` -- cuma dipantau lewat `detect_signal.py` (yfinance
+langsung, tanpa dependensi DB).
+
+### Bagian 1: UNVR -> tracker Telegram
+- `detect_signal.py`: `LABELS` tambah `"UNVR": "tracked"`. Loop ticker di `detect()` jadi
+  `["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR"]`.
+- Tombol Telegram baru `BUTTON_CLOSE_UNVR`, ditambahkan ke `default_keyboard()` (baris [ESSA,
+  UNVR]).
+- `telegram_commands.py`: import & `BUTTON_LABELS` map diupdate.
+- `check_session1_warning.py` otomatis ikut mencakup UNVR (loop `for ticker in LABELS`, tidak
+  perlu diubah).
+
+### Bagian 2: BRPT/SMGR/ESSA -> tabel `stocks` resmi (integrasi sistem utama)
+Arsitektur ternyata bersih: begitu ada row baru di tabel `stocks` dengan `is_active=true`, SEMUA
+command terjadwal otomatis mengambilnya (FetchNewsCommand, SyncLivePricesCommand,
+ReanalyzeSentimentCommand, UpdateStockSnapshotsCommand, BacktestService, StockDashboardService --
+semua query `Stock::where('is_active', true)`). Tidak perlu ubah kode command apapun.
+
+Langkah eksekusi:
+1. Insert 3 row baru ke `stocks` (code, company_name, sector, exchange=IDX, tradingview_symbol,
+   yahoo_symbol, is_active=true): BRPT (id 20, Barito Pacific Tbk), SMGR (id 21, Semen Indonesia
+   (Persero) Tbk), ESSA (id 22, Surya Esa Perkasa Tbk).
+2. Insert `stock_aliases` untuk entity/keyword matching berita: BRPT (Barito Pacific, BRPT, Prajogo
+   Pangestu), SMGR (Semen Indonesia, SMGR, SIG, Semen Gresik), ESSA (Surya Esa Perkasa, ESSA).
+3. Backfill harga historis: `php artisan stocks:fetch-history --days=730 --stock=BRPT --stock=SMGR
+   --stock=ESSA` -> 480 baris tiap saham tersimpan ke `stock_prices`.
+4. Test fetch berita per saham (`php artisan news:fetch --stock=X`): BRPT 7 artikel, SMGR 8
+   artikel, ESSA 5 artikel -- semua tersimpan dengan `stock_id` terhubung benar, sentimen otomatis
+   ter-analisis inline (sentiment_label sudah terisi begitu artikel disimpan).
+
+### Catatan penting: `article_entities` BUKAN mekanisme linking utama
+Sempat mengira entity linking berita->saham lewat tabel `article_entities` (0 baris untuk 3 saham
+baru, bikin kaget) -- ternyata itu SALAH ASUMSI. Linking utama adalah kolom `news_articles.stock_id`
+langsung (FK), sudah terisi benar untuk ketiganya. `article_entities` sepertinya tabel terpisah/
+legacy untuk keperluan lain (mungkin multi-entity NER per artikel), tidak dipakai untuk linking
+dasar stock<->article. Tidak ada bug di sini, cuma salah baca tabel di awal.
+
+### ⚠️ CATATAN PENTING YANG BELUM DISELESAIKAN: model prediksi V6A/V6B TIDAK otomatis valid untuk BRPT/SMGR/ESSA
+Menambahkan saham ke tabel `stocks` membuat mereka ikut fetch berita/sentimen/harga, TAPI model
+prediksi V6A (`model_technical_v6a.joblib`) dan V6B (`model_technical_sentiment_v6b.joblib`) adalah
+ARTIFACT TERLATIH yang sebelumnya cuma divalidasi (walk-forward OOS) di 10 saham resmi lama.
+BRPT/SMGR/ESSA belum pernah ikut proses training/evaluasi model ini -- kalau `/analytics` dipanggil
+untuk saham ini, model MUNGKIN tetap menghasilkan output (RF/LogReg bisa generalisasi ke ticker
+baru selama fitur teknikalnya numerik & mirip), TAPI akurasinya belum pernah diverifikasi secara
+walk-forward OOS untuk saham-saham ini secara spesifik -- klaim "39.6% akurasi" TIDAK otomatis
+berlaku untuk mereka. Preseden BUMI/DEWA: butuh MODEL TERPISAH KHUSUS karena karakteristiknya beda
+dari 10 saham resmi -- BRPT/SMGR/ESSA berpotensi butuh perlakuan serupa. INI BELUM DIKERJAKAN --
+perlu didiskusikan dengan user dulu sebelum retrain/validasi model untuk 3 saham baru ini
+dilakukan (retrain adalah keputusan besar, bukan default, sesuai konvensi proyek).
+
+### Verifikasi
+- `php artisan test --filter="Stock|Analytics"`: 40 passed, tidak ada regresi dari perubahan DB.
+- Query manual: BRPT/SMGR/ESSA masing-masing 480 baris `stock_prices`, dan 7/8/5 artikel
+  `news_articles` dengan `stock_id` terhubung benar.
+- Dry-run + real run `detect()`/`research:detect-drawdown-bounce-signal`: LABELS & keyboard
+  mencakup 6 ticker (BUMI/DEWA/BRPT/SMGR/ESSA/UNVR), tidak ada error.
+
+### Status: SELESAI untuk integrasi berita/sentimen/harga. TERBUKA untuk keputusan model
+prediksi V6A/V6B (perlu diskusi user dulu).
