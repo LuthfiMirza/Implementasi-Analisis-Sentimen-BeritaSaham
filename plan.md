@@ -3141,3 +3141,37 @@ walau fix Fase BG sudah aktif -- ternyata artikel itu tersimpan SEBELUM fix, jad
 ### Status: SELESAI. Command `news:backfill-business-site-images` tersedia untuk dipakai ulang
 manual kalau perlu (tidak dijadwalkan otomatis -- artikel baru sudah dapat gambar langsung lewat
 fetch normal, backfill cuma untuk artikel lama).
+
+## Fase BH — RssLocalFetcher: ambil gambar dari enclosure/media:content di RSS mentah
+
+### Konteks
+User tunjukkan artikel `rss_local` (BMRI, BBRI) yang juga masih placeholder. Beda dari
+business_site_search, dicek dulu apakah feed-nya sendiri sudah bawa data gambar.
+
+### Temuan
+Dicek 9 feed default `RssLocalFetcher` langsung: 7 dari 9 SUDAH punya tag `<enclosure type=
+"image/...">` atau `<media:content>` (MRSS namespace) berisi URL gambar -- Detik, CNBC Indonesia,
+Antara, IDX Channel, CNN Indonesia, Bloomberg Technoz, Republika. Cuma Katadata RSS & Tempo RSS
+yang tidak punya tag ini sama sekali. Beda dari business_site_search, ini TIDAK BUTUH request
+tambahan -- datanya sudah ada di RSS yang sama yang sudah difetch.
+
+### Perubahan kode
+- `RssLocalFetcher.php`: tambah `extractImageFromRssItem()` -- cek `<enclosure>` (kalau
+  type dimulai "image" atau kosong) lalu fallback `<media:content>`/`<media:thumbnail>` (namespace
+  `http://search.yahoo.com/mrss/`, diakses via `$item->children()`). Dipanggil di `parseFeedItems()`
+  untuk kedua format (RSS 2.0 `<item>` dan Atom `<entry>`), hasilnya diteruskan ke `image_url` di
+  array artikel yang dikembalikan `fetchForStock()`.
+- `BackfillBusinessSiteSearchImagesCommand.php` digeneralisasi: tambah `--provider=` option
+  (default `business_site_search`), supaya bisa dipakai juga untuk `rss_local` (dan provider lain
+  ke depannya) -- logikanya generik (fetch og:image dari `source_url` yang tersimpan), tidak
+  spesifik ke satu provider.
+
+### Verifikasi
+- Test manual `RssLocalFetcher::fetchForStock('BMRI')`: 3 dari 4 artikel dapat `image_url`
+  langsung (termasuk artikel "Bank Mandiri Gandeng Paramount..." yang ditunjukkan user), 1 tanpa
+  gambar (feed Katadata, sesuai ekspektasi -- bukan bug).
+- `php artisan test --filter="News"`: 75 passed, tidak ada regresi.
+- Backfill 391 artikel rss_local lama dijalankan via `news:backfill-business-site-images
+  --provider=rss_local --limit=391` (di background, hasil dilaporkan terpisah).
+
+### Status: SELESAI (kode). Backfill artikel lama sedang berjalan.

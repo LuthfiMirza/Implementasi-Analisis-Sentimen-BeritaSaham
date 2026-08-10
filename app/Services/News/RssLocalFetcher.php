@@ -114,6 +114,7 @@ class RssLocalFetcher implements NewsFetcherInterface
                     'slug' => Str::slug($title).'-'.Str::random(4),
                     'source_name' => $item['source'] ?? (parse_url($feedUrl, PHP_URL_HOST) ?: 'RSS'),
                     'source_url' => $link ?: null,
+                    'image_url' => $item['image'] ?? null,
                     'published_at' => $pubDate ? Carbon::parse($pubDate, 'Asia/Jakarta') : Carbon::now('Asia/Jakarta'),
                     'summary' => Str::limit(strip_tags($description), 300),
                     'content_snippet' => Str::limit(strip_tags($description), 300),
@@ -159,6 +160,7 @@ class RssLocalFetcher implements NewsFetcherInterface
                     'link' => (string) ($item->link ?? ''),
                     'pubDate' => (string) ($item->pubDate ?? ''),
                     'source' => (string) ($item->source ?? ''),
+                    'image' => $this->extractImageFromRssItem($item),
                 ];
             }
         } elseif (isset($xml->entry)) {
@@ -169,10 +171,45 @@ class RssLocalFetcher implements NewsFetcherInterface
                     'link' => (string) (isset($item->link['href']) ? $item->link['href'] : ($item->link ?? '')),
                     'pubDate' => (string) ($item->updated ?? $item->published ?? ''),
                     'source' => (string) ($item->author->name ?? ''),
+                    'image' => $this->extractImageFromRssItem($item),
                 ];
             }
         }
 
         return $items;
+    }
+
+    /**
+     * Sebagian besar feed sudah bawa gambar sendiri lewat <enclosure type="image/..."> atau
+     * <media:content> (namespace MRSS) -- data ini sudah ada di RSS mentah, tidak perlu request
+     * tambahan ke halaman artikel seperti business_site_search. Katadata & Tempo RSS TIDAK punya
+     * tag ini sama sekali (dicek langsung di feed mentah) -- null untuk keduanya itu valid,
+     * bukan bug.
+     */
+    protected function extractImageFromRssItem(\SimpleXMLElement $item): ?string
+    {
+        if (isset($item->enclosure)) {
+            $type = (string) ($item->enclosure['type'] ?? '');
+            $url = (string) ($item->enclosure['url'] ?? '');
+            if ($url !== '' && ($type === '' || str_starts_with($type, 'image'))) {
+                return $url;
+            }
+        }
+
+        $media = $item->children('http://search.yahoo.com/mrss/');
+        if (isset($media->content)) {
+            $url = (string) ($media->content['url'] ?? '');
+            if ($url !== '') {
+                return $url;
+            }
+        }
+        if (isset($media->thumbnail)) {
+            $url = (string) ($media->thumbnail['url'] ?? '');
+            if ($url !== '') {
+                return $url;
+            }
+        }
+
+        return null;
     }
 }
