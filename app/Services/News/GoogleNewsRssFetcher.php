@@ -177,6 +177,17 @@ class GoogleNewsRssFetcher implements NewsFetcherInterface
         return $items->all();
     }
 
+    /**
+     * Fase BI: link asli Google News RSS (base64 di dalam path -- bentuk "CBMi...") itu VALID dan
+     * bisa diklik (HTTP 200, live-verified), beda dari yang dikira sebelumnya. Bug lama: threshold
+     * 240 karakter (jauh di bawah panjang link asli yang biasa 196-873 karakter) membuang link
+     * asli dan menggantinya dengan hash SHA1 palsu yang SELALU 400/404 di Google -- bukan
+     * fallback yang aman, tapi bug yang merusak SEMUA link >240 karakter (mayoritas artikel).
+     * 768 = batas aman index UNIQUE utf8mb4 kolom source_url (lihat migration
+     * widen_source_url_column_in_news_articles_table). Link yang masih lebih panjang dari itu
+     * (jarang, dicek cuma sebagian kecil dari total) tetap fallback ke hash -- bukan valid, tapi
+     * lebih baik daripada gagal insert karena melebihi batas kolom.
+     */
     protected function normalizeSourceUrl(?string $url): ?string
     {
         $url = trim((string) $url);
@@ -184,7 +195,7 @@ class GoogleNewsRssFetcher implements NewsFetcherInterface
             return null;
         }
 
-        if (mb_strlen($url) <= 240) {
+        if (mb_strlen($url) <= 768) {
             return $url;
         }
 

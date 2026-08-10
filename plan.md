@@ -3175,3 +3175,60 @@ tambahan -- datanya sudah ada di RSS yang sama yang sudah difetch.
   --provider=rss_local --limit=391` (di background, hasil dilaporkan terpisah).
 
 ### Status: SELESAI (kode). Backfill artikel lama sedang berjalan.
+
+## Fase BI — Bug besar ditemukan: 1.606 link google_news_rss RUSAK untuk pembaca (bukan cuma soal gambar)
+
+### Konteks
+Investigasi lanjutan soal gambar hilang di artikel `google_news_rss` -- user coba klik tombol
+"Buka artikel" secara manual, dapat "Error 400 (Bad request)" dari Google. Ini ternyata bug yang
+JAUH lebih serius dari sekadar gambar hilang: link artikelnya sendiri rusak untuk SEMUA pembaca.
+
+### Root cause (BUKAN limitasi Google seperti dikira awal / dicatat di Fase R7a sesi lalu)
+`GoogleNewsRssFetcher::normalizeSourceUrl()` (baris 191 versi lama) punya bug: kalau link asli
+dari Google News RSS (bentuk base64 "CBMi...", NORMAL panjangnya 196-873 karakter, live-verified
+resolve ke HTTP 200) melebihi 240 karakter, kode MEMBUANG link asli itu dan menggantinya dengan
+`https://news.google.com/rss/articles/` + hash SHA1 32-karakter -- yang TIDAK PERNAH valid (bukan
+ID Google News asli, cuma hash palsu yang kebetulan mirip format). Karena link asli Google News
+HAMPIR SELALU >240 karakter, bug ini merusak MAYORITAS artikel google_news_rss (1.606 total).
+
+Live-verified: link asli (`CBMi...`) diakses langsung -> HTTP 200 (redirect 302 dulu, lalu 200,
+halaman Google News yang bisa diklik lanjut ke publisher). Link hash palsu -> HTTP 400 error,
+selalu, karena hash itu bukan ID valid apapun di sistem Google.
+
+### Kenapa 240 dipilih sebelumnya
+Kolom `news_articles.source_url` cuma `varchar(255)` -- 240 dipilih sebagai margin aman di bawah
+255. Tapi karena link asli Google News nyaris selalu >240 karakter, threshold ini pada praktiknya
+merusak SEMUA link Google News, bukan cuma kasus langka seperti maksud awalnya.
+
+### Perbaikan
+- Migration baru: `source_url` diperlebar dari `varchar(255)` ke `varchar(768)`. 768 dipilih
+  sebagai batas AMAN untuk index UNIQUE `utf8mb4` (768 x 4 byte = 3072 byte, limit index InnoDB/
+  MariaDB) -- bukan sembarang angka, sudah dicek `SHOW TABLE STATUS`/`SHOW VARIABLES LIKE
+  'innodb_large_prefix'` dulu sebelum migrate. Panjang link asli maksimal yang ditemukan di data
+  (1608 artikel dicek): 873 karakter -- 768 mencakup mayoritas kasus.
+- `GoogleNewsRssFetcher::normalizeSourceUrl()`: threshold naik dari 240 ke 768. Link >768 karakter
+  (jarang, cuma 5 dari 1606 di backfill) tetap fallback ke hash -- bukan valid, tapi tidak ada
+  pilihan lain karena batas kolom.
+- `tests/Unit/GoogleNewsRssFetcherTest.php`: test lama (`test_google_news_rss_normalizes_
+  overlong_source_url`) yang menguji perilaku BUGGY (assert truncate di 240) diganti jadi 2 test:
+  satu memverifikasi link realistis (318 karakter) DIPERTAHANKAN utuh (bug fix), satu lagi
+  memverifikasi kasus ekstrem (>768) tetap fallback ke hash (constraint kolom).
+
+### Backfill 1.606 artikel lama
+Link asli SUDAH tersimpan di `raw_payload.link` sejak awal (fetcher selalu menyimpannya di sana,
+cuma `source_url` yang salah override ke hash) -- backfill TIDAK perlu fetch ulang ke Google, cuma
+baca `raw_payload` yang sudah ada dan tulis ulang `source_url`.
+- **1.285 artikel diperbaiki** (source_url diganti dari hash palsu ke link asli valid).
+- 5 artikel tetap hash (link asli >768 karakter, kasus ekstrem).
+- 1 duplikat dilewati (sudah ada artikel lain dengan link asli yang sama -- unique constraint).
+- 320 artikel tidak berubah (link aslinya sudah <=240 karakter sejak awal, sudah benar).
+
+### Verifikasi
+- `php artisan test --filter="News"`: 76 passed (2 test baru menggantikan 1 test lama).
+- Live-verified: artikel yang ditunjukkan user ("Berikut Saham Pilihan Hari Ini...") -- source_url
+  sebelum backfill = hash palsu (400 error kalau diklik), sesudah = link asli, dites langsung
+  curl -> HTTP 200.
+
+### Status: SELESAI. Ini bug lama yang sudah ada sejak GoogleNewsRssFetcher dibuat -- sempat
+disalahartikan sebagai "limitasi Google yang tidak bisa diperbaiki" di riset R7a sesi sebelumnya,
+padahal itu bug murni di kode kita sendiri (kolom kekecilan + threshold salah).

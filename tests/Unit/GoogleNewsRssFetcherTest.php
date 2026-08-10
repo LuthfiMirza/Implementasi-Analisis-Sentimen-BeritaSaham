@@ -77,7 +77,13 @@ class GoogleNewsRssFetcherTest extends TestCase
         });
     }
 
-    public function test_google_news_rss_normalizes_overlong_source_url(): void
+    /**
+     * Fase BI: link Google News RSS asli (bentuk base64 "CBMi...") itu VALID dan bisa diklik
+     * (live-verified HTTP 200), panjangnya normal 196-873 karakter -- link 318 karakter di test
+     * ini HARUS dipertahankan apa adanya, bukan dibuang ke hash palsu seperti bug lama (threshold
+     * 240 yang jauh di bawah panjang link asli, membuat SEMUA link Google News rusak).
+     */
+    public function test_google_news_rss_preserves_realistic_length_source_url(): void
     {
         $longLink = 'https://news.google.com/rss/articles/'.str_repeat('a', 280);
         $rss = <<<XML
@@ -103,8 +109,43 @@ class GoogleNewsRssFetcherTest extends TestCase
         $articles = $fetcher->fetchForStock($stock, 5);
 
         $this->assertNotEmpty($articles);
-        $this->assertLessThanOrEqual(240, strlen((string) $articles[0]['source_url']));
+        $this->assertSame($longLink, $articles[0]['source_url']);
+    }
+
+    /**
+     * Kasus ekstrem: link lebih panjang dari batas kolom source_url (768, lihat migration
+     * widen_source_url_column_in_news_articles_table) TETAP fallback ke hash -- bukan valid, tapi
+     * lebih baik daripada gagal insert karena melebihi batas kolom database.
+     */
+    public function test_google_news_rss_normalizes_extremely_overlong_source_url(): void
+    {
+        $longLink = 'https://news.google.com/rss/articles/'.str_repeat('a', 800);
+        $rss = <<<XML
+        <rss version="2.0">
+          <channel>
+            <item>
+              <title>ICBP dapat sorotan analis</title>
+              <link>{$longLink}</link>
+              <description>ICBP masuk daftar saham pilihan analis.</description>
+              <pubDate>Tue, 21 Apr 2026 08:00:00 +0700</pubDate>
+              <source url="https://www.example.com">Example</source>
+            </item>
+          </channel>
+        </rss>
+        XML;
+
+        Http::fake([
+            'news.google.com/*' => Http::response($rss, 200, ['Content-Type' => 'application/rss+xml']),
+        ]);
+
+        $stock = Stock::factory()->create(['code' => 'ICBP', 'company_name' => 'Indofood CBP Sukses Makmur Tbk']);
+        $fetcher = new GoogleNewsRssFetcher();
+        $articles = $fetcher->fetchForStock($stock, 5);
+
+        $this->assertNotEmpty($articles);
+        $this->assertLessThanOrEqual(768, strlen((string) $articles[0]['source_url']));
         $this->assertStringStartsWith('https://news.google.com/rss/articles/', (string) $articles[0]['source_url']);
+        $this->assertNotSame($longLink, $articles[0]['source_url']);
     }
 
     public function test_google_news_rss_prioritizes_distinct_article_days_when_limit_is_tight(): void
