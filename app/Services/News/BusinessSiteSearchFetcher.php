@@ -258,6 +258,7 @@ class BusinessSiteSearchFetcher implements NewsFetcherInterface
                 'slug' => Str::slug($title).'-'.Str::random(4),
                 'source_name' => $site['name'],
                 'source_url' => $absoluteUrl,
+                'image_url' => $this->fetchOgImage($absoluteUrl),
                 'published_at' => $publishedAt ?? Carbon::now(),
                 'summary' => $summary ?: null,
                 'content_snippet' => $summary ?: null,
@@ -271,6 +272,49 @@ class BusinessSiteSearchFetcher implements NewsFetcherInterface
                     'url' => $absoluteUrl,
                 ],
             ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Halaman hasil pencarian (search.katadata.co.id dst) cuma punya logo/avatar sebagai <img>,
+     * BUKAN thumbnail artikel -- gambar asli cuma ada di <meta property="og:image"> pada halaman
+     * ARTIKEL itu sendiri. Satu request kecil tambahan per artikel yang SUDAH lolos filter
+     * relevansi (bukan semua hasil pencarian), timeout pendek + try/catch supaya satu artikel
+     * yang gagal/lambat tidak pernah menggagalkan fetch keseluruhan.
+     */
+    protected function fetchOgImage(string $articleUrl): ?string
+    {
+        try {
+            $response = Http::withHeaders([
+                'User-Agent' => (string) config('news.rss_user_agent', 'SentimenaBot/1.0 (+https://sentimena.app)'),
+            ])->timeout(4)->get($articleUrl);
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        libxml_use_internal_errors(true);
+        $document = new DOMDocument();
+        if (! @$document->loadHTML($response->body())) {
+            libxml_clear_errors();
+            return null;
+        }
+        libxml_clear_errors();
+
+        $xpath = new DOMXPath($document);
+        foreach (['//meta[@property="og:image"]', '//meta[@name="twitter:image"]'] as $query) {
+            $nodes = $xpath->query($query);
+            if ($nodes && $nodes->length > 0) {
+                $content = trim((string) $nodes->item(0)->getAttribute('content'));
+                if ($content !== '') {
+                    return $content;
+                }
+            }
         }
 
         return null;

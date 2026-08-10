@@ -3067,3 +3067,40 @@ itu bukan opsi yang direkomendasikan.
 ### Status: SELESAI. Dicatat sebagai keputusan sadar user (bukan default rekomendasi) -- kalau
 nanti perlu dirapikan/dipilah data lama vs baru untuk BUMI/DEWA/UNVR, tinggal filter dari `notes`
 (yang lama tidak punya frasa "Fase AX-AY-BB", yang baru punya).
+
+## Fase BG — Perbaiki business_site_search: gambar tetap tidak muncul walau ada di sumbernya
+
+### Konteks
+User tunjukkan contoh konkret: artikel BUMI dari provider `business_site_search` (Katadata) tampil
+placeholder 📰, padahal begitu link artikelnya dibuka manual, ada gambar jelas.
+
+### Root cause
+`BusinessSiteSearchFetcher` TIDAK PERNAH membuka halaman artikel aslinya -- dia cuma scrape
+halaman HASIL PENCARIAN (mis. search.katadata.co.id/search?q=...), ambil judul+ringkasan dari
+situ, simpan link artikel, selesai. Dicek langsung: `<img>` di halaman hasil pencarian cuma logo
+Katadata + avatar generik, BUKAN thumbnail artikel. Gambar asli cuma ada di
+`<meta property="og:image">` pada halaman ARTIKEL itu sendiri -- yang tidak pernah dikunjungi
+fetcher ini.
+
+### Perbaikan
+- `BusinessSiteSearchFetcher.php`: tambah method `fetchOgImage(string $articleUrl): ?string` --
+  1 request tambahan (timeout 4 detik, try/catch penuh supaya kegagalan 1 artikel tidak
+  menggagalkan fetch keseluruhan) HANYA untuk artikel yang SUDAH lolos filter relevansi (bukan
+  semua hasil pencarian mentah), parse `<meta property="og:image">` (fallback `twitter:image`)
+  via DOMXPath.
+- Dipanggil di `articleFromNode()`, hasilnya dimasukkan ke field `image_url` yang baru
+  ditambahkan di Fase BE.
+
+### Verifikasi
+- Test manual `BusinessSiteSearchFetcher::fetchForStock('BUMI')`: 5/5 artikel dapat `image_url`
+  valid (URL CDN Katadata asli).
+- `php artisan test --filter="News"`: 75 passed, tidak ada regresi.
+- Artikel spesifik yang ditunjukkan user (ID 365, "Laba Bumi Resources (BUMI) Naik 35%...")
+  diupdate manual dengan gambar hasil fetch sebagai bukti langsung.
+- Real run `php artisan news:fetch --stock=BUMI` dijalankan di background untuk backfill natural
+  artikel BUMI lainnya (tidak ditunggu selesai -- provider ini jadi sedikit lebih lambat karena
+  request tambahan per artikel, wajar).
+
+### Status: SELESAI. Artikel lama dari business_site_search selain yang di-update manual akan
+terisi image_url secara bertahap tiap kali scheduler fetch berita berjalan (tidak di-backfill
+massal sinkron -- terlalu banyak artikel utk 1x request per URL dalam sesi ini).
