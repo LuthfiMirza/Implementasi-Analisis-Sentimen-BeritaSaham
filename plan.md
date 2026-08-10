@@ -3104,3 +3104,40 @@ fetcher ini.
 ### Status: SELESAI. Artikel lama dari business_site_search selain yang di-update manual akan
 terisi image_url secara bertahap tiap kali scheduler fetch berita berjalan (tidak di-backfill
 massal sinkron -- terlalu banyak artikel utk 1x request per URL dalam sesi ini).
+
+## Fase BG (lanjutan) — Backfill massal gambar business_site_search + temuan bot-detection
+
+### Konteks
+User tunjukkan contoh KEDUA (artikel BRPT "Milik Prajogo Ungkap Fakta...") yang masih placeholder
+walau fix Fase BG sudah aktif -- ternyata artikel itu tersimpan SEBELUM fix, jadi belum ter-refresh
+(bukan bug baru). Diminta backfill semua artikel lama sekalian.
+
+### Perubahan kode
+- `BusinessSiteSearchFetcher::fetchOgImage()` diubah dari `protected` ke `public` supaya bisa
+  dipanggil ulang dari command terpisah.
+- File baru `app/Console/Commands/BackfillBusinessSiteSearchImagesCommand.php`
+  (`news:backfill-business-site-images --limit=N`) -- iterasi artikel `business_site_search` yang
+  `image_url` masih null, panggil `fetchOgImage()` per artikel, update kalau ketemu.
+
+### Eksekusi & hasil
+- Dijalankan `--limit=141` (semua yang butuh backfill saat itu) di background, ~129 artikel
+  diproses berhasil selesai.
+- Hasil akhir: **118/143 artikel business_site_search sekarang punya image_url** (naik dari 2/143
+  sebelum backfill).
+- 25 sisanya TIDAK dapat gambar -- 2 kategori penyebab berbeda:
+  1. Artikel yang og:image-nya memang tidak ada di halaman aslinya (situs tidak selalu isi tag
+     itu) -- normal, bukan bug.
+  2. **Temuan penting**: sebagian request ke Katadata diblokir oleh WAF/anti-bot mereka (BytePlus
+     captcha "Security Check in Progress...") -- dibuktikan konkret dengan artikel BRPT yang
+     ditunjukkan user kedua, response HTTP 200 tapi isinya cuma halaman captcha, bukan artikel
+     asli. TIDAK DICOBA DIBYPASS (melanggar kebijakan anti-scraping situs sumber) -- artikel yang
+     kena ini akan tetap placeholder selamanya kecuali Katadata berhenti nge-block request kita di
+     lain waktu (misal karena rate limit sementara, bukan permanent block).
+
+### Verifikasi
+- `php artisan test --filter="News"`: 75 passed, tidak ada regresi.
+- Query DB langsung: 118/143 (82%) artikel business_site_search sekarang punya image_url valid.
+
+### Status: SELESAI. Command `news:backfill-business-site-images` tersedia untuk dipakai ulang
+manual kalau perlu (tidak dijadwalkan otomatis -- artikel baru sudah dapat gambar langsung lewat
+fetch normal, backfill cuma untuk artikel lama).

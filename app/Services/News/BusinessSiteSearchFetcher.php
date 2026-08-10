@@ -284,7 +284,7 @@ class BusinessSiteSearchFetcher implements NewsFetcherInterface
      * relevansi (bukan semua hasil pencarian), timeout pendek + try/catch supaya satu artikel
      * yang gagal/lambat tidak pernah menggagalkan fetch keseluruhan.
      */
-    protected function fetchOgImage(string $articleUrl): ?string
+    public function fetchOgImage(string $articleUrl): ?string
     {
         try {
             $response = Http::withHeaders([
