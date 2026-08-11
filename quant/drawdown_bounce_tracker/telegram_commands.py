@@ -169,6 +169,12 @@ def handle_command(text: str, positions: list[dict]) -> tuple[list[dict], str]:
         positions = [p for p in positions if p["ticker"] != ticker]
         if len(positions) == before:
             return positions, f"Tidak ada posisi {ticker} yang sedang dipantau -- tidak ada yang ditutup."
+        # Fase BJ: telegram_commands.py sengaja tidak pernah sentuh MySQL langsung (resilience
+        # sama seperti open_positions.json -- lihat CheckTelegramCommandsCommand.php). Baris
+        # SYNC_CLOSE ini dicetak ke stdout supaya PHP (yang MEMANG sudah asumsikan DB nyala saat
+        # command artisan jalan) bisa parse & terapkan penutupan yang sama ke tabel `trades` --
+        # jembatan satu arah Telegram -> web Trade Journal, otomatis, tanpa perlu tutup 2 kali.
+        print(f"SYNC_CLOSE|{ticker}|{price}|{cmd_date}")
         return positions, f"✅ {ticker} ditutup dari pemantauan (dicatat harga exit Rp{price:.0f}, {cmd_date}). Tidak akan ada alert lagi untuk posisi ini."
 
     # open
@@ -224,13 +230,20 @@ def format_status(positions: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def load_closed_trades() -> list[dict]:
+def load_closed_trades() -> dict:
+    """Fase BJ: cache sekarang punya 2 bagian -- {"overall": {...}, "recent": [...]}. Fallback ke
+    bentuk lama (list mentah, cache dari sebelum perubahan ini) supaya tidak crash kalau
+    cache belum sempat di-refresh ulang setelah deploy."""
     if not CLOSED_TRADES_CACHE_PATH.is_file():
-        return []
+        return {"overall": None, "recent": []}
     try:
-        return json.loads(CLOSED_TRADES_CACHE_PATH.read_text(encoding="utf-8"))
+        data = json.loads(CLOSED_TRADES_CACHE_PATH.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
-        return []
+        return {"overall": None, "recent": []}
+
+    if isinstance(data, list):  # cache format lama
+        return {"overall": None, "recent": data}
+    return {"overall": data.get("overall"), "recent": data.get("recent", [])}
 
 
 RESULT_LABELS = {
@@ -252,24 +265,41 @@ def _short_date(iso_date: str | None) -> str:
         return iso_date
 
 
-def format_history(trades: list[dict]) -> str:
-    if not trades:
+def format_history(cache: dict) -> str:
+    overall = cache.get("overall")
+    trades = cache.get("recent") or []
+
+    if not trades and not overall:
         return (
             "Belum ada riwayat posisi yang ditutup, atau cache-nya belum sempat di-refresh "
             "(butuh MySQL nyala minimal sekali sejak posisi terakhir ditutup)."
         )
 
-    win_count = sum(1 for t in trades if (t.get("pnl_total") or 0) > 0)
-    loss_count = len(trades) - win_count
-    total_pnl = sum(t.get("pnl_total") or 0 for t in trades)
-    total_sign = "-" if total_pnl < 0 else "+"
-    total_txt = f"{total_sign}Rp{abs(total_pnl):,.0f}".replace(",", ".")
+    lines = []
+    if overall:
+        # Ringkasan dari SEMUA trade closed -- basis sama persis dengan kartu ringkasan di web
+        # /trades, bukan cuma dihitung dari 10 posisi yang ditampilkan di bawah (dulu sempat
+        # bikin bingung karena angkanya beda jauh dari web).
+        total_pnl = overall.get("total_pnl") or 0
+        total_sign = "-" if total_pnl < 0 else "+"
+        total_txt = f"{total_sign}Rp{abs(total_pnl):,.0f}".replace(",", ".")
+        lines.append(
+            f"<b>Ringkasan {overall.get('total_trades', 0)} total trade (semua, seperti di web):</b>\n"
+            f"\U0001F7E2 {overall.get('win_count', 0)} menang • \U0001F534 {overall.get('loss_count', 0)} rugi "
+            f"• Win rate {overall.get('win_rate', 0):.1f}%\n"
+            f"Total P&amp;L {total_txt} • Avg R:R 1:{overall.get('avg_rr', 0):.2f} • "
+            f"Expectancy {overall.get('expectancy', 0):+.1f}% • Avg holding {overall.get('avg_holding', 0):.1f} hari\n"
+        )
+    else:
+        win_count = sum(1 for t in trades if (t.get("pnl_total") or 0) > 0)
+        loss_count = len(trades) - win_count
+        total_pnl = sum(t.get("pnl_total") or 0 for t in trades)
+        total_sign = "-" if total_pnl < 0 else "+"
+        total_txt = f"{total_sign}Rp{abs(total_pnl):,.0f}".replace(",", ".")
+        lines.append(f"\U0001F7E2 {win_count} menang • \U0001F534 {loss_count} rugi • Total P&amp;L {total_txt}\n")
 
-    lines = [
-        f"<b>Riwayat {len(trades)} posisi terakhir yang ditutup:</b>",
-        f"\U0001F7E2 {win_count} menang • \U0001F534 {loss_count} rugi • Total P&amp;L {total_txt}\n",
-    ]
-    for t in trades:
+    lines.append(f"<b>{min(len(trades), 10)} posisi terakhir yang ditutup:</b>")
+    for t in trades[:10]:
         entry = float(t["entry_price"])
         exit_ = float(t["exit_price"]) if t.get("exit_price") is not None else None
         pnl_total = t.get("pnl_total")

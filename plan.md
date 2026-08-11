@@ -3232,3 +3232,57 @@ baca `raw_payload` yang sudah ada dan tulis ulang `source_url`.
 ### Status: SELESAI. Ini bug lama yang sudah ada sejak GoogleNewsRssFetcher dibuat -- sempat
 disalahartikan sebagai "limitasi Google yang tidak bisa diperbaiki" di riset R7a sesi sebelumnya,
 padahal itu bug murni di kode kita sendiri (kolom kekecilan + threshold salah).
+
+## Fase BJ — Jembatan otomatis Telegram /close -> web Trade Journal + /history tampilkan total sebenarnya
+
+### Konteks
+User tutup posisi BUMI & DEWA via `/close` di Telegram, tapi web `/trades` masih menampilkan
+keduanya sebagai OPEN. Root cause: bot Telegram (`open_positions.json`) dan web Trade Journal
+(tabel MySQL `trades`) itu 2 sistem data terpisah total, tidak pernah saling sinkron -- `/close`
+cuma mematikan alert otomatis, tidak menyentuh record MySQL. Ditutup manual dulu (BUMI exit
+Rp186, DEWA exit Rp474, tanggal 10 Agu 2026) sebagai perbaikan segera, lalu diminta bangun
+jembatan otomatis biar tidak perlu tutup 2 kali lagi ke depannya.
+
+Sekalian ditemukan pertanyaan kedua: `/history` di Telegram menampilkan ringkasan cuma dari 10
+posisi terakhir ("10 menang, 0 rugi, +Rp7,4jt"), beda jauh dari kartu ringkasan web yang
+menghitung dari SEMUA 155 trade (83% WR, +Rp129,9jt) -- membingungkan karena kelihatan seperti
+angka salah, padahal cuma beda cakupan data.
+
+### Perbaikan 1: jembatan /close -> MySQL
+- `telegram_commands.py::handle_command()`: saat `/close` berhasil, cetak baris terstruktur
+  `SYNC_CLOSE|TICKER|PRICE|TANGGAL` ke stdout (selain balasan normal ke user) -- Python
+  TETAP tidak pernah sentuh MySQL langsung (prinsip resilience yang sama seperti
+  `open_positions.json`, biar tetap jalan kalau MySQL lagi mati).
+- `Trade.php::close()`: tambah parameter opsional `?Carbon $exitDate = null` (default `now()`
+  kalau tidak diisi) -- sebelumnya selalu hardcode "sekarang", tidak bisa dipakai untuk sync
+  tanggal exit yang beda dari hari ini.
+- `CheckTelegramCommandsCommand.php`: method baru `syncTelegramClosesToTradeJournal()` -- parse
+  baris `SYNC_CLOSE|...` dari output Python, cari record `trades` dengan ticker sama & status
+  `open` (paling baru kalau lebih dari satu), panggil `Trade::close()` dengan harga & tanggal
+  yang sama persis dari Telegram. Kalau tidak ada record open yang cocok atau DB mati, skip
+  dengan warning -- tidak menggagalkan keseluruhan command (alert Telegram tetap harus jalan).
+
+### Perbaikan 2: /history tampilkan ringkasan SEMUA trade, bukan cuma 10
+- `CheckTelegramCommandsCommand::refreshClosedTradesCache()`: cache sekarang `{"overall": {...},
+  "recent": [...]}` -- `overall` dihitung dari SEMUA trade closed (basis sama persis dengan kartu
+  ringkasan web: total_trades, win_count, loss_count, win_rate, total_pnl, avg_rr, expectancy,
+  avg_holding), `recent` tetap 10 detail terakhir seperti sebelumnya.
+- `telegram_commands.py::load_closed_trades()` & `format_history()`: baca struktur baru,
+  tampilkan `overall` sebagai ringkasan utama (match web), `recent` sebagai daftar 10 di
+  bawahnya. Fallback ke format lama (list mentah) kalau cache belum sempat di-refresh setelah
+  deploy -- tidak crash.
+
+### Verifikasi
+- Uji end-to-end manual: buat trade OPEN palsu (TESTX), panggil `handle_command('/close ...')`
+  di Python -> konfirmasi baris `SYNC_CLOSE|TESTX|120.0|2026-08-10` tercetak. Panggil
+  `syncTelegramClosesToTradeJournal()` di PHP dengan baris itu -> record TESTX otomatis
+  ter-tutup dengan perhitungan benar (holding 9 hari, pnl Rp20.000). Panggil lagi kedua kalinya
+  -> terdeteksi "sudah tidak ada posisi OPEN", tidak dobel proses. Data uji dihapus setelahnya.
+- Render `format_history()` real: ringkasan "155 total trade... Win rate 83.2%... Total P&L
+  +Rp131.811.825" -- cocok dengan kartu web (dicek langsung, angka match).
+- 2 test lama (`CheckTelegramCommandsCommandTest`) diupdate mengikuti struktur cache baru.
+- `php artisan test`: **485 passed**, tidak ada regresi.
+
+### Status: SELESAI. Sinkronisasi berlaku otomatis untuk SEMUA /close berikutnya dari Telegram --
+tidak perlu tutup manual di web lagi kecuali posisi itu memang belum pernah dicatat di sana sejak
+awal.

@@ -53,8 +53,10 @@ class Trade extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function close(float $exitPrice, string $result): void
+    public function close(float $exitPrice, string $result, ?Carbon $exitDate = null): void
     {
+        $exitDate ??= Carbon::now();
+
         $pnlPerShare = $exitPrice - $this->entry_price;
         $pnlTotal = $pnlPerShare * ($this->lot_size ?? 1);
         $pnlPct = $this->entry_price > 0
@@ -62,11 +64,12 @@ class Trade extends Model
             : 0;
         $risk = $this->entry_price - $this->stop_loss;
         $actualRR = $risk > 0 ? round($pnlPerShare / $risk, 2) : 0;
-        $holdingDays = $this->entry_date ? $this->entry_date->diffInDays(Carbon::now()) : null;
+        $holdingDays = $this->entry_date ? $this->entry_date->diffInDays($exitDate) : null;
 
         $this->update([
             'exit_price' => $exitPrice,
-            'exit_date' => Carbon::now()->toDateString(),
+            'exit_date' => $exitDate->toDateString(),
+            'closed_at' => $exitDate,
             'result' => $result,
             'status' => 'closed',
             'pnl_per_share' => round($pnlPerShare, 2),

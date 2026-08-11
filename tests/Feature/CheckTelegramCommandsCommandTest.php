@@ -55,8 +55,9 @@ class CheckTelegramCommandsCommandTest extends TestCase
         $this->assertFileExists($this->cachePath);
         $cached = json_decode(file_get_contents($this->cachePath), true);
 
-        $this->assertCount(1, $cached);
-        $this->assertSame('BUMI', $cached[0]['ticker']);
+        $this->assertSame(1, $cached['overall']['total_trades']);
+        $this->assertCount(1, $cached['recent']);
+        $this->assertSame('BUMI', $cached['recent'][0]['ticker']);
     }
 
     public function test_run_still_succeeds_when_no_closed_trades_exist(): void
@@ -68,7 +69,9 @@ class CheckTelegramCommandsCommandTest extends TestCase
         $this->artisan('research:check-telegram-commands')->assertExitCode(0);
 
         $this->assertFileExists($this->cachePath);
-        $this->assertSame([], json_decode(file_get_contents($this->cachePath), true));
+        $cached = json_decode(file_get_contents($this->cachePath), true);
+        $this->assertSame(0, $cached['overall']['total_trades']);
+        $this->assertSame([], $cached['recent']);
     }
 
     public function test_no_new_commands_still_exits_successfully(): void
