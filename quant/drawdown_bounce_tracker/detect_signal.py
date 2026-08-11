@@ -35,6 +35,13 @@ import yfinance as yf
 
 TRACKING_START_DATE = date(2026, 7, 31)  # PROTOCOL.md lock date -- do not backdate
 DROP_THRESHOLD = -0.05
+DRAWDOWN_THRESHOLD = -0.20  # Fase BK: leg kedua aturan gabungan, lihat COMBINED_RULE_TICKERS
+# Fase BK: aturan gabungan (ret_2d<=-5% ATAU drawdown_20d<=-20%) divalidasi ketat (protokol P1-P4,
+# split 70/30 DAN 60/40, sama persis dengan yang mem-vonis kandidat DEWA TP/SL dulu) di 6 saham --
+# LULUS PENUH di BUMI/DEWA/BRPT/ESSA/UNVR, SMGR gagal gate P4 (bootstrap CI95 lower bound belum
+# > 0, walau arahnya tidak negatif) sehingga TETAP pakai aturan lama (ret_2d saja). Lihat plan.md
+# Fase BK untuk tabel hasil lengkap per saham.
+COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR"}
 LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "tracked",
           "ESSA": "tracked", "UNVR": "tracked"}  # DEWA dinaikkan dari
 # "exploratory" ke "tracked" di Fase AX -- backtest BUMI-only -5% khusus DEWA (2024-sekarang)
@@ -215,10 +222,34 @@ def format_signal_alert(signal: dict) -> str:
             "lihat PROTOCOL.md (sample historisnya belum cukup meyakinkan untuk DEWA)."
         )
 
+    # Fase BK: label syarat yang trigger -- Ret 2 Hari saja, Drawdown 20 Hari saja, atau Ganda
+    # (keduanya sekaligus). SMGR tidak pernah "drawdown"/"ganda" (di luar COMBINED_RULE_TICKERS).
+    signal_type = signal.get("signal_type", "ret2d")
+    trigger_lines = [f"{signal['ticker']} {signal['stock_ret_2d']:+.1%} (2 hari)"]
+    if signal_type == "ret2d":
+        trigger_lines[0] += " -- syarat sinyal (Turun Tajam 2 Hari)"
+    elif signal_type == "drawdown":
+        trigger_lines[0] += " -- info konteks (bukan syarat kali ini)"
+    else:  # ganda
+        trigger_lines[0] += " -- syarat sinyal (Turun Tajam 2 Hari)"
+
+    dd_20d = signal.get("dd_20d")
+    if dd_20d is not None:
+        dd_line = f"Drawdown 20 hari: {dd_20d:+.1%}"
+        if signal_type == "drawdown":
+            dd_line += " -- syarat sinyal (Drawdown Dalam)"
+        elif signal_type == "ganda":
+            dd_line += " -- syarat sinyal (Ganda: Turun Tajam + Drawdown Dalam)"
+        else:
+            dd_line += " -- info konteks (bukan syarat kali ini)"
+        trigger_lines.append(dd_line)
+
+    trigger_block = "\n".join(trigger_lines)
+
     return (
         f"{header}\n\n"
         f"<b>Trigger</b>: {signal['trigger_date']}\n"
-        f"{signal['ticker']} {signal['stock_ret_2d']:+.1%} (2 hari) -- syarat sinyal\n"
+        f"{trigger_block}\n"
         f"IHSG {signal['ihsg_ret_2d']:+.1%} (2 hari) -- info konteks saja, bukan syarat\n\n"
         f"<b>Entry</b>: {signal['entry_date']}\n"
         f"Harga: Rp{signal['entry_price']:.0f}\n\n"
@@ -234,6 +265,12 @@ def format_signal_alert(signal: dict) -> str:
 def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    try:
+        # Fase BK: schema.sql's CREATE TABLE IF NOT EXISTS doesn't retrofit columns onto a DB
+        # file that already existed pre-BK -- ALTER TABLE here is the migration for those.
+        conn.execute("ALTER TABLE signals ADD COLUMN signal_type TEXT")
+    except sqlite3.OperationalError:
+        pass  # column already exists
     return conn
 
 
@@ -252,16 +289,28 @@ def stochastic_k(high: pd.Series, low: pd.Series, close: pd.Series, period: int 
 
 
 def fetch_recent(symbol: str, days: int = 60) -> pd.DataFrame:
-    # 60d (not 20d) so RSI14/Stoch14's rolling windows are warmed up by the trigger date --
-    # context-only indicators, not used in the entry/exit rule itself (see PROTOCOL.md).
+    # 60d (not 20d) so RSI14/Stoch14/drawdown_20d rolling windows are warmed up by the trigger
+    # date -- RSI/Stoch context-only (see PROTOCOL.md), drawdown_20d IS part of the entry rule
+    # since Fase BK.
+    #
+    # Fase BK: ganti dari "Adj Close" (harga disesuaikan dividen) ke "Close" MENTAH -- bug lama
+    # yang sebelumnya ditandai "low-impact untuk BUMI/DEWA" (dividennya nyaris nol) tapi WAJIB
+    # diperbaiki sebelum nambah saham berdividen nyata ke daftar ini. UNVR (salah satu dari 5
+    # saham yang sekarang pakai aturan gabungan) itu pembayar dividen besar -- entry_price dan
+    # drawdown_20d yang baru harus konsisten dengan backtest yang sudah divalidasi (yang pakai
+    # Close mentah, bukan Adj Close).
     df = yf.download(symbol, period=f"{days}d", progress=False, auto_adjust=False)
     df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
-    df = df.reset_index().rename(columns={"Date": "date", "Adj Close": "adj_close"})
+    df = df.reset_index().rename(columns={"Date": "date"})
     df["date"] = pd.to_datetime(df["date"]).dt.date
-    df["ret_2d"] = df["adj_close"].pct_change(2)
-    df["rsi14"] = rsi(df["adj_close"])
-    df["stoch_k"] = stochastic_k(df["High"], df["Low"], df["adj_close"])
-    return df[["date", "adj_close", "ret_2d", "rsi14", "stoch_k"]]
+    df["adj_close"] = df["Close"]  # nama kolom dipertahankan ("adj_close") supaya konsumen lama
+    # (format_signal_alert, dll) tidak perlu diubah -- isinya sekarang Close mentah, bukan
+    # Adj Close, per catatan Fase BK di atas.
+    df["ret_2d"] = df["Close"].pct_change(2)
+    df["rsi14"] = rsi(df["Close"])
+    df["stoch_k"] = stochastic_k(df["High"], df["Low"], df["Close"])
+    df["dd_20d"] = df["Close"] / df["Close"].rolling(20).max() - 1
+    return df[["date", "adj_close", "ret_2d", "rsi14", "stoch_k", "dd_20d"]]
 
 
 def detect() -> list[dict]:
@@ -285,8 +334,17 @@ def detect() -> list[dict]:
             # Fase AW: BUMI-only -- syarat IHSG ikut ambruk DIHAPUS (dulu wajib
             # ret_2d_ihsg <= DROP_THRESHOLD juga). ihsg_ret_2d masih dicatat & ditampilkan di
             # alert sebagai info konteks, bukan lagi filter.
-            if not (trigger_row["ret_2d_stock"] <= DROP_THRESHOLD):
+            # Fase BK: aturan gabungan -- leg drawdown_20d cuma berlaku untuk COMBINED_RULE_TICKERS
+            # (SMGR gagal gate P4 di validasi ketat, tetap pakai ret_2d saja).
+            ret2d_hit = bool(trigger_row["ret_2d_stock"] <= DROP_THRESHOLD)
+            dd_hit = bool(
+                ticker in COMBINED_RULE_TICKERS
+                and trigger_row["dd_20d_stock"] <= DRAWDOWN_THRESHOLD
+            )
+            if not (ret2d_hit or dd_hit):
                 continue
+
+            signal_type = "ganda" if (ret2d_hit and dd_hit) else ("ret2d" if ret2d_hit else "drawdown")
 
             found.append({
                 "ticker": ticker,
@@ -294,8 +352,13 @@ def detect() -> list[dict]:
                 "trigger_date": trigger_date.isoformat(),
                 "ihsg_ret_2d": float(trigger_row["ret_2d_ihsg"]),
                 "stock_ret_2d": float(trigger_row["ret_2d_stock"]),
+                "dd_20d": float(trigger_row["dd_20d_stock"]),
+                "signal_type": signal_type,
                 "entry_date": entry_row["date"].isoformat(),
-                "entry_price": float(entry_row["adj_close"]),
+                # Fase BK: bug lama -- kolom sudah di-suffix oleh merge() (jadi "adj_close_stock",
+                # bukan "adj_close" polos), tapi baris ini belum pernah kena karena belum ada
+                # sinyal live yang benar-benar tembus sejak refactor merge diperkenalkan.
+                "entry_price": float(entry_row["adj_close_stock"]),
                 "rsi14": None if pd.isna(trigger_row["rsi14_stock"]) else float(trigger_row["rsi14_stock"]),
                 "stoch_k": None if pd.isna(trigger_row["stoch_k_stock"]) else float(trigger_row["stoch_k_stock"]),
             })
@@ -313,10 +376,10 @@ def main() -> None:
             conn.execute(
                 """INSERT INTO signals
                 (ticker, label, trigger_date, ihsg_ret_2d, stock_ret_2d, entry_date, entry_price,
-                 rsi14, stoch_k)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                 rsi14, stoch_k, signal_type)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (s["ticker"], s["label"], s["trigger_date"], s["ihsg_ret_2d"], s["stock_ret_2d"],
-                 s["entry_date"], s["entry_price"], s["rsi14"], s["stoch_k"]),
+                 s["entry_date"], s["entry_price"], s["rsi14"], s["stoch_k"], s["signal_type"]),
             )
             inserted += 1
             print(f"SIGNAL BARU: {s['ticker']} ({s['label']}) trigger {s['trigger_date']} "

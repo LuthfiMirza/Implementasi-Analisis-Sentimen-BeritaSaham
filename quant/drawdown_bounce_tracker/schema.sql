@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS signals (
                                                   -- ~3/8 of the user's own hindsight examples, so
                                                   -- these are shown as supporting info, never a
                                                   -- second trigger condition.
+    signal_type         TEXT,                   -- Fase BK: 'ret2d' | 'drawdown' | 'ganda' -- which
+                                                  -- leg(s) of the combined rule fired (BUMI/DEWA/
+                                                  -- BRPT/ESSA/UNVR only; SMGR stays ret2d-only, see
+                                                  -- COMBINED_RULE_TICKERS in detect_signal.py).
     notes               TEXT,
     UNIQUE(ticker, trigger_date)
 );

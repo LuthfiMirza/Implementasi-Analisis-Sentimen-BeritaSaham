@@ -3286,3 +3286,84 @@ angka salah, padahal cuma beda cakupan data.
 ### Status: SELESAI. Sinkronisasi berlaku otomatis untuk SEMUA /close berikutnya dari Telegram --
 tidak perlu tutup manual di web lagi kecuali posisi itu memang belum pernah dicatat di sana sejak
 awal.
+
+## Fase BK -- Implementasi aturan gabungan (ret_2d ATAU drawdown_20d) ke live detector
+
+### Konteks
+User memberi 17 tanggal historis BUMI yang menurutnya "seharusnya" tertangkap sinyal beli, minta
+dicarikan indikator/strategi yang bisa menangkapnya. Untuk menghindari curve-fitting (3 kegagalan
+sebelumnya di proyek ini: buying-pressure, trend-following, TPIA), dilakukan base-rate/lift
+analysis dulu, bukan langsung cocok-cocokkan ke 17 tanggal. Hasil karakterisasi: 17 tanggal itu
+terbagi 2 klaster berbeda --
+- **Klaster A "pullback dalam"** (12 tanggal): median RSI=35, Stoch=13, harga -14% dari MA20,
+  -27% dari puncak 20 hari -- pola oversold/mean-reversion klasik.
+- **Klaster B "momentum/dekat puncak"** (5 tanggal: 8 Des, 17/22/29 Jul, 5 Agu): median RSI=62,
+  Stoch=62, harga +9% di atas MA20 -- pola breakout/momentum, TIDAK mungkin ditangkap filter
+  oversold apa pun secara struktural. **Belum ada strategi untuk klaster ini -- area riset
+  terbuka, belum diminta user untuk dikerjakan.**
+
+Klaster A cocok ditangkap indikator **drawdown 20 hari** (`Close / rolling_max(Close,20) - 1`).
+Aturan gabungan `ret_2d<=-5% ATAU drawdown_20d<=-20%` divalidasi dengan protokol KETAT yang sama
+persis dipakai untuk memvonis kandidat DEWA TP/SL dulu (P1: OOS expectancy>0, P2: MENGALAHKAN
+buy-and-hold, P3: excl-top5%-winner>0, P4: bootstrap CI95 lower bound>0; split 70/30 DAN 60/40;
+episode-independence -- trade dalam 15 hari kalender digabung jadi 1 episode) -- diuji di BUMI lalu
+5 saham lain (DEWA, BRPT, SMGR, ESSA, UNVR).
+
+### Hasil validasi (6 saham)
+| Saham | Status | Total return SEKARANG | Total return GABUNGAN |
+|---|---|---|---|
+| BUMI | LULUS PENUH | +196,2% (69 trade) | (baseline pembanding) |
+| DEWA | LULUS PENUH | -- | naik |
+| BRPT | LULUS PENUH | -- | naik |
+| ESSA | LULUS PENUH | -- | naik |
+| UNVR | LULUS PENUH | -- | naik |
+| SMGR | GAGAL gate P4 saja (bootstrap CI95 lower bound belum >0, arah TIDAK negatif) | -- | -- |
+
+**Keputusan**: 5 saham (BUMI/DEWA/BRPT/ESSA/UNVR) pindah ke aturan gabungan. SMGR TETAP pakai
+aturan lama (ret_2d saja) -- gagal 1 dari 4 gate meski arahnya tidak negatif, tidak cukup kuat
+untuk dinaikkan status.
+
+### Perubahan
+- `quant/drawdown_bounce_tracker/detect_signal.py`:
+  - `fetch_recent()`: tambah kolom `dd_20d` (`Close/rolling_max(Close,20)-1`). **Sekalian
+    perbaiki bug lama**: ganti basis harga dari `Adj Close` (disesuaikan dividen) ke `Close`
+    mentah -- ditandai sebelumnya "low-impact untuk BUMI/DEWA" tapi WAJIB diperbaiki sebelum ada
+    saham berdividen nyata di daftar; UNVR (salah satu dari 5 saham gabungan) itu pembayar
+    dividen besar, dan backtest validasi di atas memang pakai Close mentah, bukan Adj Close.
+  - Konstanta baru: `DRAWDOWN_THRESHOLD = -0.20`, `COMBINED_RULE_TICKERS = {BUMI, DEWA, BRPT,
+    ESSA, UNVR}` (SMGR sengaja tidak dimasukkan).
+  - `detect()`: trigger sekarang `ret2d_hit OR (ticker in COMBINED_RULE_TICKERS AND dd_hit)`,
+    setiap sinyal diberi label `signal_type` (`ret2d` / `drawdown` / `ganda`) sesuai kondisi yang
+    benar-benar terpenuhi.
+  - **Bug lain ditemukan & diperbaiki sekalian**: `entry_row["adj_close"]` seharusnya
+    `entry_row["adj_close_stock"]` -- kolom sudah di-suffix oleh `merge(suffixes=("_stock",
+    "_ihsg"))` sejak refactor sebelumnya, tapi baris ini tidak pernah diperbaiki karena belum
+    pernah ada sinyal live yang benar-benar tembus sejak refactor itu (TRACKING_START_DATE masih
+    sangat baru, 2026-07-31). Ditemukan saat dry-run simulasi historis untuk fase ini.
+  - `format_signal_alert()`: baris trigger sekarang menandai jelas syarat mana yang terpenuhi
+    ("-- syarat sinyal (Turun Tajam 2 Hari)" / "(Drawdown Dalam)" / "(Ganda: ...)" vs "-- info
+    konteks (bukan syarat kali ini)" untuk kondisi yang tidak ikut memicu).
+- `quant/drawdown_bounce_tracker/schema.sql`: kolom baru `signal_type TEXT` di tabel `signals`.
+- `get_connection()`: tambah migrasi `ALTER TABLE signals ADD COLUMN signal_type TEXT` dibungkus
+  try/except (`CREATE TABLE IF NOT EXISTS` di schema.sql tidak menambah kolom ke DB yang sudah
+  ada) -- dicek: kolom berhasil bertambah ke `tracker.sqlite3` yang sudah eksis tanpa merusak
+  data lama.
+
+### Verifikasi
+- Simulasi historis (TRACKING_START_DATE dimundurkan ke 2024-01-01 sekadar untuk uji, tidak
+  mengubah nilai produksi) menghasilkan 32 sinyal gabungan di 6 saham: 18 `ret2d`, 7 `drawdown`,
+  7 `ganda` -- 3 jenis benar-benar muncul, bukan cuma teoretis.
+  - Contoh `ret2d`: ESSA 28 Jul 2026, -5,5%/2hari.
+  - Contoh `drawdown` murni: BRPT 1 Jul 2026, ret_2d cuma -1,8% (tidak lolos syarat lama) tapi
+    drawdown 20 hari -22,5% -- kasus PERSIS yang tadinya lolos dari radar aturan lama.
+  - Contoh `ganda`: ESSA 30 Jun 2026, ret_2d -16,9% DAN drawdown -22,6% sekaligus.
+- Real run produksi: `php artisan research:detect-drawdown-bounce-signal` -- 0 sinyal baru sejak
+  `TRACKING_START_DATE` (2026-07-31), konsisten dengan laporan sebelumnya (BUMI sudah pulih sejak
+  22 Jul, belum ada trigger baru). Kolom `signal_type` berhasil termigrasi ke `tracker.sqlite3`
+  yang sudah ada (dicek `PRAGMA table_info`).
+- Format alert Telegram baru dites kirim REAL ke kedua akun (chat_id 7162558029 & 8870402966) --
+  `ok:true`, message_id 187 & 188.
+
+### Status: SELESAI. Aturan gabungan live di produksi untuk BUMI/DEWA/BRPT/ESSA/UNVR (SMGR tetap
+aturan lama). Klaster B (momentum/breakout, 5 tanggal user) masih belum tertangani -- area riset
+terbuka, menunggu keputusan user apakah mau dikejar.
