@@ -3711,3 +3711,46 @@ temuan.
 
 ### Status: SELESAI (perbaikan minimal). Isu pencampuran 4 strategi di kartu ringkasan Trade
 Journal TETAP ADA -- dicatat sebagai temuan terbuka, belum diminta diperbaiki user.
+
+## Fase BM lanjutan ketiga -- ternyata overlap LAMA vs GABUNGAN jauh lebih luas dari 7
+
+### Konteks
+User temukan 2 kasus dobel LAGI (BUMI 28 Jul, DEWA 9 Jul) setelah "perbaikan minimal" sebelumnya.
+Investigasi ulang: pengecekan sebelumnya cuma cocokkan `entry_price` DAN `exit_price` PERSIS sama
+(2 desimal) -- padahal 2 backfill (LAMA 9 Agu, GABUNGAN 12 Agu) menghitung exit trailing-stop
+dengan presisi BEDA (mis. 170,00 vs 169,54, sama-sama tampil "170" di UI karena dibulatkan). Jadi
+banyak pasangan overlap LOLOS dari filter exact-match.
+
+Cek ulang berbasis TANGGAL (bukan harga): dari **105 baris LAMA, ternyata 70 di antaranya**
+overlap tanggal dengan GABUNGAN (bukan cuma 7). Ini masuk akal secara matematis -- aturan GABUNGAN
+adalah `ret_2d<=-5% ATAU drawdown<=-20%`, jadi SEMUA tanggal yang dulu trigger LAMA (ret_2d saja)
+otomatis JUGA trigger GABUNGAN di tanggal yang sama persis.
+
+### Keputusan
+User setuju hapus SEMUA 70 baris LAMA yang overlap tanggal dengan GABUNGAN, simpan versi
+GABUNGAN-nya (lebih presisi, representasi aturan resmi saat ini). 35 baris LAMA yang TIDAK
+overlap (di luar jangkauan GABUNGAN, atau sebelum window backfill) tetap dipertahankan sebagai
+histori.
+
+### Perubahan
+- Hapus 70 baris `trades` berlabel LAMA yang `(ticker, entry_date)`-nya sama dengan baris
+  GABUNGAN manapun. Total trade: 265 -> 195.
+- Komposisi baru: LAMA 35, GABUNGAN 111, AI-tp30 15, LIVE 2, lainnya (manual/real) 32.
+
+### Temuan sampingan (belum ditindaklanjuti)
+- DEWA 9 Jul masih ada 2 baris, TAPI ini kategori BEDA: 1 catatan manual real-ish (dari diskusi
+  31 Jul, bukan backtest LAMA) + 1 GABUNGAN backfill -- di luar cakupan perbaikan LAMA-vs-GABUNGAN
+  ini. Ditanyakan ke user, belum ada keputusan.
+- Dicek juga sekalian: cuma **GABUNGAN dan MOMENTUM** yang benar-benar live kirim alert Telegram
+  sekarang. "LAMA" (ret_2d saja) sudah diserap jadi bagian `detect()` GABUNGAN (bukan alert
+  terpisah lagi, cuma SMGR yang efeknya masih murni ret_2d). "AI tp30%/sl3%/hold40h" TIDAK PERNAH
+  terhubung ke Telegram sama sekali -- cuma ada di script riset
+  `quant/trading_research/run_candidate_oos_walkforward_validation.py`, murni artefak backtest
+  lama yang kebetulan ke-input ke Trade Journal.
+
+### Verifikasi
+- BUMI 28 Jul dicek ulang: sekarang cuma 1 baris (GABUNGAN), dobel sudah hilang.
+- `php artisan test --filter=Trade`: 35 passed.
+
+### Status: SELESAI untuk overlap LAMA-vs-GABUNGAN. Isu DEWA 9 Jul (manual vs GABUNGAN) dan
+pencampuran 4-strategi-jadi-1-kartu masih terbuka, menunggu arahan user.
