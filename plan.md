@@ -3367,3 +3367,76 @@ untuk dinaikkan status.
 ### Status: SELESAI. Aturan gabungan live di produksi untuk BUMI/DEWA/BRPT/ESSA/UNVR (SMGR tetap
 aturan lama). Klaster B (momentum/breakout, 5 tanggal user) masih belum tertangani -- area riset
 terbuka, menunggu keputusan user apakah mau dikejar.
+
+## Fase BL -- Implementasi strategi momentum (RSI14>60) untuk Klaster B
+
+### Konteks
+Lanjutan riset Klaster B (momentum/breakout) dari Fase BK. Base-rate/lift analysis terhadap 5
+tanggal hindsight user (17 Jul, 22 Jul, 29 Jul, 5 Agu, 8 Des) menunjukkan lift lemah (indikator
+momentum menembak 15-50% dari SEMUA hari, tidak selektif) -- cocok-cocokkan ke tanggal spesifik
+TIDAK layak dijadikan aturan. Sebagai gantinya, dibacktest strategi momentum-continuation
+SUNGGUHAN (entry RSI14>60, exit sama seperti drawdown-bounce: trailing 2%/target 10 hari),
+divalidasi protokol ketat P1-P4 yang sama (split 70/30 & 60/40, episode-independence) di 6 saham:
+
+| Saham | Status |
+|---|---|
+| BUMI | LULUS PENUH 4/4 |
+| DEWA | LULUS PENUH 4/4 |
+| BRPT | LULUS PENUH 4/4 |
+| ESSA | LULUS SEBAGIAN (3/4) |
+| SMGR | GAGAL (win rate turun ke 43-50%, salah satu varian rugi) |
+| UNVR | GAGAL (1-2/4 gate) |
+
+**Red flag yang dicatat eksplisit**: 3 saham yang lulus penuh (BUMI/DEWA/BRPT) itu persis saham
+dengan bull-run terbesar sepanjang periode uji (2024-sekarang, +133% s/d +301%) -- risiko
+regime-dependence (strategi momentum cuma teruji valid di dalam tren naik yang sama, belum
+terbukti tahan di kondisi sideways/turun panjang). Beda dari drawdown-bounce (mean-reversion) yang
+tidak butuh tren naik untuk profit.
+
+**Validasi tambahan (independen, tidak diminta tapi kebetulan terjadi)**: user menandai manual
+zona "buy" di TradingView chart BUMI 4H (Jun-Agu 2026) berdasarkan insting sendiri, lalu dicek
+objektif via deteksi swing-low->rally di data intraday -- HAMPIR SEMUA zona hijau yang ditandai
+user match persis ke tanggal trigger yang sudah ditemukan: kaki-kaki kecil di Juni = drawdown-bounce
+(GABUNGAN), kaki BESAR 17-22 Jul (rally +16,9%) = momentum RSI>60. Ini konfirmasi independen dari
+sisi user sendiri (bukan cocok-cocokkan angka ke tanggal), bukan cuma dari backtest.
+
+### Keputusan
+User approve implementasi terbatas: **RSI14>60 untuk BUMI/DEWA/BRPT saja** (3 saham yang lulus
+penuh), sebagai jenis alert BARU dan TERPISAH dari drawdown-bounce -- bukan gabung jadi satu
+aturan, supaya user tidak salah kira ini strategi yang sama dengan yang sudah divalidasi lebih
+matang.
+
+### Perubahan
+- `quant/drawdown_bounce_tracker/detect_signal.py`:
+  - Konstanta baru: `MOMENTUM_RSI_THRESHOLD = 60`, `MOMENTUM_TICKERS = {BUMI, DEWA, BRPT}`,
+    `MOMENTUM_TRACKING_START_DATE = 2026-08-12` (baru diaktifkan hari ini, tidak backdate).
+  - `detect_momentum()`: fungsi terpisah dari `detect()` -- trigger `rsi14 > 60`, tidak perlu
+    merge dengan IHSG (momentum tidak pernah pakai IHSG di riset validasinya). Exit sama seperti
+    drawdown-bounce (dihitung di luar live-detector, exit ditangani terpisah lewat tracking
+    trailing-stop yang sudah ada).
+  - `format_momentum_alert()`: format alert BARU dan berbeda dari `format_signal_alert()` --
+    icon biru (bukan hijau/kuning), header "SINYAL MOMENTUM" (bukan "SINYAL BELI"), SELALU
+    ditandai EXPLORATORY dengan penjelasan eksplisit soal risiko regime-dependence, tidak peduli
+    saham yang lulus validasi penuh sekalipun.
+  - `main()`: sekarang panggil `detect()` DAN `detect_momentum()`, insert ke tabel masing-masing,
+    kirim alert masing-masing lewat formatter masing-masing.
+- `quant/drawdown_bounce_tracker/schema.sql`: tabel baru `momentum_signals` (append-only, pola
+  sama seperti `signals` -- trigger blokir UPDATE/DELETE, `UNIQUE(ticker, trigger_date)` untuk
+  idempotency). TERPISAH dari tabel `signals` yang sudah ada -- tidak dicampur.
+
+### Verifikasi
+- Simulasi historis (MOMENTUM_TRACKING_START_DATE dimundurkan ke 2026-06-01 sekadar untuk uji)
+  menghasilkan 21 sinyal momentum di 3 saham sejak awal Juni -- konsisten dengan tabel trade yang
+  sudah ditunjukkan ke user sebelumnya.
+- Real run produksi: `php artisan research:detect-drawdown-bounce-signal` -- 0 sinyal baru (baik
+  drawdown-bounce maupun momentum), sesuai ekspektasi karena `MOMENTUM_TRACKING_START_DATE` baru
+  hari ini. Tabel `momentum_signals` berhasil dibuat di `tracker.sqlite3` (dicek `PRAGMA
+  table_info`).
+- Format alert momentum dites kirim REAL ke kedua akun Telegram (chat_id 7162558029 &
+  8870402966) -- `ok:true`, message_id 189 & 190.
+- `php artisan test`: **485 passed**, tidak ada regresi (test command yang ada cuma fake Process
+  output, tidak bergantung ke teks exact dari script Python, jadi tidak perlu diupdate).
+
+### Status: SELESAI. Sinyal momentum RSI14>60 live di produksi untuk BUMI/DEWA/BRPT, sebagai jenis
+alert TERPISAH dari drawdown-bounce, selalu ditandai EXPLORATORY karena caveat regime-dependence
+belum terselesaikan (belum teruji di kondisi pasar non-tren-naik).

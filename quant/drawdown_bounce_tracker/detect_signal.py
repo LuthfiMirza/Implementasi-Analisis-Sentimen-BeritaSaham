@@ -67,6 +67,24 @@ LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "trac
 # +39.7% -- konsisten dengan screening awal sejak 2024 (win rate 68%, total +65.2%). Lihat plan.md
 # Fase BB.
 
+# Fase BL: sinyal MOMENTUM (RSI14 > 60) -- strategi KEDUA yang berjalan paralel dengan
+# drawdown-bounce di atas, hasil riset "Klaster B" (pola breakout/momentum, beda struktural dari
+# mean-reversion). Trigger: RSI14 > 60 (bukan ret_2d/drawdown -- justru kebalikannya, momentum
+# NAIK, bukan turun). Exit SAMA (trailing stop 2% / target 10 hari bursa) supaya perbandingan
+# apple-to-apple dengan drawdown-bounce.
+#
+# Divalidasi protokol ketat P1-P4 yang SAMA (split 70/30 & 60/40, episode-independence) di 6 saham
+# -- LULUS PENUH di BUMI/DEWA/BRPT, SEBAGIAN di ESSA (3/4 gate), GAGAL di SMGR/UNVR (saham lebih
+# stabil, backtest cuma valid di saham yang sudah punya bull-run kuat sepanjang periode uji).
+# HANYA diaktifkan untuk 3 yang lulus penuh -- lihat plan.md Fase BL untuk detail & CAVEAT PENTING:
+# validasi ini SELURUHNYA terjadi di dalam rezim tren-naik yang sama (2024-sekarang) untuk
+# BUMI/DEWA/BRPT -- BEDA dari drawdown-bounce yang tidak butuh tren naik untuk profit. Belum
+# teruji di kondisi pasar sideways/turun panjang -- karena itu alertnya secara eksplisit ditandai
+# EXPLORATORY/regime-dependent, bukan "tracked" penuh seperti drawdown-bounce.
+MOMENTUM_RSI_THRESHOLD = 60
+MOMENTUM_TICKERS = {"BUMI", "DEWA", "BRPT"}
+MOMENTUM_TRACKING_START_DATE = date(2026, 8, 12)  # baru diaktifkan hari ini -- jangan backdate
+
 DB_PATH = Path(__file__).parent / "tracker.sqlite3"
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 ENV_PATH = Path(__file__).parent.parent.parent / ".env"
@@ -262,6 +280,31 @@ def format_signal_alert(signal: dict) -> str:
     )
 
 
+def format_momentum_alert(signal: dict) -> str:
+    """Fase BL: alert TERPISAH untuk sinyal momentum (RSI>60) -- header, icon, dan warning beda
+    dari format_signal_alert() (drawdown-bounce) supaya user tidak salah kira ini aturan yang
+    sama. Selalu ditandai EXPLORATORY (caveat regime-dependence, lihat catatan di
+    MOMENTUM_RSI_THRESHOLD di atas), tidak peduli saham yang lulus validasi penuh sekalipun."""
+    entry_date = date.fromisoformat(signal["entry_date"])
+    exit_estimate = entry_date + pd.tseries.offsets.BDay(10)
+
+    header = f"\U0001F535 <b>SINYAL MOMENTUM: {signal['ticker']}</b>"
+
+    return (
+        f"{header}\n\n"
+        f"<b>Trigger</b>: {signal['trigger_date']}\n"
+        f"RSI14: {signal['rsi14']:.0f} (>{MOMENTUM_RSI_THRESHOLD}) -- syarat sinyal (Momentum Naik)\n\n"
+        f"<b>Entry</b>: {signal['entry_date']}\n"
+        f"Harga: Rp{signal['entry_price']:.0f}\n\n"
+        f"<b>Rencana exit</b>: tahan 10 hari bursa (trailing stop 2% dari puncak)\n"
+        f"≈ {exit_estimate.date().isoformat()}\n\n"
+        f"⚠️ <b>EXPLORATORY</b> — beda dari sinyal drawdown-bounce (mean-reversion): ini "
+        f"strategi MOMENTUM (beli saat menguat, bukan saat jatuh). Divalidasi ketat tapi HANYA "
+        f"di dalam rezim tren-naik 2024-sekarang -- belum teruji di kondisi pasar sideways/turun "
+        f"panjang. Lihat plan.md Fase BL sebelum all-in."
+    )
+
+
 def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -366,9 +409,42 @@ def detect() -> list[dict]:
     return found
 
 
+def detect_momentum() -> list[dict]:
+    """Fase BL: strategi momentum (RSI14 > 60), terpisah dari detect() (drawdown-bounce).
+    Trigger langsung dari data saham itu sendiri, tidak perlu merge dengan IHSG (momentum tidak
+    pernah pakai IHSG sebagai syarat/konteks di riset validasinya)."""
+    found = []
+
+    for ticker in sorted(MOMENTUM_TICKERS):
+        stock = fetch_recent(f"{ticker}.JK").dropna(subset=["rsi14"])
+        if len(stock) < 2:
+            continue
+
+        for i in range(len(stock) - 1):
+            trigger_row = stock.iloc[i]
+            entry_row = stock.iloc[i + 1]
+            trigger_date = trigger_row["date"]
+
+            if trigger_date < MOMENTUM_TRACKING_START_DATE:
+                continue
+            if not (trigger_row["rsi14"] > MOMENTUM_RSI_THRESHOLD):
+                continue
+
+            found.append({
+                "ticker": ticker,
+                "trigger_date": trigger_date.isoformat(),
+                "rsi14": float(trigger_row["rsi14"]),
+                "entry_date": entry_row["date"].isoformat(),
+                "entry_price": float(entry_row["adj_close"]),
+            })
+
+    return found
+
+
 def main() -> None:
     conn = get_connection()
     signals = detect()
+    momentum_signals = detect_momentum()
 
     inserted = 0
     for s in signals:
@@ -389,14 +465,37 @@ def main() -> None:
         except sqlite3.IntegrityError:
             pass  # already logged, UNIQUE(ticker, trigger_date) makes this idempotent
 
+    inserted_momentum = 0
+    for s in momentum_signals:
+        try:
+            conn.execute(
+                """INSERT INTO momentum_signals
+                (ticker, trigger_date, rsi14, entry_date, entry_price)
+                VALUES (?, ?, ?, ?, ?)""",
+                (s["ticker"], s["trigger_date"], s["rsi14"], s["entry_date"], s["entry_price"]),
+            )
+            inserted_momentum += 1
+            print(f"SINYAL MOMENTUM BARU: {s['ticker']} trigger {s['trigger_date']} "
+                  f"(RSI14={s['rsi14']:.0f}) -> entry {s['entry_date']} @ {s['entry_price']:.0f}")
+
+            send_telegram_alert(format_momentum_alert(s))
+        except sqlite3.IntegrityError:
+            pass
+
     conn.commit()
     total = conn.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
+    total_momentum = conn.execute("SELECT COUNT(*) FROM momentum_signals").fetchone()[0]
     conn.close()
 
     if inserted == 0:
-        print(f"Tidak ada sinyal baru. Tidak ada trigger sejak {TRACKING_START_DATE}. Total tercatat: {total}.")
+        print(f"Tidak ada sinyal drawdown-bounce baru. Tidak ada trigger sejak {TRACKING_START_DATE}. Total tercatat: {total}.")
     else:
-        print(f"{inserted} sinyal baru dicatat. Total tercatat: {total}.")
+        print(f"{inserted} sinyal drawdown-bounce baru dicatat. Total tercatat: {total}.")
+
+    if inserted_momentum == 0:
+        print(f"Tidak ada sinyal momentum baru. Tidak ada trigger sejak {MOMENTUM_TRACKING_START_DATE}. Total tercatat: {total_momentum}.")
+    else:
+        print(f"{inserted_momentum} sinyal momentum baru dicatat. Total tercatat: {total_momentum}.")
 
 
 if __name__ == "__main__":

@@ -25,6 +25,22 @@ CREATE TABLE IF NOT EXISTS signals (
     UNIQUE(ticker, trigger_date)
 );
 
+-- Fase BL: sinyal MOMENTUM (RSI14 > 60) -- strategi terpisah dari `signals` (drawdown-bounce),
+-- tabel sendiri supaya tidak campur dengan mean-reversion. Append-only, pola sama persis.
+CREATE TABLE IF NOT EXISTS momentum_signals (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    detected_at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    ticker              TEXT NOT NULL,          -- BUMI, DEWA, atau BRPT (satu-satunya yang lulus
+                                                  -- validasi ketat penuh, lihat detect_signal.py)
+    trigger_date        TEXT NOT NULL,          -- trading day RSI14 > 60 terpenuhi
+    rsi14               REAL NOT NULL,          -- BAGIAN dari aturan entry (beda dari `signals`
+                                                  -- table dimana rsi14 cuma info konteks)
+    entry_date          TEXT NOT NULL,
+    entry_price         REAL NOT NULL,
+    notes               TEXT,
+    UNIQUE(ticker, trigger_date)
+);
+
 CREATE TABLE IF NOT EXISTS outcomes (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
     signal_id           INTEGER NOT NULL REFERENCES signals(id),
@@ -49,6 +65,18 @@ CREATE TRIGGER IF NOT EXISTS signals_no_delete
 BEFORE DELETE ON signals
 BEGIN
     SELECT RAISE(ABORT, 'signals is append-only: rows cannot be deleted');
+END;
+
+CREATE TRIGGER IF NOT EXISTS momentum_signals_no_update
+BEFORE UPDATE ON momentum_signals
+BEGIN
+    SELECT RAISE(ABORT, 'momentum_signals is append-only: log a new row instead of editing');
+END;
+
+CREATE TRIGGER IF NOT EXISTS momentum_signals_no_delete
+BEFORE DELETE ON momentum_signals
+BEGIN
+    SELECT RAISE(ABORT, 'momentum_signals is append-only: rows cannot be deleted');
 END;
 
 CREATE TRIGGER IF NOT EXISTS outcomes_no_update
