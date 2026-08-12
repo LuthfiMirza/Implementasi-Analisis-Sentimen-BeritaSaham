@@ -3754,3 +3754,34 @@ histori.
 
 ### Status: SELESAI untuk overlap LAMA-vs-GABUNGAN. Isu DEWA 9 Jul (manual vs GABUNGAN) dan
 pencampuran 4-strategi-jadi-1-kartu masih terbuka, menunggu arahan user.
+
+---
+
+## Fase BO — Guard Snapshot Intraday (fix bug harga entry salah)
+
+### Konteks
+Bug ditemukan live 12 Agu 2026: script `detect_signal.py` dijalankan manual jam 09:16 WIB (bursa
+masih buka sampai 15:00), harga DEWA tercatat Rp448 (intraday) tapi closing asli ternyata Rp466
+(selisih +4%). `yf.download()` mengembalikan baris hari ini dengan harga TIDAK FINAL kalau
+dipanggil sebelum market close — dan `fetch_recent()` tidak punya guard untuk ini.
+
+Masalah ini berdampak pada SEMUA fungsi downstream: `detect()` (entry_price salah), `detect_heads_up()`
+(trigger dari harga intraday yang bisa berubah), dan `detect_momentum()` (RSI dari data parsial).
+
+### Perubahan
+**`quant/drawdown_bounce_tracker/detect_signal.py`**:
+- Import `datetime, time, timezone, timedelta` + konstanta `WIB`, `MARKET_CLOSE_TIME = 15:20`
+- Di akhir `fetch_recent()`: cek apakah baris terakhir = hari ini DAN waktu sekarang < 15:20 WIB
+  → kalau ya, drop baris itu + print pesan informatif. Semua downstream otomatis terlindungi.
+- 15:20 WIB dipilih karena: closing session 15:00, random close ~15:00-15:10, buffer 10 menit.
+- `check_trailing_stop.py` TIDAK terdampak — script itu pakai 15-minute bars (`interval="15m"`)
+  dan memang DIRANCANG untuk monitoring intraday, bukan closing-based detection.
+
+### Verifikasi
+- `detect()`, `detect_heads_up()`, `detect_momentum()` jalan tanpa error.
+- Guard terverifikasi: jam 00:36 WIB (sebelum 15:20) tapi data terakhir = kemarin (12 Aug), jadi
+  guard TIDAK mendrop apa-apa (benar — hari ini belum ada data).
+- Skenario bug asli (jalan jam 09:16 WIB, data hari ini sudah ada dari yfinance): guard akan drop
+  baris hari ini, mencegah entry_price salah.
+
+### Status: SELESAI.

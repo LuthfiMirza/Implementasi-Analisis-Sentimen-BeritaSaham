@@ -25,13 +25,16 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
-from datetime import date
+from datetime import date, datetime, time, timezone, timedelta
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import requests
 import yfinance as yf
+
+WIB = timezone(timedelta(hours=7))
+MARKET_CLOSE_TIME = time(15, 20)  # closing + random close + buffer
 
 TRACKING_START_DATE = date(2026, 7, 31)  # PROTOCOL.md lock date -- do not backdate
 DROP_THRESHOLD = -0.05
@@ -357,6 +360,18 @@ def fetch_recent(symbol: str, days: int = 60) -> pd.DataFrame:
     df["rsi14"] = rsi(df["Close"])
     df["stoch_k"] = stochastic_k(df["High"], df["Low"], df["Close"])
     df["dd_20d"] = df["Close"] / df["Close"].rolling(20).max() - 1
+
+    # Fase BO: guard snapshot-intraday — kalau baris terakhir tanggalnya hari ini DAN bursa belum
+    # tutup (< 15:20 WIB), harga Close itu BUKAN closing final (masih bisa berubah sampai 15:00).
+    # Drop baris itu supaya detect()/detect_heads_up()/detect_momentum() tidak pernah pakai harga
+    # intraday sebagai harga entry atau trigger.
+    # Bug asli: DEWA 12 Agu 2026, script jalan 09:16 WIB → tercatat Rp448, closing asli Rp466.
+    now_wib = datetime.now(WIB)
+    today = now_wib.date()
+    if not df.empty and df.iloc[-1]["date"] == today and now_wib.time() < MARKET_CLOSE_TIME:
+        df = df.iloc[:-1]
+        print(f"⏳ {symbol}: data hari ini ({today}) dibuang — bursa belum tutup ({now_wib.strftime('%H:%M')} WIB < 15:20).")
+
     return df[["date", "adj_close", "ret_2d", "rsi14", "stoch_k", "dd_20d"]]
 
 
