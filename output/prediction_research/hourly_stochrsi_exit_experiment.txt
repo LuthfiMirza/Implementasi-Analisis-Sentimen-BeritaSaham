@@ -1,0 +1,41 @@
+Fase AE: Exit Stoch RSI 1-JAM vs fixed 10-hari harian -- BUMI/DEWA
+====================================================================================
+
+Stoch RSI (14,14,3,3) sesuai setting TradingView user, dihitung di bar 1 jam.
+Entry SAMA untuk semua varian (aturan harian Fase AB). Yang beda cuma cara KELUAR.
+Exit di CLOSE bar pemicu (bukan high -- tanpa lookahead). Biaya 0.80%, cap 20 hari.
+
+PENTING: data 1 jam cuma tersedia ~3 tahun (mulai 2023-07-18), jadi jumlah sinyal jauh
+lebih sedikit dari uji harian 22 tahun di Fase AB. Ambang minimum 20 sinyal tetap berlaku.
+
+### BUMI
+Sinyal dengan data 1 jam: 11 (dari 42 sinyal di histori harian penuh) | discovery 7, holdout 4
+Tanggal sinyal: 2025-02-28, 2025-04-08, 2025-04-09, 2026-01-28, 2026-01-29, 2026-03-04, 2026-04-24, 2026-05-19, 2026-06-04, 2026-06-05, 2026-06-08
+  -> !!! DI BAWAH AMBANG MINIMUM (20). Hasil di bawah TIDAK BOLEH dijadikan dasar keputusan trading -- indikatif saja.
+
+varian                           discovery                 holdout    hari  tdk kena
+daily_fixed_10d         +9.11% (w57%, n=7)      +4.24% (w50%, n=4)    10.0         0
+hourly_k_gt80           +0.61% (w57%, n=7)      +2.93% (w75%, n=4)     2.2         0
+hourly_k_gt90           +0.47% (w57%, n=7)      +2.93% (w75%, n=4)     2.2         0
+hourly_kd_cross         -0.45% (w57%, n=7)     +7.99% (w100%, n=4)     2.5         0
+
+Selisih vs baseline daily_fixed_10d (positif = exit Stoch RSI 1 jam lebih baik):
+  hourly_k_gt80      discovery -8.50% | holdout -1.31%  -> tidak konsisten / lebih buruk
+  hourly_k_gt90      discovery -8.64% | holdout -1.31%  -> tidak konsisten / lebih buruk
+  hourly_kd_cross    discovery -9.56% | holdout +3.75%  -> tidak konsisten / lebih buruk
+
+### DEWA
+Sinyal dengan data 1 jam: 11 (dari 38 sinyal di histori harian penuh) | discovery 7, holdout 4
+Tanggal sinyal: 2025-02-28, 2025-04-08, 2025-04-09, 2026-01-28, 2026-01-29, 2026-03-04, 2026-04-24, 2026-05-19, 2026-06-04, 2026-06-05, 2026-06-08
+  -> !!! DI BAWAH AMBANG MINIMUM (20). Hasil di bawah TIDAK BOLEH dijadikan dasar keputusan trading -- indikatif saja.
+
+varian                           discovery                 holdout    hari  tdk kena
+daily_fixed_10d         +6.98% (w57%, n=7)     +14.09% (w75%, n=4)    10.0         0
+hourly_k_gt80           +0.34% (w57%, n=7)      +3.18% (w75%, n=4)     2.0         0
+hourly_k_gt90           +0.76% (w43%, n=7)      +3.18% (w75%, n=4)     2.2         0
+hourly_kd_cross         -0.36% (w43%, n=7)     +14.15% (w75%, n=4)     2.5         0
+
+Selisih vs baseline daily_fixed_10d (positif = exit Stoch RSI 1 jam lebih baik):
+  hourly_k_gt80      discovery -6.64% | holdout -10.91%  -> tidak konsisten / lebih buruk
+  hourly_k_gt90      discovery -6.21% | holdout -10.91%  -> tidak konsisten / lebih buruk
+  hourly_kd_cross    discovery -7.34% | holdout +0.06%  -> tidak konsisten / lebih buruk

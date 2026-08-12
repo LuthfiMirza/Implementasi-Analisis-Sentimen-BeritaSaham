@@ -1,0 +1,256 @@
+[
+  {
+    "ticker": "BUMI",
+    "hourly_coverage_start": "2023-07-18",
+    "signals_total_daily_history": 42,
+    "signals_with_hourly_coverage": 11,
+    "discovery_signals": 7,
+    "holdout_signals": 4,
+    "signal_dates": [
+      "2025-02-28",
+      "2025-04-08",
+      "2025-04-09",
+      "2026-01-28",
+      "2026-01-29",
+      "2026-03-04",
+      "2026-04-24",
+      "2026-05-19",
+      "2026-06-04",
+      "2026-06-05",
+      "2026-06-08"
+    ],
+    "variants": {
+      "daily_fixed_10d": {
+        "discovery": {
+          "n": 7,
+          "mean_net_return": 0.09109798217977304,
+          "median_net_return": 0.07200000000000006,
+          "win_rate": 0.5714285714285714,
+          "mean_hold_days": 10.0,
+          "never_fired": 0
+        },
+        "holdout": {
+          "n": 4,
+          "mean_net_return": 0.0423820243049669,
+          "median_net_return": 0.07473381294964032,
+          "win_rate": 0.5,
+          "mean_hold_days": 10.0,
+          "never_fired": 0
+        },
+        "full_sample": {
+          "n": 11,
+          "mean_net_return": 0.07338308840711626,
+          "median_net_return": 0.07200000000000006,
+          "win_rate": 0.5454545454545454,
+          "mean_hold_days": 10.0,
+          "never_fired": 0
+        }
+      },
+      "hourly_k_gt80": {
+        "discovery": {
+          "n": 7,
+          "mean_net_return": 0.006093499348126758,
+          "median_net_return": 0.01878571428571419,
+          "win_rate": 0.5714285714285714,
+          "mean_hold_days": 2.2857142857142856,
+          "never_fired": 0
+        },
+        "holdout": {
+          "n": 4,
+          "mean_net_return": 0.02930149242769787,
+          "median_net_return": 0.023339312111954287,
+          "win_rate": 0.75,
+          "mean_hold_days": 2.0,
+          "never_fired": 0
+        },
+        "full_sample": {
+          "n": 11,
+          "mean_net_return": 0.014532769558879888,
+          "median_net_return": 0.01878571428571419,
+          "win_rate": 0.6363636363636364,
+          "mean_hold_days": 2.1818181818181817,
+          "never_fired": 0
+        }
+      },
+      "hourly_k_gt90": {
+        "discovery": {
+          "n": 7,
+          "mean_net_return": 0.00473286351130046,
+          "median_net_return": 0.0009285714285713967,
+          "win_rate": 0.5714285714285714,
+          "mean_hold_days": 2.2857142857142856,
+          "never_fired": 0
+        },
+        "holdout": {
+          "n": 4,
+          "mean_net_return": 0.02930149242769787,
+          "median_net_return": 0.023339312111954287,
+          "win_rate": 0.75,
+          "mean_hold_days": 2.0,
+          "never_fired": 0
+        },
+        "full_sample": {
+          "n": 11,
+          "mean_net_return": 0.013666910389990423,
+          "median_net_return": 0.013582733812949728,
+          "win_rate": 0.6363636363636364,
+          "mean_hold_days": 2.1818181818181817,
+          "never_fired": 0
+        }
+      },
+      "hourly_kd_cross": {
+        "discovery": {
+          "n": 7,
+          "mean_net_return": -0.004454466733615596,
+          "median_net_return": 0.0009285714285713967,
+          "win_rate": 0.5714285714285714,
+          "mean_hold_days": 2.4285714285714284,
+          "never_fired": 0
+        },
+        "holdout": {
+          "n": 4,
+          "mean_net_return": 0.07987003349560917,
+          "median_net_return": 0.0698475485507547,
+          "win_rate": 1.0,
+          "mean_hold_days": 2.5,
+          "never_fired": 0
+        },
+        "full_sample": {
+          "n": 11,
+          "mean_net_return": 0.026208987895193412,
+          "median_net_return": 0.016691358024691468,
+          "win_rate": 0.7272727272727273,
+          "mean_hold_days": 2.4545454545454546,
+          "never_fired": 0
+        }
+      }
+    }
+  },
+  {
+    "ticker": "DEWA",
+    "hourly_coverage_start": "2023-07-18",
+    "signals_total_daily_history": 38,
+    "signals_with_hourly_coverage": 11,
+    "discovery_signals": 7,
+    "holdout_signals": 4,
+    "signal_dates": [
+      "2025-02-28",
+      "2025-04-08",
+      "2025-04-09",
+      "2026-01-28",
+      "2026-01-29",
+      "2026-03-04",
+      "2026-04-24",
+      "2026-05-19",
+      "2026-06-04",
+      "2026-06-05",
+      "2026-06-08"
+    ],
+    "variants": {
+      "daily_fixed_10d": {
+        "discovery": {
+          "n": 7,
+          "mean_net_return": 0.0697636254330801,
+          "median_net_return": 0.06819049065424099,
+          "win_rate": 0.5714285714285714,
+          "mean_hold_days": 10.0,
+          "never_fired": 0
+        },
+        "holdout": {
+          "n": 4,
+          "mean_net_return": 0.14090494901062253,
+          "median_net_return": 0.23112207265692353,
+          "win_rate": 0.75,
+          "mean_hold_days": 10.0,
+          "never_fired": 0
+        },
+        "full_sample": {
+          "n": 11,
+          "mean_net_return": 0.09563319764309552,
+          "median_net_return": 0.14014817338762353,
+          "win_rate": 0.6363636363636364,
+          "mean_hold_days": 10.0,
+          "never_fired": 0
+        }
+      },
+      "hourly_k_gt80": {
+        "discovery": {
+          "n": 7,
+          "mean_net_return": 0.0033583439228801215,
+          "median_net_return": 0.006910832891794623,
+          "win_rate": 0.5714285714285714,
+          "mean_hold_days": 2.0,
+          "never_fired": 0
+        },
+        "holdout": {
+          "n": 4,
+          "mean_net_return": 0.031820371289646765,
+          "median_net_return": 0.0557622424037123,
+          "win_rate": 0.75,
+          "mean_hold_days": 2.0,
+          "never_fired": 0
+        },
+        "full_sample": {
+          "n": 11,
+          "mean_net_return": 0.013708172056249808,
+          "median_net_return": 0.04008208321455787,
+          "win_rate": 0.6363636363636364,
+          "mean_hold_days": 2.0,
+          "never_fired": 0
+        }
+      },
+      "hourly_k_gt90": {
+        "discovery": {
+          "n": 7,
+          "mean_net_return": 0.007646265852531254,
+          "median_net_return": -0.007157238059180664,
+          "win_rate": 0.42857142857142855,
+          "mean_hold_days": 2.2857142857142856,
+          "never_fired": 0
+        },
+        "holdout": {
+          "n": 4,
+          "mean_net_return": 0.031820371289646765,
+          "median_net_return": 0.0557622424037123,
+          "win_rate": 0.75,
+          "mean_hold_days": 2.0,
+          "never_fired": 0
+        },
+        "full_sample": {
+          "n": 11,
+          "mean_net_return": 0.016436849647845985,
+          "median_net_return": 0.042886415974390475,
+          "win_rate": 0.5454545454545454,
+          "mean_hold_days": 2.1818181818181817,
+          "never_fired": 0
+        }
+      },
+      "hourly_kd_cross": {
+        "discovery": {
+          "n": 7,
+          "mean_net_return": -0.0036107397407106672,
+          "median_net_return": -0.003137789216044899,
+          "win_rate": 0.42857142857142855,
+          "mean_hold_days": 2.5714285714285716,
+          "never_fired": 0
+        },
+        "holdout": {
+          "n": 4,
+          "mean_net_return": 0.14153771636854473,
+          "median_net_return": 0.15759083500551396,
+          "win_rate": 0.75,
+          "mean_hold_days": 2.5,
+          "never_fired": 0
+        },
+        "full_sample": {
+          "n": 11,
+          "mean_net_return": 0.04917051702629129,
+          "median_net_return": 0.0255726290917302,
+          "win_rate": 0.5454545454545454,
+          "mean_hold_days": 2.5454545454545454,
+          "never_fired": 0
+        }
+      }
+    }
+  }
+]

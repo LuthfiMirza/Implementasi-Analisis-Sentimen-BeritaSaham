@@ -1,0 +1,17 @@
+DSS Indicator ML Feature Experiment (Fase Y)
+=============================================
+
+10 official tickers: BBCA, BBRI, BMRI, TLKM, ASII, GOTO, INDF, ICBP, ADRO, UNVR
+Row coverage with all 6 new indicators non-null: 99.9%
+purge_days=5, min_train_days=252, test_window_days=126, max_folds=8
+
+Baseline (V2_NO_SENTIMENT_FEATURE_COLUMNS, 8 folds):
+  macro_f1            = 0.3693
+  directional_accuracy = 0.4011
+
+Candidate (baseline + MACD/BB/Stochastic/ADX/VWAP/OBV, 8 folds):
+  macro_f1            = 0.3680
+  directional_accuracy = 0.4111
+
+Delta macro_f1            = -0.0013
+Delta directional_accuracy = +0.0100

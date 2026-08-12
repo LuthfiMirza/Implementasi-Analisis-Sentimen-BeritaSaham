@@ -1,0 +1,63 @@
+Fase AB: Entry 'IHSG + saham turun >=5% (2 hari)' -- BUMI/DEWA full history
+=============================================================================
+
+Entry: 2-day cumulative return IHSG dan saham keduanya <= -5%
+Exit: fixed holding period (3, 5, 10, 20 hari) -- bukan 'jual saat laba positif' karena tidak ada dataset tanggal earnings historis yang bersih untuk BUMI/DEWA.
+Biaya: 0.80% round-trip. Split discovery/holdout: 70%/30% kronologis.
+Minimum sinyal untuk dianggap layak disimpulkan: 20
+
+### BUMI (2001-06-11 s/d 2026-07-21, 6090 hari)
+Total sinyal: 42 (discovery: 31, holdout: 11, batas discovery: 2018-12-17)
+
+  Hold 3 hari:
+    Discovery : n= 31  mean_net=+0.51%  win_rate=51.6%
+    Holdout   : n= 11  mean_net=+4.82%  win_rate=63.6%
+    Full      : n= 42  mean_net=+1.63%  win_rate=54.8%
+    Baseline (semua hari, hold 3): mean_net=-0.40%  win_rate=35.5%
+
+  Hold 5 hari:
+    Discovery : n= 31  mean_net=+2.86%  win_rate=54.8%
+    Holdout   : n= 11  mean_net=+7.29%  win_rate=63.6%
+    Full      : n= 42  mean_net=+4.02%  win_rate=57.1%
+    Baseline (semua hari, hold 5): mean_net=-0.13%  win_rate=37.7%
+
+  Hold 10 hari:
+    Discovery : n= 31  mean_net=+6.47%  win_rate=61.3%
+    Holdout   : n= 11  mean_net=+7.34%  win_rate=54.5%
+    Full      : n= 42  mean_net=+6.70%  win_rate=59.5%
+    Baseline (semua hari, hold 10): mean_net=+0.56%  win_rate=39.4%
+
+  Hold 20 hari:
+    Discovery : n= 31  mean_net=+6.85%  win_rate=64.5%
+    Holdout   : n= 11  mean_net=+2.47%  win_rate=45.5%
+    Full      : n= 42  mean_net=+5.70%  win_rate=59.5%
+    Baseline (semua hari, hold 20): mean_net=+2.06%  win_rate=39.8%
+
+
+### DEWA (2007-09-28 s/d 2026-07-21, 4547 hari)
+Total sinyal: 38 (discovery: 27, holdout: 11, batas discovery: 2020-11-11)
+
+  Hold 3 hari:
+    Discovery : n= 27  mean_net=+1.36%  win_rate=48.1%
+    Holdout   : n= 11  mean_net=+5.82%  win_rate=45.5%
+    Full      : n= 38  mean_net=+2.65%  win_rate=47.4%
+    Baseline (semua hari, hold 3): mean_net=-0.65%  win_rate=20.2%
+
+  Hold 5 hari:
+    Discovery : n= 27  mean_net=+2.90%  win_rate=51.9%
+    Holdout   : n= 11  mean_net=+8.30%  win_rate=54.5%
+    Full      : n= 38  mean_net=+4.46%  win_rate=52.6%
+    Baseline (semua hari, hold 5): mean_net=-0.53%  win_rate=21.0%
+
+  Hold 10 hari:
+    Discovery : n= 27  mean_net=-4.78%  win_rate=44.4%
+    Holdout   : n= 11  mean_net=+9.56%  win_rate=63.6%
+    Full      : n= 38  mean_net=-0.63%  win_rate=50.0%
+    Baseline (semua hari, hold 10): mean_net=-0.29%  win_rate=21.8%
+
+  Hold 20 hari:
+    Discovery : n= 27  mean_net=-12.94%  win_rate=33.3%
+    Holdout   : n= 11  mean_net=+11.41%  win_rate=54.5%
+    Full      : n= 38  mean_net=-5.89%  win_rate=39.5%
+    Baseline (semua hari, hold 20): mean_net=+0.27%  win_rate=22.4%
+

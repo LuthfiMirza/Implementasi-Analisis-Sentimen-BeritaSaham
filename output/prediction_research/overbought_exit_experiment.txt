@@ -1,0 +1,38 @@
+Fase AD: Exit overbought (RSI>70 / Stoch>80) vs fixed 10-hari -- BUMI/DEWA histori penuh
+========================================================================================
+
+Entry SAMA untuk semua varian: IHSG dan saham sama-sama turun >=5% dalam 2 hari (Fase AB).
+Yang dibandingkan cuma cara KELUAR-nya. Semua varian dilaporkan, tidak dipilih yang bagus saja.
+Biaya 0.80% round-trip. Varian overbought dibatasi maksimum 20 hari.
+
+### BUMI (2001-06-26 s/d 2026-07-21)
+Sinyal: 42 total (discovery 31, holdout 11)
+
+varian                         discovery                   holdout   rata2 hari
+fixed_10d         +6.17% (win 61%, n=31)    +7.34% (win 55%, n=11)        10.0
+rsi_gt70          +3.02% (win 65%, n=31)    +2.47% (win 45%, n=11)        19.2
+stoch_gt80        +3.94% (win 61%, n=31)    -0.10% (win 55%, n=11)        17.1
+either            +3.25% (win 61%, n=31)    -0.10% (win 55%, n=11)        16.3
+both              +3.71% (win 65%, n=31)    +2.47% (win 45%, n=11)        20.0
+
+Selisih vs baseline fixed_10d (positif = varian exit overbought lebih baik):
+  rsi_gt70     discovery -3.16% | holdout -4.87%  -> tidak konsisten / lebih buruk
+  stoch_gt80   discovery -2.23% | holdout -7.44%  -> tidak konsisten / lebih buruk
+  either       discovery -2.93% | holdout -7.44%  -> tidak konsisten / lebih buruk
+  both         discovery -2.46% | holdout -4.87%  -> tidak konsisten / lebih buruk
+
+### DEWA (2007-10-18 s/d 2026-07-21)
+Sinyal: 38 total (discovery 27, holdout 11)
+
+varian                         discovery                   holdout   rata2 hari
+fixed_10d         -4.78% (win 44%, n=27)    +9.56% (win 64%, n=11)        10.0
+rsi_gt70         -12.94% (win 33%, n=27)    +8.84% (win 55%, n=11)        19.4
+stoch_gt80        -9.87% (win 37%, n=27)   +13.50% (win 82%, n=11)        15.3
+either            -9.95% (win 37%, n=27)   +13.50% (win 82%, n=11)        14.9
+both             -12.94% (win 33%, n=27)    +8.84% (win 55%, n=11)        19.9
+
+Selisih vs baseline fixed_10d (positif = varian exit overbought lebih baik):
+  rsi_gt70     discovery -8.17% | holdout -0.73%  -> tidak konsisten / lebih buruk
+  stoch_gt80   discovery -5.10% | holdout +3.94%  -> tidak konsisten / lebih buruk
+  either       discovery -5.17% | holdout +3.94%  -> tidak konsisten / lebih buruk
+  both         discovery -8.17% | holdout -0.73%  -> tidak konsisten / lebih buruk
