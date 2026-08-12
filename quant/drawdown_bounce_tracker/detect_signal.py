@@ -473,7 +473,7 @@ def format_heads_up_alert(signal: dict) -> str:
         f"<b>Closing hari ini</b>: {signal['trigger_date']}\n"
         f"{signal['ticker']} {reason}\n\n"
         f"<b>Status</b>: BUKAN sinyal resmi -- harga entry belum bisa diketahui sekarang.\n\n"
-        f"<b>Kemungkinan besok</b>: jadi Sinyal Beli resmi (~15:18 WIB), entry = closing besok.\n\n"
+        f"<b>Kemungkinan besok</b>: ini jadi Sinyal Beli resmi (~15:18 WIB), entry = closing besok.\n\n"
         f"<b>Kenapa nunggu besok</b>: aturan resmi tetap entry closing T+1, sudah dibacktest -- "
         f"entry lebih cepat dari itu malah menurunkan win rate.\n\n"
         f"<b>Yang perlu kamu lakukan</b>: cuma pantau. Ini BUKAN ajakan beli hari ini/besok pagi."

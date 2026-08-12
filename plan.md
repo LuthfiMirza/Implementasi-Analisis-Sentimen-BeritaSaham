@@ -3654,3 +3654,27 @@ mengulang aturan/persentase tiap kali. Diskusi dulu, saya usulkan format gaya ka
 - `php artisan test`: 488 passed, tidak ada regresi.
 
 ### Status: SELESAI.
+
+## Fase BN lanjutan keempat -- audit logika & wording Peringatan Dini
+
+### Konteks
+User minta cek ulang: apakah `detect_heads_up()` logikanya benar, dan apakah kata-kata alertnya
+rapi. Dibaca ulang kode + teks alert satu-satu.
+
+### Temuan
+- Logika BENAR: cek baris PALING BARU yang closing-nya tersedia (beda dari `detect()` yang butuh
+  T+1), syarat sama persis (`ret_2d<=-5%` ATAU `drawdown_20d<=-20%`).
+- **Risiko yang sama seperti bug harga DEWA Rp448 sebelumnya**: kalau `detect_heads_up()`
+  dijalankan MANUAL di tengah hari (bukan lewat jadwal 15:18 WIB), dia bisa ambil snapshot harga
+  intraday sebagai "closing hari ini" -- sama seperti insiden sebelumnya. Belum diperbaiki (belum
+  ada solusi konkret diusulkan, cuma didokumentasikan sebagai risiko yang harus disadari kalau mau
+  jalankan manual untuk testing).
+- Wording: 1 kalimat janggal secara tata bahasa ("Kemungkinan besok: jadi Sinyal Beli resmi..." --
+  hilang subjek) diperbaiki jadi "Kemungkinan besok: **ini** jadi Sinyal Beli resmi...".
+
+### Verifikasi
+- `php artisan test`: 488 passed.
+
+### Status: SELESAI (perbaikan teks). Risiko snapshot-intraday-kalau-dijalankan-manual dicatat,
+belum ada perbaikan kode -- sama seperti keterbatasan yang sudah diketahui di detect()/
+detect_momentum() untuk kasus yang sama.
