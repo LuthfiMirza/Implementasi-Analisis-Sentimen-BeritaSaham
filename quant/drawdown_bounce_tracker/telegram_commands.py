@@ -195,10 +195,10 @@ def format_status(positions: list[dict]) -> str:
     pernah kirim alert/ubah open_positions.json), jadi angkanya selalu konsisten dengan yang
     dipakai sistem alert asli.
 
-    Fase BN (dirapikan atas masukan user): "Hari bursa ke-X dari 10" DIHAPUS (dianggap kurang
-    berguna). "Puncak Rp.../mundur X%" yang lama membingungkan karena angka mundur (current state)
-    ketuker sama ambang 2% (aturan tetap) -- sekarang dipisah jelas: harga PASTI trigger trailing
-    stop (puncak x 0.98) ditulis eksplisit, lalu jarak SEKARANG ke harga itu (bukan ke puncak)."""
+    Fase BN (dirapikan 2x atas masukan user): "Hari bursa ke-X dari 10" DIHAPUS. Lalu wording
+    trailing-stop disederhanakan gaya kartu posisi broker (StockBit/IBKR dst) -- cukup dua angka
+    (Puncak, Stop), tanpa mengulang aturan "-2%" atau persentase jarak tiap kali (user sudah tahu
+    aturannya, alert otomatis yang bunyi begitu kena, /status cuma untuk cek cepat)."""
     if not positions:
         return "Tidak ada posisi yang sedang dipantau."
 
@@ -218,7 +218,6 @@ def format_status(positions: list[dict]) -> str:
         sign = "\U0001F7E2" if snap["unrealized_pct"] >= 0 else "\U0001F534"
 
         stop_price = snap["peak"] * (1 - PULLBACK_THRESHOLD)
-        distance_to_stop = (snap["current"] - stop_price) / stop_price if stop_price > 0 else 0.0
 
         notes = []
         if snap["trading_days"] >= TARGET_HOLD_DAYS:
@@ -229,12 +228,10 @@ def format_status(positions: list[dict]) -> str:
             notes.append("sudah lewat ambang trailing stop")
         note_txt = f" ({', '.join(notes)})" if notes else ""
 
-        posisi_stop = "di bawah stop" if distance_to_stop < 0 else f"masih {distance_to_stop:+.1%} di atas stop"
         lines.append(
-            f"{sign} <b>{ticker}</b>: entry Rp{entry_price:.0f} → sekarang Rp{snap['current']:.0f} "
-            f"({snap['unrealized_pct']:+.1%})\n"
-            f"   Puncak Rp{snap['peak']:.0f} | Stop trailing (-{PULLBACK_THRESHOLD:.0%}): "
-            f"Rp{stop_price:.0f} | Sekarang {posisi_stop}{note_txt}\n"
+            f"{sign} <b>{ticker}</b>: Rp{snap['current']:.0f} ({snap['unrealized_pct']:+.1%}) "
+            f"dari entry Rp{entry_price:.0f}\n"
+            f"   Puncak Rp{snap['peak']:.0f} | Stop Rp{stop_price:.0f}{note_txt}\n"
         )
     return "\n".join(lines)
 

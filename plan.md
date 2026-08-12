@@ -3631,3 +3631,26 @@ aturannya TETAP 2% (0,9% itu progress mundur SAAT INI dari puncak, bukan ambang 
   lama "Hari bursa ke-").
 
 ### Status: SELESAI.
+
+## Fase BN lanjutan ketiga -- sederhanakan /status gaya kartu posisi broker
+
+### Konteks
+User protes lagi: "Stop trailing (-2%): Rp449 | Sekarang masih X% di atas stop" dianggap masih
+berlebihan -- alert otomatis SUDAH bunyi sendiri begitu stop kena, jadi /status tidak perlu
+mengulang aturan/persentase tiap kali. Diskusi dulu, saya usulkan format gaya kartu posisi broker
+(StockBit/IBKR dst -- cukup 2 angka: Puncak & Stop, tanpa penjelasan ulang), user setuju.
+
+### Perubahan
+- `format_status()`: baris kedua disederhanakan jadi `Puncak Rp{X} | Stop Rp{Y}` saja -- hilang
+  "-2%" eksplisit dan "Sekarang masih X% di atas stop". Baris pertama juga dibalik urutannya:
+  harga SEKARANG duluan (paling penting dilihat cepat), baru "dari entry Rp{Z}" sebagai konteks
+  (sebelumnya: entry dulu → sekarang).
+- Notes kondisional (H-1 target waktu / sudah lewat ambang) tetap dipertahankan apa adanya.
+
+### Verifikasi
+- Dites dengan posisi live asli (DEWA, BRPT) -- render: "🟢 DEWA: Rp466 (+4.0%) dari entry Rp448 /
+  Puncak Rp470 | Stop Rp461".
+- Dikirim REAL ke Telegram (`ok:true`, message_id 225 & 226).
+- `php artisan test`: 488 passed, tidak ada regresi.
+
+### Status: SELESAI.
