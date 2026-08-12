@@ -409,6 +409,71 @@ def detect() -> list[dict]:
     return found
 
 
+def detect_heads_up() -> list[dict]:
+    """Fase BN: peringatan dini (H-1 sore) -- BUKAN sinyal resmi, murni informasional. Beda dari
+    detect() yang butuh entry_row (T+1) sudah ada, fungsi ini cek HARI PALING BARU yang closing-nya
+    sudah tersedia (T) -- kalau syarat trigger (ret_2d<=-5% ATAU drawdown_20d<=-20%) sudah
+    terpenuhi HARI INI, kemungkinan besar (bukan pasti -- closing besok bisa mundur lagi di bawah
+    ambang) ini akan jadi sinyal resmi BESOK begitu closing T+1 tersedia dan detect() jalan lagi.
+    Tidak mengubah aturan entry resmi sama sekali (masih tetap closing T+1) -- cuma kasih tahu
+    LEBIH AWAL (sore ini, bukan besok pagi) supaya user bisa siap-siap, persis semangat Fase BA
+    (session1 warning) yang sudah divalidasi tidak mengubah keputusan entry, cuma heads-up."""
+    ihsg = fetch_recent("^JKSE")
+    found = []
+
+    for ticker in ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR"]:
+        stock = fetch_recent(f"{ticker}.JK")
+        merged = stock.merge(ihsg, on="date", suffixes=("_stock", "_ihsg")).dropna()
+        if merged.empty:
+            continue
+
+        latest = merged.iloc[-1]
+        trigger_date = latest["date"]
+        if trigger_date < TRACKING_START_DATE:
+            continue
+
+        ret2d_hit = bool(latest["ret_2d_stock"] <= DROP_THRESHOLD)
+        dd_hit = bool(ticker in COMBINED_RULE_TICKERS and latest["dd_20d_stock"] <= DRAWDOWN_THRESHOLD)
+        if not (ret2d_hit or dd_hit):
+            continue
+
+        signal_type = "ganda" if (ret2d_hit and dd_hit) else ("ret2d" if ret2d_hit else "drawdown")
+
+        found.append({
+            "ticker": ticker,
+            "label": LABELS[ticker],
+            "trigger_date": trigger_date.isoformat(),
+            "ihsg_ret_2d": float(latest["ret_2d_ihsg"]),
+            "stock_ret_2d": float(latest["ret_2d_stock"]),
+            "dd_20d": float(latest["dd_20d_stock"]),
+            "signal_type": signal_type,
+        })
+
+    return found
+
+
+def format_heads_up_alert(signal: dict) -> str:
+    """Fase BN: format berbeda dari format_signal_alert() -- header/icon beda, dan EKSPLISIT
+    bilang ini BUKAN sinyal resmi, harga entry BELUM ada (baru diketahui besok sore)."""
+    signal_type = signal["signal_type"]
+    reason = {
+        "ret2d": f"turun tajam {signal['stock_ret_2d']:+.1%} dalam 2 hari bursa",
+        "drawdown": f"drawdown {signal['dd_20d']:+.1%} dari puncak 20 hari",
+        "ganda": f"turun tajam {signal['stock_ret_2d']:+.1%} (2 hari) DAN drawdown {signal['dd_20d']:+.1%} (20 hari) sekaligus",
+    }[signal_type]
+
+    return (
+        f"\U0001F7E1 <b>PERINGATAN DINI: {signal['ticker']}</b>\n\n"
+        f"Closing hari ini ({signal['trigger_date']}): {reason}.\n\n"
+        f"<b>BUKAN sinyal resmi.</b> Kalau closing besok tidak berubah drastis, ini KEMUNGKINAN "
+        f"BESAR jadi <b>Sinyal Beli</b> resmi besok sore (~15:18 WIB) dengan harga entry = closing "
+        f"besok -- belum bisa diketahui sekarang. Ini cuma heads-up supaya kamu bisa mulai pantau "
+        f"dari sekarang, BUKAN ajakan beli hari ini/besok pagi -- aturan resmi tetap entry di "
+        f"closing T+1, tidak berubah (lihat plan.md Fase AZ kenapa entry lebih cepat dari itu "
+        f"terbukti menurunkan win rate)."
+    )
+
+
 def detect_momentum() -> list[dict]:
     """Fase BL: strategi momentum (RSI14 > 60), terpisah dari detect() (drawdown-bounce).
     Trigger langsung dari data saham itu sendiri, tidak perlu merge dengan IHSG (momentum tidak
@@ -474,6 +539,7 @@ def main() -> None:
     conn = get_connection()
     signals = detect()
     momentum_signals = detect_momentum()
+    heads_up_signals = detect_heads_up()
 
     inserted = 0
     for s in signals:
@@ -519,9 +585,28 @@ def main() -> None:
         except sqlite3.IntegrityError:
             pass
 
+    inserted_heads_up = 0
+    for s in heads_up_signals:
+        try:
+            conn.execute(
+                """INSERT INTO heads_up_alerts
+                (ticker, trigger_date, ihsg_ret_2d, stock_ret_2d, dd_20d, signal_type)
+                VALUES (?, ?, ?, ?, ?, ?)""",
+                (s["ticker"], s["trigger_date"], s["ihsg_ret_2d"], s["stock_ret_2d"], s["dd_20d"],
+                 s["signal_type"]),
+            )
+            inserted_heads_up += 1
+            print(f"PERINGATAN DINI: {s['ticker']} closing {s['trigger_date']} sudah memenuhi "
+                  f"syarat ({s['signal_type']}) -- kemungkinan jadi sinyal resmi besok.")
+
+            send_telegram_alert(format_heads_up_alert(s))
+        except sqlite3.IntegrityError:
+            pass  # sudah pernah diperingatkan untuk trigger_date ini
+
     conn.commit()
     total = conn.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
     total_momentum = conn.execute("SELECT COUNT(*) FROM momentum_signals").fetchone()[0]
+    total_heads_up = conn.execute("SELECT COUNT(*) FROM heads_up_alerts").fetchone()[0]
     conn.close()
 
     if inserted == 0:
@@ -533,6 +618,11 @@ def main() -> None:
         print(f"Tidak ada sinyal momentum baru. Tidak ada trigger sejak {MOMENTUM_TRACKING_START_DATE}. Total tercatat: {total_momentum}.")
     else:
         print(f"{inserted_momentum} sinyal momentum baru dicatat. Total tercatat: {total_momentum}.")
+
+    if inserted_heads_up == 0:
+        print(f"Tidak ada peringatan dini baru. Total tercatat: {total_heads_up}.")
+    else:
+        print(f"{inserted_heads_up} peringatan dini baru dicatat. Total tercatat: {total_heads_up}.")
 
 
 if __name__ == "__main__":

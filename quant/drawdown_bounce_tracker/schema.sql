@@ -41,6 +41,21 @@ CREATE TABLE IF NOT EXISTS momentum_signals (
     UNIQUE(ticker, trigger_date)
 );
 
+-- Fase BN: peringatan dini H-1 sore -- murni informasional, TIDAK mengubah aturan entry resmi
+-- (masih closing T+1, lihat `signals`). Tabel terpisah, append-only, pola sama.
+CREATE TABLE IF NOT EXISTS heads_up_alerts (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    detected_at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    ticker              TEXT NOT NULL,
+    trigger_date        TEXT NOT NULL,          -- hari closing yang memicu peringatan (T, bukan T+1)
+    ihsg_ret_2d         REAL NOT NULL,
+    stock_ret_2d        REAL NOT NULL,
+    dd_20d              REAL NOT NULL,
+    signal_type         TEXT NOT NULL,
+    notes               TEXT,
+    UNIQUE(ticker, trigger_date)
+);
+
 CREATE TABLE IF NOT EXISTS outcomes (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
     signal_id           INTEGER NOT NULL REFERENCES signals(id),
@@ -77,6 +92,18 @@ CREATE TRIGGER IF NOT EXISTS momentum_signals_no_delete
 BEFORE DELETE ON momentum_signals
 BEGIN
     SELECT RAISE(ABORT, 'momentum_signals is append-only: rows cannot be deleted');
+END;
+
+CREATE TRIGGER IF NOT EXISTS heads_up_alerts_no_update
+BEFORE UPDATE ON heads_up_alerts
+BEGIN
+    SELECT RAISE(ABORT, 'heads_up_alerts is append-only: log a new row instead of editing');
+END;
+
+CREATE TRIGGER IF NOT EXISTS heads_up_alerts_no_delete
+BEFORE DELETE ON heads_up_alerts
+BEGIN
+    SELECT RAISE(ABORT, 'heads_up_alerts is append-only: rows cannot be deleted');
 END;
 
 CREATE TRIGGER IF NOT EXISTS outcomes_no_update

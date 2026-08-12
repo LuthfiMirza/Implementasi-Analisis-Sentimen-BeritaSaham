@@ -3501,3 +3501,76 @@ gabungan: (A) backfill historis GABUNGAN, (B) jembatan otomatis sinyal live -> T
 ### Status: SELESAI. Trade Journal sekarang punya 270 trade total (152 lama + 118 backfill
 GABUNGAN), plus 2 posisi LIVE pertama (DEWA, BRPT) yang tercatat otomatis dari sinyal produksi
 hari ini -- bukti pipeline end-to-end bekerja, bukan simulasi.
+
+## Fase BM lanjutan -- bug lot_size (lot vs lembar) ditemukan user
+
+### Konteks
+User beli DEWA riil di broker (241 lot @Rp448, IDX Order ID 202608120000773631, matched 12 Aug
+09:05:14 WIB) dan minta lot di Trade Journal disesuaikan -- tapi begitu diperbaiki, UI malah
+menampilkan "2 Lot / 241 lbr" (salah, seharusnya "241 Lot / 24.100 lbr"). Investigasi: kolom
+`lot_size` di DB itu **LEMBAR** (bukan jumlah lot) -- konvensi resmi & sudah DITES
+(`TradeJournalTest::test_lot_input_is_converted_to_lembar_at_100_per_lot`,
+`TradeController::LEMBAR_PER_LOT`), "Lot" yang ditampilkan UI = `lot_size / 100`. Kode SYNC_OPEN
+bridge (Fase BM) yang saya tulis keliru mengisi `lot_size` dengan jumlah LOT langsung (241), bukan
+lembar (24100) -- kebalik dari konvensi asli. Sempat salah 2x: percobaan pertama saya malah
+mengubah blade view (yang sebenarnya SUDAH BENAR) alih-alih memperbaiki data -- ketahuan begitu
+baca test yang sudah ada, blade di-revert ke kondisi commit semula.
+
+### Perbaikan
+- `DetectDrawdownBounceSignalCommand::syncOpenSignalsToTradeJournal()`: `lot_size` sekarang diisi
+  `$quantity` (lembar) langsung, bukan `$quantity / 100`.
+- Data yang sudah kadung salah diperbaiki langsung di DB: 118 baris backfill GABUNGAN (Opsi A,
+  `lot_size = quantity`), trade live BRPT (`lot_size = quantity`), dan trade live DEWA (diset manual
+  `lot_size = 24100` sesuai order asli 241 lot).
+- Blade view **TIDAK diubah** (sempat disentuh lalu di-revert -- sudah benar dari awal).
+- Trade DEWA sekaligus diupdate notes-nya jadi "TRANSAKSI RIIL TERKONFIRMASI" (bukan simulasi lagi)
+  lengkap dengan IDX Order ID, jam order/matched, breakdown fee broker+exchange.
+
+### Verifikasi
+- `php artisan test`: tetap 488 passed setelah perbaikan.
+- Dicek manual: DEWA lot_size=24100 -> tampil "241 Lot / 24.100 lbr" (cocok order asli). BRPT &
+  contoh backfill BUMI juga dicek, hasilnya benar.
+
+### Status: SELESAI, sudah commit & push.
+
+## Fase BN -- Peringatan dini H-1 sore (heads-up, bukan sinyal resmi)
+
+### Konteks
+User beli DEWA jam 09:05 WIB berdasarkan diskusi SEBELUM bursa buka (sinyal sudah "pending" sejak
+closing kemarin sore) -- tapi alert sistem baru terkirim jam 09:16 (saya jalankan manual saat
+chat), dan harganya (Rp448) itu SNAPSHOT INTRADAY, bukan closing resmi (bursa belum tutup saat
+script dijalankan). User tanya: gimana caranya dapat peringatan SEBELUM harga bergerak, bukan
+setelah. User pilih opsi: bangun alert peringatan dini (bukan perbaiki harga entry hari ini).
+
+**Constraint desain**: aturan resmi (sudah divalidasi ketat, Fase BK) entry = closing harga T+1 --
+TIDAK BOLEH diubah jadi lebih cepat (Fase AZ sudah backtest ide serupa: entry 2x/hari, win rate
+turun 75%->68%). Jadi solusinya BUKAN mempercepat entry, tapi kasih heads-up LEBIH AWAL (sore hari
+T, bukan pagi hari T+1) tanpa mengubah kapan entry resmi terjadi.
+
+### Perubahan
+- `quant/drawdown_bounce_tracker/schema.sql`: tabel baru `heads_up_alerts` (append-only, pola sama
+  seperti `signals`/`momentum_signals`, `UNIQUE(ticker, trigger_date)`).
+- `detect_signal.py`:
+  - `detect_heads_up()`: fungsi baru, beda dari `detect()` -- cek HARI PALING BARU yang closing-nya
+    sudah tersedia (T, bukan butuh T+1 seperti `detect()`), pakai syarat trigger yang SAMA
+    (ret_2d<=-5% ATAU drawdown_20d<=-20% untuk COMBINED_RULE_TICKERS). Kalau match, berarti
+    KEMUNGKINAN BESAR jadi sinyal resmi besok begitu closing T+1 tersedia.
+  - `format_heads_up_alert()`: icon/header beda (🟡 PERINGATAN DINI, bukan 🟢 SINYAL BELI),
+    eksplisit bilang BUKAN sinyal resmi, harga entry belum ada, aturan resmi tetap closing T+1 --
+    tidak berubah.
+  - `main()`: panggil `detect_heads_up()`, insert baru ke `heads_up_alerts`, kirim alert. Idempotent
+    lewat `UNIQUE(ticker, trigger_date)` -- sekali diperingatkan untuk satu trigger_date, tidak
+    diulang lagi walau job jalan berkali-kali di hari yang sama.
+
+### Verifikasi
+- Dry-run: 0 peringatan dini terdeteksi hari ini (benar -- semua 6 saham di bawah ambang saat ini,
+  DEWA paling dekat -4,2%/-5,4%, belum tembus -5%/-20%).
+- Format alert dites dengan data sintetis, dikirim REAL ke Telegram (`ok:true`, message_id 205 &
+  206).
+- Real run produksi: `php artisan research:detect-drawdown-bounce-signal` -- jalan bersih, baris
+  baru "Tidak ada peringatan dini baru. Total tercatat: 0." muncul tanpa error.
+- `php artisan test`: 488 passed, tidak ada regresi.
+
+### Status: SELESAI. Peringatan dini live di produksi untuk 6 saham (BUMI/DEWA/BRPT/SMGR/ESSA/UNVR),
+jalan otomatis di jadwal harian yang sama (15:18 WIB) dengan deteksi sinyal resmi -- tidak perlu
+job terjadwal terpisah.
