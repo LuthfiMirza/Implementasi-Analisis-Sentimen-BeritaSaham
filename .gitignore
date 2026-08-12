@@ -1,5 +1,10 @@
 *.log
 .DS_Store
+._*
+__MACOSX/
+Icon?
+TemporaryItems/
+Thumbs.db
 .env
 .env.backup
 .env.production
@@ -22,10 +27,11 @@
 _ide_helper.php
 Homestead.json
 Homestead.yaml
-Thumbs.db
 .blackboxcli/
 .vendor-py/
 Penulisan/
+BAB2.txt
+CODEX_HANDOFF.md
 output/single_variable_experiment_runs/
 output/single_variable_experiment_runs_v2/
 output/single_variable_experiment_runs_v3/
