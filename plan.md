@@ -3440,3 +3440,64 @@ matang.
 ### Status: SELESAI. Sinyal momentum RSI14>60 live di produksi untuk BUMI/DEWA/BRPT, sebagai jenis
 alert TERPISAH dari drawdown-bounce, selalu ditandai EXPLORATORY karena caveat regime-dependence
 belum terselesaikan (belum teruji di kondisi pasar non-tren-naik).
+
+## Fase BM -- Isi Trade Journal pakai aturan GABUNGAN (backfill + jembatan otomatis live)
+
+### Konteks
+User minta bandingkan strategi lama vs baru dari data Trade Journal web -- ternyata tabel `trades`
+belum punya SATU PUN baris aturan GABUNGAN (baru live sejak Fase BK, dan production belum pernah
+trigger sampai hari ini), jadi tidak bisa dibandingkan langsung. Sepanjang diskusi juga ditemukan:
+data lama di `trades` ternyata campuran BEBERAPA strategi berbeda (drawdown-bounce ret2d-saja DAN
+"AI tp30%/sl3%/hold40h") tanpa filter jelas di kartu ringkasan web -- dan dari 152 trade yang ada,
+148 eksplisit berlabel SIMULASI BACKTEST, 4 sisanya juga belum terverifikasi ke fill broker asli
+(0% benar-benar transaksi riil, semua backtest berbasis harga pasar asli). User setuju lanjut opsi
+gabungan: (A) backfill historis GABUNGAN, (B) jembatan otomatis sinyal live -> Trade Journal.
+
+### Opsi A -- Backfill historis
+- Backtest aturan GABUNGAN (ret_2d<=-5% ATAU drawdown_20d<=-20%, exit trailing 2%/target 10 hari,
+  biaya 0.80%) untuk BUMI/DEWA/BRPT/ESSA/UNVR sejak 2025-12-05 (window SAMA dengan backfill LAMA
+  yang sudah ada, biar bisa dibandingkan langsung, bukan ditimpa/dihapus -- data lama TETAP ada,
+  berdampingan, sama seperti presedan sebelumnya).
+- 118 trade di-insert ke `trades`: BUMI 29, DEWA 28, BRPT 33, ESSA 14, UNVR 14. Modal simulasi
+  Rp10.000.000 KHUSUS per saham, compounding (P&L trade berikutnya dihitung dari modal berjalan).
+- Label eksplisit di `notes`: "SIMULASI BACKTEST (bukan transaksi riil) -- aturan GABUNGAN (Fase
+  BK): ..." plus jenis sinyal (ret2d/drawdown/ganda) dan modal sebelum/sesudah tiap trade --
+  konsisten dengan gaya baris LAMA yang sudah ada, supaya jujur & tidak tercampur seolah live.
+- Verifikasi: win rate agregat 79.7% dari 118 trade GABUNGAN, angka modal akhir per saham cocok
+  persis dengan backtest yang sudah ditunjukkan ke user sebelumnya (mis. BRPT Rp50.022.229).
+
+### Opsi B -- Jembatan otomatis sinyal live -> Trade Journal
+- `detect_signal.py`: fungsi baru `register_open_position()` -- begitu sinyal baru (drawdown-bounce
+  ATAU momentum) berhasil di-insert ke sqlite, OTOMATIS didaftarkan ke `open_positions.json` (dulu
+  cuma bisa lewat `/open` manual Telegram) supaya `check_trailing_stop.py` (jalan tiap 15 menit)
+  langsung mulai mantau tanpa nunggu user ketik apa-apa. Sekaligus cetak baris terstruktur
+  `SYNC_OPEN|TICKER|HARGA|TANGGAL|STRATEGI|DETAIL` ke stdout -- pasangan dari `SYNC_CLOSE` yang
+  sudah ada di Fase BJ.
+- `DetectDrawdownBounceSignalCommand.php`: method baru `syncOpenSignalsToTradeJournal()` -- parse
+  baris `SYNC_OPEN`, cari `Stock` by kode ticker, `Trade::create()` status `open` berlabel jelas
+  **"LIVE — sinyal otomatis ..."** (BUKAN simulasi) -- modal simulasi tetap Rp10.000.000 per posisi
+  (bukan compounding, beda gaya sengaja dari backfill karena live entries dibuat satu-satu tanpa
+  tahu urutan modal di muka, dijelaskan eksplisit di notes). Idempotent lewat `whereDate()` check
+  (bukan `where()` string exact -- ketahuan lewat test kalau kolom `entry_date` disimpan dengan
+  komponen waktu `00:00:00`, perbandingan string gagal cocok kalau tidak pakai `whereDate`).
+  Penutupan REUSE jembatan `SYNC_CLOSE` yang sudah ada (Fase BJ) -- tidak perlu logika baru, begitu
+  user `/close` posisi ini di Telegram, otomatis ikut nutup baris Trade Journal yang sama.
+
+### Verifikasi
+- 3 test baru di `DetectDrawdownBounceSignalCommandTest`: `sync_open_line_creates_live_trade_
+  journal_entry`, `sync_open_is_idempotent_on_rerun` (jalan 2x, tetap 1 baris -- awalnya GAGAL
+  karena bug `where('entry_date', $dateStr)` vs kolom tersimpan `2026-08-12 00:00:00`, diperbaiki
+  jadi `whereDate()`), `sync_open_skipped_gracefully_when_stock_unknown`.
+- `php artisan test`: **488 passed** (naik dari 485), tidak ada regresi.
+- **Real run produksi hari ini (12 Agustus, bursa baru buka) -- DAN LANGSUNG DAPAT SINYAL LIVE
+  PERTAMA**: DEWA trigger 11 Agustus (ret_2d -7,5%, persis sinyal pending yang sudah dipantau
+  sejak kemarin), entry 12 Agustus @Rp448; BRPT JUGA trigger bersamaan, entry @Rp1.860. Keduanya
+  otomatis: (1) terkirim alert Telegram, (2) masuk `open_positions.json` untuk pemantauan
+  trailing-stop tiap 15 menit, (3) muncul di web Trade Journal sebagai posisi `open` berlabel LIVE
+  -- seluruh pipeline dari deteksi sampai tercatat di web terbukti jalan end-to-end tanpa
+  intervensi manual, bukan cuma teori.
+- 2 baris sisa dari debugging manual (TESTBM, BUMI dobel) dibersihkan sebelum commit.
+
+### Status: SELESAI. Trade Journal sekarang punya 270 trade total (152 lama + 118 backfill
+GABUNGAN), plus 2 posisi LIVE pertama (DEWA, BRPT) yang tercatat otomatis dari sinyal produksi
+hari ini -- bukti pipeline end-to-end bekerja, bukan simulasi.

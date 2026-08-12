@@ -2,11 +2,24 @@
 
 namespace Tests\Feature;
 
+use App\Models\Stock;
+use App\Models\Trade;
+use App\Models\User;
 use Illuminate\Support\Facades\Process;
 use Tests\TestCase;
 
 class DetectDrawdownBounceSignalCommandTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // user_id=2 dipakai hardcoded di DetectDrawdownBounceSignalCommand (konsisten dengan
+        // konvensi baris SIMULASI BACKTEST lama yang juga pakai user_id=2) -- di DB dev/prod
+        // nyata itu akun demo user@sentimena.test, di test DB kosong harus di-seed manual.
+        User::factory()->create(['id' => 2]);
+    }
+
     public function test_successful_run_surfaces_script_output(): void
     {
         Process::fake([
@@ -22,6 +35,53 @@ class DetectDrawdownBounceSignalCommandTest extends TestCase
         Process::assertRan(function ($process) {
             return str_contains(implode(' ', $process->command), 'detect_signal.py');
         });
+    }
+
+    public function test_sync_open_line_creates_live_trade_journal_entry(): void
+    {
+        Stock::factory()->create(['code' => 'BUMI']);
+
+        Process::fake([
+            '*' => Process::result(output: "SIGNAL BARU: BUMI (tracked) trigger 2026-08-11 -> entry 2026-08-12 @ 178\n"
+                ."SYNC_OPEN|BUMI|178|2026-08-12|GABUNGAN|ret2d\n"
+                .'1 sinyal drawdown-bounce baru dicatat. Total tercatat: 1.'),
+        ]);
+
+        $this->artisan('research:detect-drawdown-bounce-signal')->assertExitCode(0);
+
+        $trade = Trade::where('ticker', 'BUMI')->where('status', 'open')->first();
+        $this->assertNotNull($trade);
+        $this->assertEquals(178, $trade->entry_price);
+        $this->assertSame('2026-08-12', $trade->entry_date->toDateString());
+        $this->assertStringContainsString('LIVE', $trade->notes);
+        $this->assertStringContainsString('GABUNGAN', $trade->notes);
+    }
+
+    public function test_sync_open_is_idempotent_on_rerun(): void
+    {
+        Stock::factory()->create(['code' => 'DEWA']);
+
+        Process::fake([
+            '*' => Process::result(output: 'SYNC_OPEN|DEWA|442|2026-08-12|MOMENTUM|rsi64'),
+        ]);
+
+        $this->artisan('research:detect-drawdown-bounce-signal')->assertExitCode(0);
+        $this->artisan('research:detect-drawdown-bounce-signal')->assertExitCode(0);
+
+        $this->assertSame(1, Trade::where('ticker', 'DEWA')->where('status', 'open')->count());
+    }
+
+    public function test_sync_open_skipped_gracefully_when_stock_unknown(): void
+    {
+        Process::fake([
+            '*' => Process::result(output: 'SYNC_OPEN|ZZZZ|100|2026-08-12|GABUNGAN|ret2d'),
+        ]);
+
+        $this->artisan('research:detect-drawdown-bounce-signal')
+            ->expectsOutputToContain('tidak ditemukan di tabel stocks')
+            ->assertExitCode(0);
+
+        $this->assertDatabaseMissing('trades', ['ticker' => 'ZZZZ']);
     }
 
     public function test_no_new_signal_still_exits_successfully(): void

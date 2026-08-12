@@ -2,8 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Stock;
+use App\Models\Trade;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
+use Throwable;
 
 /**
  * Fase AC: daily automatic detector for the "IHSG + stock crash together" bounce rule found in
@@ -22,6 +25,14 @@ class DetectDrawdownBounceSignalCommand extends Command
 
     protected $description = 'Detect new IHSG+stock drawdown-bounce signals for BUMI/DEWA (Fase AB/AC, prospective tracker)';
 
+    /**
+     * Fase BM: modal simulasi tetap Rp10jt per posisi live -- BUKAN compounding seperti backfill
+     * historis (Opsi A), karena live entries dibuat satu-satu tanpa tahu urutan "modal berjalan"
+     * di muka. Beda gaya sengaja, dijelaskan eksplisit di notes tiap trade supaya tidak
+     * membingungkan saat dibandingkan dengan baris backfill.
+     */
+    private const LIVE_CAPITAL = 10_000_000.0;
+
     public function handle(): int
     {
         $python = env('PYTHON_BINARY', 'python3');
@@ -35,11 +46,14 @@ class DetectDrawdownBounceSignalCommand extends Command
 
         $result = Process::timeout(60)->run([$python, $script]);
 
-        foreach (explode("\n", trim($result->output())) as $line) {
+        $outputLines = explode("\n", trim($result->output()));
+        foreach ($outputLines as $line) {
             if ($line !== '') {
                 $this->line($line);
             }
         }
+
+        $this->syncOpenSignalsToTradeJournal($outputLines);
 
         if (! $result->successful()) {
             $this->error('Gagal mendeteksi sinyal: '.trim($result->errorOutput()));
@@ -48,5 +62,79 @@ class DetectDrawdownBounceSignalCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Fase BM: jembatan sinyal live -> web Trade Journal (pasangan dari SYNC_CLOSE Fase BJ yang
+     * sudah ada). detect_signal.py mencetak "SYNC_OPEN|TICKER|HARGA|TANGGAL|STRATEGI|DETAIL"
+     * begitu sinyal baru terdaftar ke open_positions.json -- di sini kita buat record `trades`
+     * status 'open' berlabel LIVE (BUKAN simulasi) supaya sinyal live otomatis kelihatan di
+     * Trade Journal tanpa perlu /open manual dulu. Penutupannya reuse jembatan SYNC_CLOSE yang
+     * sudah ada di CheckTelegramCommandsCommand -- tidak perlu logika baru untuk exit.
+     */
+    private function syncOpenSignalsToTradeJournal(array $outputLines): void
+    {
+        foreach ($outputLines as $line) {
+            if (! str_starts_with($line, 'SYNC_OPEN|')) {
+                continue;
+            }
+
+            [, $ticker, $price, $dateStr, $strategy, $detail] = array_pad(explode('|', $line), 6, null);
+            if (! $ticker || ! is_numeric($price)) {
+                continue;
+            }
+
+            try {
+                $stock = Stock::where('code', $ticker)->first();
+                if (! $stock) {
+                    $this->warn("Sync Trade Journal (open): saham {$ticker} tidak ditemukan di tabel stocks -- dilewati.");
+                    continue;
+                }
+
+                $exists = Trade::where('ticker', $ticker)
+                    ->whereDate('entry_date', $dateStr)
+                    ->where('notes', 'like', 'LIVE — sinyal otomatis%')
+                    ->exists();
+                if ($exists) {
+                    continue; // idempotent -- jangan dobel kalau command jalan ulang
+                }
+
+                $entryPrice = (float) $price;
+                $quantity = (int) (floor(self::LIVE_CAPITAL / $entryPrice / 100) * 100);
+                if ($quantity <= 0) {
+                    $quantity = 100;
+                }
+
+                $strategyLabel = $strategy === 'MOMENTUM'
+                    ? "MOMENTUM ({$detail})"
+                    : 'GABUNGAN, jenis: '.($detail ?: 'ret2d');
+
+                Trade::create([
+                    'user_id' => 2,
+                    'stock_id' => $stock->id,
+                    'ticker' => $ticker,
+                    'direction' => 'long',
+                    'signal_quality' => 'journal',
+                    'entry_price' => $entryPrice,
+                    'stop_loss' => round($entryPrice * (1 - 0.02), 2),
+                    'target_1' => round($entryPrice * (1 + 0.05), 2),
+                    'lot_size' => (int) ($quantity / 100),
+                    'quantity' => $quantity,
+                    'position_value' => round($quantity * $entryPrice, 2),
+                    'status' => 'open',
+                    'entry_date' => $dateStr,
+                    'trade_date' => $dateStr,
+                    'result' => 'open',
+                    'notes' => "LIVE — sinyal otomatis {$strategyLabel}. Modal simulasi tetap Rp10.000.000 ".
+                        '(bukan compounding). Exit dipantau otomatis via research:check-trailing-stop-alert '.
+                        '(trailing stop 2% / target waktu 10 hari) -- posisi ini juga terdaftar di '.
+                        'open_positions.json untuk alert Telegram.',
+                ]);
+
+                $this->info("Sync Trade Journal: {$ticker} dibuka otomatis di web (entry Rp{$price}, {$dateStr}, {$strategyLabel}).");
+            } catch (Throwable $e) {
+                $this->warn("Sync Trade Journal (open) gagal untuk {$ticker} (DB mungkin mati): ".$e->getMessage());
+            }
+        }
     }
 }

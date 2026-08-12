@@ -441,6 +441,35 @@ def detect_momentum() -> list[dict]:
     return found
 
 
+POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
+
+
+def load_positions() -> list[dict]:
+    if not POSITIONS_PATH.is_file():
+        return []
+    return json.loads(POSITIONS_PATH.read_text(encoding="utf-8"))
+
+
+def save_positions(positions: list[dict]) -> None:
+    POSITIONS_PATH.write_text(json.dumps(positions, indent=2), encoding="utf-8")
+
+
+def register_open_position(ticker: str, entry_date: str, entry_price: float) -> None:
+    """Fase BM: daftarkan otomatis ke open_positions.json begitu sinyal baru terdeteksi -- supaya
+    check_trailing_stop.py (jalan tiap 15 menit) langsung mulai mantau TANPA perlu user ketik
+    /open manual dulu. Sama seperti /open manual: replace kalau ticker itu sudah ada di daftar
+    (satu ticker = satu posisi aktif pada satu waktu, konsisten dengan asumsi lama)."""
+    positions = load_positions()
+    positions = [p for p in positions if p["ticker"] != ticker]
+    positions.append({
+        "ticker": ticker,
+        "entry_date": entry_date,
+        "entry_price": entry_price,
+        "alerted_pullback_pct": None,
+    })
+    save_positions(positions)
+
+
 def main() -> None:
     conn = get_connection()
     signals = detect()
@@ -462,6 +491,11 @@ def main() -> None:
                   f"-> entry {s['entry_date']} @ {s['entry_price']:.0f}")
 
             send_telegram_alert(format_signal_alert(s))
+
+            # Fase BM: daftar otomatis ke pemantauan trailing-stop + jembatan ke Trade Journal
+            # web (SYNC_OPEN diparsing PHP, sama pola dengan SYNC_CLOSE Fase BJ).
+            register_open_position(s["ticker"], s["entry_date"], s["entry_price"])
+            print(f"SYNC_OPEN|{s['ticker']}|{s['entry_price']}|{s['entry_date']}|GABUNGAN|{s['signal_type']}")
         except sqlite3.IntegrityError:
             pass  # already logged, UNIQUE(ticker, trigger_date) makes this idempotent
 
@@ -479,6 +513,9 @@ def main() -> None:
                   f"(RSI14={s['rsi14']:.0f}) -> entry {s['entry_date']} @ {s['entry_price']:.0f}")
 
             send_telegram_alert(format_momentum_alert(s))
+
+            register_open_position(s["ticker"], s["entry_date"], s["entry_price"])
+            print(f"SYNC_OPEN|{s['ticker']}|{s['entry_price']}|{s['entry_date']}|MOMENTUM|rsi{s['rsi14']:.0f}")
         except sqlite3.IntegrityError:
             pass
 
