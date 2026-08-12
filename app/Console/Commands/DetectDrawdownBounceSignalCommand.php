@@ -118,7 +118,10 @@ class DetectDrawdownBounceSignalCommand extends Command
                     'entry_price' => $entryPrice,
                     'stop_loss' => round($entryPrice * (1 - 0.02), 2),
                     'target_1' => round($entryPrice * (1 + 0.05), 2),
-                    'lot_size' => (int) ($quantity / 100),
+                    // lot_size di kolom DB menyimpan LEMBAR (bukan jumlah lot) -- konvensi yang
+                    // sama dipakai TradeController::store() untuk trade manual via form web
+                    // (lihat LEMBAR_PER_LOT), "Lot" yang ditampilkan di UI itu lot_size/100.
+                    'lot_size' => $quantity,
                     'quantity' => $quantity,
                     'position_value' => round($quantity * $entryPrice, 2),
                     'status' => 'open',
