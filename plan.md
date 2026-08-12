@@ -3574,3 +3574,35 @@ T, bukan pagi hari T+1) tanpa mengubah kapan entry resmi terjadi.
 ### Status: SELESAI. Peringatan dini live di produksi untuk 6 saham (BUMI/DEWA/BRPT/SMGR/ESSA/UNVR),
 jalan otomatis di jadwal harian yang sama (15:18 WIB) dengan deteksi sinyal resmi -- tidak perlu
 job terjadwal terpisah.
+
+## Fase BN lanjutan -- rapikan wording alert (Sinyal Beli + Peringatan Dini)
+
+### Konteks
+User protes "Rencana exit: tahan 10 hari bursa ≈ {tanggal}" di alert Sinyal Beli itu MENYESATKAN
+-- exit sebenarnya trailing stop 2% dari puncak (bisa jauh lebih cepat dari 10 hari) ATAU target
+waktu 10 hari (mana duluan), bukan "tahan sampai tanggal X" seperti kesan yang diberikan teks lama.
+Sempat diusulkan tambah baris statistik win rate historis per saham, tapi user minta itu DIHAPUS
+(cuma mau bagian exit yang diperbaiki). Sekalian diminta rapikan wording Peringatan Dini (Fase BN)
+juga.
+
+### Perubahan
+- `format_signal_alert()`: baris "Rencana exit: tahan 10 hari bursa ≈ {tanggal}" DIHAPUS, diganti
+  "Exit: dipantau OTOMATIS tiap 15 menit -- keluar begitu harga mundur 2% dari puncak (trailing
+  stop, bisa kapan saja) ATAU maksimal 10 hari bursa kalau belum kena. Alert susulan (🎉 Puncak
+  Baru / 🔴 Trailing Stop / 🟠 Target Waktu) menyusul otomatis, tidak perlu dipantau manual." --
+  variabel `exit_estimate` yang sudah tidak dipakai ikut dihapus.
+- `format_heads_up_alert()`: dirombak jadi label-tebal per bagian (Closing hari ini / Status /
+  Kemungkinan besok / Kenapa nunggu besok / Yang perlu kamu lakukan), konsisten gaya dengan
+  `format_signal_alert()` -- sebelumnya 1 paragraf panjang, sekarang terpisah section pendek biar
+  lebih gampang dipindai di HP.
+- Contoh render didemo pakai DATA ASLI DEWA (trigger 11 Agustus, ret_2d -7,5%, dd_20d -7,9%,
+  IHSG -2,2%) -- bukan data sintetis -- supaya user bisa lihat persis bunyi alert yang akan
+  terkirim untuk kasus nyata yang sudah terjadi.
+
+### Verifikasi
+- Kedua format dites kirim REAL ke Telegram (kedua akun), `ok:true`, message_id 209-212.
+- `grep` konfirmasi tidak ada test PHP yang bergantung ke teks lama ("Rencana exit"/"tahan 10
+  hari") -- semua teks Python, tidak ada assertion PHP yang menyentuhnya.
+- `php artisan test`: 488 passed, tidak ada regresi.
+
+### Status: SELESAI.

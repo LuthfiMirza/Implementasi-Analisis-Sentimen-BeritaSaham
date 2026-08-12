@@ -226,10 +226,12 @@ def describe_stoch(stoch_k: float | None) -> str:
 
 def format_signal_alert(signal: dict) -> str:
     """HTML-formatted, scannable Telegram alert for one new signal (live-verified readable on
-    mobile: bold labels, blank-line-separated sections, plain numbers not a wall of text)."""
-    entry_date = date.fromisoformat(signal["entry_date"])
-    exit_estimate = entry_date + pd.tseries.offsets.BDay(10)
+    mobile: bold labels, blank-line-separated sections, plain numbers not a wall of text).
 
+    Fase BN (lanjutan): "Rencana exit: tahan 10 hari bursa ≈ {tanggal}" DIHAPUS -- user protes ini
+    menyesatkan, karena exit sebenarnya trailing stop 2% dari puncak (bisa jauh lebih cepat dari
+    10 hari) ATAU target waktu 10 hari, mana duluan -- bukan "tahan sampai tanggal X". Diganti
+    penjelasan mekanisme exit yang sebenarnya (lihat check_trailing_stop.py)."""
     icon = "\U0001F7E2" if signal["label"] == "tracked" else "\U0001F7E1"
     header = f"{icon} <b>SINYAL BELI: {signal['ticker']}</b>"
 
@@ -271,8 +273,10 @@ def format_signal_alert(signal: dict) -> str:
         f"IHSG {signal['ihsg_ret_2d']:+.1%} (2 hari) -- info konteks saja, bukan syarat\n\n"
         f"<b>Entry</b>: {signal['entry_date']}\n"
         f"Harga: Rp{signal['entry_price']:.0f}\n\n"
-        f"<b>Rencana exit</b>: tahan 10 hari bursa\n"
-        f"≈ {exit_estimate.date().isoformat()}\n\n"
+        f"<b>Exit</b>: dipantau OTOMATIS tiap 15 menit -- keluar begitu harga mundur 2% dari "
+        f"puncak (trailing stop, bisa kapan saja) ATAU maksimal 10 hari bursa kalau belum kena. "
+        f"Alert susulan (\U0001F389 Puncak Baru / \U0001F534 Trailing Stop / \U0001F7E0 Target "
+        f"Waktu) menyusul otomatis, tidak perlu dipantau manual.\n\n"
         f"<b>Info tambahan</b> (bukan bagian aturan -- live-checked hanya cocok ~3/8 kasus):\n"
         f"RSI14: {describe_rsi(signal.get('rsi14'))}\n"
         f"Stoch %K: {describe_stoch(signal.get('stoch_k'))}"
@@ -453,24 +457,26 @@ def detect_heads_up() -> list[dict]:
 
 
 def format_heads_up_alert(signal: dict) -> str:
-    """Fase BN: format berbeda dari format_signal_alert() -- header/icon beda, dan EKSPLISIT
-    bilang ini BUKAN sinyal resmi, harga entry BELUM ada (baru diketahui besok sore)."""
+    """Fase BN (dirapikan): format label-tebal per bagian, konsisten dengan format_signal_alert(),
+    dan EKSPLISIT bilang ini BUKAN sinyal resmi, harga entry BELUM ada (baru diketahui besok
+    sore)."""
     signal_type = signal["signal_type"]
     reason = {
-        "ret2d": f"turun tajam {signal['stock_ret_2d']:+.1%} dalam 2 hari bursa",
-        "drawdown": f"drawdown {signal['dd_20d']:+.1%} dari puncak 20 hari",
-        "ganda": f"turun tajam {signal['stock_ret_2d']:+.1%} (2 hari) DAN drawdown {signal['dd_20d']:+.1%} (20 hari) sekaligus",
+        "ret2d": f"{signal['stock_ret_2d']:+.1%} (2 hari) -- sudah memenuhi syarat trigger",
+        "drawdown": f"drawdown {signal['dd_20d']:+.1%} dari puncak 20 hari -- sudah memenuhi syarat trigger",
+        "ganda": f"{signal['stock_ret_2d']:+.1%} (2 hari) DAN drawdown {signal['dd_20d']:+.1%} "
+                 f"(20 hari) -- keduanya sudah memenuhi syarat trigger",
     }[signal_type]
 
     return (
         f"\U0001F7E1 <b>PERINGATAN DINI: {signal['ticker']}</b>\n\n"
-        f"Closing hari ini ({signal['trigger_date']}): {reason}.\n\n"
-        f"<b>BUKAN sinyal resmi.</b> Kalau closing besok tidak berubah drastis, ini KEMUNGKINAN "
-        f"BESAR jadi <b>Sinyal Beli</b> resmi besok sore (~15:18 WIB) dengan harga entry = closing "
-        f"besok -- belum bisa diketahui sekarang. Ini cuma heads-up supaya kamu bisa mulai pantau "
-        f"dari sekarang, BUKAN ajakan beli hari ini/besok pagi -- aturan resmi tetap entry di "
-        f"closing T+1, tidak berubah (lihat plan.md Fase AZ kenapa entry lebih cepat dari itu "
-        f"terbukti menurunkan win rate)."
+        f"<b>Closing hari ini</b>: {signal['trigger_date']}\n"
+        f"{signal['ticker']} {reason}\n\n"
+        f"<b>Status</b>: BUKAN sinyal resmi -- harga entry belum bisa diketahui sekarang.\n\n"
+        f"<b>Kemungkinan besok</b>: jadi Sinyal Beli resmi (~15:18 WIB), entry = closing besok.\n\n"
+        f"<b>Kenapa nunggu besok</b>: aturan resmi tetap entry closing T+1, sudah dibacktest -- "
+        f"entry lebih cepat dari itu malah menurunkan win rate.\n\n"
+        f"<b>Yang perlu kamu lakukan</b>: cuma pantau. Ini BUKAN ajakan beli hari ini/besok pagi."
     )
 
 
