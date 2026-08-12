@@ -3678,3 +3678,36 @@ rapi. Dibaca ulang kode + teks alert satu-satu.
 ### Status: SELESAI (perbaikan teks). Risiko snapshot-intraday-kalau-dijalankan-manual dicatat,
 belum ada perbaikan kode -- sama seperti keterbatasan yang sudah diketahui di detect()/
 detect_momentum() untuk kasus yang sama.
+
+## Fase BM lanjutan kedua -- buang trade GABUNGAN yang kembar persis dengan LAMA
+
+### Konteks
+User temukan DEWA 19 Mei tercatat 2x di Trade Journal (entry Rp388, exit Rp441, +12,86%) dengan
+angka identik tapi ID beda. Investigasi: itu 2 record independen dari 2 backfill berbeda (LAMA,
+dibuat 9 Agu; GABUNGAN, dibuat 12 Agu) -- BUKAN bug input dobel. Kebetulan tanggal itu memenuhi
+syarat KEDUA aturan sekaligus (ret_2d DAN drawdown_20d, makanya GABUNGAN mencatatnya sebagai jenis
+"Ganda"), jadi entry/exit-nya identik.
+
+Audit lebih luas: dari 118 baris backfill GABUNGAN, cuma **7 yang benar-benar kembar persis**
+dengan LAMA (DEWA 3x, BRPT 3x, UNVR 1x) -- 111 sisanya genuinely BEDA (menangkap tanggal yang
+LAMA tidak tangkap). Masalah lebih besar yang ditemukan sekalian: Trade Journal sekarang
+mencampur **4 strategi berbeda** (LAMA 105, GABUNGAN 118, AI-tp30/sl3/hold40h 15, LIVE 2) jadi 1
+kartu ringkasan -- "Total PnL" gabungan (Rp213,5jt) jadi tidak bermakna sebagai satu angka.
+
+### Keputusan
+Didiskusikan 3 opsi (filter per strategi di UI / pisahkan backtest dari Trade Journal / cuma buang
+yang kembar). User pilih **opsi paling minimal**: cuma buang 7 baris GABUNGAN yang kembar persis,
+simpan versi LAMA-nya (LAMA dibuat lebih dulu, dan nilai tambah GABUNGAN yang sebenarnya ada di 111
+baris yang BEDA dari LAMA, bukan di yang kebetulan sama). Masalah pencampuran 4 strategi di kartu
+ringkasan **belum diselesaikan** -- di luar scope perbaikan kali ini, cuma didokumentasikan sebagai
+temuan.
+
+### Perubahan
+- Hapus 7 baris `trades` (ID 381, 382, 384, 404, 417, 423, 447) -- DEWA 3x (11 Mei, 19 Mei, 27
+  Mei), BRPT 3x (26 Feb, 20 Mei, 23 Jun), UNVR 1x (10 Mar). Total trade: 272 -> 265.
+
+### Verifikasi
+- `php artisan test --filter=Trade`: 35 passed, tidak ada regresi.
+
+### Status: SELESAI (perbaikan minimal). Isu pencampuran 4 strategi di kartu ringkasan Trade
+Journal TETAP ADA -- dicatat sebagai temuan terbuka, belum diminta diperbaiki user.
