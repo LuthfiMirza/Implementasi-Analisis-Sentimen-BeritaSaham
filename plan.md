@@ -3606,3 +3606,28 @@ juga.
 - `php artisan test`: 488 passed, tidak ada regresi.
 
 ### Status: SELESAI.
+
+## Fase BN lanjutan lagi -- rapikan /status Telegram
+
+### Konteks
+User cek `/status`, protes "Hari bursa ke-1 dari 10" dianggap kurang berguna, minta dihapus. Juga
+"Puncak Rp458, mundur 0,9%" membingungkan -- kesannya ambang trailing stop itu 0,9%, padahal
+aturannya TETAP 2% (0,9% itu progress mundur SAAT INI dari puncak, bukan ambang trigger). Diskusi
+2 putaran sebelum diimplementasikan.
+
+### Perubahan
+- `telegram_commands.py::format_status()`: "Hari bursa ke-X dari {TARGET_HOLD_DAYS}" DIHAPUS.
+  "Puncak Rp.../mundur X%" diganti dua angka terpisah yang jelas: **harga PASTI** trigger trailing
+  stop (`peak * (1 - PULLBACK_THRESHOLD)`, ditulis eksplisit "-2%") dan **jarak SEKARANG** ke harga
+  itu (dari current price ke stop price, BUKAN dari peak) -- "Sekarang masih +X% di atas stop".
+- Notes tambahan (H-1 target waktu / sudah lewat ambang) tetap dipertahankan, cuma teksnya
+  disederhanakan (tidak sebut ulang angka 2% di situ karena sudah eksplisit di baris utama).
+
+### Verifikasi
+- Dites dengan posisi live asli (DEWA, BRPT) -- render benar: "Stop trailing (-2%): Rp449 |
+  Sekarang masih +0,7% di atas stop".
+- Dikirim REAL ke Telegram (`ok:true`, message_id 217 & 218).
+- `php artisan test`: 488 passed, tidak ada regresi (tidak ada test PHP yang bergantung ke teks
+  lama "Hari bursa ke-").
+
+### Status: SELESAI.

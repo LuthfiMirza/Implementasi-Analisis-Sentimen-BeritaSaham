@@ -193,7 +193,12 @@ def format_status(positions: list[dict]) -> str:
     ke-9, target waktu hari ke-10) -- dipanggil on-demand tiap /status, bukan cuma nunggu alert
     otomatis bunyi. Pakai compute_snapshot() dari check_trailing_stop.py (read-only, tidak
     pernah kirim alert/ubah open_positions.json), jadi angkanya selalu konsisten dengan yang
-    dipakai sistem alert asli."""
+    dipakai sistem alert asli.
+
+    Fase BN (dirapikan atas masukan user): "Hari bursa ke-X dari 10" DIHAPUS (dianggap kurang
+    berguna). "Puncak Rp.../mundur X%" yang lama membingungkan karena angka mundur (current state)
+    ketuker sama ambang 2% (aturan tetap) -- sekarang dipisah jelas: harga PASTI trigger trailing
+    stop (puncak x 0.98) ditulis eksplisit, lalu jarak SEKARANG ke harga itu (bukan ke puncak)."""
     if not positions:
         return "Tidak ada posisi yang sedang dipantau."
 
@@ -212,20 +217,24 @@ def format_status(positions: list[dict]) -> str:
 
         sign = "\U0001F7E2" if snap["unrealized_pct"] >= 0 else "\U0001F534"
 
+        stop_price = snap["peak"] * (1 - PULLBACK_THRESHOLD)
+        distance_to_stop = (snap["current"] - stop_price) / stop_price if stop_price > 0 else 0.0
+
         notes = []
         if snap["trading_days"] >= TARGET_HOLD_DAYS:
             notes.append(f"sudah kena target waktu {TARGET_HOLD_DAYS} hari")
         elif snap["trading_days"] >= WARN_HOLD_DAYS:
             notes.append("H-1 menuju target waktu")
         if snap["pullback"] >= PULLBACK_THRESHOLD:
-            notes.append(f"sudah lewat ambang trailing stop {PULLBACK_THRESHOLD:.0%}")
+            notes.append("sudah lewat ambang trailing stop")
         note_txt = f" ({', '.join(notes)})" if notes else ""
 
+        posisi_stop = "di bawah stop" if distance_to_stop < 0 else f"masih {distance_to_stop:+.1%} di atas stop"
         lines.append(
             f"{sign} <b>{ticker}</b>: entry Rp{entry_price:.0f} → sekarang Rp{snap['current']:.0f} "
             f"({snap['unrealized_pct']:+.1%})\n"
-            f"   Hari bursa ke-{snap['trading_days']} dari {TARGET_HOLD_DAYS} | "
-            f"Puncak Rp{snap['peak']:.0f}, mundur {snap['pullback']:.1%}{note_txt}\n"
+            f"   Puncak Rp{snap['peak']:.0f} | Stop trailing (-{PULLBACK_THRESHOLD:.0%}): "
+            f"Rp{stop_price:.0f} | Sekarang {posisi_stop}{note_txt}\n"
         )
     return "\n".join(lines)
 
