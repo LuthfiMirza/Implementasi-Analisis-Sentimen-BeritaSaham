@@ -269,6 +269,23 @@ def format_signal_alert(signal: dict) -> str:
 
     trigger_block = "\n".join(trigger_lines)
 
+    # Fase BP: exit berbeda per signal_type — "ganda" pakai B&H 10 hari (tanpa trailing-stop),
+    # sisanya tetap trailing-stop 2%.
+    if signal_type == "ganda":
+        exit_text = (
+            f"<b>Exit</b>: TAHAN {10} hari bursa (buy &amp; hold, TANPA trailing stop) -- "
+            f"backtest menunjukkan sinyal ganda (turun tajam + drawdown dalam) bounce-nya lebih "
+            f"kuat, trailing stop 2% justru memotong profit. "
+            f"Alert susulan (\U0001F7E0 Target Waktu) menyusul otomatis di hari ke-10."
+        )
+    else:
+        exit_text = (
+            f"<b>Exit</b>: dipantau OTOMATIS tiap 15 menit -- keluar begitu harga mundur 2% dari "
+            f"puncak (trailing stop, bisa kapan saja) ATAU maksimal 10 hari bursa kalau belum kena. "
+            f"Alert susulan (\U0001F389 Puncak Baru / \U0001F534 Trailing Stop / \U0001F7E0 Target "
+            f"Waktu) menyusul otomatis, tidak perlu dipantau manual."
+        )
+
     return (
         f"{header}\n\n"
         f"<b>Trigger</b>: {signal['trigger_date']}\n"
@@ -276,10 +293,7 @@ def format_signal_alert(signal: dict) -> str:
         f"IHSG {signal['ihsg_ret_2d']:+.1%} (2 hari) -- info konteks saja, bukan syarat\n\n"
         f"<b>Entry</b>: {signal['entry_date']}\n"
         f"Harga: Rp{signal['entry_price']:.0f}\n\n"
-        f"<b>Exit</b>: dipantau OTOMATIS tiap 15 menit -- keluar begitu harga mundur 2% dari "
-        f"puncak (trailing stop, bisa kapan saja) ATAU maksimal 10 hari bursa kalau belum kena. "
-        f"Alert susulan (\U0001F389 Puncak Baru / \U0001F534 Trailing Stop / \U0001F7E0 Target "
-        f"Waktu) menyusul otomatis, tidak perlu dipantau manual.\n\n"
+        f"{exit_text}\n\n"
         f"<b>Info tambahan</b> (bukan bagian aturan -- live-checked hanya cocok ~3/8 kasus):\n"
         f"RSI14: {describe_rsi(signal.get('rsi14'))}\n"
         f"Stoch %K: {describe_stoch(signal.get('stoch_k'))}"
@@ -540,19 +554,23 @@ def save_positions(positions: list[dict]) -> None:
     POSITIONS_PATH.write_text(json.dumps(positions, indent=2), encoding="utf-8")
 
 
-def register_open_position(ticker: str, entry_date: str, entry_price: float) -> None:
+def register_open_position(ticker: str, entry_date: str, entry_price: float,
+                           signal_type: str | None = None) -> None:
     """Fase BM: daftarkan otomatis ke open_positions.json begitu sinyal baru terdeteksi -- supaya
     check_trailing_stop.py (jalan tiap 15 menit) langsung mulai mantau TANPA perlu user ketik
     /open manual dulu. Sama seperti /open manual: replace kalau ticker itu sudah ada di daftar
     (satu ticker = satu posisi aktif pada satu waktu, konsisten dengan asumsi lama)."""
     positions = load_positions()
     positions = [p for p in positions if p["ticker"] != ticker]
-    positions.append({
+    pos = {
         "ticker": ticker,
         "entry_date": entry_date,
         "entry_price": entry_price,
         "alerted_pullback_pct": None,
-    })
+    }
+    if signal_type:
+        pos["signal_type"] = signal_type
+    positions.append(pos)
     save_positions(positions)
 
 
@@ -581,7 +599,7 @@ def main() -> None:
 
             # Fase BM: daftar otomatis ke pemantauan trailing-stop + jembatan ke Trade Journal
             # web (SYNC_OPEN diparsing PHP, sama pola dengan SYNC_CLOSE Fase BJ).
-            register_open_position(s["ticker"], s["entry_date"], s["entry_price"])
+            register_open_position(s["ticker"], s["entry_date"], s["entry_price"], s["signal_type"])
             print(f"SYNC_OPEN|{s['ticker']}|{s['entry_price']}|{s['entry_date']}|GABUNGAN|{s['signal_type']}")
         except sqlite3.IntegrityError:
             pass  # already logged, UNIQUE(ticker, trigger_date) makes this idempotent

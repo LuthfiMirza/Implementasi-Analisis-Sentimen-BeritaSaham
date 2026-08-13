@@ -216,23 +216,32 @@ def format_status(positions: list[dict]) -> str:
             continue
 
         sign = "\U0001F7E2" if snap["unrealized_pct"] >= 0 else "\U0001F534"
-
-        stop_price = snap["peak"] * (1 - PULLBACK_THRESHOLD)
+        is_ganda = p.get("signal_type") == "ganda"
 
         notes = []
         if snap["trading_days"] >= TARGET_HOLD_DAYS:
             notes.append(f"sudah kena target waktu {TARGET_HOLD_DAYS} hari")
         elif snap["trading_days"] >= WARN_HOLD_DAYS:
             notes.append("H-1 menuju target waktu")
-        if snap["pullback"] >= PULLBACK_THRESHOLD:
-            notes.append("sudah lewat ambang trailing stop")
-        note_txt = f" ({', '.join(notes)})" if notes else ""
 
-        lines.append(
-            f"{sign} <b>{ticker}</b>: Rp{snap['current']:.0f} ({snap['unrealized_pct']:+.1%}) "
-            f"dari entry Rp{entry_price:.0f}\n"
-            f"   Puncak Rp{snap['peak']:.0f} | Stop Rp{stop_price:.0f}{note_txt}\n"
-        )
+        if is_ganda:
+            days_left = max(0, TARGET_HOLD_DAYS - snap["trading_days"])
+            note_txt = f" ({', '.join(notes)})" if notes else ""
+            lines.append(
+                f"{sign} <b>{ticker}</b>: Rp{snap['current']:.0f} ({snap['unrealized_pct']:+.1%}) "
+                f"dari entry Rp{entry_price:.0f}\n"
+                f"   Puncak Rp{snap['peak']:.0f} | B&amp;H {TARGET_HOLD_DAYS}d (sisa {days_left}d){note_txt}\n"
+            )
+        else:
+            stop_price = snap["peak"] * (1 - PULLBACK_THRESHOLD)
+            if snap["pullback"] >= PULLBACK_THRESHOLD:
+                notes.append("sudah lewat ambang trailing stop")
+            note_txt = f" ({', '.join(notes)})" if notes else ""
+            lines.append(
+                f"{sign} <b>{ticker}</b>: Rp{snap['current']:.0f} ({snap['unrealized_pct']:+.1%}) "
+                f"dari entry Rp{entry_price:.0f}\n"
+                f"   Puncak Rp{snap['peak']:.0f} | Stop Rp{stop_price:.0f}{note_txt}\n"
+            )
     return "\n".join(lines)
 
 

@@ -3785,3 +3785,45 @@ Masalah ini berdampak pada SEMUA fungsi downstream: `detect()` (entry_price sala
   baris hari ini, mencegah entry_price salah.
 
 ### Status: SELESAI.
+
+---
+
+## Fase BP — Exit Berbeda per Signal Type: "Ganda" Pakai B&H 10 Hari
+
+### Konteks
+Riset dari sesi sebelumnya menemukan sinyal "ganda" (ret_2d ≤ -5% DAN drawdown_20d ≤ -20%) hasilnya
+lebih bagus TANPA trailing-stop 2%. Backtest 152 trade (5 saham, 2024-sekarang):
+- B&H-10d: total +555%, WR 57%, CI95 lower +2.02% → P1 ✅ P3 ✅ P4 ✅
+- TS-2%:   total +420%, WR 64%, CI95 lower +1.07% → P1 ✅ P3 ✅ P4 ✅
+
+B&H-10d menang total return +135% dan punya CI95 LEBIH KUAT. Hipotesis: "ganda" = saham jatuh
+sangat dalam, bounce lebih kuat tapi juga lebih volatile di awal → TS-2% terpotong di noise.
+
+Per-saham: DEWA (+264% vs +89%), UNVR (+99% vs +34%), BUMI (+87% vs +78%) → B&H menang.
+BRPT (+114% vs +207%) → TS-2% menang (satu-satunya). Secara agregat B&H lebih kuat.
+
+### Perubahan
+
+**`quant/drawdown_bounce_tracker/detect_signal.py`**:
+- `register_open_position()`: parameter baru `signal_type`, disimpan ke `open_positions.json`.
+- `main()`: pass `s["signal_type"]` ke `register_open_position()`.
+- `format_signal_alert()`: untuk "ganda", bagian Exit berubah — "TAHAN 10 hari bursa (buy & hold,
+  TANPA trailing stop)" dengan penjelasan kenapa, bukan "keluar begitu mundur 2%".
+
+**`quant/drawdown_bounce_tracker/check_trailing_stop.py`**:
+- `check_position()`: baca `signal_type` dari posisi (default "ret2d" untuk backward-compat).
+- Kalau "ganda": skip Alert 0 (puncak baru) dan Alert 1 (trailing stop). Tetap kirim Alert 1.5
+  (H-1 target waktu) dan Alert 2 (target waktu 10 hari).
+- Print log menunjukkan `exit=B&H-10d` vs `exit=TS-2%`.
+
+**`quant/drawdown_bounce_tracker/telegram_commands.py`**:
+- `format_status()`: untuk "ganda", tampilkan "B&H 10d (sisa Xd)" tanpa stop price. Non-ganda
+  tetap "Puncak RpX | Stop RpY".
+
+### Verifikasi
+- Backward-compat: posisi lama tanpa `signal_type` → default `ret2d` → TS-2% (terverifikasi).
+- format_status(): DEWA (ganda) → "B&H 10d (sisa 9d)", BRPT (ret2d) → "Stop Rp1921" (terverifikasi).
+- format_signal_alert(): ganda → "TAHAN 10 hari bursa", ret2d → "keluar begitu mundur 2%" (terverifikasi).
+- check_position(): ganda → skip trailing-stop/puncak-baru alert, ret2d → normal (terverifikasi).
+
+### Status: SELESAI.
