@@ -3827,3 +3827,70 @@ BRPT (+114% vs +207%) → TS-2% menang (satu-satunya). Secara agregat B&H lebih 
 - check_position(): ganda → skip trailing-stop/puncak-baru alert, ret2d → normal (terverifikasi).
 
 ### Status: SELESAI.
+
+---
+
+## Fase BQ — Screening 47 kandidat saham baru: TIDAK ADA yang ditambahkan (temuan negatif)
+
+### Konteks
+User minta dicarikan saham tambahan untuk dimasukkan ke alert Telegram. Screening Fase AY dulu
+ad-hoc di dalam sesi (tidak bisa dijalankan ulang) DAN masih memakai aturan lama (ret_2d saja),
+padahal produksi sekarang pakai aturan gabungan (Fase BK) + exit beda per signal_type (Fase BP).
+Jadi screening diulang dari awal dengan protokol yang berlaku sekarang.
+
+### Metode
+Skrip PERMANEN baru `quant/drawdown_bounce_tracker/screen_candidates.py` (bisa di-rerun, beda dari
+Fase AY):
+- Universe 53 saham `data/stocks/*.csv`, dikurangi 6 yang sudah dipantau = 47 kandidat.
+- Data dari yfinance langsung sejak 2024-01-01 (`data/stocks/*.csv` sudah basi: BUMI/BBCA cuma
+  s/d 21 Jul 2026, ANTM s/d April).
+- Entry: aturan gabungan `ret_2d<=-5% ATAU dd_20d<=-20%`.
+- Exit: PERSIS produksi Fase BP -- "ganda" B&H 10 hari, "ret2d"/"drawdown" trailing stop 2%.
+- Episode independence (jeda <=15 hari kalender = 1 episode), semua metrik di level EPISODE.
+- Gate P1-P4; minimal 12 episode, di bawah itu dinyatakan sampel tipis (14 saham kena).
+
+### Hasil: 1 lolos 4/4, tapi RAPUH -- tidak diambil
+Dari 33 kandidat bersampel cukup: **INDY** satu-satunya lolos 4/4, itupun CI95 lower cuma **+0,12%**
+(nyaris nol). SCMA & SILO lolos 3/4 (gagal P4). Sisanya gagal.
+
+**Uji kerapuhan (yang menjatuhkan INDY)**: exit diganti B&H 10 hari untuk SEMUA signal_type --
+spesifikasi yang sama-sama masuk akal, dan memang sudah dipakai produksi untuk "ganda".
+INDY jatuh dari **4/4 (CI95lo +0,12%)** ke **2/4 (CI95lo -1,46%)**. Lolosnya cuma artefak
+interaksi dengan satu spesifikasi exit, bukan edge yang nyata. Pola rapuh yang sama sudah 3x
+menjatuhkan kandidat di proyek ini (buying-pressure, trend-following, TPIA).
+
+Catatan: INDY memang sudah pernah ditolak user di Fase AY karena margin tipis. Screening ulang
+dengan aturan baru TIDAK mengubah kesimpulan itu. TPIA (ditolak Fase AY) kini GAGAL langsung --
+konsisten.
+
+### Temuan sampingan yang lebih penting dari kandidatnya sendiri
+**Kontrol**: 6 saham yang SUDAH dipantau diskor dengan skrip yang sama. Tidak ada satupun yang
+lolos 4/4 (DEWA terkuat, 3/4; SMGR & ESSA malah GAGAL), dan **keenamnya kalah dari buy-and-hold**
+pada jendela yang sama. Di seluruh 33 kandidat: strategi kalah B&H di 27/33, median -1,23 poin
+persen; P4 gagal di 32/33.
+
+Perlu hati-hati membacanya: "B&H" di sini artinya **entry yang sama persis, tapi tanpa aturan
+exit** -- jadi yang kalah BUKAN sinyal entry-nya, melainkan trailing stop 2%-nya yang memotong
+upside. Dicek langsung: tanpa trailing stop, mean return episode melonjak (BUMI +0,55%->+5,24%,
+BRPT +1,01%->+5,00%, UNVR +0,68%->+5,71%). TAPI CI95 lower tetap mayoritas negatif karena
+variansnya ikut meledak -- jadi ini BUKAN alasan untuk main hapus trailing stop, cuma menegaskan
+temuan Fase BP (trailing stop memotong profit) berlaku lebih luas dari sekadar jenis "ganda".
+
+**Diskrepansi yang harus jujur dicatat**: gate di sini lebih ketat / beda definisi dari yang
+dilaporkan Fase BK (yang menyatakan 5 saham "LULUS PENUH"). Khususnya P2 di sini dihitung
+per-jendela (entry sama, tahan 10 hari) -- ukuran skill sinyal yang lebih keras daripada
+membandingkan total return terhadap buy-and-hold sepanjang periode. Belum direkonsiliasi. Sampai
+itu beres, angka Fase BQ TIDAK dipakai untuk menganulir status saham yang sudah dipantau -- tapi
+juga tidak boleh dipakai untuk mengangkat kandidat baru seolah setara.
+
+### Keputusan
+**TIDAK ADA saham baru ditambahkan ke tracker/alert Telegram.** Tidak ada perubahan pada
+`detect_signal.py`, `telegram_commands.py`, atau keyboard Telegram. INDY/SCMA/SILO TIDAK
+diimplementasikan -- keputusan sadar berbasis uji kerapuhan, bukan terlewat.
+
+### Perubahan
+- BARU: `quant/drawdown_bounce_tracker/screen_candidates.py` (skrip screening permanen, reusable).
+- BARU: `output/drawdown_bounce_screening.csv` (hasil detail 47 kandidat).
+- Tidak ada perubahan kode produksi.
+
+### Status: SELESAI (temuan negatif -- tidak ada saham ditambahkan).
