@@ -3955,3 +3955,63 @@ stop untuk non-"ganda") diserahkan ke user, bukan diputuskan sendiri. Riset ini 
 pertanyaannya, tidak otomatis mengubah sistem.
 
 ### Status: SELESAI (riset saja, produksi tidak berubah).
+
+---
+
+## Fase BS — Audit bug pipeline sinyal: 1 REGRESI KRITIS ditemukan & diperbaiki
+
+### Konteks
+User minta pengecekan ulang apakah ada bug di sinyal. Audit menemukan bahwa guard yang BARU SAJA
+ditambahkan di Fase BO justru memperkenalkan regresi yang mematikan job terjadwal.
+
+### BUG KRITIS: guard 15:20 vs job terjadwal 15:18
+`research:detect-drawdown-bounce-signal` dijadwalkan **15:18** (routes/console.php). Guard Fase BO
+membuang data hari berjalan kalau jam < **15:20**. Karena 15:18 < 15:20, **SETIAP run terjadwal
+membuang data hari itu** -- sinyal baru baru ketahuan sehari terlambat, dan Peringatan Dini
+(yang membaca hari terakhir) selalu meleset satu hari.
+
+Dibuktikan dengan simulasi jam, bukan dugaan: pada 15:18 data hari itu `DIBUANG = True`.
+
+**Perbaikan**: `MARKET_CLOSE_TIME` 15:20 -> **15:15**. Yang disesuaikan GUARD-nya, BUKAN jadwal
+15:18 -- jam entry bagian dari protokol yang dikunci sebelum sinyal live pertama (PROTOCOL.md),
+sedangkan guard ini baru dibuat kemarin. 15:15 aman: sesi reguler tutup 15:00, pre-closing
+15:00-15:10, random closing selesai ~15:11, jadi closing sudah final; masih 3 menit sebelum job.
+
+Verifikasi 5 skenario jam:
+| Jam | Perilaku | Benar? |
+|---|---|---|
+| 09:16 (kasus asli DEWA) | dibuang | ya -- proteksi asli utuh |
+| 12:05 (job session1) | dibuang | ya (job itu tidak pakai fetch_recent, lihat bawah) |
+| 15:10 (random-close blm selesai) | dibuang | ya |
+| **15:18 (job terjadwal)** | **dipakai** | **ya -- regresi tertutup** |
+| 16:00 (run manual sore) | dipakai | ya |
+
+### BUG KECIL: angka 15:20 ter-hardcode di pesan log
+Setelah ambang diubah ke 15:15, log masih mencetak "< 15:20" karena angkanya ditulis literal di
+f-string. Ketahuan saat menjalankan perintah aslinya (bukan dari membaca kode). Diperbaiki
+memakai `MARKET_CLOSE_TIME.strftime()` supaya tidak bisa lepas sinkron lagi.
+
+### Yang DICEK dan ternyata AMAN (bukan bug)
+- **`check_session1_warning.py` tidak terdampak guard.** Job 12:05 itu memang HARUS melihat data
+  intraday sesi 1; dicek, dia punya fetch sendiri (`interval="1h"`) dan tidak mengimpor
+  `fetch_recent()`. Komentarnya yang menyebut "fetch_recent masih pakai Adj Close (bug lama)"
+  sudah USANG sejak Fase BK -- diperbarui sekalian.
+- **Asumsi `merged.iloc[i+1]` = hari bursa berikutnya.** Dicurigai bisa meleset kalau ada baris
+  Close NaN atau hari yang hilang setelah `merge`+`dropna` (BUMI sempat NaN pada 12 Agu). Dicek
+  ke 6 saham: 0 baris NaN tersisa, 0 lompatan >4 hari. Tidak terbukti bermasalah saat ini, tapi
+  tetap risiko laten kalau yfinance bolong lagi.
+- **Timeout `Process::timeout(60)` di PHP.** Diukur: total run 3,6 detik, margin 56 detik. Aman.
+
+### Inefisiensi (dicatat, TIDAK diperbaiki -- bukan bug)
+`detect()`, `detect_heads_up()`, dan `detect_momentum()` masing-masing memanggil `fetch_recent()`
+sendiri-sendiri, jadi tiap saham diunduh 2-3x: **17 download padahal cuma 7 yang unik (+143%)**.
+Tidak diperbaiki karena terukur cuma 3,6 detik dengan margin timeout 56 detik -- memperbaikinya
+(cache antar-fungsi) menambah kompleksitas tanpa keuntungan nyata sekarang. Jadi masalah kalau
+nanti jumlah saham bertambah banyak.
+
+### Verifikasi
+- `php artisan research:detect-drawdown-bounce-signal`: exit 0, log kini benar ("< 15:15").
+- `php artisan test --filter=DetectDrawdownBounce`: **6 passed** (20 assertions).
+- `open_positions.json` tidak berubah (DEWA & BRPT tetap utuh).
+
+### Status: SELESAI.

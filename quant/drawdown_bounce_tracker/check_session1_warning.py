@@ -43,9 +43,15 @@ def save_warning_state(state: dict) -> None:
 
 
 def fetch_daily_closes(ticker: str, days: int = 10) -> pd.DataFrame:
-    """Close MENTAH (bukan Adj Close) -- penting terutama untuk SMGR yang bagi dividen nyata,
-    beda dari fetch_recent() di detect_signal.py yang masih pakai Adj Close (bug lama, belum
-    diperbaiki di sana, lihat plan.md)."""
+    """Close MENTAH (bukan Adj Close) -- penting terutama untuk SMGR yang bagi dividen nyata.
+
+    Catatan sejarah: dulu fetch_recent() di detect_signal.py masih pakai Adj Close sehingga
+    keduanya beda basis harga. Bug itu SUDAH diperbaiki di Fase BK (fetch_recent kini juga pakai
+    Close mentah), jadi keduanya sekarang konsisten.
+
+    Fetch sendiri di sini disengaja, TIDAK memakai fetch_recent(): job ini jalan 12:05 dan memang
+    HARUS melihat data intraday sesi 1, sedangkan fetch_recent() punya guard yang justru membuang
+    data hari berjalan sebelum bursa tutup (Fase BO/BS)."""
     df = yf.download(f"{ticker}.JK", period=f"{days}d", progress=False, auto_adjust=False)
     if df.empty:
         return df

@@ -34,7 +34,19 @@ import requests
 import yfinance as yf
 
 WIB = timezone(timedelta(hours=7))
-MARKET_CLOSE_TIME = time(15, 20)  # closing + random close + buffer
+# Fase BO (dikoreksi di Fase BS): ambang "bursa sudah tutup" untuk guard snapshot-intraday.
+#
+# HARUS lebih awal dari 15:18 -- jam job terjadwal `research:detect-drawdown-bounce-signal`
+# (routes/console.php). Versi pertama dipasang 15:20 dan itu REGRESI: 15:18 < 15:20, jadi SETIAP
+# run terjadwal membuang data hari itu dan sinyal baru ketahuan sehari terlambat. Jadwal 15:18
+# TIDAK diubah untuk memperbaiki ini -- jam entry bagian dari protokol yang dikunci sebelum sinyal
+# live pertama (PROTOCOL.md); yang disesuaikan guard-nya, karena guard ini yang baru.
+#
+# 15:15 aman: sesi reguler tutup 15:00, pre-closing 15:00-15:10, random closing selesai ~15:11 --
+# harga closing sudah final sebelum 15:15, dan masih ada 3 menit sebelum job 15:18 jalan.
+# Proteksi aslinya tetap utuh: run manual di tengah jam bursa (kasus asli DEWA 09:16) tetap
+# diblokir.
+MARKET_CLOSE_TIME = time(15, 15)
 
 TRACKING_START_DATE = date(2026, 7, 31)  # PROTOCOL.md lock date -- do not backdate
 DROP_THRESHOLD = -0.05
@@ -384,7 +396,8 @@ def fetch_recent(symbol: str, days: int = 60) -> pd.DataFrame:
     today = now_wib.date()
     if not df.empty and df.iloc[-1]["date"] == today and now_wib.time() < MARKET_CLOSE_TIME:
         df = df.iloc[:-1]
-        print(f"⏳ {symbol}: data hari ini ({today}) dibuang — bursa belum tutup ({now_wib.strftime('%H:%M')} WIB < 15:20).")
+        print(f"⏳ {symbol}: data hari ini ({today}) dibuang — bursa belum tutup "
+              f"({now_wib.strftime('%H:%M')} WIB < {MARKET_CLOSE_TIME.strftime('%H:%M')}).")
 
     return df[["date", "adj_close", "ret_2d", "rsi14", "stoch_k", "dd_20d"]]
 
