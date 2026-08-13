@@ -3894,3 +3894,64 @@ diimplementasikan -- keputusan sadar berbasis uji kerapuhan, bukan terlewat.
 - Tidak ada perubahan kode produksi.
 
 ### Status: SELESAI (temuan negatif -- tidak ada saham ditambahkan).
+
+---
+
+## Fase BR — Riset "nambah muatan" (averaging down): hasilnya TERBELAH tajam
+
+### Konteks
+User bertanya langsung saat DEWA mundur dari puncak: worth it nggak nambah posisi? Sistem TIDAK
+punya jawaban berbasis bukti -- semua backtest sebelumnya mengasumsikan satu entry per sinyal,
+modal tetap, satu posisi per saham (`register_open_position()` bahkan MENGGANTI posisi, bukan
+menambah). Fase ini mengisi kekosongan itu.
+
+Skrip: `quant/drawdown_bounce_tracker/research_average_down.py` (permanen, reusable).
+
+### Dua jebakan metodologi yang ditangani (dan satu bug yang sempat terjadi)
+1. **Eksposur tidak sebanding.** Nambah muatan = modal berisiko ~2x. Membandingkan "% return"
+   saja membuat averaging down otomatis menang di pasar naik. Karena itu ukuran PENENTU dibuat
+   **P&L per rupiah yang benar-benar dikerahkan** (per-unit), bukan P&L total.
+2. **Bentrok trailing stop.** Non-"ganda" di produksi KELUAR saat mundur 2% -- bentrok langsung
+   dengan "tambah saat mundur 2%". Exit disamakan B&H 10 hari di SEMUA varian supaya efek
+   averaging down terisolasi. Konsekuensi: hasil ini belum otomatis berlaku untuk aturan
+   produksi non-"ganda" yang masih pakai trailing stop.
+3. **BUG yang sempat terjadi & diperbaiki**: trade 5 saham sempat digabung SEBELUM di-episode-kan,
+   membuat trigger banyak saham di tanggal sama (crash market-wide) melebur jadi SATU episode --
+   sampel jatuh ke 9 episode dan CI95-nya tidak berarti. Diperbaiki: episode dikelompokkan
+   PER SAHAM dulu, baru digabung. Sampel benar: **87 episode**.
+
+### Hasil (5 saham gabungan, 87 episode, exit B&H 10 hari)
+| Varian | modal | P&L tot | **PER UNIT** | rugi rata2 | terburuk |
+|---|---|---|---|---|---|
+| Baseline (1x entry) | 1,00x | +4,61% | **+4,61%** | -3,17% | -12,77% |
+| Tambah -2% DI BAWAH ENTRY | 1,72x | +6,76% | **+4,92%** | -5,82% | -23,76% |
+| Tambah -3% DI BAWAH ENTRY | 1,59x | +5,79% | **+5,00%** | -5,72% | -22,86% |
+| Tambah -5% DI BAWAH ENTRY | 1,39x | +5,25% | **+4,98%** | -4,49% | -21,02% |
+| Tambah -2% DARI PUNCAK | 2,00x | +7,58% | **+3,79%** | -6,51% | -26,89% |
+| Tambah -3% DARI PUNCAK | 2,00x | +7,28% | **+3,64%** | -6,28% | -27,14% |
+| Tambah -5% DARI PUNCAK | 1,94x | +7,21% | **+3,71%** | -6,28% | -25,30% |
+
+Perhatikan jebakannya: kolom "P&L tot" bikin SEMUA varian tambah kelihatan menang. Baru di kolom
+PER UNIT ketahuan varian "dari puncak" sebenarnya KALAH -- P&L-nya besar cuma karena modalnya 2x.
+
+**Uji berpasangan (bootstrap 20.000, episode yang sama, selisih per-unit vs baseline):**
+- Tambah -2%/-3%/-5% DI BAWAH ENTRY: **+0,74% / +0,90% / +0,98%**, CI95 seluruhnya di ATAS nol
+  -> NYATA lebih baik.
+- Tambah -2%/-3%/-5% DARI PUNCAK: **-0,81% / -0,96% / -0,86%**, CI95 seluruhnya di BAWAH nol
+  -> NYATA lebih buruk.
+
+### Kesimpulan
+Dua hal yang sehari-hari disebut "nambah muatan" ternyata berlawanan arah:
+- **Beli lagi DI BAWAH harga entry** (averaging down harfiah): edge per-rupiah NYATA positif,
+  tapi tipis (+0,7 s/d +1,0 poin persen) dan dibayar dengan **ekor rugi hampir 2x lebih dalam**
+  (terburuk -21% s/d -24% vs -12,77% baseline).
+- **Nambah saat mundur dari PUNCAK padahal masih untung dari entry**: NYATA merugikan per rupiah.
+  Modal 2x cuma menghasilkan ~1,6x return. Modal ekstra itu lebih baik dipakai di sinyal lain.
+
+### Keputusan
+TIDAK ADA perubahan kode produksi. Varian "di bawah entry" punya edge nyata tapi tipis dengan ekor
+rugi jauh lebih gemuk -- keputusan mengaktifkannya (dan bagaimana mendamaikannya dengan trailing
+stop untuk non-"ganda") diserahkan ke user, bukan diputuskan sendiri. Riset ini menjawab
+pertanyaannya, tidak otomatis mengubah sistem.
+
+### Status: SELESAI (riset saja, produksi tidak berubah).
