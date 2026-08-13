@@ -568,18 +568,30 @@ def save_positions(positions: list[dict]) -> None:
 
 
 def register_open_position(ticker: str, entry_date: str, entry_price: float,
-                           signal_type: str | None = None) -> None:
-    """Fase BM: daftarkan otomatis ke open_positions.json begitu sinyal baru terdeteksi -- supaya
-    check_trailing_stop.py (jalan tiap 15 menit) langsung mulai mantau TANPA perlu user ketik
-    /open manual dulu. Sama seperti /open manual: replace kalau ticker itu sudah ada di daftar
-    (satu ticker = satu posisi aktif pada satu waktu, konsisten dengan asumsi lama)."""
+                           signal_type: str | None = None, strategy: str = "GABUNGAN") -> None:
+    """Fase BM (dikoreksi Fase BU): daftarkan otomatis ke open_positions.json begitu sinyal baru
+    terdeteksi -- supaya check_trailing_stop.py (jalan tiap 15 menit) langsung mulai mantau TANPA
+    perlu user ketik /open manual dulu.
+
+    BUG Fase BU (ditemukan live 13 Agu 2026): sebelumnya replace HANYA berdasar ticker, jadi
+    sinyal MOMENTUM baru untuk BRPT diam-diam MENIMPA posisi GABUNGAN BRPT yang masih berjalan
+    sejak 12 Agu -- histori puncak/pullback-nya hilang dan posisi lama berhenti dipantau, padahal
+    di Trade Journal MySQL keduanya tetap tercatat "open" sebagai baris terpisah. Sekarang replace
+    berdasar (ticker, strategy) -- dua strategi otomatis boleh punya posisi terbuka bersamaan di
+    saham yang sama tanpa saling timpa.
+
+    TIDAK mengubah /open dan /close manual di telegram_commands.py (di luar cakupan perbaikan
+    ini) -- keduanya tetap replace/hapus SEMUA entri untuk ticker itu, cocok dengan cara user
+    biasa memakainya ("saya sudah selesai dengan BRPT", bukan per-strategi)."""
     positions = load_positions()
-    positions = [p for p in positions if p["ticker"] != ticker]
+    positions = [p for p in positions
+                 if not (p["ticker"] == ticker and p.get("strategy", "GABUNGAN") == strategy)]
     pos = {
         "ticker": ticker,
         "entry_date": entry_date,
         "entry_price": entry_price,
         "alerted_pullback_pct": None,
+        "strategy": strategy,
     }
     if signal_type:
         pos["signal_type"] = signal_type
@@ -612,7 +624,8 @@ def main() -> None:
 
             # Fase BM: daftar otomatis ke pemantauan trailing-stop + jembatan ke Trade Journal
             # web (SYNC_OPEN diparsing PHP, sama pola dengan SYNC_CLOSE Fase BJ).
-            register_open_position(s["ticker"], s["entry_date"], s["entry_price"], s["signal_type"])
+            register_open_position(s["ticker"], s["entry_date"], s["entry_price"], s["signal_type"],
+                                    strategy="GABUNGAN")
             print(f"SYNC_OPEN|{s['ticker']}|{s['entry_price']}|{s['entry_date']}|GABUNGAN|{s['signal_type']}")
         except sqlite3.IntegrityError:
             pass  # already logged, UNIQUE(ticker, trigger_date) makes this idempotent
@@ -632,7 +645,7 @@ def main() -> None:
 
             send_telegram_alert(format_momentum_alert(s))
 
-            register_open_position(s["ticker"], s["entry_date"], s["entry_price"])
+            register_open_position(s["ticker"], s["entry_date"], s["entry_price"], strategy="MOMENTUM")
             print(f"SYNC_OPEN|{s['ticker']}|{s['entry_price']}|{s['entry_date']}|MOMENTUM|rsi{s['rsi14']:.0f}")
         except sqlite3.IntegrityError:
             pass

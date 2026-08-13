@@ -110,10 +110,17 @@ def check_position(position: dict) -> None:
     entry_date = position["entry_date"]
     entry_price = float(position["entry_price"])
     signal_type = position.get("signal_type", "ret2d")
+    # Fase BU: dua strategi otomatis (GABUNGAN/MOMENTUM) bisa punya posisi terbuka bersamaan di
+    # saham yang sama sejak register_open_position() dikunci per (ticker, strategy) -- label ini
+    # ditambahkan ke SEMUA alert supaya user tidak bingung posisi mana yang dimaksud (kejadian
+    # nyata 13 Agu 2026: BRPT MOMENTUM disangka "Sinyal Beli" karena alertnya tidak menyebut
+    # strategi apa pun).
+    strategy = position.get("strategy", "GABUNGAN")
+    label = f"{ticker} [{strategy}]"
 
     snap = compute_snapshot(ticker, entry_date, entry_price)
     if snap is None:
-        print(f"{ticker}: tidak ada data 15 menit sejak {entry_date}, dilewati.")
+        print(f"{label}: tidak ada data 15 menit sejak {entry_date}, dilewati.")
         return
 
     peak, peak_ts = snap["peak"], snap["peak_ts"]
@@ -128,7 +135,7 @@ def check_position(position: dict) -> None:
     exit_mode = "B&H-10d" if is_ganda else "TS-2%"
 
     print(
-        f"{ticker}: entry {entry_price:.0f} ({entry_date}) | puncak {peak:.0f} "
+        f"{label}: entry {entry_price:.0f} ({entry_date}) | puncak {peak:.0f} "
         f"({peak_ts.strftime('%d %b %H:%M')}) | sekarang {current:.0f} "
         f"({current_ts.strftime('%d %b %H:%M')}) | mundur {pullback:.1%} | "
         f"hari bursa ke-{trading_days} | P&L {unrealized_pct:+.1%} | exit={exit_mode}"
@@ -141,7 +148,7 @@ def check_position(position: dict) -> None:
             gain_from_last = (peak - milestone_base) / milestone_base
             new_stop_level = peak * (1 - PULLBACK_THRESHOLD)
             send_telegram_alert(
-                f"\U0001F389 <b>PUNCAK BARU: {ticker}</b>\n\n"
+                f"\U0001F389 <b>PUNCAK BARU: {label}</b>\n\n"
                 f"Harga bikin rekor tertinggi baru sejak entry: <b>Rp{peak:.0f}</b> "
                 f"({peak_ts.strftime('%d %b %H:%M')}), naik <b>{gain_from_last:+.1%}</b> dari puncak "
                 f"sebelumnya (Rp{milestone_base:.0f}).\n\n"
@@ -158,7 +165,7 @@ def check_position(position: dict) -> None:
         alerted_at_peak = position.get("alerted_pullback_at_peak") or 0
         if pullback >= PULLBACK_THRESHOLD and peak > alerted_at_peak:
             send_telegram_alert(
-                f"\U0001F534 <b>TRAILING STOP: {ticker}</b>\n\n"
+                f"\U0001F534 <b>TRAILING STOP: {label}</b>\n\n"
                 f"Harga mundur <b>{pullback:.1%}</b> dari puncak sejak entry.\n\n"
                 f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
                 f"<b>Puncak</b>: {peak_ts.strftime('%d %b %H:%M')} @ Rp{peak:.0f}\n"
@@ -173,7 +180,7 @@ def check_position(position: dict) -> None:
     # --- Alert 1.5: H-1 warning (day 9), before the day-10 target below ---
     if WARN_HOLD_DAYS <= trading_days < TARGET_HOLD_DAYS and position.get("alerted_day9") is None:
         send_telegram_alert(
-            f"\U0001F7E1 <b>H-1 TARGET WAKTU: {ticker}</b>\n\n"
+            f"\U0001F7E1 <b>H-1 TARGET WAKTU: {label}</b>\n\n"
             f"Posisi sudah <b>{trading_days} hari bursa</b> sejak entry -- besok (hari bursa "
             f"berikutnya) kena target waktu {TARGET_HOLD_DAYS} hari.\n\n"
             f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
@@ -187,7 +194,7 @@ def check_position(position: dict) -> None:
     # --- Alert 2: 10-trading-day target ---
     if trading_days >= TARGET_HOLD_DAYS and position.get("alerted_day10") is None:
         send_telegram_alert(
-            f"\U0001F7E0 <b>TARGET WAKTU {TARGET_HOLD_DAYS} HARI: {ticker}</b>\n\n"
+            f"\U0001F7E0 <b>TARGET WAKTU {TARGET_HOLD_DAYS} HARI: {label}</b>\n\n"
             f"Posisi sudah <b>{trading_days} hari bursa</b> sejak entry.\n\n"
             f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
             f"<b>Sekarang</b>: Rp{current:.0f} ({unrealized_pct:+.1%})\n\n"

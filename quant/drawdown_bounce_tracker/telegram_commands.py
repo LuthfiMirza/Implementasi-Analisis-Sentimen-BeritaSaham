@@ -203,14 +203,22 @@ def format_status(positions: list[dict]) -> str:
         return "Tidak ada posisi yang sedang dipantau."
 
     lines = ["<b>Posisi yang dipantau:</b>\n"]
+    # Fase BU: dua strategi (GABUNGAN/MOMENTUM) bisa punya posisi bersamaan di saham yang sama --
+    # tag [strategi] cuma ditampilkan kalau ticker itu muncul lebih dari sekali, supaya kartu
+    # normal (1 posisi per saham, kasus umum) tetap ringkas seperti sebelumnya.
+    ticker_counts: dict[str, int] = {}
+    for p in positions:
+        ticker_counts[p["ticker"]] = ticker_counts.get(p["ticker"], 0) + 1
+
     for p in positions:
         ticker = p["ticker"]
         entry_price = float(p["entry_price"])
+        label = f"{ticker} [{p.get('strategy', 'GABUNGAN')}]" if ticker_counts[ticker] > 1 else ticker
         snap = compute_snapshot(ticker, p["entry_date"], entry_price)
 
         if snap is None:
             lines.append(
-                f"- <b>{ticker}</b>: entry Rp{entry_price:.0f} ({p['entry_date']}) "
+                f"- <b>{label}</b>: entry Rp{entry_price:.0f} ({p['entry_date']}) "
                 f"-- data harga live tidak tersedia saat ini"
             )
             continue
@@ -228,7 +236,7 @@ def format_status(positions: list[dict]) -> str:
             days_left = max(0, TARGET_HOLD_DAYS - snap["trading_days"])
             note_txt = f" ({', '.join(notes)})" if notes else ""
             lines.append(
-                f"{sign} <b>{ticker}</b>: Rp{snap['current']:.0f} ({snap['unrealized_pct']:+.1%}) "
+                f"{sign} <b>{label}</b>: Rp{snap['current']:.0f} ({snap['unrealized_pct']:+.1%}) "
                 f"dari entry Rp{entry_price:.0f}\n"
                 f"   Puncak Rp{snap['peak']:.0f} | B&amp;H {TARGET_HOLD_DAYS}d (sisa {days_left}d){note_txt}\n"
             )
@@ -238,7 +246,7 @@ def format_status(positions: list[dict]) -> str:
                 notes.append("sudah lewat ambang trailing stop")
             note_txt = f" ({', '.join(notes)})" if notes else ""
             lines.append(
-                f"{sign} <b>{ticker}</b>: Rp{snap['current']:.0f} ({snap['unrealized_pct']:+.1%}) "
+                f"{sign} <b>{label}</b>: Rp{snap['current']:.0f} ({snap['unrealized_pct']:+.1%}) "
                 f"dari entry Rp{entry_price:.0f}\n"
                 f"   Puncak Rp{snap['peak']:.0f} | Stop Rp{stop_price:.0f}{note_txt}\n"
             )

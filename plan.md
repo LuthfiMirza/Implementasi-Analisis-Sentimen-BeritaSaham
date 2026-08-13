@@ -4069,3 +4069,66 @@ urutan baris) -- pakai bentuk blok selalu supaya aman.
 - Quote nyata dari Yahoo Finance dites: DEWA last=452, BRPT last=1865, `is_live=true`.
 
 ### Status: SELESAI.
+
+---
+
+## Fase BU — Bug: sinyal MOMENTUM diam-diam menimpa posisi GABUNGAN di ticker yang sama
+
+### Konteks
+User bingung kenapa BUMI muncul jadi "posisi terbuka" di web padahal tidak ada Sinyal Beli untuk
+BUMI (sudah dikonfirmasi terpisah: BUMI masih jauh dari syarat ret_2d/drawdown). Dan BRPT yang
+sudah ada sejak 12 Agu tiba-tiba entry-nya berubah jadi 13 Agu @ Rp1865.
+
+### Root cause
+`register_open_position()` (dipakai `detect()` untuk sinyal GABUNGAN maupun `detect_momentum()`
+untuk sinyal MOMENTUM) me-replace posisi di `open_positions.json` HANYA berdasar ticker:
+`positions = [p for p in positions if p["ticker"] != ticker]`. Sistem diasumsikan "satu ticker =
+satu posisi aktif", padahal sejak Fase BL ada DUA strategi otomatis independen (GABUNGAN &
+MOMENTUM) yang bisa sama-sama trigger di saham yang sama.
+
+Kejadian nyata 13 Agu 15:18 WIB: sinyal MOMENTUM (RSI14>60) trigger untuk BRPT dan BUMI (tercatat
+di `momentum_signals`, BUKAN di `signals`/Sinyal Beli). Untuk BRPT, ini MENIMPA posisi GABUNGAN
+yang sudah berjalan sejak 12 Agu (entry Rp1860) -- histori puncak/pullback yang terakumulasi sejak
+12 Agu HILANG, diganti tracking baru mulai dari 13 Agu. Posisi GABUNGAN lama (Trade Journal MySQL
+id 458) tetap tercatat "open" di web tapi BERHENTI DIPANTAU trailing-stop/target-waktu sejak saat
+itu -- yatim, tidak ada yang tahu kecuali dicek manual.
+
+Trade Journal MySQL sendiri TIDAK kolaps (SYNC_OPEN sync per-strategi via `notes` yang beda,
+idempotency check pakai `whereDate` per tanggal) -- jadi ada 4 baris trade valid (DEWA GABUNGAN,
+BRPT GABUNGAN #458, BRPT MOMENTUM #459, BUMI MOMENTUM #460). Yang rusak murni sisi Python
+(`open_positions.json`) yang jadi satu-satunya sumber kebenaran untuk trailing-stop/status.
+
+### Perbaikan (scope dibatasi sesuai arahan user: "biarkan BRPT #458 dulu, cuma perbaiki ke depan")
+- `detect_signal.py::register_open_position()`: parameter baru `strategy` ("GABUNGAN"/"MOMENTUM"),
+  disimpan sebagai field `strategy` di posisi. Filter replace jadi `(ticker, strategy)`, bukan
+  ticker saja -- dua strategi otomatis kini bisa punya posisi bersamaan di saham yang sama tanpa
+  saling timpa. `main()`: kedua titik panggil (`detect()` loop, `detect_momentum()` loop) diberi
+  `strategy=` eksplisit.
+- `check_trailing_stop.py::check_position()`: semua header alert (PUNCAK BARU, TRAILING STOP,
+  H-1 TARGET WAKTU, TARGET WAKTU) dan log kini pakai label `TICKER [STRATEGI]`, bukan cuma ticker
+  -- supaya kalau 2 posisi sama-sama ada untuk 1 saham, user tahu alert itu punya siapa. Ini
+  langsung menjawab kebingungan asli user ("kenapa masuk sini padahal bukan sinyal beli").
+- `telegram_commands.py::format_status()`: label `[STRATEGI]` HANYA muncul kalau ticker itu punya
+  >1 posisi terbuka (supaya kartu status kasus normal, 1 posisi per saham, tetap ringkas seperti
+  sebelumnya).
+- `open_positions.json`: 3 entri yang sudah ada ditambal manual field `strategy` yang benar (DEWA
+  GABUNGAN, BRPT MOMENTUM, BUMI MOMENTUM) -- tanpa ini, default `"GABUNGAN"` di kode baru akan
+  salah mengira BRPT/BUMI MOMENTUM itu GABUNGAN, dan bug yang SAMA bisa kejadian lagi arah
+  sebaliknya (sinyal GABUNGAN baru menimpa posisi MOMENTUM).
+- **TIDAK diubah** (di luar cakupan, disengaja): `/open` dan `/close` manual di
+  `telegram_commands.py` tetap replace/hapus SEMUA entri untuk ticker itu tanpa peduli strategi --
+  cocok dengan cara user biasa pakai perintah itu ("saya selesai dengan BRPT", bukan per-strategi).
+  BRPT #458 (yatim) DIBIARKAN apa adanya sesuai keputusan user, bukan otomatis diperbaiki.
+
+### Verifikasi
+- Simulasi terisolasi (dengan backup/restore `open_positions.json`): sinyal GABUNGAN baru untuk
+  BRPT MENAMBAH entri baru ([GABUNGAN]) tanpa menghapus posisi MOMENTUM yang sudah ada -- 2 entri
+  BRPT hidup berdampingan. Sinyal GABUNGAN KEDUA me-replace HANYA entri [GABUNGAN] yang lama
+  (tetap 2 entri total, bukan 3) -- replace-per-strategi bekerja benar di kedua arah.
+- Run nyata `check_trailing_stop.py`: log menampilkan `DEWA [GABUNGAN]`, `BRPT [MOMENTUM]`,
+  `BUMI [MOMENTUM]` -- label benar untuk ketiganya, tidak ada error, tidak ada alert dobel
+  terkirim (puncak sudah sama dengan alert terakhir sebelum perbaikan).
+- `php artisan test --filter=DetectDrawdownBounce`: 6 passed.
+- **Full suite**: 488 passed (2051 assertions).
+
+### Status: SELESAI (untuk pencegahan ke depan). BRPT Trade #458 tetap yatim sesuai keputusan user.
