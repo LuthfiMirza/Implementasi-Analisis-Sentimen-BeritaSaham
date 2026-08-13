@@ -4015,3 +4015,57 @@ nanti jumlah saham bertambah banyak.
 - `open_positions.json` tidak berubah (DEWA & BRPT tetap utuh).
 
 ### Status: SELESAI.
+
+---
+
+## Fase BT — Trade Journal: harga live + P&L berjalan di posisi terbuka
+
+### Konteks
+User minta kartu "Posisi Terbuka" di web (DEWA/BRPT) menampilkan harga kini dan P&L berjalan, bukan
+cuma entry/stop/target statis. Sistem sudah punya `LiveMarketDataService` (Yahoo Finance via
+`HttpMarketDataProvider`, `LIVE_MARKET_PROVIDER=http` di .env) yang sebelumnya cuma dipakai di
+tempat lain -- belum tersambung ke Trade Journal sama sekali.
+
+### Perubahan
+- `TradeController::index()`: tambah `livePnlFor($open)` -- untuk tiap posisi terbuka, ambil quote
+  via `LiveMarketDataService`, cache per KODE SAHAM (bukan per trade) selama
+  `market.refresh_seconds` (60s) supaya 2 posisi di saham yang sama tidak menembak Yahoo 2x, dan
+  refresh halaman berulang tidak spam request. Kegagalan quote (Yahoo mati/rate-limit) di-catch
+  per saham -> entri jadi `null`, view tampilkan "harga tidak tersedia", BUKAN angka tebakan.
+- `resources/views/trades/index.blade.php`: kartu posisi terbuka kini ada kolom "Harga Kini"
+  (hijau/merah sesuai untung-rugi) dan badge P&L (Rp + %) di kanan atas kartu. Sekalian
+  diperbaiki "DSS: /100" dan "R:R Plan: 1:" yang tampil kosong untuk trade dari sinyal otomatis
+  (Fase BM, `dss_score`/`rr_ratio` null) -- sekarang tampil "—" bukan angka bolong.
+
+### BUG Blade ditemukan & diperbaiki (bukan cuma UI, ini genuine gotcha Laravel)
+Draft pertama pakai shorthand `@php($lv = $live[$trade->id] ?? null)`. Halaman 500: "Undefined
+variable $resultConfig" di baris yang SAMA SEKALI tidak diubah, jauh di bawah (tabel trade
+tertutup). Root cause DIBUKTIKAN dengan reproduksi minimal:
+
+```
+@php($a = 1) TENGAH @if($a) YA @endif @php $b = 2; @endphp AKHIR
+```
+kompilasi -> `<?php($a = 1) TENGAH @if($a) YA @endif @php $b = 2; ?> AKHIR` -- SEMUA di antara dua
+`@php` tertelan jadi satu blok mentah, termasuk `@if/@endif` yang tidak ikut dikompilasi.
+
+Sebabnya: `BladeCompiler::storePhpBlocks()` jalan SEBELUM compiler directive normal, regex
+`@php(.*?)@endphp` lazy tapi mencari `@endphp` DI SELURUH FILE. Shorthand `@php(...)` tidak
+punya `@endphp` sendiri, jadi regex nyasar ke `@endphp` milik blok `$resultConfig` yang sudah ada
+di tabel trade tertutup, melahap semua Blade markup di antaranya jadi teks mentah.
+
+**Perbaikan**: shorthand diganti bentuk blok penuh `@php ... @endphp` di 3 titik, supaya masing-
+masing berpasangan dengan `@endphp` miliknya sendiri, tidak nyasar ke blok lain di file.
+
+**Pelajaran untuk ke depan**: JANGAN pakai shorthand `@php(...)` di file Blade yang di tempat lain
+punya `@php ... @endphp` bentuk blok (terutama kalau shorthand-nya muncul LEBIH DULU secara
+urutan baris) -- pakai bentuk blok selalu supaya aman.
+
+### Verifikasi
+- P&L dicek manual: DEWA entry 448 kini 452 lembar 24.100 -> Rp96.400 (COCOK), BRPT entry 1860
+  kini 1865 lembar 5.300 -> Rp26.500 (COCOK).
+- Kompilasi Blade bersih: tidak ada directive mentah tersisa (dicek programatik, bukan visual).
+- `php artisan test --filter=Trade`: 35 passed (termasuk test yang tadinya gagal 500).
+- **Full suite**: 488 passed (2051 assertions).
+- Quote nyata dari Yahoo Finance dites: DEWA last=452, BRPT last=1865, `is_live=true`.
+
+### Status: SELESAI.

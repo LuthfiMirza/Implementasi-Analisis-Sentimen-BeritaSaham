@@ -110,22 +110,73 @@
             </div>
           </div>
 
-          {{-- Signal quality badge --}}
-          <span class="px-2 py-1 rounded-full text-[10px] font-medium border
-            {{ $trade->signal_quality === 'strong'
-               ? 'bg-green-500/10 text-green-400 border-green-500/30'
-               : 'bg-sky-500/10 text-sky-400 border-sky-500/30' }}">
-            {{ strtoupper($trade->signal_quality ?? 'N/A') }}
-          </span>
+          {{-- P&L berjalan + badge kualitas sinyal --}}
+          <div class="flex items-center gap-3">
+            {{-- Bentuk blok, BUKAN shorthand @php(...) -- shorthand di sini akan tertelan oleh
+                 pre-pass storePhpBlocks() Blade yang mencari "@php(.*?)@endphp" di SELURUH file:
+                 tanpa @endphp sendiri, ia mencomot sampai ke @endphp blok $resultConfig di bawah
+                 dan meratakan semua @if/@else di antaranya jadi teks mentah (500 Undefined
+                 variable). Diverifikasi reproduksinya minimal sebelum diperbaiki -- lihat plan.md. --}}
+            @php
+              $lv = $live[$trade->id] ?? null;
+            @endphp
+            @if($lv)
+              @php
+                $up = $lv['pnl'] >= 0;
+              @endphp
+              <div class="text-right">
+                <p class="font-mono font-bold text-base leading-tight
+                          {{ $up ? 'text-green-400' : 'text-rose-400' }}">
+                  {{ $up ? '+' : '−' }}Rp{{ number_format(abs($lv['pnl']), 0, ',', '.') }}
+                </p>
+                <p class="text-[11px] font-medium {{ $up ? 'text-green-400/80' : 'text-rose-400/80' }}">
+                  {{ $up ? '▲' : '▼' }} {{ number_format(abs($lv['pnl_percent']), 2, ',', '.') }}%
+                  <span class="text-slate-500">berjalan</span>
+                </p>
+              </div>
+            @else
+              <div class="text-right">
+                <p class="text-[11px] text-amber-400/90">Harga live tidak tersedia</p>
+                <p class="text-[10px] text-slate-500">P&amp;L belum bisa dihitung</p>
+              </div>
+            @endif
+            <span class="px-2 py-1 rounded-full text-[10px] font-medium border
+              {{ $trade->signal_quality === 'strong'
+                 ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                 : 'bg-sky-500/10 text-sky-400 border-sky-500/30' }}">
+              {{ strtoupper($trade->signal_quality ?? 'N/A') }}
+            </span>
+          </div>
         </div>
 
         {{-- Price levels --}}
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mt-4">
           <div class="bg-slate-900/60 rounded-xl p-3">
             <p class="text-[10px] text-slate-500 mb-1">Entry</p>
             <p class="font-mono font-bold text-sky-400">
               {{ number_format($trade->entry_price, 0, ',', '.') }}
             </p>
+          </div>
+          @php
+            $lv = $live[$trade->id] ?? null;
+          @endphp
+          <div class="rounded-xl p-3 border
+            {{ $lv ? ($lv['pnl'] >= 0 ? 'bg-green-500/5 border-green-500/20' : 'bg-rose-500/5 border-rose-500/20')
+                   : 'bg-slate-900/60 border-slate-700/40' }}">
+            <p class="text-[10px] mb-1 {{ $lv ? ($lv['pnl'] >= 0 ? 'text-green-400' : 'text-rose-400') : 'text-slate-500' }}">
+              Harga Kini
+            </p>
+            @if($lv)
+              <p class="font-mono font-bold {{ $lv['pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
+                {{ number_format($lv['last'], 0, ',', '.') }}
+              </p>
+              <p class="text-[10px] text-slate-600">
+                {{ $lv['is_live'] ? 'live' : 'snapshot' }}
+              </p>
+            @else
+              <p class="font-mono font-bold text-slate-500">—</p>
+              <p class="text-[10px] text-slate-600">tidak tersedia</p>
+            @endif
           </div>
           <div class="bg-rose-500/5 rounded-xl p-3 border border-rose-500/20">
             <p class="text-[10px] text-rose-400 mb-1">Stop Loss</p>
@@ -159,13 +210,22 @@
         {{-- DSS info + Actions --}}
         <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-800">
           <div class="flex items-center gap-3 text-[11px] text-slate-400">
-            <span>DSS: <span class="text-slate-200 font-medium">{{ $trade->dss_score }}/100</span></span>
+            {{-- dss_score/rr_ratio null pada trade dari sinyal otomatis (Fase BM) -- dulu
+                 tampil "DSS: /100" dan "R:R Plan: 1:" yang terbaca seperti UI rusak. --}}
+            <span>DSS:
+              <span class="text-slate-200 font-medium">
+                {{ $trade->dss_score !== null ? $trade->dss_score.'/100' : '—' }}
+              </span>
+            </span>
             <span>Prediksi:
               <span class="{{ $trade->dss_prediction === 'up' ? 'text-green-400' : 'text-slate-400' }} font-medium">
                 {{ $trade->dss_prediction === 'up' ? '▲ UP' : ($trade->dss_prediction === 'down' ? '▼ DOWN' : '→ FLAT') }}
               </span>
             </span>
-            <span>R:R Plan: 1:{{ $trade->rr_ratio }}</span>
+            <span>R:R Plan: {{ $trade->rr_ratio !== null ? '1:'.$trade->rr_ratio : '—' }}</span>
+            @if($lv && $lv['fetched_at'])
+              <span class="text-slate-600">• harga {{ \Carbon\Carbon::parse($lv['fetched_at'])->timezone('Asia/Jakarta')->format('H:i') }} WIB</span>
+            @endif
           </div>
           <div class="flex gap-2">
             <button onclick="openCloseModal({{ $trade->id }}, '{{ $trade->stock->code }}', {{ $trade->entry_price }})"

@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Stock;
 use App\Models\Trade;
+use App\Services\MarketData\LiveMarketDataService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class TradeController extends Controller
 {
@@ -48,7 +51,78 @@ class TradeController extends Controller
 
         $stocks = Stock::where('is_active', true)->orderBy('code')->get();
 
-        return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks'));
+        $live = $this->livePnlFor($open);
+
+        return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks', 'live'));
+    }
+
+    /**
+     * Harga terkini + P&L berjalan untuk tiap posisi terbuka, dikunci per trade id.
+     *
+     * Di-cache per KODE SAHAM (bukan per trade) selama market.refresh_seconds: tanpa ini tiap
+     * refresh halaman menembak Yahoo Finance sekali per posisi, dan dua posisi di saham yang sama
+     * akan menembak dua kali untuk harga yang identik.
+     *
+     * Kegagalan quote TIDAK boleh menjatuhkan halaman -- kalau Yahoo mati / rate-limit, entri
+     * untuk trade itu di-set null dan view menampilkan "harga tidak tersedia", bukan angka
+     * tebakan. Menampilkan P&L palsu jauh lebih berbahaya daripada tidak menampilkan apa-apa.
+     */
+    private function livePnlFor($open): array
+    {
+        if ($open->isEmpty()) {
+            return [];
+        }
+
+        $ttl = (int) config('market.refresh_seconds', 60);
+        $service = app(LiveMarketDataService::class);
+        $quotes = [];
+        $result = [];
+
+        foreach ($open as $trade) {
+            $stock = $trade->stock;
+            if (! $stock) {
+                $result[$trade->id] = null;
+                continue;
+            }
+
+            $code = $stock->code;
+            if (! array_key_exists($code, $quotes)) {
+                try {
+                    $quotes[$code] = Cache::remember(
+                        "trade-live-quote:{$code}",
+                        $ttl,
+                        fn () => $service->quote($stock)
+                    );
+                } catch (Throwable $e) {
+                    $quotes[$code] = null;
+                }
+            }
+
+            $quote = $quotes[$code];
+            $last = $quote['last'] ?? null;
+            $entry = (float) $trade->entry_price;
+
+            if ($last === null || $entry <= 0) {
+                $result[$trade->id] = null;
+                continue;
+            }
+
+            $last = (float) $last;
+            // lot_size menyimpan LEMBAR (bukan jumlah lot) -- konvensi yang sama dipakai
+            // TradeController::store() dan jembatan SYNC_OPEN, lihat LEMBAR_PER_LOT.
+            $shares = (int) $trade->lot_size;
+
+            $result[$trade->id] = [
+                'last' => $last,
+                'pnl' => ($last - $entry) * $shares,
+                'pnl_percent' => ($last - $entry) / $entry * 100,
+                'is_live' => (bool) ($quote['is_live'] ?? false),
+                'source' => $quote['source'] ?? null,
+                'fetched_at' => $quote['fetched_at'] ?? null,
+            ];
+        }
+
+        return $result;
     }
 
     // 1 Lot = 100 lembar -- standar papan perdagangan IDX sejak 2014.
