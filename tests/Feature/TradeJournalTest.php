@@ -208,4 +208,35 @@ class TradeJournalTest extends TestCase
             return $juneOk && $julyAbsent && $augustOk;
         });
     }
+
+    public function test_strategy_breakdown_also_reports_episode_independence(): void
+    {
+        $user = $this->user();
+        $stock = $this->seedStock('SMGR');
+
+        // 3 trade SMGR berdekatan (jeda <=15 hari) di strategi legacy_stock_only -- HARUS
+        // terhitung 1 episode, sama seperti GABUNGAN, bukan cuma dihitung raw count.
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'SMGR',
+            'entry_date' => '2026-03-01', 'pnl_total' => 40000, 'strategy_label' => 'legacy_stock_only',
+        ]);
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'SMGR',
+            'entry_date' => '2026-03-05', 'pnl_total' => -10000, 'strategy_label' => 'legacy_stock_only',
+        ]);
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'SMGR',
+            'entry_date' => '2026-03-10', 'pnl_total' => 25000, 'strategy_label' => 'legacy_stock_only',
+        ]);
+
+        $response = $this->actingAs($user)->get('/trades');
+
+        $response->assertOk()->assertViewHas('strategyBreakdown', function ($breakdown) {
+            $legacy = collect($breakdown)->firstWhere('key', 'legacy_stock_only');
+
+            return $legacy !== null
+                && $legacy['closed'] === 3
+                && $legacy['episode_count'] === 1;
+        });
+    }
 }

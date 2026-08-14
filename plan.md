@@ -4527,3 +4527,39 @@ sebagai bulan pemilik episode itu, sisanya (kalau ada) tidak dihitung terpisah.
 - Full suite: 490 passed (2055 assertions, +1 dari tes baru).
 
 ### Status: SELESAI.
+
+---
+
+## Fase CD — Episode-independence untuk strategi arsip juga (bukan cuma GABUNGAN)
+
+### Konteks
+User minta episode-independence dihitung juga untuk 5 strategi lain di bagian "Strategi Lain"
+(legacy_stock_only, legacy_ab_ac, ai_tp30, momentum, manual_discretionary) -- sebelumnya cuma
+GABUNGAN yang dapat perlakuan ini.
+
+### Perubahan
+`TradeController::index()`: loop `$strategyBreakdown` sekarang panggil `groupIntoEpisodes()` yang
+sama (dipakai GABUNGAN) untuk tiap strategi lain, tambah field `episode_count` &
+`episode_win_rate` ke tiap baris. View: baris kecil "≈ N episode (X% WR)" ditambahkan ke tiap
+kartu strategi arsip.
+
+### Hasil (setelah dikoreksi Fase CB -- bug Carbon 3 sudah diperbaiki sebelumnya)
+| Strategi | Trade mentah | Episode |
+|---|---|---|
+| Legacy Stock-Only (AX-AY-BB) | 35 | **18** (WR 94,4%) |
+| Legacy AB/AC | 28 | **20** (WR 75%) |
+| AI Prediksi TP30 | 15 | **10** (WR 80%) |
+| Momentum | 0 closed | 0 |
+| Manual/Diskresi | 4 | **4** (WR 100%) |
+
+Legacy Stock-Only cross-check independen di Python: 18 episode, cocok PERSIS dengan PHP -- fix
+Carbon 3 dari Fase CB terbukti berlaku benar juga untuk strategi lain, bukan cuma GABUNGAN.
+
+### Verifikasi
+- Tes baru `test_strategy_breakdown_also_reports_episode_independence`: 3 trade SMGR berdekatan
+  (legacy_stock_only) harus terhitung 1 episode -- lulus.
+- Cross-check independen Python untuk legacy_stock_only: 18 episode, cocok persis PHP.
+- Kompilasi Blade bersih.
+- Full suite: 491 passed (2057 assertions, +1 dari tes baru).
+
+### Status: SELESAI.

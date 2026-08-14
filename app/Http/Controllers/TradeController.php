@@ -109,6 +109,13 @@ class TradeController extends Controller
                 continue;
             }
             $groupWin = $group->where('pnl_total', '>', 0)->count();
+
+            // Episode independence bukan cuma milik GABUNGAN -- strategi lain (terutama
+            // legacy_stock_only/legacy_ab_ac, yang aturannya juga "beli pas jatuh tajam") sama
+            // rentannya terhadap satu koreksi panjang tercatat sebagai banyak trade terpisah.
+            $groupEpisodes = $this->groupIntoEpisodes($group);
+            $groupEpisodeWins = collect($groupEpisodes)->filter(fn ($ep) => collect($ep)->avg('pnl_total') > 0);
+
             $strategyBreakdown[] = [
                 'key' => $key,
                 'label' => $label,
@@ -116,6 +123,10 @@ class TradeController extends Controller
                 'closed' => $group->count(),
                 'win_rate' => $group->count() > 0 ? round($groupWin / $group->count() * 100, 1) : null,
                 'total_pnl' => $group->sum('pnl_total'),
+                'episode_count' => count($groupEpisodes),
+                'episode_win_rate' => count($groupEpisodes) > 0
+                    ? round($groupEpisodeWins->count() / count($groupEpisodes) * 100, 1)
+                    : null,
             ];
         }
 

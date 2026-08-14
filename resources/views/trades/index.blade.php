@@ -162,6 +162,12 @@
             WR {{ $sb['win_rate'] }}% • Rp{{ number_format($sb['total_pnl'], 0, ',', '.') }}
           </p>
         @endif
+        @if($sb['episode_count'] !== null && $sb['episode_count'] > 0)
+          <p class="text-[10px] text-slate-500 mt-1 pt-1 border-t border-slate-800/60"
+             title="Trigger berdekatan (jeda <=15 hari, saham sama) dianggap 1 kejadian pasar.">
+            ≈ {{ $sb['episode_count'] }} episode ({{ $sb['episode_win_rate'] }}% WR)
+          </p>
+        @endif
       </div>
       @endforeach
     </div>
