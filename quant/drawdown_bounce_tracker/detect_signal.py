@@ -364,10 +364,25 @@ def stochastic_k(high: pd.Series, low: pd.Series, close: pd.Series, period: int 
     return 100 * (close - lowest) / (highest - lowest).replace(0, np.nan)
 
 
-def fetch_recent(symbol: str, days: int = 60) -> pd.DataFrame:
-    # 60d (not 20d) so RSI14/Stoch14/drawdown_20d rolling windows are warmed up by the trigger
-    # date -- RSI/Stoch context-only (see PROTOCOL.md), drawdown_20d IS part of the entry rule
-    # since Fase BK.
+def fetch_recent(symbol: str, days: int = 200) -> pd.DataFrame:
+    # Fase BY: 60 -> 200. RSI14 dihitung pakai ewm(adjust=False) -- REKURSIF, nilainya di tanggal
+    # manapun dipengaruhi SEMUA baris sejak baris PERTAMA window ("seed"), bukan cuma 14 hari
+    # terakhir. fetch_recent() dipanggil ulang tiap hari dengan window "N hari terakhir dari HARI
+    # INI" -- baris pertamanya BERGESER tiap hari, jadi RSI14 di tanggal yang SAMA bisa goyang
+    # antar-run walau harga historisnya tidak berubah sama sekali.
+    #
+    # Dibuktikan nyata (DEWA, RSI14 @ 12 Agu 2026): buffer 55 hari (days=60, setup lama) -> goyang
+    # 58,998 s/d 63,647 tergantung PERSIS kapan window mulai. Buffer >=150 hari -> konvergen ke
+    # 61,065 stabil (beda cuma di desimal ke-3 dst walau buffer ditambah sampai 350+ hari).
+    # days=60 lama TERBUKTI jadi penyebab sinyal Momentum DEWA telat terdeteksi 1 hari (Fase BX):
+    # RSI 12 Agu di bawah 60 pas run 13 Agu, di atas 60 pas run 14 Agu -- padahal harga historisnya
+    # SAMA, cuma window fetch yang geser.
+    #
+    # stoch_k (`.rolling().min()/.max()`) dan dd_20d (`.rolling(20).max()`) TIDAK kena masalah ini
+    # -- keduanya rolling-window BIASA (bukan rekursif), nilainya di tanggal manapun stabil selama
+    # ada >=20 hari data sebelumnya, tidak peduli di mana window dimulai. days=200 dipilih supaya
+    # ada margin jauh di atas titik konvergen 150 hari (payload masih ringan, lihat Fase BS: total
+    # 17 download sebelumnya cuma 3,6 detik dari jatah timeout 60 detik).
     #
     # Fase BK: ganti dari "Adj Close" (harga disesuaikan dividen) ke "Close" MENTAH -- bug lama
     # yang sebelumnya ditandai "low-impact untuk BUMI/DEWA" (dividennya nyaris nol) tapi WAJIB

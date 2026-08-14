@@ -4268,3 +4268,74 @@ entry_date }}") diganti "{{ company_name }} • Masuk {{ created_at WIB, format 
 - **Full suite**: 488 passed (2051 assertions).
 
 ### Status: SELESAI.
+
+---
+
+## Fase BY — Root cause DEWA telat 1 hari: RSI14 goyang karena window fetch bergeser
+
+### Konteks
+User minta selidiki kenapa DEWA momentum #462 punya `entry_date=13 Agu` tapi `created_at=14 Agu
+15:18` -- beda hari, padahal untuk BUMI/BRPT dua tanggal itu SAMA hari.
+
+### Root cause: RSI14 TIDAK STABIL untuk tanggal yang sama, antar-run
+`rsi()` pakai `ewm(alpha=1/period, adjust=False)` -- REKURSIF, nilai di tanggal manapun
+dipengaruhi SEMUA baris sejak baris PERTAMA window ("seed"), bukan cuma 14 hari sebelumnya.
+`fetch_recent(days=60)` (setup lama) refetch "60 hari terakhir dari HARI INI" tiap kali dipanggil
+-- baris pertamanya BERGESER 1 hari tiap hari, jadi RSI di TANGGAL YANG SAMA bisa beda nilai
+antar-run walau harga historisnya sama sekali tidak berubah.
+
+**Dibuktikan dengan angka nyata** (RSI14 DEWA @ 12 Agu 2026, dihitung ulang dengan window
+berbeda):
+| Buffer (hari sebelum 12 Agu) | RSI14 |
+|---|---|
+| 55 hari (days=60, setup lama) | goyang 58,998 s/d 63,647 tergantung PERSIS kapan window mulai |
+| 84 hari (days=90) | 61,3946 |
+| 114 hari (days=120) | 61,0695 |
+| 144 hari (days=150) | 61,0628 |
+| 194 hari (days=200) | 61,0653 |
+| 359 hari (days=365) | 61,0653 (KONVERGEN, sama sampai desimal ke-4) |
+
+Ambang MOMENTUM_RSI_THRESHOLD = 60, dan nilai stabil RSI DEWA di 12 Agu adalah **61,07** --
+DI ATAS 60, seharusnya trigger di hari yang sama dengan run 12/13 Agu. Tapi karena `days=60`
+lama cuma kasih buffer ~55 hari (BELUM konvergen), run 13 Agu kebetulan menghitung RSI di bawah
+60 (tidak trigger), lalu run 14 Agu (window geser 1 hari lagi) menghitung RSI di atas 60 (baru
+trigger) -- padahal harga historisnya SAMA PERSIS. Bukan market yang berubah, murni artefak
+perhitungan.
+
+`stoch_k` (`.rolling().min()/.max()`) dan `dd_20d` (`.rolling(20).max()`) TIDAK kena masalah ini
+-- keduanya rolling-window biasa (non-rekursif), stabil di tanggal manapun asal ada >=20 hari
+data sebelumnya, tidak peduli window mulai dari mana.
+
+### Dampak lebih luas dari sekadar DEWA telat sehari
+1. **Trigger MOMENTUM (RSI>60) bisa telat terdeteksi 1+ hari** untuk kasus borderline (RSI dekat
+   60) -- sudah terjadi ke DEWA.
+2. **RSI juga bisa gagal ke-trigger SAMA SEKALI** kalau nilainya kebetulan di bawah 60 di window
+   manapun yang pernah dipakai (UNIQUE(ticker, trigger_date) mencegah re-cek tanggal yang sudah
+   pernah diproses TANPA sinyal -- tapi kode ini tidak menyimpan "sudah pernah dicek, hasilnya
+   tidak trigger", cuma menyimpan yang BERHASIL trigger, jadi tanggal yang kebetulan salah hitung
+   di bawah 60 di HARI ITU akan tetap dicek ulang di hari berikutnya dengan window baru -- makanya
+   DEWA akhirnya tertangkap juga, cuma telat).
+3. **RSI14 yang ditampilkan sebagai "info tambahan" di alert Sinyal Beli/Peringatan Dini** (bukan
+   syarat trigger di situ) juga ikut tidak akurat sebelum perbaikan ini.
+4. **Backtest validasi Fase BL** (yang menyatakan BUMI/DEWA/BRPT lulus P1-P4) memakai data sejak
+   2024-01-01 (buffer 600+ hari, jauh di atas titik konvergen) -- RSI di backtest itu SUDAH stabil
+   dari awal. Yang bermasalah cuma detect_momentum() LIVE, bukan validasinya.
+
+### Perbaikan
+`quant/drawdown_bounce_tracker/detect_signal.py::fetch_recent()`: default `days` 60 -> **200**
+(buffer ~194 hari trading, jauh di atas titik konvergen 150 hari). Semua pemanggil
+(`detect()`, `detect_heads_up()`, `detect_momentum()`) pakai default, jadi cukup ubah satu
+tempat.
+
+### Verifikasi
+- `fetch_recent('DEWA.JK')` dengan window baru: RSI14 @ 12 Agu = **61,06532** -- persis sama
+  dengan nilai konvergen, tidak goyang lagi.
+- Waktu total 17 download: 6,1 detik (naik dari 3,6 detik/window 60 hari sebelumnya) -- masih
+  jauh dari batas timeout PHP 60 detik.
+- `php artisan research:detect-drawdown-bounce-signal`: jalan normal, tidak ada sinyal dobel
+  (UNIQUE constraint tetap bekerja untuk data yang sudah tercatat).
+- `php artisan test --filter=DetectDrawdownBounce`: 6 passed.
+- **Full suite**: 488 passed (2051 assertions).
+
+### Status: SELESAI. Ini TIDAK memperbaiki sinyal DEWA yang sudah terlanjur tercatat (sudah
+insert, permanen sesuai desain append-only) -- cuma mencegah kasus serupa terulang ke depan.
