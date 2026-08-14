@@ -7,7 +7,78 @@ window.Alpine = Alpine;
 window.Chart = Chart;
 window.universalSearchReady = () => Alpine.store('universalSearch')?.init();
 
+// Dipakai priceQuote DAN tradePosition -- 20s pas jam bursa, lebih jarang di luar itu, supaya
+// tidak spam request percuma pas market tutup.
+function getQuotePollingInterval() {
+    const now = new Date();
+    const wib = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const hour = wib.getHours();
+    const min = wib.getMinutes();
+    const day = wib.getDay(); // 0=Sun, 6=Sat
+    const timeNum = hour * 100 + min;
+
+    if (day === 0 || day === 6) return 300000; // weekend
+    if (timeNum >= 900 && timeNum <= 1130) return 20000; // sesi 1
+    if (timeNum >= 1330 && timeNum <= 1500) return 20000; // sesi 2
+    if (timeNum >= 845 && timeNum < 900) return 30000; // pre-market
+    return 180000; // di luar jam
+}
+
 document.addEventListener('alpine:init', () => {
+    // Kartu "Posisi Terbuka" di /trades -- harga & P&L update sendiri tanpa refresh halaman.
+    // Reuse endpoint /api/stocks/{code}/quote yang sama dengan priceQuote di bawah, tapi
+    // komponen terpisah karena butuh state tambahan (entryPrice/shares) untuk hitung P&L
+    // reaktif -- priceQuote generik dipakai di banyak tempat lain, tidak diubah.
+    Alpine.data('tradePosition', (entryPrice, shares, initialLast, initialIsLive, initialFetchedAt) => ({
+        entryPrice,
+        shares,
+        last: initialLast ?? null,
+        isLive: initialIsLive ?? false,
+        fetchedAt: initialFetchedAt ?? null,
+        pollingInterval: null,
+        get hasPrice() {
+            return this.last !== null && this.last > 0;
+        },
+        get pnl() {
+            return this.hasPrice ? (this.last - this.entryPrice) * this.shares : null;
+        },
+        get pnlPercent() {
+            return this.hasPrice ? (this.last - this.entryPrice) / this.entryPrice * 100 : null;
+        },
+        startPolling(url) {
+            if (!url) return;
+            const poll = () => {
+                this.fetchQuote(url);
+                this.pollingInterval = setTimeout(poll, getQuotePollingInterval());
+            };
+            this.pollingInterval = setTimeout(poll, getQuotePollingInterval());
+        },
+        async fetchQuote(url) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data && data.last) {
+                    this.last = parseFloat(data.last);
+                    this.isLive = data.is_live ?? this.isLive;
+                    this.fetchedAt = data.fetched_at ?? this.fetchedAt;
+                }
+            } catch (e) {
+                console.warn('Quote fetch error (tradePosition):', e);
+            }
+        },
+        formatTime(iso) {
+            if (!iso) return null;
+            try {
+                return new Date(iso).toLocaleTimeString('id-ID', {
+                    hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta',
+                }) + ' WIB';
+            } catch (e) {
+                return null;
+            }
+        },
+    }));
+
     Alpine.data('priceQuote', (initialQuote, fallbackChange) => ({
         quote: {
             stock_code: initialQuote?.stock_code ?? null,
@@ -25,27 +96,12 @@ document.addEventListener('alpine:init', () => {
         pollingInterval: null,
         startPolling(url) {
             if (!url) return;
-            const getInterval = () => {
-                const now = new Date();
-                const wib = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-                const hour = wib.getHours();
-                const min = wib.getMinutes();
-                const day = wib.getDay(); // 0=Sun, 6=Sat
-                const timeNum = hour * 100 + min;
-
-                if (day === 0 || day === 6) return 300000; // weekend
-                if (timeNum >= 900 && timeNum <= 1130) return 20000; // sesi 1
-                if (timeNum >= 1330 && timeNum <= 1500) return 20000; // sesi 2
-                if (timeNum >= 845 && timeNum < 900) return 30000; // pre-market
-                return 180000; // di luar jam
-            };
-
             this.fetchQuote(url);
             const poll = () => {
                 this.fetchQuote(url);
-                this.pollingInterval = setTimeout(poll, getInterval());
+                this.pollingInterval = setTimeout(poll, getQuotePollingInterval());
             };
-            this.pollingInterval = setTimeout(poll, getInterval());
+            this.pollingInterval = setTimeout(poll, getQuotePollingInterval());
         },
         async fetchQuote(url) {
             try {

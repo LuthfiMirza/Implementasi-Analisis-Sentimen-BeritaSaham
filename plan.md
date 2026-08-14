@@ -4132,3 +4132,53 @@ BRPT GABUNGAN #458, BRPT MOMENTUM #459, BUMI MOMENTUM #460). Yang rusak murni si
 - **Full suite**: 488 passed (2051 assertions).
 
 ### Status: SELESAI (untuk pencegahan ke depan). BRPT Trade #458 tetap yatim sesuai keputusan user.
+
+---
+
+## Fase BV — Trade Journal: harga & P&L update sendiri (polling), tanpa refresh halaman
+
+### Konteks
+User minta angka P&L di kartu "Posisi Terbuka" (Fase BT, server-rendered per page-load) benar-benar
+"berjalan" -- update sendiri tanpa harus refresh manual. Sistem sudah punya pola polling client-side
+yang sama persis untuk kasus lain: komponen Alpine `priceQuote` (resources/js/app.js) dipakai di
+dashboard, poll `/api/stocks/{code}/quote` dengan interval sadar jam-bursa (20s pas sesi 1/2,
+30s pre-market, 3menit di luar jam, 5menit weekend).
+
+### Perubahan
+- `resources/js/app.js`: logika interval jam-bursa yang tadinya inline di dalam `priceQuote`
+  di-ekstrak jadi fungsi modul `getQuotePollingInterval()` (dipakai bersama, DRY -- tidak ada
+  perubahan perilaku). Komponen Alpine baru `tradePosition(entryPrice, shares, initialLast,
+  initialIsLive, initialFetchedAt)`: poll endpoint quote yang SAMA, expose `hasPrice`/`pnl`/
+  `pnlPercent` sebagai computed getter reaktif, `formatTime()` untuk timestamp WIB.
+- `resources/views/trades/index.blade.php`: kartu posisi terbuka dibungkus
+  `x-data="tradePosition(...)" x-init="startPolling('/api/stocks/{{ code }}/quote')"`. Badge P&L,
+  kotak "Harga Kini", dan jam "harga terakhir" di footer sekarang `x-text`/`:class` reaktif,
+  bukan angka statis PHP -- nilai PHP awal ($live[$trade->id] dari TradeController::livePnlFor(),
+  Fase BT) cuma dipakai sebagai state SEBELUM polling pertama selesai, supaya tidak kosong.
+- TradeController/livePnlFor() TIDAK diubah -- tetap dipakai untuk render awal (SSR pertama),
+  polling client-side mengambil alih sesudahnya. Endpoint `/api/stocks/{code}/quote` juga sudah
+  ada duluan (dipakai dashboard), dipakai ulang apa adanya, bukan endpoint baru.
+
+### BUG ditemukan & diperbaiki saat verifikasi (bukan Blade kali ini -- null array access)
+`php artisan test --filter=Trade` gagal 500 lagi, tapi BEDA akar masalah dari Fase BT: bukan
+Blade `@php` shorthand (itu sudah diverifikasi bersih), melainkan `$lv['is_live'] ? ... : ...` dan
+`$lv['fetched_at'] ? ... : ...` -- ternary LANGSUNG ke array offset TANPA `??` dulu. `??` (null
+coalescing) itu aman terhadap `$lv` yang null (berlaku seperti `isset()`, tidak warning), tapi
+ternary polos (`? :`) melakukan akses array SUNGGUHAN ke `null['key']` dulu sebelum ternary
+dievaluasi -- itu warning PHP yang oleh Laravel test handler diubah jadi exception ("Trying to
+access array offset on null"). Baris `$lv['last'] ?? 'null'` (baris pertama, PAKAI `??`) sudah
+aman sejak awal, 2 baris lain di bawahnya tidak. Diperbaiki: `($lv['is_live'] ?? false) ? ... :
+...` dan `($lv['fetched_at'] ?? null) ? ... : ...` -- ekstrak dengan `??` DULU, baru ternary.
+
+### Verifikasi
+- `npm run build`: sukses, tidak ada error sintaks JS.
+- Kompilasi Blade bersih (dicek programatik, sama seperti Fase BT): tidak ada directive mentah.
+- Endpoint nyata `/api/stocks/BRPT/quote` dites live: mengembalikan `last:1865, is_live:true,
+  source:yahoo_finance`.
+- Cross-check nama properti Alpine antara Blade (`hasPrice`, `pnl`, `pnlPercent`, `last`,
+  `isLive`, `fetchedAt`, `formatTime()`) dan definisi di app.js -- SEMUA cocok persis.
+- `php artisan test --filter=Trade`: 35 passed (termasuk test yang sempat gagal 500 karena bug
+  null-offset di atas).
+- **Full suite**: 488 passed (2051 assertions).
+
+### Status: SELESAI.
