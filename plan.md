@@ -4410,3 +4410,84 @@ Arsip (ditampilkan terpisah, tidak dihitung resmi):
 ### Status: SELESAI (level "official vs archived"). Koreksi episode-independence untuk angka
 GABUNGAN (5 episode nyata vs 111 trade mentah, dibahas sesi sebelumnya) BELUM diterapkan ke UI --
 kartu resmi di web masih level trade mentah, bukan level episode.
+
+---
+
+## Fase CB — Episode-independence tampil di web + koreksi besar: 22 episode, BUKAN 5
+
+### Konteks
+User minta angka episode-independence (dibahas di artifact chart sesi ini) juga tampil di halaman
+`/trades`, bukan cuma di grafik terpisah.
+
+### BUG KRITIS ditemukan: Carbon 3 `diffInDays()` signed by default
+Port PHP logika episode-grouping (`TradeController::groupIntoEpisodes()`) awalnya salah:
+```php
+$gapDays = $sorted[$i]->entry_date->diffInDays($current[last]->entry_date);
+if ($gapDays > 15) { /* episode baru */ }
+```
+Carbon 2 (versi lama) selalu mengembalikan nilai ABSOLUT dari `diffInDays()`. **Carbon 3 berubah
+default jadi SIGNED** -- karena `$sorted[$i]` (tanggal lebih baru, urutan menaik) dibandingkan ke
+`$current[last]` (tanggal lebih lama), hasilnya SELALU negatif atau nol untuk urutan ini. `-20 > 15`
+selalu `false`, jadi kode ini **TIDAK PERNAH memecah episode**, apapun jaraknya -- semua trade per
+saham otomatis menyatu jadi SATU episode, tanpa peduli data aslinya.
+
+**Ditemukan lewat tes eksplisit** (bukan lewat data asli, yang kebetulan menyamarkan bug ini):
+tes baru sengaja membuat 4 trade BUMI dengan jeda 20 hari di tengah (harus pecah jadi 2 episode)
++ 1 trade DEWA (episode terpisah karena beda ticker) -- ekspektasi 3 episode, hasil kode lama
+cuma 2 (BUMI tidak pernah pecah). Diperbaiki: `abs()` dibungkus di sekitar `diffInDays()`.
+
+### Implikasi serius: klaim "5 episode" sesi sebelumnya SALAH
+Snippet tinker ad-hoc yang menghasilkan "BRPT: 1 episode, BUMI: 1 episode, dst -> TOTAL 5" (dipakai
+sebagai dasar artifact chart & diskusi sebelumnya) PAKAI POLA BUG YANG SAMA -- selalu menyatukan
+SEMUA trade per ticker jadi 1 episode, tidak peduli data asli. Angka 5 itu BUKAN temuan tentang
+data, itu ARTEFAK BUG (setiap dataset apapun akan selalu menghasilkan "1 episode per ticker unik"
+di bawah kode yang salah).
+
+**Angka yang BENAR** (diverifikasi silang independen di Python dengan aritmatika tanggal yang
+tidak bermasalah -- `(date_a - date_b).days` di Python selalu signed dengan benar sesuai arah
+pengurangan, TIDAK kena isu Carbon 3):
+| Saham | n trade | Episode (BENAR) |
+|---|---|---|
+| BRPT | 30 | 2 |
+| BUMI | 29 | 3 |
+| DEWA | 25 | 5 |
+| ESSA | 14 | 6 |
+| UNVR | 13 | 6 |
+| **TOTAL** | **111** | **22** |
+
+Win rate level episode: **90,9%** (bukan 100% yang dilaporkan sebelumnya, juga hasil bug yang sama).
+
+### Insiden sampingan: data sampah masuk DB produksi
+Selagi debug bug di atas, 3 kali percobaan tinker manual (`User::factory()->create()` +
+`Stock::factory()->create(['code'=>'BUMITEST'...])` + `Trade::factory()...create([...])`)
+**tidak sengaja menulis ke database PRODUKSI** (bukan DB tes) -- 15 baris trade sampah (`ticker`
+BUMI/DEWA, `stock` kode `*TEST*`, `user_id` 9/10/11 yang juga baru dibuat). Ditemukan lewat
+kejanggalan "GABUNGAN closed: 126" (harusnya 111). **Dibersihkan tuntas**: 15 trade + 7 stock
+dummy + 3 user dummy dihapus, semuanya via kode unik `%TEST%` yang tidak menyentuh data asli --
+diverifikasi total trade DB kembali ke 199 (cocok sebelum insiden) dan `GABUNGAN closed` kembali
+ke 111.
+
+**Pelajaran**: `php artisan tinker` connect ke DB `.env` (produksi/dev, BUKAN DB tes) -- verifikasi
+manual pakai `Model::factory()->create()` di tinker harus SELALU pakai kode/identifier yang jelas
+dummy (spt `%TEST%`) dan DIBERSIHKAN segera setelah selesai, bukan `php artisan test` (yang
+otomatis pakai DB tes terpisah, refresh tiap run).
+
+### Perubahan
+- `TradeController::groupIntoEpisodes()` (baru): port PHP dari protokol Python (Fase AY/BK/BQ/BR),
+  `abs()` dibungkus di `diffInDays()` untuk hindari isu Carbon 3.
+- `$stats['episode_count']` & `$stats['episode_win_rate']` ditambahkan, dihitung dari
+  `$officialClosed` (GABUNGAN saja).
+- View: kartu "Win Rate" sekarang ada baris tambahan "≈ N episode independen (X% WR) -- bukan
+  Y trade mentah", dengan tooltip singkat penjelasan.
+- Tes baru `test_episode_count_groups_trades_within_15_days_per_ticker` -- sengaja bikin gap
+  20 hari untuk menangkap regresi arah bug ini kalau terulang.
+
+### Verifikasi
+- Tes baru lulus (gagal dulu sebelum fix `abs()`, membuktikan tes benar-benar menangkap bug).
+- Cross-check independen Python (aritmatika tanggal native, bukan Carbon): 22 episode, cocok
+  PERSIS dengan hasil PHP setelah fix.
+- Full suite: 489 passed (2053 assertions, +1 dari tes baru).
+- Data sampah dari insiden debug sudah dibersihkan, DB kembali 199 trade (terverifikasi).
+
+### Status: SELESAI. **Koreksi terbuka ke user**: angka "5 episode" yang dilaporkan sebelumnya
+(termasuk di artifact chart) SALAH -- yang benar 22 episode, WR 90,9%.

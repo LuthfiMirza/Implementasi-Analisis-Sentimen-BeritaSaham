@@ -49,6 +49,14 @@
         <span class="text-green-400">✓ {{ $stats['win'] }}W</span> •
         <span class="text-rose-400">✗ {{ $stats['loss'] }}L</span>
       </p>
+      {{-- Trigger yang berdekatan (jeda <=15 hari, saham sama) digabung jadi 1 "episode" --
+           tanpa ini, satu koreksi panjang bisa kelihatan seperti banyak trade independen padahal
+           cuma 1 kejadian pasar. Lihat groupIntoEpisodes() di TradeController. --}}
+      <p class="text-[10px] text-slate-500 mt-1.5 pt-1.5 border-t border-slate-800/60"
+         title="Trigger berdekatan (jeda <=15 hari, saham sama) dianggap 1 kejadian pasar, bukan trade terpisah -- supaya tidak menggelembungkan jumlah 'kemenangan'.">
+        ≈ <span class="text-slate-300 font-semibold">{{ $stats['episode_count'] }}</span> episode independen
+        ({{ $stats['episode_win_rate'] }}% WR) — bukan {{ $stats['closed'] }} trade mentah
+      </p>
     </div>
 
     {{-- Total PnL --}}

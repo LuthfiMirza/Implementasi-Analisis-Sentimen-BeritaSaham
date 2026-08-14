@@ -127,4 +127,47 @@ class TradeJournalTest extends TestCase
                 && ! $trades->pluck('user_id')->contains($other->id);
         });
     }
+
+    public function test_episode_count_groups_trades_within_15_days_per_ticker(): void
+    {
+        $user = $this->user();
+        $stock = $this->seedStock('BUMI');
+
+        // 3 trade BUMI berdekatan (jeda <=15 hari) -- HARUS terhitung 1 episode, bukan 3.
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-06-01', 'pnl_total' => 100000, 'strategy_label' => 'gabungan',
+        ]);
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-06-08', 'pnl_total' => 50000, 'strategy_label' => 'gabungan',
+        ]);
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-06-15', 'pnl_total' => -20000, 'strategy_label' => 'gabungan',
+        ]);
+
+        // Trade BUMI ke-4, jeda 20 hari dari yang terakhir -- episode BARU.
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-07-05', 'pnl_total' => 300000, 'strategy_label' => 'gabungan',
+        ]);
+
+        // Ticker BEDA (DEWA) di tanggal yang sama dengan trade pertama BUMI -- episode terpisah,
+        // TIDAK boleh ikut tergabung walau tanggalnya berdekatan (episode dikelompokkan per ticker).
+        $dewa = $this->seedStock('DEWA');
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $dewa->id, 'ticker' => 'DEWA',
+            'entry_date' => '2026-06-02', 'pnl_total' => 75000, 'strategy_label' => 'gabungan',
+        ]);
+
+        $response = $this->actingAs($user)->get('/trades');
+
+        $response->assertOk()->assertViewHas('stats', function ($stats) {
+            // 5 trade mentah -> 3 episode: [BUMI 1-8 Jun], [BUMI 15 Jun+5Jul? -- cek jeda], [DEWA].
+            // Jeda BUMI trade-3 (15 Jun) ke trade-4 (5 Jul) = 20 hari > 15 -> episode baru.
+            // Jadi: episode 1 = {1 Jun, 8 Jun, 15 Jun}, episode 2 = {5 Jul}, episode 3 = {DEWA 2 Jun}.
+            return $stats['episode_count'] === 3;
+        });
+    }
 }

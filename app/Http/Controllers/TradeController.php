@@ -59,6 +59,19 @@ class TradeController extends Controller
         $winRate = $stats['win_rate'] / 100;
         $stats['expectancy'] = round(($winRate * $avgWin) - ((1 - $winRate) * $avgLoss), 2);
 
+        // Episode independence (sama protokol dipakai riset saham baru & averaging-down sesi ini,
+        // lihat screen_candidates.py/research_average_down.py) -- trigger yang BERDEKATAN (jeda
+        // <=15 hari kalender, per ticker) digabung jadi SATU episode. "111 trade, WR 79.3%" itu
+        // MENGGELEMBUNG kalau dibaca sebagai 111 kesempatan independen -- satu koreksi panjang
+        // BUMI 2 minggu bisa saja tercatat sebagai 3-4 trade terpisah karena syarat entry kena
+        // ulang tiap kali harga jatuh lagi, padahal itu SATU kejadian pasar, bukan tiga.
+        $episodes = $this->groupIntoEpisodes($officialClosed);
+        $episodeWins = collect($episodes)->filter(fn ($ep) => collect($ep)->avg('pnl_total') > 0);
+        $stats['episode_count'] = count($episodes);
+        $stats['episode_win_rate'] = count($episodes) > 0
+            ? round($episodeWins->count() / count($episodes) * 100, 1)
+            : 0;
+
         // Riwayat strategi LAIN (bukan GABUNGAN) -- ditampilkan terpisah, TIDAK ikut kartu resmi
         // di atas, supaya kelihatan tapi tidak tercampur/menggelembungkan angka utama.
         $strategyLabels = [
@@ -91,6 +104,39 @@ class TradeController extends Controller
         $live = $this->livePnlFor($open);
 
         return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks', 'live', 'strategyBreakdown'));
+    }
+
+    /**
+     * Kelompokkan trade jadi episode: per ticker, urut tanggal entry, jeda <=15 hari kalender
+     * = episode yang sama. Protokol yang sama dipakai di riset Python sesi ini (Fase AY/BK/BQ/BR)
+     * -- port PHP-nya di sini supaya kartu web bisa menampilkan angka yang konsisten tanpa perlu
+     * lompat ke skrip Python terpisah tiap kali user mau lihat.
+     *
+     * @return array<int, array<int, Trade>>
+     */
+    private function groupIntoEpisodes($trades): array
+    {
+        $episodes = [];
+        foreach ($trades->groupBy('ticker') as $rows) {
+            $sorted = $rows->sortBy('entry_date')->values();
+            $current = [$sorted[0]];
+            for ($i = 1; $i < $sorted->count(); $i++) {
+                // Carbon 3: diffInDays() sekarang SIGNED by default (beda dari Carbon 2 yang
+                // selalu absolut) -- karena $sorted[$i] (lebih baru) dibandingkan ke tanggal
+                // yang lebih lama, hasilnya NEGATIF tanpa abs(), bikin gap 20 hari lolos sebagai
+                // "<=15" dan episode yang harusnya terpisah malah tergabung.
+                $gapDays = abs($sorted[$i]->entry_date->diffInDays($current[count($current) - 1]->entry_date));
+                if ($gapDays > 15) {
+                    $episodes[] = $current;
+                    $current = [$sorted[$i]];
+                } else {
+                    $current[] = $sorted[$i];
+                }
+            }
+            $episodes[] = $current;
+        }
+
+        return $episodes;
     }
 
     /**
