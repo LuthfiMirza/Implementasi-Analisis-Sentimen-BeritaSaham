@@ -4342,6 +4342,23 @@ insert, permanen sesuai desain append-only) -- cuma mencegah kasus serupa terula
 
 ---
 
+## Fase BZ — Backtest MOMENTUM periode Des 2025-sekarang (pembanding apple-to-apple)
+
+### Konteks
+Strategi MOMENTUM baru live 3 hari (12-14 Agu 2026), 0 trade closed -- tidak ada data live untuk
+dibandingkan dengan track record GABUNGAN & AI-tp30 yang sama-sama mulai Des 2025. Skrip
+`quant/drawdown_bounce_tracker/backtest_momentum_period.py` mengisi kekosongan itu: backtest
+MOMENTUM (RSI14>60, BUMI/DEWA/BRPT) dibatasi PERSIS ke periode Des 2025-sekarang, aturan PERSIS
+produksi (entry T+1 close, exit trailing-stop 2%/target 10 hari, peak dihitung dari hari SESUDAH
+entry sesuai fix Fase BW), plus pengelompokan episode (jeda <=15 hari) supaya sebanding dengan
+protokol yang sama dipakai di seluruh sesi ini.
+
+### Status: SELESAI (riset perbandingan, bukan perubahan produksi). Skrip permanen/reusable --
+sempat telat di-commit (baru menyusul di sini), isinya tidak berubah dari yang dipakai untuk
+laporan perbandingan strategi sebelumnya di sesi ini.
+
+---
+
 ## Fase CA — Beresin tumpang tindih 3 aturan drawdown-bounce: GABUNGAN jadi resmi
 
 ### Konteks
