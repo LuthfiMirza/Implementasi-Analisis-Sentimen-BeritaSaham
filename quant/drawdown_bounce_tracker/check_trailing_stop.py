@@ -86,13 +86,40 @@ def compute_snapshot(ticker: str, entry_date: str, entry_price: float) -> dict |
     """Read-only: puncak, harga terkini, mundur dari puncak, hari bursa ke berapa -- TIDAK PERNAH
     mengirim alert atau mengubah open_positions.json. Dipakai oleh check_position() di bawah
     (yang bisa kirim alert) dan oleh telegram_commands.py::format_status() (murni tampilan on-
-    demand pas user ketik /status, terlepas dari apakah alert otomatis sudah pernah terkirim)."""
+    demand pas user ketik /status, terlepas dari apakah alert otomatis sudah pernah terkirim).
+
+    Fase BW: puncak TIDAK LAGI menghitung intraday HARI ENTRY ITU SENDIRI -- cuma
+    max(entry_price, High hari-hari SESUDAH entry). Ini menyamakan definisi "puncak" dengan
+    backtest yang memvalidasi aturan trailing-stop (screen_candidates.py/research_average_down.py:
+    peak dimulai FLAT di entry Close, baru bertambah dari entry_idx+1 dan seterusnya) -- backtest
+    itu TIDAK PERNAH menghitung intraday hari entry sebagai bagian puncak.
+
+    Bug lama (versi sebelum Fase BW) menghitung `df["High"].max()` dari SELURUH data sejak
+    entry_date, TERMASUK jam-jam sebelum entry tercatat di hari yang sama -- untuk sinyal
+    GABUNGAN dampaknya kecil (entry biasanya dekat harga terendah, bukan puncak sesi), tapi untuk
+    sinyal MOMENTUM (entry = closing, RSI sudah tinggi -- rawan sempat spike pagi lalu turun ke
+    closing) dampaknya besar. Dibuktikan nyata 14 Agu 2026: BRPT puncak lama 1965 (mundur 4,3%,
+    kelihatan SUDAH kena trailing-stop) vs puncak baru 1900 (mundur cuma 1,1%, MASIH SEHAT) --
+    puncak lama itu dari jam 09:00 di HARI ENTRY-nya sendiri, sebelum posisi bahkan terdaftar ke
+    pemantauan (entry Momentum baru diketahui pas closing ~15:18). BUMI sama: puncak lama 187
+    (mundur 4,8%) vs puncak baru 179 (mundur 0,6%)."""
     df = fetch_15m_since(ticker, entry_date)
     if df is None:
         return None
 
-    peak = float(df["High"].max())
-    peak_ts = df["High"].idxmax()
+    entry_day = pd.Timestamp(entry_date, tz="Asia/Jakarta").normalize()
+    after_entry_day = df[df.index.normalize() > entry_day]
+
+    if not after_entry_day.empty and float(after_entry_day["High"].max()) > entry_price:
+        peak = float(after_entry_day["High"].max())
+        peak_ts = after_entry_day["High"].idxmax()
+    else:
+        # Belum ada hari SESUDAH entry yang bikin rekor baru di atas harga entry -- puncak
+        # dianggap = harga entry itu sendiri (persis logika backtest: peak awal = entry Close).
+        peak = entry_price
+        entry_day_bars = df[df.index.normalize() == entry_day]
+        peak_ts = entry_day_bars.index[-1] if not entry_day_bars.empty else df.index[0]
+
     current = float(df["Close"].iloc[-1])
     current_ts = df.index[-1]
     pullback = (peak - current) / peak

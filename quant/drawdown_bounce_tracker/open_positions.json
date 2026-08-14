@@ -13,17 +13,14 @@
     "ticker": "BRPT",
     "entry_date": "2026-08-13",
     "entry_price": 1865.0,
-    "alerted_pullback_pct": 0.05089058524173028,
-    "milestone_peak": 1965.0,
-    "alerted_pullback_at_peak": 1965.0,
+    "alerted_pullback_pct": null,
     "strategy": "MOMENTUM"
   },
   {
     "ticker": "BUMI",
     "entry_date": "2026-08-13",
     "entry_price": 179.0,
-    "alerted_pullback_pct": 0.0481283422459893,
-    "alerted_pullback_at_peak": 187.0,
+    "alerted_pullback_pct": null,
     "strategy": "MOMENTUM"
   }
 ]

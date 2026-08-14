@@ -4182,3 +4182,60 @@ aman sejak awal, 2 baris lain di bawahnya tidak. Diperbaiki: `($lv['is_live'] ??
 - **Full suite**: 488 passed (2051 assertions).
 
 ### Status: SELESAI.
+
+---
+
+## Fase BW — Bug: puncak trailing-stop menghitung intraday hari entry sendiri (fantom)
+
+### Konteks
+User tanya kenapa BUMI dapat alert TRAILING STOP mundur 4,8% padahal baru entry dan P&L cuma
+-0,6%. Investigasi menunjukkan ini BUKAN cuma soal timing alert (sudah dijelaskan sebelumnya),
+tapi definisi "puncak" itu sendiri salah untuk kasus MOMENTUM.
+
+### Root cause
+`compute_snapshot()` menghitung puncak = `df["High"].max()` dari SELURUH data 15-menit sejak
+`entry_date`, TERMASUK jam-jam SEBELUM entry tercatat di hari yang sama. Ini beda dari definisi
+puncak di backtest yang MEMVALIDASI aturan trailing-stop (`screen_candidates.py`/
+`research_average_down.py`): peak di sana dimulai FLAT di harga entry (Close), baru bertambah
+dari hari SESUDAH entry (`entry_idx + 1` dst) -- backtest TIDAK PERNAH menghitung intraday hari
+entry sebagai bagian puncak.
+
+Untuk sinyal GABUNGAN dampaknya kecil (entry biasanya dekat harga terendah sesi, bukan puncak).
+Tapi untuk sinyal MOMENTUM (entry = closing, RSI sudah tinggi -- rawan spike pagi lalu turun ke
+closing) dampaknya besar: entry Momentum baru DIKETAHUI pas closing (~15:18), tapi intraday PAGI
+hari yang sama (sebelum posisi bahkan terdaftar ke pemantauan) ikut terhitung sebagai "puncak".
+
+**Dibuktikan dengan data nyata 3 posisi terbuka:**
+| Saham | Puncak LAMA (+hari entry) | Puncak BARU (exclude hari entry) | Mundur lama | Mundur baru |
+|---|---|---|---|---|
+| DEWA (GABUNGAN) | 472 | 472 (TIDAK BERUBAH) | +5,5% | +5,5% |
+| BRPT (MOMENTUM) | 1965 | **1900** | +4,3% (kelihatan SUDAH kena stop) | **+1,1% (masih sehat)** |
+| BUMI (MOMENTUM) | 187 | **179** (= entry price) | +4,8% | **+0,6%** |
+
+DEWA (GABUNGAN) sama sekali tidak berubah -- bug ini SPESIFIK ke sinyal Momentum, konsisten
+dengan hipotesis (interaksi antara "entry = closing" dan "RSI tinggi = rawan spike intraday").
+
+### Perbaikan
+`quant/drawdown_bounce_tracker/check_trailing_stop.py::compute_snapshot()`: puncak sekarang
+`max(entry_price, High hari-hari SESUDAH entry_date)` -- persis definisi backtest. Kalau belum ada
+hari sesudah entry yang bikin rekor baru di atas harga entry, puncak = harga entry itu sendiri
+(`peak_ts` = bar terakhir hari entry, bukan bar pertama data).
+
+`open_positions.json`: `alerted_pullback_pct`/`alerted_pullback_at_peak`/`milestone_peak` untuk
+BRPT dan BUMI DIHAPUS (nilai lama, 1965 & 187, sudah tidak berarti di bawah definisi baru --
+kalau dibiarkan, high-water-mark lama itu memblokir re-alert yang sah nanti karena puncak baru
+LEBIH RENDAH dari yang lama). DEWA TIDAK disentuh -- puncaknya (472) tidak berubah di bawah
+definisi baru, jadi state lamanya tetap valid.
+
+### Verifikasi
+- `compute_snapshot()` dites langsung ke 3 posisi nyata: DEWA puncak 472 (tidak berubah), BRPT
+  puncak 1900 (dari 14 Agu 09:15, bukan lagi 13 Agu 09:00), BUMI puncak 179 (dari bar terakhir
+  hari entry, karena belum ada hari sesudahnya yang lebih tinggi) -- sama persis dengan
+  perhitungan manual di atas.
+- Run nyata `check_trailing_stop.py`: TIDAK ada alert dobel/salah terkirim (DEWA sudah pernah
+  dialert sebelumnya di peak yang sama, BRPT & BUMI mundurnya sekarang di bawah 2% jadi memang
+  tidak seharusnya alert).
+- `/status` Telegram: BRPT & BUMI kini tampil "Puncak Rp1900"/"Rp179" (bukan 1965/187 lagi).
+- **Full suite**: 488 passed (2051 assertions).
+
+### Status: SELESAI.
