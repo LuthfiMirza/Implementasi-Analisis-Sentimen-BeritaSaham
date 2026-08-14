@@ -99,6 +99,47 @@
 
   </div>
 
+  {{-- ── EPISODE INDEPENDEN PER BULAN (GABUNGAN resmi) ── --}}
+  @if(!empty($monthlyBreakdown))
+  <div>
+    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
+      📅 Episode Independen per Bulan
+    </h2>
+    <p class="text-[11px] text-slate-500 mb-3">
+      Dikelompokkan berdasar bulan MULAI tiap episode (entry trade pertamanya) -- trigger
+      berdekatan (jeda ≤15 hari, saham sama) dihitung 1 episode, bukan banyak trade terpisah.
+    </p>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-[10px] text-slate-500 uppercase border-b border-slate-800">
+            <th class="py-2 pr-4">Bulan</th>
+            <th class="py-2 pr-4 text-right">Episode</th>
+            <th class="py-2 pr-4 text-right">Trade Mentah</th>
+            <th class="py-2 pr-4 text-right">Win Rate</th>
+            <th class="py-2 text-right">Total PnL</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($monthlyBreakdown as $m)
+          <tr class="border-b border-slate-800/50">
+            <td class="py-2 pr-4 text-slate-200 font-medium">{{ $m['month_label'] }}</td>
+            <td class="py-2 pr-4 text-right text-slate-200">{{ $m['episode_count'] }}</td>
+            <td class="py-2 pr-4 text-right text-slate-500">{{ $m['trade_count'] }}</td>
+            <td class="py-2 pr-4 text-right {{ $m['win_rate'] >= 60 ? 'text-green-400' : ($m['win_rate'] >= 40 ? 'text-amber-400' : 'text-rose-400') }}">
+              {{ $m['win_rate'] }}%
+            </td>
+            <td class="py-2 text-right font-mono {{ $m['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
+              {{ $m['total_pnl'] >= 0 ? '+' : '' }}Rp{{ number_format($m['total_pnl'], 0, ',', '.') }}
+            </td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+  </div>
+  @endif
+
   {{-- ── STRATEGI LAIN (arsip, TIDAK dihitung ke kartu resmi di atas) ── --}}
   @if(!empty($strategyBreakdown))
   <div>

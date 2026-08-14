@@ -4491,3 +4491,39 @@ otomatis pakai DB tes terpisah, refresh tiap run).
 
 ### Status: SELESAI. **Koreksi terbuka ke user**: angka "5 episode" yang dilaporkan sebelumnya
 (termasuk di artifact chart) SALAH -- yang benar 22 episode, WR 90,9%.
+
+---
+
+## Fase CC — Breakdown episode independen per bulan di web
+
+### Konteks
+Lanjutan Fase CB -- user minta breakdown 22 episode GABUNGAN ditampilkan per bulan juga, bukan
+cuma angka total.
+
+### Keputusan desain: dikelompokkan per bulan MULAI episode, bukan per bulan tiap trade
+Episode bisa membentang lewat batas bulan (contoh: trigger 25 Jun, trade lanjutan jeda <=15 hari
+jatuh di 5 Jul -- itu TETAP 1 episode). Kalau dikelompokkan per bulan TIAP TRADE, episode itu akan
+muncul dobel (sebagian di Juni, sebagian di Juli) -- salah, karena itu satu kejadian pasar, bukan
+dua. Jadi breakdown bulanan pakai `min(entry_date)` tiap episode (tanggal trade PERTAMANYA)
+sebagai bulan pemilik episode itu, sisanya (kalau ada) tidak dihitung terpisah.
+
+### Perubahan
+- `TradeController::index()`: `$monthlyBreakdown` baru -- episode dikelompokkan per bulan mulai,
+  tiap baris berisi jumlah episode, jumlah trade mentah (untuk transparansi), win rate level
+  episode, dan total PnL bulan itu.
+- View: bagian baru "📅 Episode Independen per Bulan" (tabel), ditempatkan sebelum "Strategi Lain",
+  dengan catatan singkat cara pengelompokan.
+- Label bulan pakai `format('M Y')` (mis. "Jun 2026") -- disamakan dengan konvensi tanggal Inggris
+  yang sudah dipakai di seluruh halaman ini ("Entry 13 Aug 2026"), bukan diterjemahkan ke
+  Indonesia (locale app defaultnya 'en', tidak ingin ubah locale global cuma untuk 1 halaman).
+
+### Verifikasi
+- Tes baru `test_monthly_episode_breakdown_groups_by_episode_start_month`: episode yang sengaja
+  dibuat membentang Juni->Juli harus terhitung 1 episode di Juni SAJA, Juli tidak muncul sebagai
+  baris terpisah untuk episode itu -- lulus.
+- Angka nyata: 4+4+2+5+2+2+3 = **22 episode** (cocok persis total Fase CB, tidak ada yang
+  hilang/dobel akibat pengelompokan bulanan).
+- Kompilasi Blade bersih.
+- Full suite: 490 passed (2055 assertions, +1 dari tes baru).
+
+### Status: SELESAI.

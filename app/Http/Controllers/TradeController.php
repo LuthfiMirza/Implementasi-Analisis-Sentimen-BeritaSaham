@@ -72,6 +72,26 @@ class TradeController extends Controller
             ? round($episodeWins->count() / count($episodes) * 100, 1)
             : 0;
 
+        // Breakdown per bulan -- dikelompokkan berdasar bulan ENTRY trade PERTAMA di tiap episode
+        // (kapan episode itu MULAI), bukan bulan tiap trade mentah -- supaya episode yang
+        // membentang lewat batas bulan (mis. trigger 28 Jun, trade lanjutan 3 Jul) tidak
+        // terhitung dobel di 2 bulan berbeda.
+        $episodesByMonth = collect($episodes)
+            ->groupBy(fn ($ep) => collect($ep)->min('entry_date')->format('Y-m'));
+        $monthlyBreakdown = $episodesByMonth->map(function ($eps, $month) {
+            $epReturns = $eps->map(fn ($ep) => collect($ep)->avg('pnl_total'));
+            $wins = $epReturns->filter(fn ($r) => $r > 0)->count();
+
+            return [
+                'month' => $month,
+                'month_label' => \Carbon\Carbon::createFromFormat('Y-m', $month)->format('M Y'),
+                'episode_count' => $eps->count(),
+                'trade_count' => $eps->sum(fn ($ep) => count($ep)),
+                'win_rate' => $eps->count() > 0 ? round($wins / $eps->count() * 100, 1) : 0,
+                'total_pnl' => $eps->sum(fn ($ep) => collect($ep)->sum('pnl_total')),
+            ];
+        })->sortKeys()->values()->all();
+
         // Riwayat strategi LAIN (bukan GABUNGAN) -- ditampilkan terpisah, TIDAK ikut kartu resmi
         // di atas, supaya kelihatan tapi tidak tercampur/menggelembungkan angka utama.
         $strategyLabels = [
@@ -103,7 +123,7 @@ class TradeController extends Controller
 
         $live = $this->livePnlFor($open);
 
-        return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks', 'live', 'strategyBreakdown'));
+        return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks', 'live', 'strategyBreakdown', 'monthlyBreakdown'));
     }
 
     /**

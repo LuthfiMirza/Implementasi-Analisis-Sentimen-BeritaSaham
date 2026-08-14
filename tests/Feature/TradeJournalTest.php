@@ -170,4 +170,42 @@ class TradeJournalTest extends TestCase
             return $stats['episode_count'] === 3;
         });
     }
+
+    public function test_monthly_episode_breakdown_groups_by_episode_start_month(): void
+    {
+        $user = $this->user();
+        $stock = $this->seedStock('BUMI');
+
+        // Episode 1: mulai Juni, trade lanjutan (jeda <=15 hari) nyeberang ke Juli -- HARUS
+        // terhitung 1 episode di bulan MULAI-nya (Juni), bukan tercatat dobel di Juni & Juli.
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-06-25', 'pnl_total' => 100000, 'strategy_label' => 'gabungan',
+        ]);
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-07-05', 'pnl_total' => 50000, 'strategy_label' => 'gabungan',
+        ]);
+
+        // Episode 2: murni di Agustus, jeda 25 hari dari episode 1 -- episode terpisah.
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $stock->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-08-01', 'pnl_total' => -30000, 'strategy_label' => 'gabungan',
+        ]);
+
+        $response = $this->actingAs($user)->get('/trades');
+
+        $response->assertOk()->assertViewHas('monthlyBreakdown', function ($breakdown) {
+            $byMonth = collect($breakdown)->keyBy('month');
+            // Juni: 1 episode (2 trade mentah, termasuk yang entry-nya di Juli tapi episode
+            // yang sama) -- Juli TIDAK boleh muncul sebagai bulan terpisah untuk episode ini.
+            $juneOk = ($byMonth['2026-06']['episode_count'] ?? null) === 1
+                && ($byMonth['2026-06']['trade_count'] ?? null) === 2;
+            $julyAbsent = ! $byMonth->has('2026-07');
+            $augustOk = ($byMonth['2026-08']['episode_count'] ?? null) === 1
+                && ($byMonth['2026-08']['trade_count'] ?? null) === 1;
+
+            return $juneOk && $julyAbsent && $augustOk;
+        });
+    }
 }
