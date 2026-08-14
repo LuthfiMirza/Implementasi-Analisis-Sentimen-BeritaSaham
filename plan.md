@@ -4339,3 +4339,74 @@ tempat.
 
 ### Status: SELESAI. Ini TIDAK memperbaiki sinyal DEWA yang sudah terlanjur tercatat (sudah
 insert, permanen sesuai desain append-only) -- cuma mencegah kasus serupa terulang ke depan.
+
+---
+
+## Fase CA — Beresin tumpang tindih 3 aturan drawdown-bounce: GABUNGAN jadi resmi
+
+### Konteks
+User minta angka "AI-tp30" & "GABUNGAN" yang ditampilkan sebelumnya dicek ulang. Ditemukan 2 masalah:
+1. Kategorisasi sebelumnya salah -- match substring `str_contains(strtolower(notes),'ai')` ikut
+   menangkap trade lain yang notes-nya kebetulan mengandung "ai" (kata Indonesia biasa), membuat
+   "AI-tp30" tercatat 82 trade padahal aslinya cuma **15**.
+2. Masalah lebih serius: ada **3 aturan drawdown-bounce berbeda** yang pernah dibackfill --
+   "aturan GABUNGAN" (111), "strategi drawdown-bounce stock-only" (35, Fase AX-AY-BB), "aturan
+   drawdown-bounce Fase AB/AC" (28) -- dan salah satu notes-nya MENGAKU eksplisit tumpang tindih
+   periode: *"ada tumpang tindih periode dengan catatan lama BUMI/DEWA/UNVR yang pakai
+   strategi/exit logic berbeda, user pilih tetap masukkan data baru ini berdampingan, BUKAN
+   mengganti/menghapus data lama."* Menjumlahkan ketiganya (seperti sebelumnya) berisiko
+   menghitung untung yang SAMA berkali-kali dengan aturan exit berbeda.
+
+User putuskan: **GABUNGAN jadi satu-satunya acuan resmi**, sisanya tetap disimpan (TIDAK dihapus)
+sebagai arsip, dipisah jelas di UI.
+
+### Perubahan
+- **Migrasi baru**: kolom `strategy_label` (nullable, string 30) di tabel `trades` -- satu-
+  satunya sumber kebenaran strategi tiap trade ke depan, bukan tebak-tebakan dari `notes` lagi.
+- **`app/Console/Commands/BackfillTradeStrategyLabelCommand.php`** (baru, `trades:backfill-
+  strategy-label --dry-run`): sekali jalan, idempotent, klasifikasi berdasar pola notes PERSIS
+  (bukan substring longgar) yang diverifikasi manual dulu. Dijalankan: 199 trade terklasifikasi
+  bersih (`gabungan`=114, `legacy_stock_only`=35, `legacy_ab_ac`=28, `ai_tp30`=15, `momentum`=3,
+  `manual_discretionary`=4), 0 sisa null.
+  - BUG ditemukan & diperbaiki saat verifikasi `--dry-run`: pass kedua (untuk baris tak
+    terklasifikasi) re-query DB `whereNull` -- di mode dry-run (belum disimpan), ini
+    menghitung ULANG semua baris yang SUDAH diklasifikasi pass pertama sebagai "belum
+    terklasifikasi", menggandakan total (394 padahal cuma 199). Diperbaiki: klasifikasi di
+    memori, bukan re-query.
+- **`DetectDrawdownBounceSignalCommand::syncOpenSignalsToTradeJournal()`**: trade baru dari
+  SYNC_OPEN kini diisi `strategy_label` eksplisit saat insert (`gabungan` atau `momentum`,
+  dari variabel `$strategy` yang sudah ada) -- tidak perlu ditebak dari notes lagi ke depan.
+- **`TradeController::store()`** (form manual web): default `strategy_label = 'manual_discretionary'`.
+- **`TradeController::index()`**: kartu ringkasan (`$stats`) sekarang HANYA menghitung
+  `strategy_label='gabungan'` (termasuk transaksi REAL DEWA -- notes-nya "Entry sesuai sinyal
+  GABUNGAN"). Breakdown 5 strategi lain (legacy x2, ai_tp30, momentum, manual) dihitung terpisah
+  ke `$strategyBreakdown`, TIDAK ikut kartu resmi.
+- **View** (`trades/index.blade.php`): label "📊 Kartu di bawah = strategi resmi GABUNGAN saja"
+  di header, dan bagian baru "📁 Strategi Lain (arsip riset, bukan angka resmi)" menampilkan
+  breakdown 5 kategori lain secara ringkas, terpisah visual dari kartu utama.
+
+### Angka resmi GABUNGAN (setelah dipisah)
+Total 114 (3 open termasuk DEWA real + BRPT + ESSA, 111 closed), Win Rate **79,3%**, Total PnL
+**+Rp76.752.072**, avg holding 1,5 hari. (Ini angka LEVEL TRADE MENTAH -- BELUM dikoreksi episode-
+independence seperti yang didiskusikan sesi lalu; itu perbaikan terpisah kalau user mau lanjut.)
+
+Arsip (ditampilkan terpisah, tidak dihitung resmi):
+- Legacy Stock-Only: 35 closed, WR 85,7%, +Rp25.090.300
+- Legacy AB/AC: 28 closed, WR 78,6%, +Rp11.209.128
+- AI Prediksi TP30: 15 closed, WR 66,7%, +Rp43.433.197
+- Momentum: 3 open (belum ada closed)
+- Manual/Diskresi: 4 closed, WR 100%, +Rp5.346.400
+
+### Verifikasi
+- Test yang gagal (`win_rate_counts_profitable_manual_close_trades_as_wins`) diperbaiki --
+  fixture factory kini set `strategy_label='gabungan'` eksplisit (sebelumnya factory trade
+  default null, ikut TERKECUALI dari kartu resmi baru -- benar secara desain, tes yang perlu
+  disesuaikan).
+- Kompilasi Blade bersih (dicek programatik).
+- Full suite: 488 passed (2051 assertions).
+- Verifikasi nyata via tinker (Auth::loginUsingId(2)): kartu resmi & breakdown archive tampil
+  sesuai perhitungan manual di atas.
+
+### Status: SELESAI (level "official vs archived"). Koreksi episode-independence untuk angka
+GABUNGAN (5 episode nyata vs 111 trade mentah, dibahas sesi sebelumnya) BELUM diterapkan ke UI --
+kartu resmi di web masih level trade mentah, bukan level episode.

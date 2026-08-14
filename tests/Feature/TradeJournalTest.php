@@ -86,14 +86,20 @@ class TradeJournalTest extends TestCase
         // manual_close (exit berbasis waktu, mis. aturan drawdown-bounce) dengan PnL positif
         // HARUS terhitung sebagai "menang" walau result-nya bukan hit_target_1/2 -- sebelumnya
         // trade seperti ini hilang sama sekali dari Win Rate.
+        //
+        // Fase CA: kartu ringkasan resmi cuma menghitung strategy_label='gabungan' -- wajib
+        // diisi eksplisit di sini, factory tidak set default (lihat TradeController::index()).
         Trade::factory()->closeState()->create([
             'user_id' => $user->id, 'result' => 'manual_close', 'pnl_total' => 500000, 'pnl_percent' => 10,
+            'strategy_label' => 'gabungan',
         ]);
         Trade::factory()->closeState()->create([
             'user_id' => $user->id, 'result' => 'manual_close', 'pnl_total' => -200000, 'pnl_percent' => -5,
+            'strategy_label' => 'gabungan',
         ]);
         Trade::factory()->closeState()->create([
             'user_id' => $user->id, 'result' => 'hit_target_2', 'pnl_total' => 300000, 'pnl_percent' => 8,
+            'strategy_label' => 'gabungan',
         ]);
 
         $response = $this->actingAs($user)->get('/trades');

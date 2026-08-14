@@ -21,26 +21,36 @@ class TradeController extends Controller
         $closed = $trades->where('status', 'closed');
         $open = $trades->where('status', 'open');
 
+        // Fase CA: kartu ringkasan RESMI cuma dihitung dari strategy_label='gabungan' -- 3 aturan
+        // drawdown-bounce lama (legacy_stock_only/legacy_ab_ac/GABUNGAN) TERBUKTI tumpang tindih
+        // periode untuk saham yang sama (dicek langsung dari notes backfill: "ada tumpang tindih
+        // periode dengan catatan lama... user pilih tetap masukkan data baru ini berdampingan").
+        // Menjumlahkan ketiganya dulu (versi sebelum Fase CA) berisiko menghitung untung yang
+        // SAMA berkali-kali dengan aturan berbeda. GABUNGAN (Fase BK, aturan yang live SEKARANG)
+        // dijadikan satu-satunya acuan resmi; sisanya tetap tersimpan utuh (TIDAK dihapus) sebagai
+        // arsip riset, ditampilkan terpisah lewat $strategyBreakdown di bawah.
+        $officialClosed = $closed->where('strategy_label', 'gabungan');
+
         // Menang/kalah dari PnL AKTUAL, bukan dari kategori `result` -- exit berbasis waktu
         // (manual_close, mis. aturan drawdown-bounce Fase AB/AC) valid juga dan sebelumnya
         // hilang sama sekali dari Win Rate karena bukan hit_target_1/2 maupun stop_loss.
-        $winners = $closed->where('pnl_total', '>', 0);
-        $losers = $closed->where('pnl_total', '<=', 0);
+        $winners = $officialClosed->where('pnl_total', '>', 0);
+        $losers = $officialClosed->where('pnl_total', '<=', 0);
 
         $stats = [
-            'total' => $trades->count(),
-            'open' => $open->count(),
-            'closed' => $closed->count(),
+            'total' => $trades->where('strategy_label', 'gabungan')->count(),
+            'open' => $open->where('strategy_label', 'gabungan')->count(),
+            'closed' => $officialClosed->count(),
             'win' => $winners->count(),
             'loss' => $losers->count(),
-            'win_rate' => $closed->count() > 0
-                ? round($winners->count() / $closed->count() * 100, 1)
+            'win_rate' => $officialClosed->count() > 0
+                ? round($winners->count() / $officialClosed->count() * 100, 1)
                 : 0,
-            'total_pnl' => $closed->sum('pnl_total'),
-            'avg_rr' => $closed->count() > 0 ? round($closed->avg('actual_rr'), 2) : 0,
-            'avg_holding' => $closed->count() > 0 ? round($closed->avg('holding_days'), 1) : 0,
-            'best_trade' => $closed->sortByDesc('pnl_total')->first(),
-            'worst_trade' => $closed->sortBy('pnl_total')->first(),
+            'total_pnl' => $officialClosed->sum('pnl_total'),
+            'avg_rr' => $officialClosed->count() > 0 ? round($officialClosed->avg('actual_rr'), 2) : 0,
+            'avg_holding' => $officialClosed->count() > 0 ? round($officialClosed->avg('holding_days'), 1) : 0,
+            'best_trade' => $officialClosed->sortByDesc('pnl_total')->first(),
+            'worst_trade' => $officialClosed->sortBy('pnl_total')->first(),
             'expectancy' => 0,
         ];
 
@@ -49,11 +59,38 @@ class TradeController extends Controller
         $winRate = $stats['win_rate'] / 100;
         $stats['expectancy'] = round(($winRate * $avgWin) - ((1 - $winRate) * $avgLoss), 2);
 
+        // Riwayat strategi LAIN (bukan GABUNGAN) -- ditampilkan terpisah, TIDAK ikut kartu resmi
+        // di atas, supaya kelihatan tapi tidak tercampur/menggelembungkan angka utama.
+        $strategyLabels = [
+            'legacy_stock_only' => 'Legacy: Stock-Only (Fase AX-AY-BB)',
+            'legacy_ab_ac' => 'Legacy: IHSG+Saham Crash (Fase AB/AC)',
+            'ai_tp30' => 'AI Prediksi (TP30%/SL3%/40h)',
+            'momentum' => 'Momentum (RSI>60) — EXPLORATORY',
+            'manual_discretionary' => 'Manual/Diskresi',
+        ];
+        $strategyBreakdown = [];
+        foreach ($strategyLabels as $key => $label) {
+            $group = $closed->where('strategy_label', $key);
+            $groupOpen = $open->where('strategy_label', $key);
+            if ($group->isEmpty() && $groupOpen->isEmpty()) {
+                continue;
+            }
+            $groupWin = $group->where('pnl_total', '>', 0)->count();
+            $strategyBreakdown[] = [
+                'key' => $key,
+                'label' => $label,
+                'open' => $groupOpen->count(),
+                'closed' => $group->count(),
+                'win_rate' => $group->count() > 0 ? round($groupWin / $group->count() * 100, 1) : null,
+                'total_pnl' => $group->sum('pnl_total'),
+            ];
+        }
+
         $stocks = Stock::where('is_active', true)->orderBy('code')->get();
 
         $live = $this->livePnlFor($open);
 
-        return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks', 'live'));
+        return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks', 'live', 'strategyBreakdown'));
     }
 
     /**
@@ -159,6 +196,9 @@ class TradeController extends Controller
         // Kolom signal_quality NOT NULL tanpa default; form manual tidak selalu mengirimnya.
         $validated['signal_quality'] = $validated['signal_quality'] ?? 'manual';
         $validated['position_value'] = $validated['entry_price'] * $validated['lot_size'];
+        // Fase CA: entry lewat form web = keputusan manual user, bukan sinyal otomatis GABUNGAN
+        // -- TIDAK dihitung ke kartu ringkasan resmi (lihat TradeController::index()).
+        $validated['strategy_label'] = 'manual_discretionary';
 
         Trade::create($validated);
 

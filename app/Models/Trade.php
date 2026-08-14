@@ -20,7 +20,7 @@ class Trade extends Model
         'dss_confidence', 'sentiment_avg', 'indicators_snapshot',
         'status', 'entry_date', 'trade_date', 'exit_date', 'closed_at', 'exit_price',
         'holding_days', 'result', 'pnl_per_share',
-        'pnl_total', 'pnl', 'pnl_percent', 'actual_rr', 'notes',
+        'pnl_total', 'pnl', 'pnl_percent', 'actual_rr', 'notes', 'strategy_label',
     ];
 
     protected $casts = [

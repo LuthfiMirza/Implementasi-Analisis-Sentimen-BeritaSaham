@@ -7,6 +7,12 @@
       <p class="text-xs text-slate-500 uppercase font-medium tracking-wider">Portfolio Tracker</p>
       <h1 class="text-2xl font-bold text-slate-100 mt-0.5">Trade Journal</h1>
       <p class="text-sm text-slate-400 mt-1">Rekam jejak sinyal DSS vs hasil aktual pasar</p>
+      {{-- Fase CA: dulu kartu ringkasan mencampur GABUNGAN + 2 aturan lama yang TERBUKTI
+           tumpang tindih periode untuk saham sama (dicek dari notes backfill sendiri) --
+           sekarang cuma GABUNGAN yang resmi, sisanya di bagian "Strategi Lain" di bawah. --}}
+      <p class="text-[11px] text-sky-400/80 mt-1">
+        📊 Kartu di bawah = <b>strategi resmi GABUNGAN</b> saja (ret_2d≤-5% atau drawdown≤-20%)
+      </p>
     </div>
     <button onclick="document.getElementById('addTradeModal').classList.remove('hidden')"
             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
@@ -84,6 +90,34 @@
     </div>
 
   </div>
+
+  {{-- ── STRATEGI LAIN (arsip, TIDAK dihitung ke kartu resmi di atas) ── --}}
+  @if(!empty($strategyBreakdown))
+  <div>
+    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
+      📁 Strategi Lain (di luar GABUNGAN — arsip riset, bukan angka resmi)
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+      @foreach($strategyBreakdown as $sb)
+      <div class="glass-card border border-slate-800/60 rounded-xl p-3 bg-slate-900/30">
+        <p class="text-[11px] text-slate-400 font-medium mb-1">{{ $sb['label'] }}</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-lg font-bold text-slate-200">{{ $sb['closed'] }}</span>
+          <span class="text-[10px] text-slate-500">closed</span>
+          @if($sb['open'] > 0)
+            <span class="text-[10px] text-sky-400">+{{ $sb['open'] }} open</span>
+          @endif
+        </div>
+        @if($sb['win_rate'] !== null)
+          <p class="text-[11px] mt-1 {{ $sb['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
+            WR {{ $sb['win_rate'] }}% • Rp{{ number_format($sb['total_pnl'], 0, ',', '.') }}
+          </p>
+        @endif
+      </div>
+      @endforeach
+    </div>
+  </div>
+  @endif
 
   {{-- ── OPEN POSITIONS ── --}}
   @if($open->count() > 0)

@@ -132,6 +132,9 @@ class DetectDrawdownBounceSignalCommand extends Command
                         '(bukan compounding). Exit dipantau otomatis via research:check-trailing-stop-alert '.
                         '(trailing stop 2% / target waktu 10 hari) -- posisi ini juga terdaftar di '.
                         'open_positions.json untuk alert Telegram.',
+                    // Fase CA: diisi eksplisit saat insert, bukan ditebak dari notes belakangan --
+                    // strategy_label='gabungan' inilah yang dihitung ke kartu ringkasan RESMI.
+                    'strategy_label' => $strategy === 'MOMENTUM' ? 'momentum' : 'gabungan',
                 ]);
 
                 $this->info("Sync Trade Journal: {$ticker} dibuka otomatis di web (entry Rp{$price}, {$dateStr}, {$strategyLabel}).");
