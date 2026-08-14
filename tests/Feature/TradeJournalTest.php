@@ -239,4 +239,51 @@ class TradeJournalTest extends TestCase
                 && $legacy['episode_count'] === 1;
         });
     }
+
+    public function test_momentum_episode_independence_computes_correctly_once_trades_close(): void
+    {
+        // Momentum baru live 3 hari (Fase BL) -- 0 trade closed per hari ini, jadi tidak ada data
+        // nyata untuk dicek. Tes ini mengunci PERILAKU kodenya sekarang (bukan nunggu data asli
+        // ada), supaya kalau nanti posisi momentum BUMI/DEWA/BRPT mulai ditutup, angka episode-nya
+        // sudah terjamin benar sejak awal -- sama protokol dgn legacy_stock_only di atas.
+        $user = $this->user();
+        $bumi = $this->seedStock('BUMI');
+        $brpt = $this->seedStock('BRPT');
+
+        // BUMI: 2 trade berdekatan (jeda <=15 hari) -- 1 episode.
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $bumi->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-09-01', 'pnl_total' => 60000, 'strategy_label' => 'momentum',
+        ]);
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $bumi->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-09-10', 'pnl_total' => -15000, 'strategy_label' => 'momentum',
+        ]);
+
+        // BRPT: 1 trade, jeda jauh dari BUMI (ticker beda, tidak relevan) -- episode sendiri.
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id, 'stock_id' => $brpt->id, 'ticker' => 'BRPT',
+            'entry_date' => '2026-09-15', 'pnl_total' => 90000, 'strategy_label' => 'momentum',
+        ]);
+
+        // 1 posisi momentum MASIH TERBUKA -- tidak boleh ikut terhitung ke episode (episode cuma
+        // dari trade CLOSED), tapi harus tetap muncul di kolom 'open'.
+        Trade::factory()->create([
+            'user_id' => $user->id, 'stock_id' => $bumi->id, 'ticker' => 'BUMI',
+            'entry_date' => '2026-09-20', 'status' => 'open', 'strategy_label' => 'momentum',
+        ]);
+
+        $response = $this->actingAs($user)->get('/trades');
+
+        $response->assertOk()->assertViewHas('strategyBreakdown', function ($breakdown) {
+            $momentum = collect($breakdown)->firstWhere('key', 'momentum');
+
+            return $momentum !== null
+                && $momentum['closed'] === 3
+                && $momentum['open'] === 1
+                && $momentum['episode_count'] === 2 // {BUMI 1-10 Sep} + {BRPT 15 Sep}
+                // BUMI episode avg (60000-15000)/2 = +22.500 (menang), BRPT +90000 (menang) -> 2/2.
+                && $momentum['episode_win_rate'] === 100.0;
+        });
+    }
 }

@@ -4563,3 +4563,35 @@ Carbon 3 dari Fase CB terbukti berlaku benar juga untuk strategi lain, bukan cum
 - Full suite: 491 passed (2057 assertions, +1 dari tes baru).
 
 ### Status: SELESAI.
+
+---
+
+## Fase CE — Kunci perilaku episode-independence untuk Momentum (belum ada data closed)
+
+### Konteks
+User minta episode-independence Momentum dicek juga "kalau nanti ada yang closed" -- saat ini
+0 trade Momentum closed (baru live 3 hari), jadi tidak ada data nyata untuk diverifikasi. Daripada
+menunggu, perilaku kodenya dikunci SEKARANG lewat tes dengan data buatan, supaya begitu posisi
+Momentum beneran ditutup nanti, angkanya sudah terjamin benar sejak awal -- protokol sama seperti
+`test_strategy_breakdown_also_reports_episode_independence` (Fase CD) untuk legacy_stock_only.
+
+### Perubahan
+Tes baru `test_momentum_episode_independence_computes_correctly_once_trades_close`:
+- 2 trade BUMI berdekatan (jeda 9 hari) -> 1 episode.
+- 1 trade BRPT terpisah (ticker beda) -> episode sendiri.
+- 1 posisi Momentum MASIH TERBUKA (status='open') -- diverifikasi TIDAK ikut terhitung ke episode
+  (episode cuma dari trade closed), tapi tetap muncul di kolom `open`.
+- Ekspektasi: 3 closed, 1 open, 2 episode, WR 100% (kedua episode sama-sama untung).
+
+Sempat ketemu bug DI TES-nya sendiri (bukan di kode produksi) saat pertama ditulis: ekspektasi WR
+episode BUMI ditulis "kalah" berdasar salah hitung manual ((60000 + -15000)/2 = **+22.500**,
+positif -- bukan -7.500 seperti dikira). Kode produksinya sudah benar dari Fase CD/CB, cuma
+angka ekspektasi tes yang salah tulis manual -- diperbaiki jadi 100% (kedua episode menang).
+
+### Verifikasi
+- Tes baru lulus setelah ekspektasi WR diperbaiki.
+- Tidak ada perubahan kode produksi -- `groupIntoEpisodes()` (Fase CB/CD) sudah generik untuk
+  strategi apapun, cuma perlu dibuktikan lewat tes untuk kasus yang belum ada data asli.
+- Full suite: 492 passed (2059 assertions, +1 dari tes baru).
+
+### Status: SELESAI (perilaku terkunci, menunggu data Momentum closed asli untuk verifikasi akhir).
