@@ -4239,3 +4239,32 @@ definisi baru, jadi state lamanya tetap valid.
 - **Full suite**: 488 passed (2051 assertions).
 
 ### Status: SELESAI.
+
+---
+
+## Fase BX — Kartu Posisi Terbuka: tampilkan tanggal & JAM masuk, bukan cuma tanggal
+
+### Konteks
+User minta kartu posisi terbuka menampilkan kapan (tanggal + JAM) posisi itu masuk, bukan cuma
+tanggal ("Entry 13 Aug 2026") -- supaya jelas beda dari jam "harga HH:MM WIB" di footer kartu
+(itu jam quote LIVE terakhir, bukan jam masuk).
+
+### Kenapa `created_at`, bukan `entry_date`
+`entry_date` cuma tanggal, JAM-nya selalu `00:00:00` (sudah dicatat sebelumnya di Fase BM: perlu
+`whereDate()` bukan `where()` untuk idempotency check karena ini). Yang punya jam presisi adalah
+`created_at` (timestamp standar Eloquent) -- dicek ke SEMUA 6 posisi terbuka saat ini, jamnya
+masuk akal dan konsisten dengan jam job sungguhan: DEWA/BRPT real (09:16 WIB, dekat jam user beli
+DEWA sungguhan), sisanya (13-14 Agu, macam-macam ticker) semua 15:18 WIB -- persis jam job harian
+`research:detect-drawdown-bounce-signal`.
+
+### Perubahan
+`resources/views/trades/index.blade.php`: baris subjudul kartu ("{{ company_name }} • Entry {{
+entry_date }}") diganti "{{ company_name }} • Masuk {{ created_at WIB, format lengkap }}".
+
+### Verifikasi
+- Preview render nyata: "Surya Esa Perkasa Tbk • Masuk 09 Aug 2026, 15:13 WIB" -- format benar.
+- Kompilasi Blade bersih (dicek programatik).
+- `php artisan test --filter=Trade`: 35 passed.
+- **Full suite**: 488 passed (2051 assertions).
+
+### Status: SELESAI.

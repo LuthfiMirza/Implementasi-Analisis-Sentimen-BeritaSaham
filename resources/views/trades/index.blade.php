@@ -124,7 +124,13 @@
             <div>
               <p class="font-semibold text-slate-100">{{ $trade->stock->code }}</p>
               <p class="text-[11px] text-slate-400">
-                {{ $trade->stock->company_name }} • Entry {{ $trade->entry_date->format('d M Y') }}
+                {{ $trade->stock->company_name }} • Masuk
+                {{-- entry_date cuma tanggal (selalu 00:00:00, lihat catatan whereDate() di
+                     DetectDrawdownBounceSignalCommand) -- created_at yang punya jam presisi,
+                     dan untuk trade yang disinkron otomatis (SYNC_OPEN) ini SAMA PERSIS dengan
+                     jam signal terdeteksi/terdaftar (dicek: 15:18 WIB, jam job harian). Beda dari
+                     jam "harga HH:MM WIB" di footer kartu -- itu jam quote LIVE, bukan jam masuk. --}}
+                {{ $trade->created_at->timezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB
               </p>
             </div>
           </div>
