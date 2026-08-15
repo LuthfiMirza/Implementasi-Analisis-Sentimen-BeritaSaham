@@ -4612,3 +4612,64 @@ angka ekspektasi tes yang salah tulis manual -- diperbaiki jadi 100% (kedua epis
 - Full suite: 492 passed (2059 assertions, +1 dari tes baru).
 
 ### Status: SELESAI (perilaku terkunci, menunggu data Momentum closed asli untuk verifikasi akhir).
+
+---
+
+## Fase CF — Eksperimen: apakah legacy_ab_ac menambah nilai kalau digabung dengan GABUNGAN?
+
+### Konteks
+Lanjutan diskusi episode-independence per strategi (Fase CD): user minta diuji apakah 2 strategi
+arsip (`legacy_stock_only`, `legacy_ab_ac`) menambah nilai kalau digabung dengan GABUNGAN, atau
+GABUNGAN sudah cukup unggul sendirian.
+
+### Temuan pendahuluan: `legacy_stock_only` TIDAK PERLU diuji terpisah
+Aturannya cuma "ret_2d<=-5%" -- ini SECARA MATEMATIS subset dari syarat GABUNGAN ("ret_2d<=-5%
+ATAU drawdown<=-20%"). Sudah tercakup penuh, tidak ada pertanyaan "gabung atau tidak" -- jawabannya
+selalu "sudah tergabung sejak awal".
+
+### Masalah provenance: 28 trade `legacy_ab_ac` di DB BUKAN Fase AB asli
+Dicek ulang: label `legacy_ab_ac` di database (28 trade) ternyata di universe saham BLUE CHIP
+(ASII/BBCA/BBRI/BMRI/ICBP/INDF/TLKM/UNVR) yang **TIDAK ADA dokumentasinya di plan.md manapun**.
+Fase AB ASLI (terdokumentasi rapi, quant/run_ihsg_drawdown_entry_experiment.py) cuma pernah diuji
+ke BUMI/DEWA -- BUMI lolos (27 episode independen, 22 tahun data), DEWA gagal (n<20, tercemar
+crash Lehman 2008). Provenance 28 trade blue-chip itu tidak jelas (kemungkinan sesi kerja lain).
+
+**Keputusan**: daripada percaya data yang provenance-nya tidak jelas, aturan AB/AC ASLI (dual-
+condition: IHSG DAN saham sama-sama crash >=5%/2hari, exit tahan 10 hari tetap) diuji ULANG bersih
+ke 6 saham yang SEKARANG relevan (BUMI/DEWA/BRPT/ESSA/UNVR/SMGR), window sama dengan validasi
+GABUNGAN (2024-sekarang) -- skrip baru `quant/drawdown_bounce_tracker/backtest_ab_ac_vs_gabungan.py`.
+
+### Hasil: TIDAK ADA nilai tambah -- overlap 100%
+| Saham | Sinyal AB/AC | Tumpang tindih GABUNGAN | Murni milik AB/AC |
+|---|---|---|---|
+| BUMI | 11 | 11 (100%) | 0 |
+| DEWA | 11 | 11 (100%) | 0 |
+| BRPT | 10 | 10 (100%) | 0 |
+| ESSA | 6 | 6 (100%) | 0 |
+| UNVR | 6 | 6 (100%) | 0 |
+| SMGR | 11 | 11 (100%) | 0 |
+| **TOTAL** | **55** | **55 (100%)** | **0** |
+
+**Ini kepastian matematis, bukan kebetulan empiris**: syarat AB/AC (`ret_2d<=-5% DAN IHSG<=-5%`)
+adalah subset KETAT dari syarat GABUNGAN (`ret_2d<=-5% ATAU drawdown<=-20%`) -- cabang `ret_2d<=-5%`
+GABUNGAN saja sudah cukup untuk menangkap SEMUA tanggal yang lolos syarat AB/AC yang lebih ketat.
+Menambahkan syarat IHSG hanya MENGURANGI kesempatan (lebih ketat), tidak pernah menambah.
+
+Validasi P1-P4 AB/AC berdiri sendiri (36 episode gabungan 6 saham): **LULUS 2/3** -- P1 lulus
+(OOS positif kedua split), P3 lulus (exclude top-5% masih positif), **P4 GAGAL** (bootstrap CI95
+lower bound -2,99%, negatif). Jadi bukan cuma tidak menambah kesempatan baru, aturan ini SENDIRI
+pun tidak cukup kuat untuk dipercaya independen dari GABUNGAN.
+
+### Keputusan
+**TIDAK DIIMPLEMENTASIKAN.** `legacy_stock_only` sudah tercakup GABUNGAN secara matematis.
+`legacy_ab_ac` (versi asli yang tervalidasi, bukan 28 trade blue-chip yang provenance-nya tidak
+jelas) terbukti nol nilai tambah -- 100% overlap tanggal trigger, dan gagal P4 berdiri sendiri.
+28 trade `legacy_ab_ac` di DB TETAP disimpan sebagai arsip (tidak dihapus, konsisten kebijakan
+Fase CA), tapi provenance-nya dicatat eksplisit sebagai TIDAK TERVERIFIKASI di sini.
+
+### Verifikasi
+- Skrip dijalankan real, output dicek manual, tidak ada anomali (semua 6 saham konsisten 100%
+  overlap, sesuai prediksi matematis dari struktur aturan).
+- Tidak ada perubahan kode produksi (murni riset).
+
+### Status: SELESAI (temuan negatif -- tidak ada yang digabung).
