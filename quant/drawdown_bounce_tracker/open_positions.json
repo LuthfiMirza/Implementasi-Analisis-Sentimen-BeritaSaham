@@ -13,13 +13,29 @@
     "ticker": "BRPT",
     "entry_date": "2026-08-13",
     "entry_price": 1865.0,
-    "alerted_pullback_pct": null,
-    "strategy": "MOMENTUM"
+    "alerted_pullback_pct": 0.02368421052631579,
+    "strategy": "MOMENTUM",
+    "alerted_pullback_at_peak": 1900.0
   },
   {
     "ticker": "BUMI",
     "entry_date": "2026-08-13",
     "entry_price": 179.0,
+    "alerted_pullback_pct": null,
+    "strategy": "MOMENTUM"
+  },
+  {
+    "ticker": "ESSA",
+    "entry_date": "2026-08-14",
+    "entry_price": 660.0,
+    "alerted_pullback_pct": null,
+    "strategy": "GABUNGAN",
+    "signal_type": "ret2d"
+  },
+  {
+    "ticker": "DEWA",
+    "entry_date": "2026-08-13",
+    "entry_price": 446.0,
     "alerted_pullback_pct": null,
     "strategy": "MOMENTUM"
   }
