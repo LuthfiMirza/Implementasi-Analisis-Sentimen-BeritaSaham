@@ -21,15 +21,24 @@ class TradeController extends Controller
         $closed = $trades->where('status', 'closed');
         $open = $trades->where('status', 'open');
 
-        // Fase CA: kartu ringkasan RESMI cuma dihitung dari strategy_label='gabungan' -- 3 aturan
-        // drawdown-bounce lama (legacy_stock_only/legacy_ab_ac/GABUNGAN) TERBUKTI tumpang tindih
-        // periode untuk saham yang sama (dicek langsung dari notes backfill: "ada tumpang tindih
-        // periode dengan catatan lama... user pilih tetap masukkan data baru ini berdampingan").
-        // Menjumlahkan ketiganya dulu (versi sebelum Fase CA) berisiko menghitung untung yang
-        // SAMA berkali-kali dengan aturan berbeda. GABUNGAN (Fase BK, aturan yang live SEKARANG)
-        // dijadikan satu-satunya acuan resmi; sisanya tetap tersimpan utuh (TIDAK dihapus) sebagai
-        // arsip riset, ditampilkan terpisah lewat $strategyBreakdown di bawah.
-        $officialClosed = $closed->where('strategy_label', 'gabungan');
+        // Fase CL: toggle "GABUNGAN (resmi)" vs "Semua Strategi (gabung, ada overlap)" -- user
+        // eksplisit minta bisa lihat 2 versi. "all" TIDAK menghapus caveat Fase CA di bawah: kalau
+        // scope=all, legacy_ab_ac ikut dijumlah padahal TERBUKTI 100% overlap trigger dengan
+        // gabungan (Fase CF) -- jadi profit yang SAMA bisa kehitung dua kali. View WAJIB
+        // menampilkan peringatan itu saat scope=all aktif, bukan cuma angka polos.
+        $scope = $request->query('scope') === 'all' ? 'all' : 'gabungan';
+
+        // Fase CA: kartu ringkasan RESMI (default) cuma dihitung dari strategy_label='gabungan'
+        // -- 3 aturan drawdown-bounce lama (legacy_stock_only/legacy_ab_ac/GABUNGAN) TERBUKTI
+        // tumpang tindih periode untuk saham yang sama (dicek langsung dari notes backfill: "ada
+        // tumpang tindih periode dengan catatan lama... user pilih tetap masukkan data baru ini
+        // berdampingan"). Menjumlahkan ketiganya dulu (versi sebelum Fase CA) berisiko menghitung
+        // untung yang SAMA berkali-kali dengan aturan berbeda. GABUNGAN (Fase BK, aturan yang live
+        // SEKARANG) dijadikan acuan resmi default; sisanya tetap tersimpan utuh (TIDAK dihapus)
+        // sebagai arsip riset, ditampilkan terpisah lewat $strategyBreakdown di bawah -- KECUALI
+        // user pilih scope=all secara eksplisit.
+        $officialClosed = $scope === 'all' ? $closed : $closed->where('strategy_label', 'gabungan');
+        $officialOpen = $scope === 'all' ? $open : $open->where('strategy_label', 'gabungan');
 
         // Menang/kalah dari PnL AKTUAL, bukan dari kategori `result` -- exit berbasis waktu
         // (manual_close, mis. aturan drawdown-bounce Fase AB/AC) valid juga dan sebelumnya
@@ -38,8 +47,8 @@ class TradeController extends Controller
         $losers = $officialClosed->where('pnl_total', '<=', 0);
 
         $stats = [
-            'total' => $trades->where('strategy_label', 'gabungan')->count(),
-            'open' => $open->where('strategy_label', 'gabungan')->count(),
+            'total' => $officialOpen->count() + $officialClosed->count(),
+            'open' => $officialOpen->count(),
             'closed' => $officialClosed->count(),
             'win' => $winners->count(),
             'loss' => $losers->count(),
@@ -134,7 +143,7 @@ class TradeController extends Controller
 
         $live = $this->livePnlFor($open);
 
-        return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks', 'live', 'strategyBreakdown', 'monthlyBreakdown'));
+        return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks', 'live', 'strategyBreakdown', 'monthlyBreakdown', 'scope'));
     }
 
     /**

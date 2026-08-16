@@ -4879,3 +4879,39 @@ label strategi per baris supaya jelas mana yang mana, di Riwayat DAN di Posisi T
   tidak masuk kartu resmi).
 
 ### Status: SELESAI, siap commit.
+
+## Fase CL -- Toggle "GABUNGAN (resmi)" vs "Semua Strategi" di Trade Journal
+
+### Konteks
+Lanjutan diskusi Fase CK. User hitung manual: kalau SEMUA strategi (gabungan + legacy_stock_only +
+legacy_ab_ac + ai_tp30 + manual_discretionary) dijumlah, totalnya Rp225.700.778 (140.621.753 +
+43.433.197 + 5.346.400 + 11.209.128 + 25.090.300) -- minta fitur toggle biar bisa pilih lihat versi
+"GABUNGAN saja" atau "semua digabung".
+
+### Perubahan
+- `TradeController::index()`: parameter query `?scope=all` (default `gabungan` kalau tidak ada/
+  nilai lain). `$officialClosed`/`$officialOpen` sekarang kondisional: `gabungan` filter
+  `strategy_label='gabungan'` seperti sebelumnya (Fase CA), `all` pakai SEMUA closed/open trade
+  tanpa filter label. `$scope` dikirim ke view.
+- `resources/views/trades/index.blade.php`:
+  - Toggle 2 tombol (link biasa, bukan JS/Alpine) di header: "GABUNGAN (resmi)" vs "Semua
+    Strategi" -- state murni dari query string, jadi bisa di-bookmark/refresh tanpa hilang.
+  - Banner peringatan kuning MUNCUL cuma saat `scope=all`: eksplisit bilang angka ini BISA DOBEL
+    HITUNG karena `legacy_ab_ac` terbukti 100% overlap trigger dengan `gabungan` (Fase CF) --
+    jangan dipakai sebagai ukuran performa resmi.
+  - Subjudul kartu & heading "Strategi Lain" berubah teks tergantung scope (kasih tahu user data
+    di "Strategi Lain" itu SUDAH ikut kehitung di atas kalau scope=all, supaya tidak dikira
+    dobel-tampil tanpa penjelasan).
+
+### Verifikasi
+- `php artisan test --filter=Trade`: 39 passed (166 assertions), tidak ada regresi.
+- Browser real (login `user@sentimena.test`):
+  - Default (`/trades`): Total Trade 295, Total PnL +Rp140.621.753 -- SAMA seperti sebelum
+    perubahan (baseline tidak berubah).
+  - `/trades?scope=all`: Total Trade 380, **Total PnL +Rp225.700.778** -- cocok PERSIS dengan
+    perhitungan manual user. Banner peringatan overlap tampil. Episode independen ikut naik ke 55
+    (dari 35) karena base data-nya lebih besar.
+
+### Status: SELESAI, siap commit. (Split halaman /trades vs /trades/laporan dari diskusi
+sebelumnya MASIH PENDING -- belum dikonfirmasi user, jadi toggle ini untuk sementara nempel di
+halaman yang sama.)

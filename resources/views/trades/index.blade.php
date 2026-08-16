@@ -11,18 +11,52 @@
            tumpang tindih periode untuk saham sama (dicek dari notes backfill sendiri) --
            sekarang cuma GABUNGAN yang resmi, sisanya di bagian "Strategi Lain" di bawah. --}}
       <p class="text-[11px] text-sky-400/80 mt-1">
-        📊 Kartu di bawah = <b>strategi resmi GABUNGAN</b> saja (ret_2d≤-5% atau drawdown≤-20%)
+        @if($scope === 'all')
+          📊 Kartu di bawah = <b>SEMUA strategi digabung</b> (termasuk yang overlap/pensiun)
+        @else
+          📊 Kartu di bawah = <b>strategi resmi GABUNGAN</b> saja (ret_2d≤-5% atau drawdown≤-20%)
+        @endif
       </p>
     </div>
-    <button onclick="document.getElementById('addTradeModal').classList.remove('hidden')"
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
-                   bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold text-sm transition">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-      Catat Trade Baru
-    </button>
+    <div class="flex items-center gap-3">
+      {{-- Fase CL: toggle GABUNGAN (resmi) vs SEMUA strategi -- link biasa (bukan JS), state
+           murni dari query string ?scope=, jadi bisa di-bookmark/share dan tetap benar kalau
+           halaman di-refresh. --}}
+      <div class="inline-flex rounded-xl border border-slate-800 bg-slate-900/60 p-1 text-xs">
+        <a href="{{ route('trades.index') }}"
+           class="px-3 py-1.5 rounded-lg font-medium transition
+                  {{ $scope === 'gabungan' ? 'bg-sky-500 text-slate-900' : 'text-slate-400 hover:text-slate-200' }}">
+          GABUNGAN (resmi)
+        </a>
+        <a href="{{ route('trades.index', ['scope' => 'all']) }}"
+           class="px-3 py-1.5 rounded-lg font-medium transition
+                  {{ $scope === 'all' ? 'bg-amber-500 text-slate-900' : 'text-slate-400 hover:text-slate-200' }}">
+          Semua Strategi
+        </a>
+      </div>
+      <button onclick="document.getElementById('addTradeModal').classList.remove('hidden')"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
+                     bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold text-sm transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Catat Trade Baru
+      </button>
+    </div>
   </div>
+
+  @if($scope === 'all')
+  <div class="glass-card border border-amber-500/30 bg-amber-500/5 rounded-2xl p-4">
+    <p class="text-sm font-semibold text-amber-400 mb-1">⚠️ Mode "Semua Strategi" -- angka ini BISA DOBEL HITUNG</p>
+    <p class="text-[12px] text-slate-400 leading-relaxed">
+      Kartu di bawah menjumlahkan GABUNGAN + Legacy Stock-Only + Legacy AB/AC + AI TP30 + Manual.
+      <b>Legacy AB/AC terbukti 100% overlap trigger dengan GABUNGAN</b> (dibuktikan langsung, lihat
+      riwayat riset) -- sinyal yang SAMA bisa kehitung PROFIT-nya dua kali di sini. Angka ini
+      berguna untuk lihat "total semua yang pernah tercatat", <b>BUKAN</b> ukuran performa strategi
+      yang jujur. Untuk performa resmi, pakai toggle "GABUNGAN (resmi)".
+    </p>
+  </div>
+  @endif
 
   {{-- ── STATS CARDS ── --}}
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -144,7 +178,11 @@
   @if(!empty($strategyBreakdown))
   <div>
     <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
-      📁 Strategi Lain (di luar GABUNGAN — arsip riset, bukan angka resmi)
+      @if($scope === 'all')
+        📁 Strategi Lain (rincian -- SUDAH ikut kehitung di kartu "Semua Strategi" di atas)
+      @else
+        📁 Strategi Lain (di luar GABUNGAN — arsip riset, bukan angka resmi)
+      @endif
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
       @foreach($strategyBreakdown as $sb)
