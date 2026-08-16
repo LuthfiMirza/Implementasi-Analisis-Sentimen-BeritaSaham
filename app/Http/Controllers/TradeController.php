@@ -143,7 +143,39 @@ class TradeController extends Controller
 
         $live = $this->livePnlFor($open);
 
-        return view('trades.index', compact('trades', 'stats', 'open', 'closed', 'stocks', 'live', 'strategyBreakdown', 'monthlyBreakdown', 'scope'));
+        // Fase CM: tabel "Riwayat Trading" render SEMUA closed trade tanpa pagination (374+ baris
+        // dan terus tumbuh) -- terlalu berat untuk dipindai user. Dipisah dari $closed/$scope di
+        // atas (yang tetap dipakai utuh untuk stats/episode -- itu WAJIB lihat semua data, tidak
+        // boleh ikut kepotong pagination) -- filter+pagination cuma untuk tampilan tabel riwayat.
+        $historyStrategy = $request->query('filter_strategy');
+        $historyTicker = $request->query('filter_ticker');
+
+        $history = $closed;
+        if ($historyStrategy) {
+            $history = $history->where('strategy_label', $historyStrategy);
+        }
+        if ($historyTicker) {
+            $history = $history->where('ticker', $historyTicker);
+        }
+        $history = $history->values();
+
+        $perPage = 30;
+        $page = max(1, (int) $request->query('page', 1));
+        $closedPage = new \Illuminate\Pagination\LengthAwarePaginator(
+            $history->forPage($page, $perPage)->values(),
+            $history->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $historyStrategyOptions = $closed->pluck('strategy_label')->filter()->unique()->sort()->values();
+        $historyTickerOptions = $closed->pluck('ticker')->unique()->sort()->values();
+
+        return view('trades.index', compact(
+            'trades', 'stats', 'open', 'closed', 'stocks', 'live', 'strategyBreakdown', 'monthlyBreakdown', 'scope',
+            'closedPage', 'historyStrategy', 'historyTicker', 'historyStrategyOptions', 'historyTickerOptions'
+        ));
     }
 
     /**

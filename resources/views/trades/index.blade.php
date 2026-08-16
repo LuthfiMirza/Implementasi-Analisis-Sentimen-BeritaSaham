@@ -384,11 +384,40 @@
 
   {{-- ── CLOSED TRADES ── --}}
   <div>
-    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
-      📋 Riwayat Trading ({{ $closed->count() }})
-    </h2>
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+        📋 Riwayat Trading ({{ $closedPage->total() }}{{ $closedPage->total() !== $closed->count() ? ' dari '.$closed->count() : '' }})
+      </h2>
+      {{-- Fase CM: filter strategi/saham + pagination -- 374+ baris terlalu berat dipindai
+           tanpa ini. Form GET biasa (bukan JS) supaya bisa di-bookmark/refresh. --}}
+      <form method="GET" class="flex items-center gap-2 text-xs">
+        <input type="hidden" name="scope" value="{{ $scope }}">
+        <select name="filter_strategy" onchange="this.form.submit()"
+                class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-300">
+          <option value="">Semua Strategi</option>
+          @foreach($historyStrategyOptions as $opt)
+            <option value="{{ $opt }}" {{ $historyStrategy === $opt ? 'selected' : '' }}>{{ strtoupper($opt) }}</option>
+          @endforeach
+        </select>
+        <select name="filter_ticker" onchange="this.form.submit()"
+                class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-300">
+          <option value="">Semua Saham</option>
+          @foreach($historyTickerOptions as $opt)
+            <option value="{{ $opt }}" {{ $historyTicker === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+          @endforeach
+        </select>
+        @if($historyStrategy || $historyTicker)
+          <a href="{{ route('trades.index', ['scope' => $scope]) }}"
+             class="text-slate-500 hover:text-slate-300 underline">Reset</a>
+        @endif
+      </form>
+    </div>
 
-    @if($closed->count() > 0)
+    @if($closedPage->total() === 0 && ($historyStrategy || $historyTicker))
+    <div class="glass-card border border-slate-800/80 rounded-2xl p-8 text-center text-sm text-slate-500">
+      Tidak ada trade yang cocok dengan filter ini.
+    </div>
+    @elseif($closed->count() > 0)
     <div class="glass-card border border-slate-800/80 rounded-2xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -410,7 +439,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800/50">
-            @foreach($closed as $trade)
+            @foreach($closedPage as $trade)
             <tr class="hover:bg-slate-800/30 transition">
               <td class="px-4 py-3">
                 @php
@@ -523,6 +552,14 @@
           </tbody>
         </table>
       </div>
+      @if($closedPage->hasPages())
+      <div class="flex items-center justify-between px-4 py-3 border-t border-slate-800/80">
+        <p class="text-[11px] text-slate-500">
+          Menampilkan {{ $closedPage->firstItem() }}–{{ $closedPage->lastItem() }} dari {{ $closedPage->total() }} trade
+        </p>
+        {{ $closedPage->appends(request()->query())->onEachSide(1)->links('components.pagination-dark') }}
+      </div>
+      @endif
     </div>
     @else
     <div class="glass-card border border-slate-800/80 rounded-2xl p-8 text-center">

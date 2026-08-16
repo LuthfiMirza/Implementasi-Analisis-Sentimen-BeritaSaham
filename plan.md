@@ -4915,3 +4915,38 @@ legacy_ab_ac + ai_tp30 + manual_discretionary) dijumlah, totalnya Rp225.700.778 
 ### Status: SELESAI, siap commit. (Split halaman /trades vs /trades/laporan dari diskusi
 sebelumnya MASIH PENDING -- belum dikonfirmasi user, jadi toggle ini untuk sementara nempel di
 halaman yang sama.)
+
+## Fase CM -- Pagination + filter tabel Riwayat Trading
+
+### Konteks
+User: "374 ini terlalau banyak buat pagi nation" (374 baris tanpa pagination, terlalu berat
+dipindai). Ini opsi yang sudah disepakati di diskusi Fase CK ("Pagination + filter strategi/saham").
+Juga diminta hapus banner peringatan kuning mode "Semua Strategi" (dianggap terlalu mencolok/tidak
+perlu) -- subjudul kecil tetap dipertahankan sebagai pengingat ringkas.
+
+### Perubahan
+- `TradeController::index()`: `$closed`/`$scope` TETAP dipakai utuh (374 baris) untuk stats/episode
+  -- itu wajib lihat semua data. Ditambah `$history` terpisah (hasil filter `filter_strategy`/
+  `filter_ticker` dari query string), dibungkus `LengthAwarePaginator` manual (Collection, bukan
+  query builder, karena `$trades` sudah di-load penuh lewat `->get()` untuk kebutuhan stats) --
+  30 baris/halaman. Dropdown opsi filter (`historyStrategyOptions`/`historyTickerOptions`) dari
+  nilai unik yang benar-benar ada di data, bukan daftar statis.
+- `resources/views/trades/index.blade.php`:
+  - Heading "Riwayat Trading" jadi dinamis: `(N dari 374)` kalau ada filter aktif, `(374)` kalau
+    tidak.
+  - 2 dropdown filter (Strategi, Saham) + link Reset, form GET biasa (auto-submit on change).
+  - Loop tabel ganti dari `$closed` (374 baris polos) ke `$closedPage` (terpaginasi+terfilter).
+  - Link pagination pakai komponen existing `components.pagination-dark` (sudah dipakai di
+    `/news`, tema gelap sudah cocok, tidak perlu bikin baru) + info "Menampilkan X-Y dari Z".
+  - Pesan "Tidak ada trade yang cocok dengan filter ini" kalau hasil filter kosong.
+  - Banner kuning peringatan overlap (mode Semua Strategi) DIHAPUS atas permintaan user.
+
+### Verifikasi
+- `php artisan test --filter=Trade`: 39 passed (166 assertions).
+- Browser real: halaman 1 default 30 baris; `?page=2` menampilkan 30 baris LAIN (ticker beda,
+  bukan data yang sama diulang) dan nav pagination menandai halaman 2 aktif (13 halaman total
+  untuk 374 baris). `?filter_ticker=SMGR` -> 11 baris, heading otomatis "RIWAYAT TRADING (11 DARI
+  374)". Kartu Total PnL/Win Rate di atas TIDAK berubah (masih hitung dari 374/292 penuh, tidak
+  ikut terpotong pagination -- sesuai desain).
+
+### Status: SELESAI, siap commit+push.
