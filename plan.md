@@ -4673,3 +4673,65 @@ Fase CA), tapi provenance-nya dicatat eksplisit sebagai TIDAK TERVERIFIKASI di s
 - Tidak ada perubahan kode produksi (murni riset).
 
 ### Status: SELESAI (temuan negatif -- tidak ada yang digabung).
+
+---
+
+## Fase CH — 5 saham baru ditambahkan ke alert: TINS/PTRO/ENRG/RAJA (GABUNGAN), DSSA (MOMENTUM)
+
+### Konteks
+Lanjutan Fase CG (screening 109 kandidat dari daftar pick grup Telegram eksternal "Paper To
+Billion"). User minta implementasi kandidat yang lolos statistik DAN filter likuiditas (ditambahkan
+setelah screening awal -- 18/22 kandidat GABUNGAN "lolos penuh" ternyata mikro-cap berisiko
+slippage tinggi begitu dicek nilai transaksi harian & market cap).
+
+### Kandidat yang DIBUANG meski lolos statistik (transparansi keputusan)
+- **MINA, MLPT**: dibuang SEBELUM cek likuiditas -- hasilnya didominasi 1 episode ekstrem
+  (+126% dari 2 trade, +92% dari 4 trade), pola sama yang menjatuhkan TPIA di Fase AY.
+- **BAJA**: kandidat TERKUAT secara statistik (lolos GABUNGAN *dan* MOMENTUM sekaligus, satu-
+  satunya yang lolos dua aturan) -- TAPI turnover cuma Rp2 miliar/hari, mcap Rp0,65 triliun.
+  Terlalu mikro-cap untuk strategi otomatis dengan exit ketat (trailing-stop 2%).
+- **CTTH, OILS, REAL, TOBA, KBLV, KOKA**: sama, turnover <Rp10 miliar/hari.
+
+### Kandidat yang DITAMBAHKAN (lolos statistik + likuiditas >Rp100 miliar/hari)
+| Saham | Aturan | n_ep | WR | Median | CI95lo | Turnover/hari | Mcap |
+|---|---|---|---|---|---|---|---|
+| DSSA | MOMENTUM | 12 | 83,3% | +0,62% | +0,15% | Rp602 M | Rp155 T |
+| TINS | GABUNGAN | 18 | 72,2% | +0,88% | +0,25% | Rp164 M | Rp29 T |
+| PTRO | GABUNGAN | 15 | 73,3% | +1,18% | +0,41% | Rp243 M | Rp53 T |
+| ENRG | GABUNGAN | 15 | 80,0% | +0,62% | +0,30% | Rp111 M | Rp33 T |
+| RAJA | GABUNGAN | 19 | 73,7% | +1,81% | +0,91% | Rp128 M | Rp17,7 T |
+
+(RAJA juga lolos MOMENTUM 2/3 -- tidak diaktifkan di MOMENTUM, cuma di GABUNGAN, karena gate P4
+gagal untuk itu.)
+
+### Perubahan
+- **DB**: 5 baris baru di tabel `stocks` (DSSA, TINS, PTRO, ENRG, RAJA) -- `is_active=true`,
+  `yahoo_symbol` format `{CODE}.JK`, `tradingview_symbol` format `IDX:{CODE}`.
+- **`detect_signal.py`**:
+  - `COMBINED_RULE_TICKERS`: +TINS, PTRO, ENRG, RAJA.
+  - `MOMENTUM_TICKERS`: +DSSA.
+  - `LABELS`: kelimanya "tracked" (bukan "exploratory") -- sudah lolos protokol P1-P4 penuh yang
+    sama dipakai saham existing.
+  - **`MOMENTUM_START_DATE_BY_TICKER`** (baru): DSSA diaktifkan 16 Agu, BEDA dari BUMI/DEWA/BRPT
+    (12 Agu) -- kalau dipaksa pakai `MOMENTUM_TRACKING_START_DATE` global yang sama, DSSA bisa
+    "menangkap" trigger 12-15 Agu yang TIDAK PERNAH benar-benar terdeteksi live (backdate palsu).
+    Per-ticker start date mencegah ini. GABUNGAN TIDAK butuh perbaikan sama -- diikuti presedan
+    existing (SMGR/ESSA/UNVR dulu juga pakai `TRACKING_START_DATE` global yang sama walau
+    ditambahkan belakangan), dan dry-run dicek dulu (0 sinyal basi) sebelum dipastikan aman.
+  - 5 tombol Telegram baru (`BUTTON_CLOSE_TINS/PTRO/ENRG/RAJA/DSSA`), ditambahkan ke keyboard.
+- **`telegram_commands.py`**: import + `BUTTON_LABELS` map diperbarui untuk 5 tombol baru.
+  `/open`, `/close`, `/price`, `check_trailing_stop.py::compute_snapshot()` semua SUDAH generik
+  (regex ticker, tidak ada whitelist) -- tidak perlu diubah.
+
+### Verifikasi
+- Dry-run `detect()`/`detect_momentum()` SEBELUM run produksi: 0 sinyal untuk 5 saham baru --
+  konfirmasi tidak ada trigger basi yang akan ter-backdate begitu ditambahkan.
+- Import semua modul Python bersih, `default_keyboard()` menampilkan 5 tombol baru dengan benar.
+- `php artisan research:detect-drawdown-bounce-signal` (real run): tidak ada error, tidak ada
+  sinyal baru (konsisten dry-run).
+- `/price` dites ke kelima saham baru: semua berhasil ambil harga live (TINS Rp3890, PTRO Rp5250,
+  ENRG Rp1255, RAJA Rp835, DSSA Rp1005).
+- Full suite: 492 passed (2059 assertions) -- tidak ada regresi.
+
+### Status: SELESAI. Tracker sekarang memantau 11 saham: BUMI, DEWA, BRPT, SMGR, ESSA, UNVR (lama)
++ TINS, PTRO, ENRG, RAJA (GABUNGAN baru) + DSSA (MOMENTUM baru).

@@ -56,9 +56,19 @@ DRAWDOWN_THRESHOLD = -0.20  # Fase BK: leg kedua aturan gabungan, lihat COMBINED
 # LULUS PENUH di BUMI/DEWA/BRPT/ESSA/UNVR, SMGR gagal gate P4 (bootstrap CI95 lower bound belum
 # > 0, walau arahnya tidak negatif) sehingga TETAP pakai aturan lama (ret_2d saja). Lihat plan.md
 # Fase BK untuk tabel hasil lengkap per saham.
-COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR"}
+#
+# Fase CH: TINS/PTRO/ENRG/RAJA ditambahkan setelah screening 109 kandidat dari daftar pick "Paper
+# To Billion" (grup Telegram eksternal, gaya momentum) -- protokol SAMA (episode independence +
+# P1-P4), plus filter likuiditas (nilai transaksi harian >Rp100 miliar) yang tidak pernah dipakai
+# screening sebelumnya. Kandidat lain yang lolos statistik tapi TIDAK ditambahkan karena mikro-cap
+# berisiko slippage tinggi (turnover <Rp10 miliar/hari): BAJA (kandidat TERKUAT secara statistik,
+# lolos GABUNGAN+MOMENTUM sekaligus, tapi cuma Rp2 miliar/hari), CTTH, OILS, REAL, TOBA, KBLV,
+# KOKA. MINA dan MLPT dibuang lebih dulu karena hasilnya didominasi 1 episode ekstrem (+126% dan
+# +92% dari cuma 2-4 trade) -- pola yang sama menjatuhkan TPIA di Fase AY. Lihat plan.md Fase CH.
+COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA"}
 LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "tracked",
-          "ESSA": "tracked", "UNVR": "tracked"}  # DEWA dinaikkan dari
+          "ESSA": "tracked", "UNVR": "tracked", "TINS": "tracked", "PTRO": "tracked",
+          "ENRG": "tracked", "RAJA": "tracked", "DSSA": "tracked"}  # DEWA dinaikkan dari
 # "exploratory" ke "tracked" di Fase AX -- backtest BUMI-only -5% khusus DEWA (2024-sekarang)
 # menunjukkan win rate 86% discovery / 88% holdout, median return tetap positif & MENINGKAT di
 # holdout (tidak overfit), bahkan lebih kuat dari hasil BUMI sendiri. Lihat plan.md Fase AX.
@@ -97,8 +107,13 @@ LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "trac
 # teruji di kondisi pasar sideways/turun panjang -- karena itu alertnya secara eksplisit ditandai
 # EXPLORATORY/regime-dependent, bukan "tracked" penuh seperti drawdown-bounce.
 MOMENTUM_RSI_THRESHOLD = 60
-MOMENTUM_TICKERS = {"BUMI", "DEWA", "BRPT"}
+MOMENTUM_TICKERS = {"BUMI", "DEWA", "BRPT", "DSSA"}
 MOMENTUM_TRACKING_START_DATE = date(2026, 8, 12)  # baru diaktifkan hari ini -- jangan backdate
+# Fase CH: DSSA diaktifkan belakangan (16 Agu), beda tanggal dari BUMI/DEWA/BRPT (12 Agu) -- kalau
+# dipaksa pakai MOMENTUM_TRACKING_START_DATE yang sama, DSSA akan "menangkap" trigger 12-15 Agu
+# yang TIDAK PERNAH benar-benar terdeteksi live saat itu (backdate palsu). Per-ticker start date
+# supaya tiap saham cuma menangkap sinyal SEJAK dia benar-benar diaktifkan.
+MOMENTUM_START_DATE_BY_TICKER = {"DSSA": date(2026, 8, 16)}
 
 DB_PATH = Path(__file__).parent / "tracker.sqlite3"
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
@@ -158,6 +173,11 @@ BUTTON_CLOSE_BRPT = "\U0001F534 Tutup BRPT"  # Fase AY -- BRPT ditambahkan sebag
 BUTTON_CLOSE_SMGR = "\U0001F534 Tutup SMGR"
 BUTTON_CLOSE_ESSA = "\U0001F534 Tutup ESSA"
 BUTTON_CLOSE_UNVR = "\U0001F534 Tutup UNVR"
+BUTTON_CLOSE_TINS = "\U0001F534 Tutup TINS"  # Fase CH -- 5 saham baru dari screening pick PTB
+BUTTON_CLOSE_PTRO = "\U0001F534 Tutup PTRO"
+BUTTON_CLOSE_ENRG = "\U0001F534 Tutup ENRG"
+BUTTON_CLOSE_RAJA = "\U0001F534 Tutup RAJA"
+BUTTON_CLOSE_DSSA = "\U0001F534 Tutup DSSA"
 BUTTON_HELP = "❓ Bantuan"
 
 
@@ -173,6 +193,9 @@ def default_keyboard() -> dict:
             [BUTTON_CLOSE_BUMI, BUTTON_CLOSE_DEWA],
             [BUTTON_CLOSE_BRPT, BUTTON_CLOSE_SMGR],
             [BUTTON_CLOSE_ESSA, BUTTON_CLOSE_UNVR],
+            [BUTTON_CLOSE_TINS, BUTTON_CLOSE_PTRO],
+            [BUTTON_CLOSE_ENRG, BUTTON_CLOSE_RAJA],
+            [BUTTON_CLOSE_DSSA],
             [BUTTON_HELP],
         ],
         "resize_keyboard": True,
@@ -553,7 +576,8 @@ def detect_momentum() -> list[dict]:
             entry_row = stock.iloc[i + 1]
             trigger_date = trigger_row["date"]
 
-            if trigger_date < MOMENTUM_TRACKING_START_DATE:
+            start_date = MOMENTUM_START_DATE_BY_TICKER.get(ticker, MOMENTUM_TRACKING_START_DATE)
+            if trigger_date < start_date:
                 continue
             if not (trigger_row["rsi14"] > MOMENTUM_RSI_THRESHOLD):
                 continue
