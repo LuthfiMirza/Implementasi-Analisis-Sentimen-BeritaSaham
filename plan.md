@@ -4790,3 +4790,54 @@ Modal kumulatif dikerahkan (jumlah semua entry, bukan satu pool tetap): ~Rp1,79 
 
 ### Status: SELESAI (analisis). Tidak ada perubahan kode -- murni simulasi/pelaporan untuk
 keputusan lanjutan user.
+
+## Fase CJ -- Backfill 181 trade simulasi TINS/ENRG/RAJA ke Trade Journal
+
+### Konteks
+Lanjutan Fase CI. User minta tabel PnL simulasi (dari Fase CI) benar-benar dimasukkan ke Trade
+Journal, dengan `strategy_label='gabungan'` (dikonfirmasi user: itu aturan GABUNGAN, bukan
+MOMENTUM). Preseden sudah ada -- Fase BM Opsi A sudah pernah backfill 118 trade historis serupa
+untuk BUMI/DEWA/BRPT/ESSA/UNVR, ditandai jelas di `notes` sebagai "SIMULASI BACKTEST (bukan
+transaksi riil)" supaya tidak tercampur seolah live.
+
+### Temuan penting SEBELUM insert: overlap waktu tinggi
+Dicek dulu apakah trade-trade ini bisa realistis pakai SATU modal Rp10 juta yang di-compounding
+berurutan (gaya Fase BM Opsi A) -- ternyata TIDAK. Mayoritas trade **overlap waktu** (trigger baru
+muncul sebelum posisi sebelumnya di saham yang sama closed): TINS 69%, ENRG 86%, RAJA 78%. Kalau
+dipaksa satu pool modal compounding, hasilnya cuma angka matematis fiktif (ENRG bisa "tumbuh" dari
+Rp10jt ke Rp102jt, growth 10x yang tidak mungkin dieksekusi nyata karena banyak posisi harus buka
+bersamaan). **Keputusan: pakai modal segar Rp10 juta PER TRADE** (gaya Opsi B/live, bukan Opsi A
+compounding) -- setiap trigger dianggap posisi independen bermodal sendiri, konsisten dengan tabel
+PnL yang sudah ditunjukkan ke user di Fase CI (+Rp63.869.681 total, BUKAN angka compounding yang
+jauh lebih besar dan tidak realistis).
+
+### Perubahan
+- Command sekali-pakai `trades:backfill-new-gabungan-stocks` (dibuat, dijalankan, lalu DIHAPUS
+  setelah sukses -- tidak idempotent, tidak boleh dijalankan ulang tanpa modifikasi, jadi tidak
+  disimpan permanen sebagai command produksi, sama presedan seperti Fase BM Opsi A yang juga tidak
+  meninggalkan command permanen).
+- 181 baris `Trade` baru: TINS 42, ENRG 71, RAJA 68. Tiap baris: `strategy_label='gabungan'`,
+  `status='closed'`, `notes` eksplisit "SIMULASI BACKTEST (bukan transaksi riil)" + alasan modal
+  segar per-trade (bukan compounding) + persentase overlap per saham + tanggal backfill.
+- `lot_size`/`quantity` dihitung `floor(Rp10.000.000 / entry_price / 100) * 100` (lembar), sama
+  rumus `LIVE_CAPITAL` produksi (`DetectDrawdownBounceSignalCommand`).
+
+### Verifikasi
+- Dry-run dulu (`--dry-run`): preview 181 trade, total PnL Rp63.869.681 -- cocok persis dengan
+  angka yang sudah dihitung & ditunjukkan ke user di Fase CI.
+- Insert nyata: `php artisan test --filter=Trade` tetap **39 passed (166 assertions)** -- tidak ada
+  regresi di episode-independence/strategy-breakdown/win-rate logic.
+- Query DB setelah insert: total trade 380 (199 lama + 181 baru), `strategy_label='gabungan'`
+  sekarang 295 baris (114 lama + 181 baru). Per-ticker PnL cocok: TINS Rp11.247.768, ENRG
+  Rp27.469.572, RAJA Rp25.152.341 (total Rp63.869.681).
+
+### Dampak ke statistik "resmi" GABUNGAN (perlu diketahui user)
+Headline stats di halaman Trade Journal (`$officialClosed`, episode count, win rate) dihitung dari
+SEMUA baris `strategy_label='gabungan'` tanpa filter live-vs-simulasi -- sama seperti behaviour
+sejak Fase BM (114 trade lama itu sendiri sudah campuran live + backfill simulasi BUMI/DEWA/BRPT/
+ESSA/UNVR). Menambah 181 baris ini akan MENGUBAH angka headline (episode count, WR keseluruhan) di
+halaman web -- belum dihitung ulang di fase ini, perlu di-review terpisah kalau user mau lihat
+angka gabungan baru (8 saham jadi satu track record).
+
+### Status: SELESAI. 181 trade simulasi TINS/ENRG/RAJA masuk Trade Journal, jelas berlabel
+SIMULASI di notes, PnL cocok dengan tabel yang sudah ditunjukkan ke user.
