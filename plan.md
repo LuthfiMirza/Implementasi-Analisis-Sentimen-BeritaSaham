@@ -4735,3 +4735,58 @@ gagal untuk itu.)
 
 ### Status: SELESAI. Tracker sekarang memantau 11 saham: BUMI, DEWA, BRPT, SMGR, ESSA, UNVR (lama)
 + TINS, PTRO, ENRG, RAJA (GABUNGAN baru) + DSSA (MOMENTUM baru).
+
+## Fase CI — Simulasi profit Des2025-sekarang untuk 3 saham baru (TINS, ENRG, RAJA)
+
+### Konteks
+Lanjutan Fase CH. User minta cek: kalau TINS/PTRO/ENRG/RAJA (GABUNGAN) sudah dipantau sejak
+Desember 2025 (bukan baru live 16 Agu), berapa banyak sinyal & profit yang akan muncul. PTRO
+kemudian dibuang atas permintaan user (fokus 3 saham: TINS, ENRG, RAJA) karena avg return/trade-nya
+paling lemah (+0,60%) dibanding tiga lainnya.
+
+**PENTING: ini simulasi/backtest, BUKAN hasil trading live** -- ketiga saham baru live di sistem
+sejak 16 Agu 2026, belum ada histori trade asli di Trade Journal untuk mereka.
+
+### Hasil backtest (entry Des2025-Agu2026, aturan GABUNGAN persis produksi)
+| Saham | Trade Mentah | Episode | WR Episode | Total Return Episode |
+|---|---|---|---|---|
+| TINS | 42 | 5 | 60,0% | +2,6% |
+| ENRG | 71 | 4 | 100,0% | +12,9% |
+| RAJA | 68 | 4 | 100,0% | +15,2% |
+| **Total** | **181** | **13** | **84,6%** | **+30,7%** |
+
+### Gate P1-P4 (episode gabungan TINS+ENRG+RAJA, kronologis)
+| Gate | Kriteria | Hasil | Status |
+|---|---|---|---|
+| P1 | OOS positif split 70/30 & 60/40 | hold 70/30=+2,55%, hold 60/40=+1,77% | LULUS |
+| P3 | Buang episode terbaik (RAJA +9,92%), sisa masih positif | sisa total +20,76% | LULUS |
+| P4 | Bootstrap CI95 (10.000 resample) lower bound > 0 | CI95 [+0,81%, +4,11%] | LULUS |
+
+**LULUS PENUH 3/3.** 13 episode pas di atas ambang minimal (12) -- valid tapi sampel belum sekuat
+GABUNGAN utama (22 episode).
+
+### Simulasi PnL Rupiah (modal Rp10 juta/entry, konvensi sama seperti `LIVE_CAPITAL` produksi)
+Setiap trigger dianggap membuka posisi baru dengan modal segar Rp10 juta (bukan compounding satu
+pool) -- persis cara `DetectDrawdownBounceSignalCommand` menghitung `quantity` di produksi.
+
+| Saham | Periode | Entry~ | Exit~ | n Trade | PnL (Rp) | Return | R:R |
+|---|---|---|---|---|---|---|---|
+| TINS | 22 Des 25 -> 29 Jul 26 | 3.370 | 3.499 | 42 | +Rp11.247.768 | +2,72% | 1:3,7 |
+| ENRG | 16 Des 25 -> 13 Agu 26 | 1.410 | 1.265 | 71 | +Rp27.469.572 | +3,90% | 1:1,8 |
+| RAJA | 11 Des 25 -> 28 Jul 26 | 1.300 | 906 | 68 | +Rp25.152.341 | +3,72% | 1:1,2 |
+| **Total** | | | | **181** | **+Rp63.869.681** | **+3,56%** | |
+
+Modal kumulatif dikerahkan (jumlah semua entry, bukan satu pool tetap): ~Rp1,79 miliar. Return
++3,56% dihitung terhadap total modal yang dikerahkan sepanjang periode, bukan modal awal tunggal.
+
+### Catatan
+- Return per-trade "Entry~/Exit~" di tabel PnL adalah harga trade PERTAMA dan trade TERAKHIR di
+  window, bukan rata-rata seluruh trade -- representatif untuk arah pergerakan tapi PnL total
+  dihitung dari akumulasi 181 trade individual, bukan dari 1 titik ke titik lain.
+- RAJA turun harga (1.300->906) tapi tetap profit -- karena strategi entry re-trigger berkali-kali
+  saat harga jatuh (drawdown 20 hari), bukan buy-and-hold satu posisi.
+- Episode #12 RAJA (+9,92%) tetap mendominasi kontribusi RAJA -- sudah lolos gate P3 (exclude
+  top-1) tapi tetap perlu dipantau live agar tidak terlalu bergantung 1 episode besar.
+
+### Status: SELESAI (analisis). Tidak ada perubahan kode -- murni simulasi/pelaporan untuk
+keputusan lanjutan user.
