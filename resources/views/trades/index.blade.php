@@ -189,6 +189,15 @@
            variable). Diverifikasi reproduksinya minimal sebelum diperbaiki -- lihat plan.md. --}}
       @php
         $lv = $live[$trade->id] ?? null;
+        $strategyConfig = match($trade->strategy_label) {
+          'gabungan'              => ['bg-sky-500/10 text-sky-400 border-sky-500/30', 'GABUNGAN'],
+          'momentum'              => ['bg-amber-500/10 text-amber-400 border-amber-500/30', 'MOMENTUM'],
+          'ai_tp30'               => ['bg-purple-500/10 text-purple-400 border-purple-500/30', 'AI TP30'],
+          'legacy_stock_only'     => ['bg-slate-700/40 text-slate-400 border-slate-600/60', 'LAMA: STOCK-ONLY'],
+          'legacy_ab_ac'          => ['bg-slate-700/40 text-slate-400 border-slate-600/60', 'LAMA: AB/AC'],
+          'manual_discretionary'  => ['bg-slate-700/40 text-slate-300 border-slate-600/60', 'MANUAL'],
+          default                 => ['bg-slate-800 text-slate-500 border-slate-700', '—'],
+        };
       @endphp
       {{-- x-data di kartu ini bikin harga & P&L update sendiri (polling /api/stocks/{code}/quote,
            komponen tradePosition di resources/js/app.js) TANPA perlu refresh halaman -- nilai PHP
@@ -211,7 +220,12 @@
               {{ $trade->stock->code }}
             </div>
             <div>
-              <p class="font-semibold text-slate-100">{{ $trade->stock->code }}</p>
+              <div class="flex items-center gap-2">
+                <p class="font-semibold text-slate-100">{{ $trade->stock->code }}</p>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-medium border {{ $strategyConfig[0] }}">
+                  {{ $strategyConfig[1] }}
+                </span>
+              </div>
               <p class="text-[11px] text-slate-400">
                 {{ $trade->stock->company_name }} • Masuk
                 {{-- entry_date cuma tanggal (selalu 00:00:00, lihat catatan whereDate() di
@@ -370,12 +384,26 @@
             @foreach($closed as $trade)
             <tr class="hover:bg-slate-800/30 transition">
               <td class="px-4 py-3">
+                @php
+                  $strategyConfig = match($trade->strategy_label) {
+                    'gabungan'              => ['bg-sky-500/10 text-sky-400 border-sky-500/30', 'GABUNGAN'],
+                    'momentum'              => ['bg-amber-500/10 text-amber-400 border-amber-500/30', 'MOMENTUM'],
+                    'ai_tp30'               => ['bg-purple-500/10 text-purple-400 border-purple-500/30', 'AI TP30'],
+                    'legacy_stock_only'     => ['bg-slate-700/40 text-slate-400 border-slate-600/60', 'LAMA: STOCK-ONLY'],
+                    'legacy_ab_ac'          => ['bg-slate-700/40 text-slate-400 border-slate-600/60', 'LAMA: AB/AC'],
+                    'manual_discretionary'  => ['bg-slate-700/40 text-slate-300 border-slate-600/60', 'MANUAL'],
+                    default                 => ['bg-slate-800 text-slate-500 border-slate-700', '—'],
+                  };
+                @endphp
                 <div class="flex items-center gap-2">
                   <span class="font-bold text-slate-100">{{ $trade->stock->code }}</span>
                   <span class="text-[10px] text-slate-500">
                     {{ strtoupper($trade->signal_quality ?? '') }}
                   </span>
                 </div>
+                <span class="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-medium border {{ $strategyConfig[0] }}">
+                  {{ $strategyConfig[1] }}
+                </span>
               </td>
               <td class="px-4 py-3 text-slate-400">
                 <div class="text-[11px]">

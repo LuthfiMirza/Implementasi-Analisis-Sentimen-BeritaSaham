@@ -4841,3 +4841,41 @@ angka gabungan baru (8 saham jadi satu track record).
 
 ### Status: SELESAI. 181 trade simulasi TINS/ENRG/RAJA masuk Trade Journal, jelas berlabel
 SIMULASI di notes, PnL cocok dengan tabel yang sudah ditunjukkan ke user.
+
+## Fase CK -- Hitung ulang GABUNGAN 8-saham + badge label strategi di UI Trade Journal
+
+### Konteks
+Lanjutan Fase CJ, dua permintaan user: (1) hitung ulang angka headline GABUNGAN setelah 181 trade
+TINS/ENRG/RAJA masuk, (2) user bingung lihat "Riwayat Trading (374)" berisi trade yang PnL-nya
+tidak masuk kartu Total PnL (374 = semua strategi, kartu cuma hitung 292 gabungan) -- minta badge
+label strategi per baris supaya jelas mana yang mana, di Riwayat DAN di Posisi Terbuka.
+
+### Angka GABUNGAN 8 saham (dihitung ulang, replikasi persis logic TradeController::groupIntoEpisodes)
+- **Sebelum**: 111 trade, 22 episode (5 saham: BUMI/DEWA/BRPT/ESSA/UNVR).
+- **Sesudah**: **292 trade closed, 35 episode independen**, WR episode 88,6%, total PnL
+  Rp140.621.753. 8 saham (SMGR masih 0 trade GABUNGAN -- belum pernah trigger).
+- Gate P1-P4 di 35 episode: **LULUS PENUH 3/3** -- P1 (hold 70/30=+3,01%, hold 60/40=+3,37%), P3
+  (buang episode terbaik, sisa +91,35%), P4 (bootstrap CI95 [+2,01%, +3,79%]). Makin kuat dari versi
+  22-episode karena sampel bertambah signifikan tanpa merusak arah.
+- Per saham: BUMI 29/75,9%, DEWA 25/80%, BRPT 30/83,3%, ESSA 14/85,7%, UNVR 13/69,2%, TINS
+  42/47,6%, ENRG 71/64,8%, RAJA 68/64,7%.
+
+### Badge label strategi di `resources/views/trades/index.blade.php`
+- Ditambahkan `@php` block-form (BUKAN shorthand `@php(...)` -- lihat catatan bug Fase BT di file
+  yang sama) yang mapping `strategy_label` -> warna+teks badge: GABUNGAN (biru), MOMENTUM (kuning),
+  AI TP30 (ungu), LAMA: STOCK-ONLY/AB-AC (abu-abu), MANUAL (abu-abu terang), default "-".
+- Dipasang di 2 tempat: kartu Posisi Terbuka (dekat kode saham) dan baris tabel Riwayat Trading
+  (di bawah kode saham + signal_quality lama). Tidak menambah kolom baru di tabel -- badge
+  ditumpuk di sel "Saham" yang sudah ada.
+
+### Verifikasi
+- `php artisan test --filter=Trade`: 39 passed (166 assertions), tidak ada regresi (termasuk tidak
+  memicu ulang bug shorthand `@php()` Fase BT).
+- Render server-side via tinker (`TradeController::index()->render()`): 6 label (GABUNGAN,
+  MOMENTUM, AI TP30, LAMA: STOCK-ONLY, LAMA: AB/AC, MANUAL) semua ADA di HTML.
+- Login browser nyata (`user@sentimena.test`) + baca teks halaman: badge tampil benar di Posisi
+  Terbuka (mis. "ESSA GABUNGAN", "BRPT MOMENTUM") dan Riwayat Trading (mis. baris ENRG 30 Jul
+  "GABUNGAN", baris BUMI 29 Jul "MANUAL" -- persis contoh yang ditanyakan user kenapa PnL-nya
+  tidak masuk kartu resmi).
+
+### Status: SELESAI, siap commit.
