@@ -45,19 +45,6 @@
     </div>
   </div>
 
-  @if($scope === 'all')
-  <div class="glass-card border border-amber-500/30 bg-amber-500/5 rounded-2xl p-4">
-    <p class="text-sm font-semibold text-amber-400 mb-1">⚠️ Mode "Semua Strategi" -- angka ini BISA DOBEL HITUNG</p>
-    <p class="text-[12px] text-slate-400 leading-relaxed">
-      Kartu di bawah menjumlahkan GABUNGAN + Legacy Stock-Only + Legacy AB/AC + AI TP30 + Manual.
-      <b>Legacy AB/AC terbukti 100% overlap trigger dengan GABUNGAN</b> (dibuktikan langsung, lihat
-      riwayat riset) -- sinyal yang SAMA bisa kehitung PROFIT-nya dua kali di sini. Angka ini
-      berguna untuk lihat "total semua yang pernah tercatat", <b>BUKAN</b> ukuran performa strategi
-      yang jujur. Untuk performa resmi, pakai toggle "GABUNGAN (resmi)".
-    </p>
-  </div>
-  @endif
-
   {{-- ── STATS CARDS ── --}}
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
 
