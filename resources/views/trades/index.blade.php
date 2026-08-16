@@ -96,9 +96,13 @@
     {{-- Total PnL --}}
     <div class="glass-card border border-slate-800/80 rounded-2xl p-4">
       <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Total PnL</p>
-      <p class="text-2xl font-bold
+      {{-- Angka Rupiah bisa panjang (9-12 digit) -- text-2xl tetap dipaksa muat di kartu sempit
+           (grid-cols-2 di mobile) bikin "Rp" dan angka pecah baris. Font lebih kecil di layar
+           sempit + whitespace-nowrap supaya selalu 1 baris, baru naik ke text-2xl di layar lebar
+           (lg:grid-cols-6) yang kartu-nya lebih lega. --}}
+      <p class="text-base sm:text-xl lg:text-2xl font-bold whitespace-nowrap
         {{ $stats['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-        {{ $stats['total_pnl'] >= 0 ? '+' : '' }}Rp {{ number_format($stats['total_pnl'], 0, ',', '.') }}
+        {{ $stats['total_pnl'] >= 0 ? '+' : '' }}Rp{{ number_format($stats['total_pnl'], 0, ',', '.') }}
       </p>
       <p class="text-[11px] text-slate-500 mt-1">Realized PnL</p>
     </div>
