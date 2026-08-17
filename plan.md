@@ -5029,3 +5029,61 @@ tidak bercerita) diganti Episode Independen.
   laporan full-width di bawahnya.
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase CP -- Redesign halaman Berita jadi grid kartu bergambar (referensi mockup user)
+
+### Konteks
+User kirim referensi desain (mockup "Infomaz" news portal) dan minta halaman `/news` dibikin
+lebih enak dilihat. Dibahas dulu (WebFetch mockup deskripsi via chat, preview via
+`mcp__visualize__show_widget` sebelum kode disentuh) -- elemen yang diadopsi: grid kartu
+bergambar (dari "Latest news" section referensi) dan chip filter ticker horizontal (dari "Topic
+categories"). Elemen yang TIDAK diikuti: tema terang, nav atas duplikat, sapaan generik -- semua
+tidak relevan buat aplikasi existing yang sudah gelap & punya sidebar sendiri.
+
+### Temuan sebelum desain: cakupan `image_url`
+Cuma 26% dari 2.643 artikel (687) yang punya `image_url` asli (field sudah ada di DB, dulu cuma
+dipakai thumbnail kecil 96x96 di list lama). Desain kartu-gambar-penuh butuh fallback yang bagus
+untuk 74% sisanya -- placeholder gradient + inisial ticker besar, BUKAN ikon kecil generik seperti
+sebelumnya.
+
+### Perubahan
+**`resources/views/news/index.blade.php`**
+- Dropdown `<select name="code">` "Semua Emiten" diganti **baris chip horizontal** (link langsung,
+  pola sama seperti toggle sort "Berita Terbaru"/"Kualitas Tertinggi" yang sudah ada) -- klik
+  langsung navigasi filter, tidak perlu tombol "Terapkan". Nilai emiten aktif tetap dikirim lewat
+  `<input type="hidden" name="code">` supaya ikut ter-submit kalau user ganti filter LAIN (sentimen/
+  kualitas/sort) lalu pencet "Terapkan" -- state tidak hilang.
+- Grid artikel diganti dari `grid-cols-1 xl:grid-cols-2` (list flat, border kiri warna sentimen)
+  jadi `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` (kartu bergambar 16:9 di atas):
+  - Gambar `image_url` kalau ada, dengan `onerror` fallback ke placeholder gradient (menangani
+    link gambar mati, bukan cuma yang null).
+  - Placeholder gradient (`from-slate-800 to-slate-900`) + inisial ticker besar untuk 74% artikel
+    tanpa gambar.
+  - Badge ticker (pojok kiri atas) + `<x-sentiment-badge>` (pojok kanan atas, ditambah
+    `backdrop-blur-sm shadow-sm` biar kebaca di atas foto) melayang di atas gambar.
+  - Badge kualitas dipindah ke footer kartu (sebelah tanggal), "Detail teknis" (ML vs rule
+    sentiment breakdown) tetap ada tapi dikecilkan supaya tidak dominasi kartu visual.
+  - "Buka artikel" jadi "Baca selengkapnya →" nempel di dasar kartu (`mt-auto`) biar rata meski
+    tinggi judul beda-beda antar kartu.
+- Controller (`NewsController`) TIDAK diubah -- semua filter/sort/pagination logic lama tetap
+  jalan persis sama, cuma tampilannya yang diganti.
+
+### Bug ditemukan saat verifikasi: CSS bundle basi
+Setelah edit blade, badge sentimen/ticker di kartu pertama TIDAK melayang di atas gambar (nempel
+di flow normal, nimpa judul) -- dicek lewat `getComputedStyle()`: class `absolute top-2 right-2`
+ADA di HTML tapi `position` browser resolve ke nilai flow biasa. Akar masalah: `public/build/
+assets/*.css` adalah bundle statis yang di-build terakhir SEBELUM class baru (`top-2`, `left-2`,
+`backdrop-blur-sm`, dll -- belum pernah dipakai di file lain) ditambahkan; tidak ada proses Vite
+dev/watch yang jalan buat auto-recompile. Diperbaiki jalankan `npm run build` manual -- CSS naik
+dari 100,6kB jadi 104,4kB, badge langsung melayang benar (`getComputedStyle` cek ulang: top=8px,
+right=8px, sesuai `top-2 right-2`).
+
+### Verifikasi
+- `php artisan test tests/Feature/NewsPageTest.php tests/Feature/NewsSortingTest.php tests/
+  Feature/DashboardNewsPanelTest.php`: 7 passed (31 assertions) -- controller tidak diubah jadi
+  test lama tetap valid.
+- Browser real: chip filter render benar (Semua + 20 ticker, horizontal scroll), kartu dengan
+  gambar asli tampil foto besar + badge melayang benar, kartu tanpa gambar (`?quality=low`) tampil
+  placeholder gradient + inisial "GEN"/ticker dengan benar.
+
+### Status: SELESAI, siap commit+push (menunggu full test suite selesai di background).

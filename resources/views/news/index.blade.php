@@ -28,14 +28,11 @@
                 </div>
                 <form method="GET" class="w-full">
                     <div class="space-y-3 w-full">
+                        {{-- Fase CP: emiten dipilih lewat chip di bawah (bukan select di sini) -- dikirim
+                             sebagai hidden input supaya tetap ikut ter-submit kalau user pencet
+                             "Terapkan" setelah ganti filter lain. --}}
+                        <input type="hidden" name="code" value="{{ $activeCode }}">
                         <div class="flex flex-wrap gap-2 items-center">
-                            <select name="code" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 min-w-[140px]">
-                                <option value="">Semua Emiten</option>
-                                @foreach($stocks as $stock)
-                                    <option value="{{ $stock->code }}" @selected($activeCode === $stock->code)>{{ $stock->code }}</option>
-                                @endforeach
-                            </select>
-
                             <select name="sentiment" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
                                 <option value="">Semua Sentimen</option>
                                 <option value="positive" @selected(($filters['sentiment'] ?? '') === 'positive')>▲ Positif</option>
@@ -104,70 +101,104 @@
             </div>
         </x-panel>
 
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {{-- ── CHIP FILTER EMITEN (Fase CP) ── --}}
+        {{-- Ganti dropdown "Semua Emiten" -- link langsung navigasi (bukan submit form terpisah),
+             preserve query lain via fullUrlWithQuery, pola sama dgn toggle sort di atas. --}}
+        <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+            <a href="{{ request()->fullUrlWithQuery(['code' => null]) }}"
+               class="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap
+                      {{ ! $activeCode ? 'bg-sky-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' }}">
+                Semua
+            </a>
+            @foreach($stocks as $stock)
+                <a href="{{ request()->fullUrlWithQuery(['code' => $stock->code]) }}"
+                   class="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap
+                          {{ $activeCode === $stock->code ? 'bg-sky-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' }}">
+                    {{ $stock->code }}
+                </a>
+            @endforeach
+        </div>
+
+        {{-- ── GRID KARTU BERITA (Fase CP) ── --}}
+        {{-- Gambar 16:9 di atas + badge sentimen/ticker melayang, ganti list flat lama.
+             26% artikel punya image_url asli -- sisanya placeholder gradient + inisial ticker
+             (bukan ikon kecil ala list lama) supaya tetap enak dilihat, bukan terasa "rusak". --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @forelse($articles as $article)
                 @php
                     $displaySentiment = ($article->sentiment_method ?? null) === 'python_unavailable'
                         ? 'unavailable'
                         : ($article->sentiment_label ?? 'neutral');
+                    $cardTicker = $article->stock?->code ?? 'GEN';
                 @endphp
-                <div class="border border-slate-800 rounded-xl p-4 bg-slate-900/50 hover:border-slate-600 transition border-l-4
-                    {{ ($displaySentiment === 'positive') ? 'border-l-green-500' : (($displaySentiment === 'negative') ? 'border-l-rose-500' : (($displaySentiment === 'unavailable') ? 'border-l-amber-400' : 'border-l-slate-600')) }}">
-                    <div class="flex items-start gap-3">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <p class="text-xs uppercase text-slate-400">{{ $article->stock?->code ?? 'GEN' }} • {{ $article->source?->name ?? 'Sumber' }}</p>
-                                    <h3 class="font-semibold leading-tight mt-1">{{ $article->title }}</h3>
-                                </div>
-                                <div class="flex flex-col items-end gap-1 shrink-0">
-                                    <x-sentiment-badge :label="$displaySentiment" />
-                                </div>
+                <div class="rounded-xl overflow-hidden bg-slate-900/50 border border-slate-800 hover:border-slate-600 transition flex flex-col">
+                    <div class="relative h-36 shrink-0 bg-slate-800">
+                        @if($article->image_url)
+                            <img src="{{ $article->image_url }}" alt="" loading="lazy"
+                                 class="w-full h-full object-cover"
+                                 onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                            <div class="hidden absolute inset-0 items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                                <span class="text-2xl font-extrabold text-slate-700 tracking-wide">{{ $cardTicker }}</span>
                             </div>
-                            <p class="text-sm text-slate-300 mt-2 leading-relaxed">{{ \Illuminate\Support\Str::limit($article->summary ?? $article->content_snippet ?? 'Ringkasan belum tersedia untuk artikel ini.', 220) }}</p>
-                            <p class="text-[12px] text-slate-500 mt-2">{{ $article->source?->name ?? 'Sumber' }} • {{ $article->published_at?->format('d M Y, H:i') }}</p>
-                        </div>
-                        <div class="shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-slate-800 border border-slate-700 flex items-center justify-center">
-                            @if($article->image_url)
-                                <img src="{{ $article->image_url }}" alt="" loading="lazy"
-                                     class="w-full h-full object-cover"
-                                     onerror="this.closest('.shrink-0').innerHTML='<span class=&quot;text-slate-600&quot;>📰</span>'">
-                            @else
-                                <span class="text-2xl text-slate-600">📰</span>
-                            @endif
-                        </div>
+                        @else
+                            <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                                <span class="text-2xl font-extrabold text-slate-700 tracking-wide">{{ $cardTicker }}</span>
+                            </div>
+                        @endif
+                        <span class="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-slate-950/80 backdrop-blur-sm text-slate-100 text-[10px] font-bold">
+                            {{ $cardTicker }}
+                        </span>
+                        <x-sentiment-badge :label="$displaySentiment" class="absolute top-2 right-2 backdrop-blur-sm shadow-sm" />
                     </div>
-                    <details class="mt-3 group">
-                        <summary class="text-[12px] text-slate-500 cursor-pointer select-none hover:text-slate-300 list-none flex items-center gap-1">
-                            <span class="group-open:rotate-90 transition-transform">▸</span> Detail teknis
-                            <span class="ml-auto ...">
-                                <a href="{{ $article->source_url }}" target="_blank" class="text-sky-400 hover:underline">Buka artikel</a>
+
+                    <div class="p-3 flex flex-col flex-1">
+                        <h3 class="text-[13px] font-semibold leading-snug text-slate-100 line-clamp-2 min-h-[2.4em]">
+                            {{ $article->title }}
+                        </h3>
+                        <div class="flex items-center justify-between mt-2">
+                            <p class="text-[10px] text-slate-500 truncate pr-2">
+                                {{ $article->source?->name ?? 'Sumber' }} • {{ $article->published_at?->format('d M') }}
+                            </p>
+                            <span class="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full border border-slate-700 bg-slate-800/70 text-slate-400">
+                                {{ $article->quality_band ? ucfirst($article->quality_band) : '?' }}
                             </span>
-                        </summary>
-                        <div class="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-slate-400">
-                            @if($article->ml_sentiment_label && $article->rule_sentiment_label)
-                                <span class="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-300">
-                                    ML: {{ ucfirst($article->ml_sentiment_label) }} ({{ round(($article->ml_confidence ?? 0) * 100) }}%)
-                                </span>
-                                <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
-                                    Rule: {{ ucfirst($article->rule_sentiment_label) }}
-                                </span>
-                                @if($article->ml_rule_agree === false)
-                                    <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                                        ⚡ Berbeda
-                                    </span>
-                                @endif
-                            @endif
-                            <span class="px-2 py-1 rounded-full border border-slate-700 bg-slate-800/50">{{ $article->quality_band ? ucfirst($article->quality_band) : 'Quality?' }}</span>
-                            <span>Skor: {{ ($article->sentiment_method ?? null) === 'python_unavailable' ? 'unavailable' : ($article->sentiment_score ?? '-') }} | Conf: {{ ($article->sentiment_method ?? null) === 'python_unavailable' ? '-' : ($article->sentiment_confidence ?? '-') }}</span>
-                            <span class="px-2 py-1 rounded-full border border-slate-700 bg-slate-800/50">{{ $article->sentiment_method ?? 'python_unavailable' }}</span>
-                            <span class="px-2 py-1 rounded-full border border-emerald-700/60 bg-emerald-900/30 text-emerald-100">Relevansi: {{ $article->relevance_band ?? '-' }}</span>
-                            <span class="px-2 py-1 rounded-full border border-indigo-700/60 bg-indigo-900/30 text-indigo-100">Q: {{ $article->final_quality_score ?? '-' }}</span>
                         </div>
-                    </details>
+
+                        <details class="mt-2 group">
+                            <summary class="text-[10px] text-slate-600 cursor-pointer select-none hover:text-slate-400 list-none flex items-center gap-1">
+                                <span class="group-open:rotate-90 transition-transform">▸</span> Detail teknis
+                            </summary>
+                            <div class="flex flex-wrap items-center gap-1.5 mt-2 text-[10px] text-slate-400">
+                                @if($article->ml_sentiment_label && $article->rule_sentiment_label)
+                                    <span class="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                                        ML: {{ ucfirst($article->ml_sentiment_label) }} ({{ round(($article->ml_confidence ?? 0) * 100) }}%)
+                                    </span>
+                                    <span class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                                        Rule: {{ ucfirst($article->rule_sentiment_label) }}
+                                    </span>
+                                    @if($article->ml_rule_agree === false)
+                                        <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                                            ⚡ Berbeda
+                                        </span>
+                                    @endif
+                                @endif
+                                <span class="px-1.5 py-0.5 rounded-full border border-slate-700 bg-slate-800/50">
+                                    Skor: {{ ($article->sentiment_method ?? null) === 'python_unavailable' ? 'unavailable' : ($article->sentiment_score ?? '-') }}
+                                </span>
+                                <span class="px-1.5 py-0.5 rounded-full border border-slate-700 bg-slate-800/50">{{ $article->sentiment_method ?? 'python_unavailable' }}</span>
+                                <span class="px-1.5 py-0.5 rounded-full border border-emerald-700/60 bg-emerald-900/30 text-emerald-100">Relevansi: {{ $article->relevance_band ?? '-' }}</span>
+                                <span class="px-1.5 py-0.5 rounded-full border border-indigo-700/60 bg-indigo-900/30 text-indigo-100">Q: {{ $article->final_quality_score ?? '-' }}</span>
+                            </div>
+                        </details>
+
+                        <a href="{{ $article->source_url }}" target="_blank"
+                           class="mt-auto pt-3 inline-flex items-center gap-1 text-[11px] font-medium text-sky-400 hover:text-sky-300">
+                            Baca selengkapnya →
+                        </a>
+                    </div>
                 </div>
             @empty
-                <x-panel padding="p-6" class="col-span-2">
+                <x-panel padding="p-6" class="col-span-full">
                     <p class="text-sm text-slate-400">Tidak ada berita dengan filter ini. Coba ubah emiten, tanggal, atau metode sentimen.</p>
                 </x-panel>
             @endforelse
