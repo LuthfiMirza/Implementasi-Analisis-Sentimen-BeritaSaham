@@ -102,7 +102,7 @@ class TradeJournalTest extends TestCase
             'strategy_label' => 'gabungan',
         ]);
 
-        $response = $this->actingAs($user)->get('/trades');
+        $response = $this->actingAs($user)->get('/trades/laporan');
 
         $response->assertOk()->assertViewHas('stats', function ($stats) {
             // 2 menang (1 manual_close positif + 1 hit_target_2), 1 kalah (manual_close negatif).
@@ -161,7 +161,7 @@ class TradeJournalTest extends TestCase
             'entry_date' => '2026-06-02', 'pnl_total' => 75000, 'strategy_label' => 'gabungan',
         ]);
 
-        $response = $this->actingAs($user)->get('/trades');
+        $response = $this->actingAs($user)->get('/trades/laporan');
 
         $response->assertOk()->assertViewHas('stats', function ($stats) {
             // 5 trade mentah -> 3 episode: [BUMI 1-8 Jun], [BUMI 15 Jun+5Jul? -- cek jeda], [DEWA].
@@ -193,7 +193,7 @@ class TradeJournalTest extends TestCase
             'entry_date' => '2026-08-01', 'pnl_total' => -30000, 'strategy_label' => 'gabungan',
         ]);
 
-        $response = $this->actingAs($user)->get('/trades');
+        $response = $this->actingAs($user)->get('/trades/laporan');
 
         $response->assertOk()->assertViewHas('monthlyBreakdown', function ($breakdown) {
             $byMonth = collect($breakdown)->keyBy('month');
@@ -229,7 +229,7 @@ class TradeJournalTest extends TestCase
             'entry_date' => '2026-03-10', 'pnl_total' => 25000, 'strategy_label' => 'legacy_stock_only',
         ]);
 
-        $response = $this->actingAs($user)->get('/trades');
+        $response = $this->actingAs($user)->get('/trades/laporan');
 
         $response->assertOk()->assertViewHas('strategyBreakdown', function ($breakdown) {
             $legacy = collect($breakdown)->firstWhere('key', 'legacy_stock_only');
@@ -273,7 +273,7 @@ class TradeJournalTest extends TestCase
             'entry_date' => '2026-09-20', 'status' => 'open', 'strategy_label' => 'momentum',
         ]);
 
-        $response = $this->actingAs($user)->get('/trades');
+        $response = $this->actingAs($user)->get('/trades/laporan');
 
         $response->assertOk()->assertViewHas('strategyBreakdown', function ($breakdown) {
             $momentum = collect($breakdown)->firstWhere('key', 'momentum');

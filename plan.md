@@ -4950,3 +4950,52 @@ perlu) -- subjudul kecil tetap dipertahankan sebagai pengingat ringkas.
   ikut terpotong pagination -- sesuai desain).
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase CN -- Split halaman /trades (operasional) vs /trades/laporan (laporan lengkap)
+
+### Konteks
+Diskusi dimulai user tanya "ada saran ga supaya clean gimana ini?" -- halaman Trade Journal
+mengerjakan 3 tugas sekaligus (operasional harian, laporan resmi, arsip riset) dalam satu scroll
+panjang. Rencana didiskusikan dulu (AskUserQuestion: pagination+filter utk riwayat -- SELESAI Fase
+CM, dan preview ringkas di halaman operasional) sebelum diimplementasi, sesuai permintaan user
+"diskusikan dulu ya" dan "bisa jelasin dulu ke saya nantinya gimana?".
+
+### Perubahan
+
+**`app/Http/Controllers/TradeController.php`**
+- `index()` sekarang RINGKAS: cuma load trades, hitung `$preview` (Total PnL + Win Rate + Trade
+  Closed, SELALU GABUNGAN resmi, tanpa toggle scope), `$stocks` utk form, `$live` utk posisi
+  terbuka. View: `trades.index`.
+- `laporan()` (BARU): seluruh logic lama (scope toggle Fase CL, stats lengkap, episode
+  independence, monthly breakdown, strategy breakdown, history filter+pagination Fase CM) pindah
+  ke sini. View: `trades.laporan`.
+
+**`routes/web.php`**: route baru `GET /trades/laporan` -> `TradeController::laporan`, nama
+`trades.laporan`.
+
+**`resources/views/trades/index.blade.php`** (disederhanakan drastis): Header + tombol Catat Trade
+Baru, 1 kartu preview (PnL/WR/Closed + tombol "📊 Lihat Laporan Lengkap →"), Posisi Terbuka (utuh,
+tidak diubah), Empty State (kondisi diganti `$trades->isEmpty()`, dulu `$stats['total']===0` yang
+sudah tidak ada di controller ini), 2 modal (Catat Trade Baru, Tutup Trade) + script JS (utuh).
+Semua bagian stats/episode/strategi-lain/riwayat DIHAPUS dari file ini (pindah ke laporan.blade.php).
+
+**`resources/views/trades/laporan.blade.php`** (BARU): Header sendiri (judul "Laporan Trade",
+link "← Kembali ke Trade Journal", toggle GABUNGAN/Semua Strategi dipindah dari index lama) +
+Stats Cards + Episode per Bulan + Strategi Lain + Riwayat Trading (filter+pagination Fase CM) --
+seluruhnya salinan PERSIS dari `index.blade.php` versi sebelum split, cuma link toggle/reset
+diarahkan ke `route('trades.laporan', ...)` bukan `trades.index`.
+
+### Verifikasi
+- 5 test lama di `TradeJournalTest` yang assert `stats`/`monthlyBreakdown`/`strategyBreakdown`
+  (variabel yang sekarang cuma ada di view `laporan`) diupdate targetnya dari `get('/trades')` ke
+  `get('/trades/laporan')` -- `test_listing_returns_only_current_users_trades` (assert `trades`)
+  TETAP di `/trades` karena variabel itu masih ada di index() baru.
+- `php artisan test --filter=Trade`: 39 passed (166 assertions).
+- **Full suite**: 492 passed (2059 assertions) -- tidak ada regresi di bagian lain aplikasi.
+- Browser real (login): `/trades` tampil ringkas (header, kartu preview PnL+WR+Closed, 6 posisi
+  terbuka) TANPA stats/episode/riwayat. `/trades/laporan` tampil identik dengan konten laporan
+  sebelumnya (295 total, 292 closed, 35 episode, Rp140.621.753 PnL, 374 riwayat dengan filter) --
+  link "← Kembali ke Trade Journal" mengarah balik ke `/trades` dengan benar. Tidak ada data yang
+  hilang atau berubah selama pemindahan.
+
+### Status: SELESAI, siap commit+push.

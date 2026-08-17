@@ -7,201 +7,50 @@
       <p class="text-xs text-slate-500 uppercase font-medium tracking-wider">Portfolio Tracker</p>
       <h1 class="text-2xl font-bold text-slate-100 mt-0.5">Trade Journal</h1>
       <p class="text-sm text-slate-400 mt-1">Rekam jejak sinyal DSS vs hasil aktual pasar</p>
-      {{-- Fase CA: dulu kartu ringkasan mencampur GABUNGAN + 2 aturan lama yang TERBUKTI
-           tumpang tindih periode untuk saham sama (dicek dari notes backfill sendiri) --
-           sekarang cuma GABUNGAN yang resmi, sisanya di bagian "Strategi Lain" di bawah. --}}
-      <p class="text-[11px] text-sky-400/80 mt-1">
-        @if($scope === 'all')
-          📊 Kartu di bawah = <b>SEMUA strategi digabung</b> (termasuk yang overlap/pensiun)
-        @else
-          📊 Kartu di bawah = <b>strategi resmi GABUNGAN</b> saja (ret_2d≤-5% atau drawdown≤-20%)
-        @endif
-      </p>
     </div>
-    <div class="flex items-center gap-3">
-      {{-- Fase CL: toggle GABUNGAN (resmi) vs SEMUA strategi -- link biasa (bukan JS), state
-           murni dari query string ?scope=, jadi bisa di-bookmark/share dan tetap benar kalau
-           halaman di-refresh. --}}
-      <div class="inline-flex rounded-xl border border-slate-800 bg-slate-900/60 p-1 text-xs">
-        <a href="{{ route('trades.index') }}"
-           class="px-3 py-1.5 rounded-lg font-medium transition
-                  {{ $scope === 'gabungan' ? 'bg-sky-500 text-slate-900' : 'text-slate-400 hover:text-slate-200' }}">
-          GABUNGAN (resmi)
-        </a>
-        <a href="{{ route('trades.index', ['scope' => 'all']) }}"
-           class="px-3 py-1.5 rounded-lg font-medium transition
-                  {{ $scope === 'all' ? 'bg-amber-500 text-slate-900' : 'text-slate-400 hover:text-slate-200' }}">
-          Semua Strategi
-        </a>
+    <button onclick="document.getElementById('addTradeModal').classList.remove('hidden')"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
+                   bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold text-sm transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Catat Trade Baru
+    </button>
+  </div>
+
+  {{-- ── PREVIEW RINGKAS + LINK KE LAPORAN LENGKAP ── --}}
+  {{-- Fase CN: halaman ini dulu berisi SEMUA (stats, episode per bulan, strategi lain, riwayat
+       374 baris) jadi terlalu panjang untuk kebutuhan harian (buka/tutup posisi, catat manual).
+       Dipisah: /trades fokus operasional, /trades/laporan untuk analisis lengkap. Preview di
+       sini SELALU GABUNGAN resmi (tidak ada toggle scope -- itu ada di halaman laporan). --}}
+  <div class="glass-card border border-slate-800/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center gap-6">
+      <div>
+        <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Total PnL (GABUNGAN)</p>
+        <p class="text-lg sm:text-xl font-bold whitespace-nowrap
+          {{ $preview['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
+          {{ $preview['total_pnl'] >= 0 ? '+' : '' }}Rp{{ number_format($preview['total_pnl'], 0, ',', '.') }}
+        </p>
       </div>
-      <button onclick="document.getElementById('addTradeModal').classList.remove('hidden')"
-              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
-                     bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold text-sm transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Catat Trade Baru
-      </button>
-    </div>
-  </div>
-
-  {{-- ── STATS CARDS ── --}}
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-
-    {{-- Total Trades --}}
-    <div class="glass-card border border-slate-800/80 rounded-2xl p-4">
-      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Total Trade</p>
-      <p class="text-2xl font-bold text-slate-100">{{ $stats['total'] }}</p>
-      <p class="text-[11px] text-slate-500 mt-1">
-        <span class="text-sky-400">{{ $stats['open'] }} open</span> •
-        {{ $stats['closed'] }} closed
-      </p>
-    </div>
-
-    {{-- Win Rate --}}
-    <div class="glass-card border border-slate-800/80 rounded-2xl p-4">
-      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Win Rate</p>
-      <p class="text-2xl font-bold
-        {{ $stats['win_rate'] >= 60 ? 'text-green-400' :
-           ($stats['win_rate'] >= 40 ? 'text-amber-400' : 'text-rose-400') }}">
-        {{ $stats['win_rate'] }}%
-      </p>
-      <p class="text-[11px] mt-1">
-        <span class="text-green-400">✓ {{ $stats['win'] }}W</span> •
-        <span class="text-rose-400">✗ {{ $stats['loss'] }}L</span>
-      </p>
-      {{-- Trigger yang berdekatan (jeda <=15 hari, saham sama) digabung jadi 1 "episode" --
-           tanpa ini, satu koreksi panjang bisa kelihatan seperti banyak trade independen padahal
-           cuma 1 kejadian pasar. Lihat groupIntoEpisodes() di TradeController. --}}
-      <p class="text-[10px] text-slate-500 mt-1.5 pt-1.5 border-t border-slate-800/60"
-         title="Trigger berdekatan (jeda <=15 hari, saham sama) dianggap 1 kejadian pasar, bukan trade terpisah -- supaya tidak menggelembungkan jumlah 'kemenangan'.">
-        ≈ <span class="text-slate-300 font-semibold">{{ $stats['episode_count'] }}</span> episode independen
-        ({{ $stats['episode_win_rate'] }}% WR) — bukan {{ $stats['closed'] }} trade mentah
-      </p>
-    </div>
-
-    {{-- Total PnL --}}
-    <div class="glass-card border border-slate-800/80 rounded-2xl p-4">
-      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Total PnL</p>
-      {{-- Angka Rupiah bisa panjang (9-12 digit) -- text-2xl tetap dipaksa muat di kartu sempit
-           (grid-cols-2 di mobile) bikin "Rp" dan angka pecah baris. Font lebih kecil di layar
-           sempit + whitespace-nowrap supaya selalu 1 baris, baru naik ke text-2xl di layar lebar
-           (lg:grid-cols-6) yang kartu-nya lebih lega. --}}
-      <p class="text-base sm:text-xl lg:text-2xl font-bold whitespace-nowrap
-        {{ $stats['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-        {{ $stats['total_pnl'] >= 0 ? '+' : '' }}Rp{{ number_format($stats['total_pnl'], 0, ',', '.') }}
-      </p>
-      <p class="text-[11px] text-slate-500 mt-1">Realized PnL</p>
-    </div>
-
-    {{-- Avg R:R --}}
-    <div class="glass-card border border-slate-800/80 rounded-2xl p-4">
-      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Avg R:R</p>
-      <p class="text-2xl font-bold
-        {{ $stats['avg_rr'] >= 1.5 ? 'text-green-400' :
-           ($stats['avg_rr'] >= 1 ? 'text-amber-400' : 'text-rose-400') }}">
-        1:{{ $stats['avg_rr'] ?: '-' }}
-      </p>
-      <p class="text-[11px] text-slate-500 mt-1">Actual achieved</p>
-    </div>
-
-    {{-- Expectancy --}}
-    <div class="glass-card border border-slate-800/80 rounded-2xl p-4">
-      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Expectancy</p>
-      <p class="text-2xl font-bold
-        {{ $stats['expectancy'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-        {{ $stats['expectancy'] >= 0 ? '+' : '' }}{{ $stats['expectancy'] }}%
-      </p>
-      <p class="text-[11px] text-slate-500 mt-1">Per trade avg</p>
-    </div>
-
-    {{-- Avg Holding --}}
-    <div class="glass-card border border-slate-800/80 rounded-2xl p-4">
-      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Avg Holding</p>
-      <p class="text-2xl font-bold text-slate-100">{{ $stats['avg_holding'] ?: '-' }}</p>
-      <p class="text-[11px] text-slate-500 mt-1">hari per trade</p>
-    </div>
-
-  </div>
-
-  {{-- ── EPISODE INDEPENDEN PER BULAN (GABUNGAN resmi) ── --}}
-  @if(!empty($monthlyBreakdown))
-  <div>
-    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
-      📅 Episode Independen per Bulan
-    </h2>
-    <p class="text-[11px] text-slate-500 mb-3">
-      Dikelompokkan berdasar bulan MULAI tiap episode (entry trade pertamanya) -- trigger
-      berdekatan (jeda ≤15 hari, saham sama) dihitung 1 episode, bukan banyak trade terpisah.
-    </p>
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="text-left text-[10px] text-slate-500 uppercase border-b border-slate-800">
-            <th class="py-2 pr-4">Bulan</th>
-            <th class="py-2 pr-4 text-right">Episode</th>
-            <th class="py-2 pr-4 text-right">Trade Mentah</th>
-            <th class="py-2 pr-4 text-right">Win Rate</th>
-            <th class="py-2 text-right">Total PnL</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach($monthlyBreakdown as $m)
-          <tr class="border-b border-slate-800/50">
-            <td class="py-2 pr-4 text-slate-200 font-medium">{{ $m['month_label'] }}</td>
-            <td class="py-2 pr-4 text-right text-slate-200">{{ $m['episode_count'] }}</td>
-            <td class="py-2 pr-4 text-right text-slate-500">{{ $m['trade_count'] }}</td>
-            <td class="py-2 pr-4 text-right {{ $m['win_rate'] >= 60 ? 'text-green-400' : ($m['win_rate'] >= 40 ? 'text-amber-400' : 'text-rose-400') }}">
-              {{ $m['win_rate'] }}%
-            </td>
-            <td class="py-2 text-right font-mono {{ $m['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-              {{ $m['total_pnl'] >= 0 ? '+' : '' }}Rp{{ number_format($m['total_pnl'], 0, ',', '.') }}
-            </td>
-          </tr>
-          @endforeach
-        </tbody>
-      </table>
-    </div>
-  </div>
-  @endif
-
-  {{-- ── STRATEGI LAIN (arsip, TIDAK dihitung ke kartu resmi di atas) ── --}}
-  @if(!empty($strategyBreakdown))
-  <div>
-    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
-      @if($scope === 'all')
-        📁 Strategi Lain (rincian -- SUDAH ikut kehitung di kartu "Semua Strategi" di atas)
-      @else
-        📁 Strategi Lain (di luar GABUNGAN — arsip riset, bukan angka resmi)
-      @endif
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-      @foreach($strategyBreakdown as $sb)
-      <div class="glass-card border border-slate-800/60 rounded-xl p-3 bg-slate-900/30">
-        <p class="text-[11px] text-slate-400 font-medium mb-1">{{ $sb['label'] }}</p>
-        <div class="flex items-baseline gap-2">
-          <span class="text-lg font-bold text-slate-200">{{ $sb['closed'] }}</span>
-          <span class="text-[10px] text-slate-500">closed</span>
-          @if($sb['open'] > 0)
-            <span class="text-[10px] text-sky-400">+{{ $sb['open'] }} open</span>
-          @endif
-        </div>
-        @if($sb['win_rate'] !== null)
-          <p class="text-[11px] mt-1 {{ $sb['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-            WR {{ $sb['win_rate'] }}% • Rp{{ number_format($sb['total_pnl'], 0, ',', '.') }}
-          </p>
-        @endif
-        @if($sb['episode_count'] !== null && $sb['episode_count'] > 0)
-          <p class="text-[10px] text-slate-500 mt-1 pt-1 border-t border-slate-800/60"
-             title="Trigger berdekatan (jeda <=15 hari, saham sama) dianggap 1 kejadian pasar.">
-            ≈ {{ $sb['episode_count'] }} episode ({{ $sb['episode_win_rate'] }}% WR)
-          </p>
-        @endif
+      <div>
+        <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Win Rate</p>
+        <p class="text-lg sm:text-xl font-bold
+          {{ $preview['win_rate'] >= 60 ? 'text-green-400' :
+             ($preview['win_rate'] >= 40 ? 'text-amber-400' : 'text-rose-400') }}">
+          {{ $preview['win_rate'] }}%
+        </p>
       </div>
-      @endforeach
+      <div>
+        <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Trade Closed</p>
+        <p class="text-lg sm:text-xl font-bold text-slate-100">{{ $preview['closed'] }}</p>
+      </div>
     </div>
+    <a href="{{ route('trades.laporan') }}"
+       class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-sky-500/30
+              bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-sm font-medium transition whitespace-nowrap">
+      📊 Lihat Laporan Lengkap →
+    </a>
   </div>
-  @endif
 
   {{-- ── OPEN POSITIONS ── --}}
   @if($open->count() > 0)
@@ -382,198 +231,8 @@
   </div>
   @endif
 
-  {{-- ── CLOSED TRADES ── --}}
-  <div>
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">
-        📋 Riwayat Trading ({{ $closedPage->total() }}{{ $closedPage->total() !== $closed->count() ? ' dari '.$closed->count() : '' }})
-      </h2>
-      {{-- Fase CM: filter strategi/saham + pagination -- 374+ baris terlalu berat dipindai
-           tanpa ini. Form GET biasa (bukan JS) supaya bisa di-bookmark/refresh. --}}
-      <form method="GET" class="flex items-center gap-2 text-xs">
-        <input type="hidden" name="scope" value="{{ $scope }}">
-        <select name="filter_strategy" onchange="this.form.submit()"
-                class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-300">
-          <option value="">Semua Strategi</option>
-          @foreach($historyStrategyOptions as $opt)
-            <option value="{{ $opt }}" {{ $historyStrategy === $opt ? 'selected' : '' }}>{{ strtoupper($opt) }}</option>
-          @endforeach
-        </select>
-        <select name="filter_ticker" onchange="this.form.submit()"
-                class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-300">
-          <option value="">Semua Saham</option>
-          @foreach($historyTickerOptions as $opt)
-            <option value="{{ $opt }}" {{ $historyTicker === $opt ? 'selected' : '' }}>{{ $opt }}</option>
-          @endforeach
-        </select>
-        @if($historyStrategy || $historyTicker)
-          <a href="{{ route('trades.index', ['scope' => $scope]) }}"
-             class="text-slate-500 hover:text-slate-300 underline">Reset</a>
-        @endif
-      </form>
-    </div>
-
-    @if($closedPage->total() === 0 && ($historyStrategy || $historyTicker))
-    <div class="glass-card border border-slate-800/80 rounded-2xl p-8 text-center text-sm text-slate-500">
-      Tidak ada trade yang cocok dengan filter ini.
-    </div>
-    @elseif($closed->count() > 0)
-    <div class="glass-card border border-slate-800/80 rounded-2xl overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-slate-800 text-[11px] text-slate-500 uppercase">
-              <th class="px-4 py-3 text-left">Saham</th>
-              <th class="px-4 py-3 text-left">Tanggal</th>
-              <th class="px-4 py-3 text-right">Entry</th>
-              <th class="px-4 py-3 text-right">Exit</th>
-              <th class="px-4 py-3 text-right">PnL/lbr</th>
-              <th class="px-4 py-3 text-right">Lot</th>
-              <th class="px-4 py-3 text-right">PnL Total</th>
-              <th class="px-4 py-3 text-right">PnL %</th>
-              <th class="px-4 py-3 text-right">Actual R:R</th>
-              <th class="px-4 py-3 text-center">Hasil</th>
-              <th class="px-4 py-3 text-center">DSS Akurat?</th>
-              <th class="px-4 py-3 text-right">Hold</th>
-              <th class="px-4 py-3 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-800/50">
-            @foreach($closedPage as $trade)
-            <tr class="hover:bg-slate-800/30 transition">
-              <td class="px-4 py-3">
-                @php
-                  $strategyConfig = match($trade->strategy_label) {
-                    'gabungan'              => ['bg-sky-500/10 text-sky-400 border-sky-500/30', 'GABUNGAN'],
-                    'momentum'              => ['bg-amber-500/10 text-amber-400 border-amber-500/30', 'MOMENTUM'],
-                    'ai_tp30'               => ['bg-purple-500/10 text-purple-400 border-purple-500/30', 'AI TP30'],
-                    'legacy_stock_only'     => ['bg-slate-700/40 text-slate-400 border-slate-600/60', 'LAMA: STOCK-ONLY'],
-                    'legacy_ab_ac'          => ['bg-slate-700/40 text-slate-400 border-slate-600/60', 'LAMA: AB/AC'],
-                    'manual_discretionary'  => ['bg-slate-700/40 text-slate-300 border-slate-600/60', 'MANUAL'],
-                    default                 => ['bg-slate-800 text-slate-500 border-slate-700', '—'],
-                  };
-                @endphp
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-slate-100">{{ $trade->stock->code }}</span>
-                  <span class="text-[10px] text-slate-500">
-                    {{ strtoupper($trade->signal_quality ?? '') }}
-                  </span>
-                </div>
-                <span class="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-medium border {{ $strategyConfig[0] }}">
-                  {{ $strategyConfig[1] }}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-slate-400">
-                <div class="text-[11px]">
-                  <div>{{ $trade->entry_date->format('d M y') }}</div>
-                  <div class="text-slate-600">→ {{ $trade->exit_date?->format('d M y') }}</div>
-                </div>
-              </td>
-              <td class="px-4 py-3 text-right font-mono text-slate-300">
-                {{ number_format($trade->entry_price, 0, ',', '.') }}
-              </td>
-              <td class="px-4 py-3 text-right font-mono text-slate-300">
-                {{ number_format($trade->exit_price, 0, ',', '.') }}
-              </td>
-              <td class="px-4 py-3 text-right font-mono text-sm
-                {{ $trade->pnl_per_share >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-                {{ $trade->pnl_per_share >= 0 ? '+' : '' }}{{ number_format($trade->pnl_per_share, 0, ',', '.') }}
-              </td>
-              <td class="px-4 py-3 text-right text-slate-400">
-                {{ number_format($trade->lot_size / 100) }}
-              </td>
-              <td class="px-4 py-3 text-right font-mono font-bold
-                {{ $trade->pnl_total >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-                {{ $trade->pnl_total >= 0 ? '+' : '' }}Rp {{ number_format($trade->pnl_total, 0, ',', '.') }}
-              </td>
-              <td class="px-4 py-3 text-right font-mono
-                {{ $trade->pnl_percent >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-                {{ $trade->pnl_percent >= 0 ? '+' : '' }}{{ $trade->pnl_percent }}%
-              </td>
-              <td class="px-4 py-3 text-right font-mono
-                {{ ($trade->actual_rr ?? 0) >= 1.5 ? 'text-green-400' :
-                   (($trade->actual_rr ?? 0) >= 0 ? 'text-amber-400' : 'text-rose-400') }}">
-                1:{{ $trade->actual_rr ?? '-' }}
-              </td>
-              <td class="px-4 py-3 text-center">
-                @php
-                  $resultConfig = match($trade->result) {
-                    'hit_target_1' => ['bg-green-500/10 text-green-400 border-green-500/30', '✅ TP1 Hit'],
-                    'hit_target_2' => ['bg-emerald-500/10 text-emerald-400 border-emerald-500/30', '✅ TP2 Hit'],
-                    'stop_loss'    => ['bg-rose-500/10 text-rose-400 border-rose-500/30', '❌ SL Hit'],
-                    'manual_close' => ['bg-amber-500/10 text-amber-400 border-amber-500/30', '📌 Manual'],
-                    default        => ['bg-slate-800 text-slate-400 border-slate-700', '—'],
-                  };
-                @endphp
-                <span class="px-2 py-0.5 rounded-full text-[10px] border {{ $resultConfig[0] }}">
-                  {{ $resultConfig[1] }}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-center">
-                @php
-                  $dssCorrect = ($trade->dss_prediction === 'up' &&
-                                 in_array($trade->result, ['hit_target_1','hit_target_2']))
-                             || ($trade->dss_prediction === 'down' &&
-                                 $trade->result === 'stop_loss');
-                  $dssWrong   = ($trade->dss_prediction === 'up' && $trade->result === 'stop_loss')
-                             || ($trade->dss_prediction === 'down' &&
-                                 in_array($trade->result, ['hit_target_1','hit_target_2']));
-                @endphp
-                @if($dssCorrect)
-                  <span class="text-green-400 text-sm" title="DSS prediksi benar">✅</span>
-                @elseif($dssWrong)
-                  <span class="text-rose-400 text-sm" title="DSS prediksi salah">❌</span>
-                @else
-                  <span class="text-slate-600">—</span>
-                @endif
-              </td>
-              <td class="px-4 py-3 text-right text-slate-400 text-[11px]">
-                {{ $trade->holding_days ?? '-' }}h
-              </td>
-              <td class="px-4 py-3 text-center">
-                <div class="flex items-center justify-center gap-1.5">
-                  <a href="{{ route('trade-journal.edit', $trade) }}"
-                     class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-[11px]
-                            hover:bg-sky-500/10 hover:border-sky-500/30 hover:text-sky-400 transition">
-                    Edit
-                  </a>
-                  <form action="{{ route('trades.destroy', $trade) }}" method="POST"
-                        onsubmit="return confirm('Hapus trade {{ $trade->stock->code }} ({{ $trade->entry_date->format('d M y') }}) ini?')">
-                    @csrf @method('DELETE')
-                    <button class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-[11px]
-                                   hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-400 transition">
-                      Hapus
-                    </button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </div>
-      @if($closedPage->hasPages())
-      <div class="flex items-center justify-between px-4 py-3 border-t border-slate-800/80">
-        <p class="text-[11px] text-slate-500">
-          Menampilkan {{ $closedPage->firstItem() }}–{{ $closedPage->lastItem() }} dari {{ $closedPage->total() }} trade
-        </p>
-        {{ $closedPage->appends(request()->query())->onEachSide(1)->links('components.pagination-dark') }}
-      </div>
-      @endif
-    </div>
-    @else
-    <div class="glass-card border border-slate-800/80 rounded-2xl p-8 text-center">
-      <div class="text-4xl mb-3">📋</div>
-      <p class="text-slate-400 font-medium">Belum ada trade yang ditutup</p>
-      <p class="text-sm text-slate-500 mt-1">
-        Trade yang ditutup akan muncul di sini beserta analisis akurasi DSS
-      </p>
-    </div>
-    @endif
-  </div>
-
   {{-- ── EMPTY STATE (no trades at all) ── --}}
-  @if($stats['total'] === 0)
+  @if($trades->isEmpty())
   <div class="glass-card border border-slate-800/80 rounded-2xl p-12 text-center">
     <div class="text-5xl mb-4">📊</div>
     <h3 class="text-lg font-semibold text-slate-200 mb-2">Belum Ada Trade Tercatat</h3>
@@ -619,7 +278,7 @@
           <select name="stock_id" required
                   class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5
                          text-sm text-slate-200 focus:border-sky-500 focus:outline-none">
-            @foreach(\App\Models\Stock::where('is_active',true)->orderBy('code')->get() as $s)
+            @foreach($stocks as $s)
               <option value="{{ $s->id }}"
                 {{ request('stock_id') == $s->id ? 'selected' : '' }}>
                 {{ $s->code }} — {{ $s->company_name }}
@@ -853,5 +512,4 @@ function openCloseModal(tradeId, stockCode, entryPrice) {
 }
 </script>
 @endpush
-
 </x-app-layout>

@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/evaluasi/{code}', [EvaluasiController::class, 'show'])->name('evaluasi.show');
     Route::get('/evaluation', [EvaluationController::class, 'index'])->name('evaluation.index');
     Route::get('/trades', [TradeController::class, 'index'])->name('trades.index');
+    Route::get('/trades/laporan', [TradeController::class, 'laporan'])->name('trades.laporan');
     Route::post('/trades', [TradeController::class, 'store'])->name('trades.store');
     Route::post('/trades/{trade}/close', [TradeController::class, 'close'])->name('trades.close');
     Route::delete('/trades/{trade}', [TradeController::class, 'destroy'])->name('trades.destroy');

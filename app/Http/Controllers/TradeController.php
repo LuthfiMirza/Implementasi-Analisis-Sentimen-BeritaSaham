@@ -11,7 +11,44 @@ use Throwable;
 
 class TradeController extends Controller
 {
+    /**
+     * Fase CN: halaman operasional (posisi terbuka, catat/tutup/hapus manual) -- dipisah dari
+     * /trades/laporan supaya tugas harian (buka/tutup posisi) tidak tenggelam di antara stats,
+     * episode breakdown, dan tabel riwayat 374+ baris. Preview PnL/WR di sini SELALU GABUNGAN
+     * resmi (tidak ada toggle scope) -- detail lengkap + toggle ada di laporan().
+     */
     public function index(Request $request)
+    {
+        $trades = Trade::with('stock')
+            ->where('user_id', auth()->id())
+            ->orderByDesc('entry_date')
+            ->get();
+
+        $closed = $trades->where('status', 'closed');
+        $open = $trades->where('status', 'open');
+
+        $officialClosed = $closed->where('strategy_label', 'gabungan');
+        $winners = $officialClosed->where('pnl_total', '>', 0);
+        $preview = [
+            'total_pnl' => $officialClosed->sum('pnl_total'),
+            'win_rate' => $officialClosed->count() > 0
+                ? round($winners->count() / $officialClosed->count() * 100, 1)
+                : 0,
+            'closed' => $officialClosed->count(),
+        ];
+
+        $stocks = Stock::where('is_active', true)->orderBy('code')->get();
+        $live = $this->livePnlFor($open);
+
+        return view('trades.index', compact('trades', 'open', 'stocks', 'live', 'preview'));
+    }
+
+    /**
+     * Fase CN: halaman laporan lengkap -- stats resmi, toggle GABUNGAN/Semua Strategi (Fase CL),
+     * episode independensi per bulan, arsip strategi lain, dan tabel riwayat penuh dengan filter
+     * + pagination (Fase CM). Dipisah dari index() supaya operasional harian tetap ringkas.
+     */
+    public function laporan(Request $request)
     {
         $trades = Trade::with('stock')
             ->where('user_id', auth()->id())
@@ -24,8 +61,7 @@ class TradeController extends Controller
         // Fase CL: toggle "GABUNGAN (resmi)" vs "Semua Strategi (gabung, ada overlap)" -- user
         // eksplisit minta bisa lihat 2 versi. "all" TIDAK menghapus caveat Fase CA di bawah: kalau
         // scope=all, legacy_ab_ac ikut dijumlah padahal TERBUKTI 100% overlap trigger dengan
-        // gabungan (Fase CF) -- jadi profit yang SAMA bisa kehitung dua kali. View WAJIB
-        // menampilkan peringatan itu saat scope=all aktif, bukan cuma angka polos.
+        // gabungan (Fase CF) -- jadi profit yang SAMA bisa kehitung dua kali.
         $scope = $request->query('scope') === 'all' ? 'all' : 'gabungan';
 
         // Fase CA: kartu ringkasan RESMI (default) cuma dihitung dari strategy_label='gabungan'
@@ -139,10 +175,6 @@ class TradeController extends Controller
             ];
         }
 
-        $stocks = Stock::where('is_active', true)->orderBy('code')->get();
-
-        $live = $this->livePnlFor($open);
-
         // Fase CM: tabel "Riwayat Trading" render SEMUA closed trade tanpa pagination (374+ baris
         // dan terus tumbuh) -- terlalu berat untuk dipindai user. Dipisah dari $closed/$scope di
         // atas (yang tetap dipakai utuh untuk stats/episode -- itu WAJIB lihat semua data, tidak
@@ -172,8 +204,8 @@ class TradeController extends Controller
         $historyStrategyOptions = $closed->pluck('strategy_label')->filter()->unique()->sort()->values();
         $historyTickerOptions = $closed->pluck('ticker')->unique()->sort()->values();
 
-        return view('trades.index', compact(
-            'trades', 'stats', 'open', 'closed', 'stocks', 'live', 'strategyBreakdown', 'monthlyBreakdown', 'scope',
+        return view('trades.laporan', compact(
+            'stats', 'closed', 'strategyBreakdown', 'monthlyBreakdown', 'scope',
             'closedPage', 'historyStrategy', 'historyTicker', 'historyStrategyOptions', 'historyTickerOptions'
         ));
     }
