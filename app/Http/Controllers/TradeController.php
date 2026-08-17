@@ -29,12 +29,26 @@ class TradeController extends Controller
 
         $officialClosed = $closed->where('strategy_label', 'gabungan');
         $winners = $officialClosed->where('pnl_total', '>', 0);
+        $losers = $officialClosed->where('pnl_total', '<=', 0);
+
+        // Fase CO: kartu preview di halaman operasional diganti dari "Trade Closed" (292, angka
+        // paling tidak informatif) ke Episode Independen -- lebih jujur menggambarkan performa,
+        // sama protokol groupIntoEpisodes() yang dipakai laporan() penuh.
+        $episodes = $this->groupIntoEpisodes($officialClosed);
+        $episodeWins = collect($episodes)->filter(fn ($ep) => collect($ep)->avg('pnl_total') > 0);
+
         $preview = [
             'total_pnl' => $officialClosed->sum('pnl_total'),
             'win_rate' => $officialClosed->count() > 0
                 ? round($winners->count() / $officialClosed->count() * 100, 1)
                 : 0,
+            'win' => $winners->count(),
+            'loss' => $losers->count(),
             'closed' => $officialClosed->count(),
+            'episode_count' => count($episodes),
+            'episode_win_rate' => count($episodes) > 0
+                ? round($episodeWins->count() / count($episodes) * 100, 1)
+                : 0,
         ];
 
         $stocks = Stock::where('is_active', true)->orderBy('code')->get();

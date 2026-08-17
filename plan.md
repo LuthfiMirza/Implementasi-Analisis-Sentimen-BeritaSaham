@@ -4999,3 +4999,33 @@ diarahkan ke `route('trades.laporan', ...)` bukan `trades.index`.
   hilang atau berubah selama pemindahan.
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase CO -- Redesign kartu preview /trades (3 kartu + ganti "Trade Closed" jadi Episode)
+
+### Konteks
+User: kartu preview di `/trades` (dari Fase CN) "kurang informatif", minta didesain lebih keren
+dan per-kartu, dijelaskan dulu rencananya sebelum dikerjakan. Rencana yang disepakati: 3 kartu
+terpisah bergaya sama dengan stats card di `/trades/laporan`, dan "Trade Closed" (292, angka paling
+tidak bercerita) diganti Episode Independen.
+
+### Perubahan
+- `TradeController::index()`: `$preview` sekarang juga menghitung `win`/`loss`/`episode_count`/
+  `episode_win_rate` (pakai `groupIntoEpisodes()` yang sudah ada, protokol sama dengan `laporan()`).
+- `resources/views/trades/index.blade.php`: bar datar 3-angka diganti grid 3 kartu terpisah
+  (`grid-cols-1 sm:grid-cols-3`), masing-masing dengan ikon + border/background tint sesuai
+  sentimen (hijau/kuning/merah):
+  - 💰 **Total PnL** -- sublabel "Realized • N trade" (sama seperti sebelumnya).
+  - 🎯 **Win Rate** -- sublabel breakdown "NW · ML" (baru).
+  - 📊 **Episode Independen** (GANTI "Trade Closed") -- angka episode + sublabel "X% WR • dari N
+    trade mentah", warna sky (beda dari hijau/merah PnL/WR supaya tidak dikira ikut sentimen
+    untung-rugi).
+  - Tombol "Lihat Laporan Lengkap" dipindah jadi baris terpisah full-width di bawah 3 kartu
+    (lebih menonjol dari sebelumnya yang nempel di ujung kanan bar).
+
+### Verifikasi
+- `php artisan test --filter=Trade`: 39 passed. Full suite: 492 passed (2059 assertions).
+- Browser real: 3 kartu tampil terpisah dengan ikon+warna benar (💰 +Rp140.621.753 hijau, 🎯 67.8%
+  hijau dengan "198W · 94L", 📊 35 episode biru dengan "88.6% WR • dari 292 trade mentah"), tombol
+  laporan full-width di bawahnya.
+
+### Status: SELESAI, siap commit+push.

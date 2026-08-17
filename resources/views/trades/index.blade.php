@@ -19,38 +19,54 @@
   </div>
 
   {{-- ── PREVIEW RINGKAS + LINK KE LAPORAN LENGKAP ── --}}
-  {{-- Fase CN: halaman ini dulu berisi SEMUA (stats, episode per bulan, strategi lain, riwayat
-       374 baris) jadi terlalu panjang untuk kebutuhan harian (buka/tutup posisi, catat manual).
-       Dipisah: /trades fokus operasional, /trades/laporan untuk analisis lengkap. Preview di
-       sini SELALU GABUNGAN resmi (tidak ada toggle scope -- itu ada di halaman laporan). --}}
-  <div class="glass-card border border-slate-800/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex flex-wrap items-center gap-6">
-      <div>
-        <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Total PnL (GABUNGAN)</p>
-        <p class="text-lg sm:text-xl font-bold whitespace-nowrap
-          {{ $preview['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-          {{ $preview['total_pnl'] >= 0 ? '+' : '' }}Rp{{ number_format($preview['total_pnl'], 0, ',', '.') }}
-        </p>
-      </div>
-      <div>
-        <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Win Rate</p>
-        <p class="text-lg sm:text-xl font-bold
-          {{ $preview['win_rate'] >= 60 ? 'text-green-400' :
-             ($preview['win_rate'] >= 40 ? 'text-amber-400' : 'text-rose-400') }}">
-          {{ $preview['win_rate'] }}%
-        </p>
-      </div>
-      <div>
-        <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Trade Closed</p>
-        <p class="text-lg sm:text-xl font-bold text-slate-100">{{ $preview['closed'] }}</p>
-      </div>
+  {{-- Fase CN/CO: halaman ini dulu berisi SEMUA (stats, episode per bulan, strategi lain,
+       riwayat 374 baris) jadi terlalu panjang untuk kebutuhan harian (buka/tutup posisi, catat
+       manual). Dipisah: /trades fokus operasional, /trades/laporan untuk analisis lengkap.
+       Preview di sini SELALU GABUNGAN resmi (tidak ada toggle scope -- itu ada di laporan).
+       Fase CO: 3 kartu terpisah (bukan bar datar) + "Trade Closed" (292, angka paling tidak
+       bercerita) diganti Episode Independen -- lebih jujur menggambarkan performa. --}}
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="glass-card rounded-2xl p-4 border
+      {{ $preview['total_pnl'] >= 0 ? 'border-green-500/20 bg-green-500/[0.03]' : 'border-rose-500/20 bg-rose-500/[0.03]' }}">
+      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1.5">💰 Total PnL (GABUNGAN)</p>
+      <p class="text-xl sm:text-2xl font-bold whitespace-nowrap
+        {{ $preview['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
+        {{ $preview['total_pnl'] >= 0 ? '+' : '' }}Rp{{ number_format($preview['total_pnl'], 0, ',', '.') }}
+      </p>
+      <p class="text-[11px] text-slate-500 mt-1">Realized • {{ $preview['closed'] }} trade</p>
     </div>
-    <a href="{{ route('trades.laporan') }}"
-       class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-sky-500/30
-              bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-sm font-medium transition whitespace-nowrap">
-      📊 Lihat Laporan Lengkap →
-    </a>
+
+    <div class="glass-card rounded-2xl p-4 border
+      {{ $preview['win_rate'] >= 60 ? 'border-green-500/20 bg-green-500/[0.03]' :
+         ($preview['win_rate'] >= 40 ? 'border-amber-500/20 bg-amber-500/[0.03]' : 'border-rose-500/20 bg-rose-500/[0.03]') }}">
+      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1.5">🎯 Win Rate</p>
+      <p class="text-xl sm:text-2xl font-bold
+        {{ $preview['win_rate'] >= 60 ? 'text-green-400' :
+           ($preview['win_rate'] >= 40 ? 'text-amber-400' : 'text-rose-400') }}">
+        {{ $preview['win_rate'] }}%
+      </p>
+      <p class="text-[11px] mt-1">
+        <span class="text-green-400">{{ $preview['win'] }}W</span>
+        <span class="text-slate-600">·</span>
+        <span class="text-rose-400">{{ $preview['loss'] }}L</span>
+      </p>
+    </div>
+
+    <div class="glass-card rounded-2xl p-4 border
+      {{ $preview['episode_win_rate'] >= 60 ? 'border-sky-500/20 bg-sky-500/[0.03]' : 'border-slate-800/80' }}">
+      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1.5">📊 Episode Independen</p>
+      <p class="text-xl sm:text-2xl font-bold text-sky-400">{{ $preview['episode_count'] }}</p>
+      <p class="text-[11px] text-slate-500 mt-1">
+        {{ $preview['episode_win_rate'] }}% WR • dari {{ $preview['closed'] }} trade mentah
+      </p>
+    </div>
   </div>
+
+  <a href="{{ route('trades.laporan') }}"
+     class="flex items-center justify-center gap-1.5 py-3 rounded-xl border border-sky-500/30
+            bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-sm font-semibold transition">
+    📊 Lihat Laporan Lengkap →
+  </a>
 
   {{-- ── OPEN POSITIONS ── --}}
   @if($open->count() > 0)
