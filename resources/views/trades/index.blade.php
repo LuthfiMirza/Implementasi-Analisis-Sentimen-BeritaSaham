@@ -109,9 +109,19 @@
 
           {{-- Stock + Signal info --}}
           <div class="flex items-center gap-3">
+            {{-- Fase CQ: logo asli emiten dari CDN publik TradingView (lihat
+                 SyncStockLogosCommand) -- fallback ke inisial kode kalau logo_url kosong ATAU
+                 gambarnya gagal dimuat (onerror), jangan sampai kartu kosong. --}}
             <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20
-                        flex items-center justify-center font-bold text-sky-400 text-sm">
-              {{ $trade->stock->code }}
+                        flex items-center justify-center font-bold text-sky-400 text-sm shrink-0 overflow-hidden">
+              @if($trade->stock->logo_url)
+                <img src="{{ $trade->stock->logo_url }}" alt="{{ $trade->stock->code }}"
+                     class="w-full h-full object-contain p-1.5"
+                     onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                <span class="hidden">{{ $trade->stock->code }}</span>
+              @else
+                {{ $trade->stock->code }}
+              @endif
             </div>
             <div>
               <div class="flex items-center gap-2">

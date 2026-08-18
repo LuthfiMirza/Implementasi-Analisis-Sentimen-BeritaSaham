@@ -5087,3 +5087,36 @@ right=8px, sesuai `top-2 right-2`).
   placeholder gradient + inisial "GEN"/ticker dengan benar.
 
 ### Status: SELESAI, siap commit+push (menunggu full test suite selesai di background).
+
+## Fase CQ -- Logo asli emiten di kartu Posisi Terbuka (bukan lagi inisial teks)
+
+### Konteks
+User minta kotak inisial ticker ("ESSA", "BUMI", dst) di kartu Posisi Terbuka `/trades` diganti
+logo perusahaan asli. Dicek dulu sumber logo publik yang reliable -- 2 gagal (sectors.app: SSL
+certificate EXPIRED; Clearbit: domain tidak resolve dari environment ini), 1 nyaris gagal
+(TradingView `symbol-search.tradingview.com`: 403 Forbidden, bot-protected). Ditemukan endpoint
+TradingView LAIN yang publik & tidak diblokir: `scanner.tradingview.com/symbol?symbol=IDX:{CODE}
+&fields=logoid` (dipakai widget TradingView sendiri secara client-side) -- dicek langsung, kasih
+`logoid` yang valid untuk SEMUA 20 saham aktif (dites: ESSA -> "surya-esa-perkasa-tbk", cocok
+persis nama resmi "Surya Esa Perkasa Tbk"). Gambar diambil dari CDN `s3-symbol-logo.tradingview
+.com/{logoid}--big.svg` -- SEMUA 20 dites langsung (curl), HTTP 200 + `image/svg+xml` valid.
+
+### Perubahan
+- Migrasi `add_logo_url_to_stocks_table`: kolom `logo_url` (string, nullable) di tabel `stocks`.
+- `Stock::$fillable` +`logo_url`.
+- Command baru `stocks:sync-logos` (`app/Console/Commands/SyncStockLogosCommand.php`, REUSABLE
+  untuk saham baru ke depan, bukan skrip sekali-pakai): per saham aktif tanpa `logo_url`, query
+  `scanner.tradingview.com` buat logoid, VERIFIKASI gambar beneran bisa diakses (bukan cuma
+  simpan URL tebakan) sebelum disimpan ke DB. `--force` buat timpa ulang semua.
+- `resources/views/trades/index.blade.php` (kartu Posisi Terbuka): kotak inisial diganti `<img
+  src="{{ $trade->stock->logo_url }}">` dengan `object-contain` (logo TradingView proporsinya
+  macam-macam, jangan di-crop paksa) + `onerror` fallback balik ke inisial kalau `logo_url` kosong
+  ATAU gambar gagal dimuat -- pola defensif sama seperti fallback gambar berita (Fase CP).
+
+### Verifikasi
+- `php artisan stocks:sync-logos` (real run): 20/20 berhasil, 0 dilewati.
+- `php artisan test --filter=Trade`: 39 passed (166 assertions).
+- Browser real (login): kartu ESSA tampil logo asli "Surya Esa Perkasa Tbk" (bukan kotak
+  inisial), bentuk logo proporsional (tidak terpotong/gepeng).
+
+### Status: SELESAI, siap commit+push (menunggu full test suite selesai di background).

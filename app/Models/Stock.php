@@ -13,6 +13,7 @@ class Stock extends Model
     protected $fillable = [
         'code',
         'company_name',
+        'logo_url',
         'sector',
         'description',
         'exchange',
