@@ -5119,4 +5119,53 @@ persis nama resmi "Surya Esa Perkasa Tbk"). Gambar diambil dari CDN `s3-symbol-l
 - Browser real (login): kartu ESSA tampil logo asli "Surya Esa Perkasa Tbk" (bukan kotak
   inisial), bentuk logo proporsional (tidak terpotong/gepeng).
 
-### Status: SELESAI, siap commit+push (menunggu full test suite selesai di background).
+### Status: SELESAI, commit `de2d843`, sudah di-push.
+
+## Fase CR — Bug lanjutan Fase BU: trigger sama-strategi-sama-ticker saling timpa di open_positions.json
+
+### Konteks
+User perhatikan 2 posisi ESSA GABUNGAN di web (14 Agu @660, 18 Agu @650) sudah minus jauh
+(-6,06% dan -4,62%, harga 620 vs stop-loss 647/637) tapi TIDAK ADA satupun alert trailing-stop
+masuk ke Telegram. Ditelusuri lewat `open_positions.json` + `storage/logs/scheduler.log` (`grep
+SYNC_OPEN`): entri ESSA 14 Agu SUDAH terdaftar (`SYNC_OPEN|ESSA|660.0|2026-08-14|GABUNGAN|ret2d`
+ada di log) tapi HILANG dari `open_positions.json` saat ini -- cuma entri 18 Agu yang tersisa.
+
+### Root cause
+Ini kejadian yang SAMA PERSIS dengan Fase BU (13 Agustus, sudah didokumentasikan) tapi dari
+pemicu BEDA. Fase BU memperbaiki `register_open_position()` supaya dedup key jadi `(ticker,
+strategy)` -- dulu cuma `ticker` saja, jadi sinyal MOMENTUM BRPT diam-diam menimpa posisi
+GABUNGAN BRPT (Trade #458, tetap dibiarkan yatim sesuai keputusan user waktu itu: "biarkan BRPT
+#458 dulu, cuma perbaiki ke depan").
+
+**Perbaikan Fase BU ITU SENDIRI masih ada celah**: `(ticker, strategy)` masih tabrakan kalau
+STRATEGI YANG SAMA trigger DUA KALI ke ticker yang sama sementara yang pertama masih open. Ini
+BUKAN bug di aturan GABUNGAN-nya (re-entry saat drawdown makin dalam itu memang perilaku yang
+disengaja/valid) -- murni bug di key dedup file JSON-nya. ESSA GABUNGAN trigger 14 Agu, MASIH
+OPEN, lalu trigger LAGI 18 Agu (kondisi turun lebih dalam lagi) -- entri 14 Agu tertimpa diam-diam,
+berhenti dipantau `check_trailing_stop.py`, padahal di Trade Journal MySQL dua-duanya tetap
+tercatat "open" sebagai baris terpisah (sama seperti pola Fase BU: JSON rusak, MySQL tidak).
+
+### Perbaikan
+`detect_signal.py::register_open_position()`: dedup key ditambah `entry_date` --
+`(ticker, strategy, entry_date)`. Dua trigger beda tanggal utk ticker+strategi sama sekarang
+coexist di `open_positions.json` tanpa saling timpa; re-run utk tanggal entry yang SAMA PERSIS
+(idempotency, mis. job harian jalan 2x) tetap replace-1-baris, bukan duplikat.
+
+### Keputusan scope (arahan user eksplisit)
+User pilih **"perbaiki kode dulu saja, jangan sentuh posisi yang sudah ada"** -- jadi:
+- Kode SUDAH diperbaiki (mencegah kejadian baru ke depan).
+- ESSA 14 Agu @660 **TETAP TIDAK DIPANTAU** sampai user putuskan lain (mis. `/open ESSA` manual di
+  Telegram, atau tutup posisinya).
+- BRPT #458 (12 Agu, yatim sejak Fase BU) **TETAP DIBIARKAN**, konsisten keputusan lama.
+- **TIDAK ada perubahan ke `open_positions.json` produksi** dalam fase ini -- murni perbaikan kode.
+
+### Verifikasi
+- Simulasi terisolasi (file sementara, BUKAN `open_positions.json` produksi): 2 register_open_
+  position untuk ESSA/GABUNGAN dengan `entry_date` beda (14 Agu, 18 Agu) -> 2 baris tersimpan,
+  tidak saling timpa. Re-run untuk `entry_date` yang SAMA -> tetap 2 baris (idempotent, bukan
+  duplikat jadi 3).
+- Tidak ada test PHPUnit yang tersentuh (murni file Python, tidak ada test suite Python di
+  proyek ini untuk file ini).
+
+### Status: SELESAI (kode), siap commit+push. Posisi yatim (ESSA 14 Agu, BRPT #458) SENGAJA
+dibiarkan sesuai keputusan user -- bukan terlewat.

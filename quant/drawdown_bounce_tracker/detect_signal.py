@@ -608,23 +608,34 @@ def save_positions(positions: list[dict]) -> None:
 
 def register_open_position(ticker: str, entry_date: str, entry_price: float,
                            signal_type: str | None = None, strategy: str = "GABUNGAN") -> None:
-    """Fase BM (dikoreksi Fase BU): daftarkan otomatis ke open_positions.json begitu sinyal baru
-    terdeteksi -- supaya check_trailing_stop.py (jalan tiap 15 menit) langsung mulai mantau TANPA
-    perlu user ketik /open manual dulu.
+    """Fase BM (dikoreksi Fase BU, lalu Fase CR): daftarkan otomatis ke open_positions.json begitu
+    sinyal baru terdeteksi -- supaya check_trailing_stop.py (jalan tiap 15 menit) langsung mulai
+    mantau TANPA perlu user ketik /open manual dulu.
 
     BUG Fase BU (ditemukan live 13 Agu 2026): sebelumnya replace HANYA berdasar ticker, jadi
     sinyal MOMENTUM baru untuk BRPT diam-diam MENIMPA posisi GABUNGAN BRPT yang masih berjalan
     sejak 12 Agu -- histori puncak/pullback-nya hilang dan posisi lama berhenti dipantau, padahal
-    di Trade Journal MySQL keduanya tetap tercatat "open" sebagai baris terpisah. Sekarang replace
-    berdasar (ticker, strategy) -- dua strategi otomatis boleh punya posisi terbuka bersamaan di
-    saham yang sama tanpa saling timpa.
+    di Trade Journal MySQL keduanya tetap tercatat "open" sebagai baris terpisah. Diperbaiki jadi
+    replace berdasar (ticker, strategy).
+
+    BUG Fase CR (ditemukan live 19 Agu 2026, dari user nanya kenapa ESSA sudah lewat stop-loss
+    tapi tidak ada alert): perbaikan Fase BU TERNYATA masih tidak cukup -- (ticker, strategy) saja
+    masih nabrak kalau STRATEGI YANG SAMA trigger DUA KALI ke ticker yang sama (mis. ESSA GABUNGAN
+    trigger 14 Agu @660, lalu trigger LAGI 18 Agu @650 selagi yang pertama masih open -- ini
+    valid/disengaja, aturan GABUNGAN memang boleh re-entry saat drawdown makin dalam, bukan bug di
+    sinyalnya). Entri 14 Agu diam-diam tertimpa entri 18 Agu, berhenti dipantau, padahal masih
+    "open" di Trade Journal MySQL -- persis pola Fase BU tapi pemicunya beda. Sekarang kunci
+    dedup ditambah entry_date -- (ticker, strategy, entry_date) -- jadi dua trigger yang beda hari
+    untuk ticker+strategi yang sama TIDAK saling timpa lagi, cuma re-run untuk tanggal entry yang
+    SAMA PERSIS yang replace (itu memang harus idempotent, bukan duplikat).
 
     TIDAK mengubah /open dan /close manual di telegram_commands.py (di luar cakupan perbaikan
     ini) -- keduanya tetap replace/hapus SEMUA entri untuk ticker itu, cocok dengan cara user
-    biasa memakainya ("saya sudah selesai dengan BRPT", bukan per-strategi)."""
+    biasa memakainya ("saya sudah selesai dengan BRPT", bukan per-strategi/per-tanggal)."""
     positions = load_positions()
     positions = [p for p in positions
-                 if not (p["ticker"] == ticker and p.get("strategy", "GABUNGAN") == strategy)]
+                 if not (p["ticker"] == ticker and p.get("strategy", "GABUNGAN") == strategy
+                         and p.get("entry_date") == entry_date)]
     pos = {
         "ticker": ticker,
         "entry_date": entry_date,
