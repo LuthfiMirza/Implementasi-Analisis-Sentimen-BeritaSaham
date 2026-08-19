@@ -158,6 +158,7 @@ class TradeController extends Controller
             'legacy_ab_ac' => 'Legacy: IHSG+Saham Crash (Fase AB/AC)',
             'ai_tp30' => 'AI Prediksi (TP30%/SL3%/40h)',
             'momentum' => 'Momentum (RSI>60) — EXPLORATORY',
+            'bottom_rebound' => 'Bottom-Rebound (BUMI+DEWA)',
             'manual_discretionary' => 'Manual/Diskresi',
         ];
         $strategyBreakdown = [];

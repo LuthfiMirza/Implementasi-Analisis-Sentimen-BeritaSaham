@@ -105,9 +105,21 @@ class DetectDrawdownBounceSignalCommand extends Command
                     $quantity = 100;
                 }
 
-                $strategyLabel = $strategy === 'MOMENTUM'
-                    ? "MOMENTUM ({$detail})"
-                    : 'GABUNGAN, jenis: '.($detail ?: 'ret2d');
+                // Fase CS: dulu ternary 2-cabang (MOMENTUM vs default-ke-GABUNGAN) -- aman selama
+                // cuma ada 2 strategi otomatis. Begitu BOTTOM_REBOUND ditambah, default itu jadi
+                // BAHAYA DIAM-DIAM: sinyal strategi baru bakal salah tercatat 'gabungan' dan
+                // mengotori statistik resmi GABUNGAN tanpa error apapun. match() eksplisit --
+                // strategi baru ke depan WAJIB ditambah di sini dulu, tidak boleh jatuh ke default.
+                $strategyLabel = match ($strategy) {
+                    'MOMENTUM' => "MOMENTUM ({$detail})",
+                    'BOTTOM_REBOUND' => "BOTTOM-REBOUND ({$detail})",
+                    default => 'GABUNGAN, jenis: '.($detail ?: 'ret2d'),
+                };
+                $strategyLabelColumn = match ($strategy) {
+                    'MOMENTUM' => 'momentum',
+                    'BOTTOM_REBOUND' => 'bottom_rebound',
+                    default => 'gabungan',
+                };
 
                 Trade::create([
                     'user_id' => 2,
@@ -134,7 +146,7 @@ class DetectDrawdownBounceSignalCommand extends Command
                         'open_positions.json untuk alert Telegram.',
                     // Fase CA: diisi eksplisit saat insert, bukan ditebak dari notes belakangan --
                     // strategy_label='gabungan' inilah yang dihitung ke kartu ringkasan RESMI.
-                    'strategy_label' => $strategy === 'MOMENTUM' ? 'momentum' : 'gabungan',
+                    'strategy_label' => $strategyLabelColumn,
                 ]);
 
                 $this->info("Sync Trade Journal: {$ticker} dibuka otomatis di web (entry Rp{$price}, {$dateStr}, {$strategyLabel}).");

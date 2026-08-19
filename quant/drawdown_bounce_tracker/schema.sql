@@ -41,6 +41,37 @@ CREATE TABLE IF NOT EXISTS momentum_signals (
     UNIQUE(ticker, trigger_date)
 );
 
+-- Fase CS: sinyal BOTTOM-REBOUND (BUMI+DEWA) -- strategi KETIGA, beda paradigma dari `signals`
+-- (drawdown-bounce, entry SAAT harga masih turun) dan `momentum_signals` (RSI>60 saat naik
+-- kencang). Ini nunggu titik bawah 10 hari bursa terkonfirmasi rebound >=5% dulu baru entry,
+-- trailing-stop lebih ketat (2%). Divalidasi P1-P4 penuh (52 episode gabungan BUMI+DEWA,
+-- CI95 lower +0.54% dgn entry T+1) -- lihat plan.md Fase CS untuk detail riset.
+CREATE TABLE IF NOT EXISTS bottom_rebound_signals (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    detected_at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    ticker              TEXT NOT NULL,          -- BUMI atau DEWA (satu-satunya yang divalidasi)
+    trigger_date        TEXT NOT NULL,          -- trading day closing cross >= bottom_10d*1.05
+    bottom_10d          REAL NOT NULL,          -- harga terendah 10 hari bursa (patokan sebelum
+                                                  -- hari trigger, TIDAK termasuk hari trigger)
+    threshold           REAL NOT NULL,          -- bottom_10d * 1.05, ambang yang dilewati
+    entry_date          TEXT NOT NULL,          -- T+1 dari trigger_date
+    entry_price         REAL NOT NULL,
+    notes               TEXT,
+    UNIQUE(ticker, trigger_date)
+);
+
+CREATE TRIGGER IF NOT EXISTS bottom_rebound_signals_no_update
+BEFORE UPDATE ON bottom_rebound_signals
+BEGIN
+    SELECT RAISE(ABORT, 'bottom_rebound_signals is append-only: log a new row instead of editing');
+END;
+
+CREATE TRIGGER IF NOT EXISTS bottom_rebound_signals_no_delete
+BEFORE DELETE ON bottom_rebound_signals
+BEGIN
+    SELECT RAISE(ABORT, 'bottom_rebound_signals is append-only: rows cannot be deleted');
+END;
+
 -- Fase BN: peringatan dini H-1 sore -- murni informasional, TIDAK mengubah aturan entry resmi
 -- (masih closing T+1, lihat `signals`). Tabel terpisah, append-only, pola sama.
 CREATE TABLE IF NOT EXISTS heads_up_alerts (

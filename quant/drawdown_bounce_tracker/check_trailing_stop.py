@@ -204,8 +204,17 @@ def check_position(position: dict) -> None:
             position["alerted_pullback_at_peak"] = peak
             print(f"  -> ALERT TRAILING STOP terkirim ({pullback:.1%}, puncak Rp{peak:.0f}).")
 
+    # Fase CS: alert target-waktu 10 hari cuma valid utk strategi yang BENERAN divalidasi pakai
+    # exit waktu tetap (GABUNGAN/MOMENTUM, Fase AB/AD/AE). BOTTOM_REBOUND TIDAK divalidasi pakai
+    # target waktu -- backtest-nya cuma trailing-stop 2% murni (MAX_HOLDING_BARS di backtest
+    # cuma batas simulasi, bukan aturan). Tanpa guard ini, posisi bottom-rebound yang somehow
+    # bertahan 10 hari bakal dapat alert yang ngutip temuan backtest STRATEGI LAIN seolah berlaku
+    # buat dia juga -- salah kaprah, walau kemungkinan kecil kejadian (rata-rata bottom-rebound
+    # keluar dalam ~1 hari bursa per backtest, trailing 2% terlalu ketat utk bertahan lama).
+    uses_time_target = strategy in ("GABUNGAN", "MOMENTUM")
+
     # --- Alert 1.5: H-1 warning (day 9), before the day-10 target below ---
-    if WARN_HOLD_DAYS <= trading_days < TARGET_HOLD_DAYS and position.get("alerted_day9") is None:
+    if uses_time_target and WARN_HOLD_DAYS <= trading_days < TARGET_HOLD_DAYS and position.get("alerted_day9") is None:
         send_telegram_alert(
             f"\U0001F7E1 <b>H-1 TARGET WAKTU: {label}</b>\n\n"
             f"Posisi sudah <b>{trading_days} hari bursa</b> sejak entry -- besok (hari bursa "
@@ -219,7 +228,7 @@ def check_position(position: dict) -> None:
         print(f"  -> ALERT H-1 TARGET WAKTU terkirim (hari ke-{trading_days}).")
 
     # --- Alert 2: 10-trading-day target ---
-    if trading_days >= TARGET_HOLD_DAYS and position.get("alerted_day10") is None:
+    if uses_time_target and trading_days >= TARGET_HOLD_DAYS and position.get("alerted_day10") is None:
         send_telegram_alert(
             f"\U0001F7E0 <b>TARGET WAKTU {TARGET_HOLD_DAYS} HARI: {label}</b>\n\n"
             f"Posisi sudah <b>{trading_days} hari bursa</b> sejak entry.\n\n"

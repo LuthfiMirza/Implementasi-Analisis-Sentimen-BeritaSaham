@@ -115,6 +115,29 @@ MOMENTUM_TRACKING_START_DATE = date(2026, 8, 12)  # baru diaktifkan hari ini -- 
 # supaya tiap saham cuma menangkap sinyal SEJAK dia benar-benar diaktifkan.
 MOMENTUM_START_DATE_BY_TICKER = {"DSSA": date(2026, 8, 16)}
 
+# Fase CS (19 Agu 2026): strategi KETIGA, usulan user -- beda paradigma dari GABUNGAN (entry SAAT
+# harga masih turun, taruhan rebound) dan MOMENTUM (RSI>60 saat sudah naik kencang). Ini NUNGGU
+# titik bawah terkonfirmasi rebound dulu, baru masuk -- "jangan tangkap pisau jatuh, tangkap bola
+# pantul yang sudah kepastian bounce." Trailing-stop lebih ketat (2%) karena filosofinya beda:
+# begitu konfirmasi ternyata palsu, keluar cepat dengan rugi kecil.
+#
+# Riset (plan.md Fase CS, Pass 1+2): backtest closing harian 2024-sekarang, BUMI+DEWA gabungan,
+# 52 episode independen, gate P1-P4 LULUS PENUH dengan entry T+1 (CI95 lower +0.54%, mean/episode
+# +1.29%). BUMI SENDIRI marginal (P4 gagal, CI95 lower -0.12%) -- makanya HARUS digabung DEWA,
+# tidak boleh solo. Trailing dicoba 2%/3%/4% -- 2% (paling ketat) justru PALING BAGUS, melonggarkan
+# trailing malah merusak expectancy (mean/episode turun jadi negatif di trail 4%) karena pola-nya
+# mean-reversion cepat (rata-rata cuma 1 hari bursa sampai keluar), bukan trend-following.
+# Verifikasi intraday 15-menit (Pass 2, 60 hari data): median selisih ke closing harian cuma 0.86%,
+# cukup dekat -- diputuskan pakai closing harian (BUKAN cek 15-menit terus-menerus), konsisten
+# dengan GABUNGAN/MOMENTUM yang sudah live, dan closing harian justru cenderung entry LEBIH MAHAL
+# dari intraday (estimasi konservatif, bukan optimis).
+BOTTOM_REBOUND_WINDOW = 10          # bar bursa untuk rolling min ("titik bawah")
+BOTTOM_REBOUND_THRESHOLD = 0.05     # trigger kalau closing >= bottom_10d * (1 + ini)
+BOTTOM_REBOUND_TRAILING_STOP = 0.02  # dipakai check_trailing_stop.py, BUKAN di sini -- dicatat di
+                                      # sini juga sebagai dokumentasi kontrak (harus konsisten)
+BOTTOM_REBOUND_TICKERS = {"BUMI", "DEWA"}
+BOTTOM_REBOUND_TRACKING_START_DATE = date(2026, 8, 19)  # aktif hari ini -- jangan backdate
+
 DB_PATH = Path(__file__).parent / "tracker.sqlite3"
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 ENV_PATH = Path(__file__).parent.parent.parent / ".env"
@@ -361,6 +384,28 @@ def format_momentum_alert(signal: dict) -> str:
     )
 
 
+def format_bottom_rebound_alert(signal: dict) -> str:
+    """Fase CS: alert TERPISAH untuk sinyal bottom-rebound -- header/icon beda dari GABUNGAN
+    (drawdown-bounce, entry saat harga masih turun) dan MOMENTUM (RSI, entry saat sudah naik
+    kencang). Ini nunggu titik bawah dulu terkonfirmasi rebound >=5%, baru masuk."""
+    header = f"\U0001F7E2 <b>SINYAL BOTTOM-REBOUND: {signal['ticker']}</b>"
+
+    return (
+        f"{header}\n\n"
+        f"<b>Titik bawah 10 hari bursa</b>: Rp{signal['bottom_10d']:.0f}\n"
+        f"<b>Trigger</b>: {signal['trigger_date']} -- closing sudah tembus Rp{signal['threshold']:.0f} "
+        f"(+{BOTTOM_REBOUND_THRESHOLD*100:.0f}% dari titik bawah)\n\n"
+        f"<b>Entry</b>: {signal['entry_date']}\n"
+        f"Harga: Rp{signal['entry_price']:.0f}\n\n"
+        f"<b>Exit</b>: trailing stop {BOTTOM_REBOUND_TRAILING_STOP*100:.0f}% dari puncak "
+        f"(TANPA target waktu tetap -- beda dari GABUNGAN/MOMENTUM yang ada batas 10 hari bursa)\n\n"
+        f"ℹ️ Beda paradigma dari GABUNGAN: ini NUNGGU rebound terkonfirmasi dulu, bukan masuk saat "
+        f"harga masih jatuh. Divalidasi P1-P4 penuh (BUMI+DEWA gabungan, 52 episode, "
+        f"CI95 lower +0,54%) -- BUMI SENDIRI masih marginal, jadi selalu dipantau gabungan dengan "
+        f"DEWA, jangan dinilai per-saham. Lihat plan.md Fase CS."
+    )
+
+
 def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -424,6 +469,8 @@ def fetch_recent(symbol: str, days: int = 200) -> pd.DataFrame:
     df["rsi14"] = rsi(df["Close"])
     df["stoch_k"] = stochastic_k(df["High"], df["Low"], df["Close"])
     df["dd_20d"] = df["Close"] / df["Close"].rolling(20).max() - 1
+    # Fase CS: rolling min utk aturan BOTTOM_REBOUND -- "titik bawah" 10 hari bursa terakhir.
+    df["bottom_10d"] = df["Close"].rolling(BOTTOM_REBOUND_WINDOW).min()
 
     # Fase BO: guard snapshot-intraday — kalau baris terakhir tanggalnya hari ini DAN bursa belum
     # tutup (< 15:20 WIB), harga Close itu BUKAN closing final (masih bisa berubah sampai 15:00).
@@ -437,7 +484,7 @@ def fetch_recent(symbol: str, days: int = 200) -> pd.DataFrame:
         print(f"⏳ {symbol}: data hari ini ({today}) dibuang — bursa belum tutup "
               f"({now_wib.strftime('%H:%M')} WIB < {MARKET_CLOSE_TIME.strftime('%H:%M')}).")
 
-    return df[["date", "adj_close", "ret_2d", "rsi14", "stoch_k", "dd_20d"]]
+    return df[["date", "adj_close", "ret_2d", "rsi14", "stoch_k", "dd_20d", "bottom_10d"]]
 
 
 def detect() -> list[dict]:
@@ -593,6 +640,52 @@ def detect_momentum() -> list[dict]:
     return found
 
 
+def detect_bottom_rebound() -> list[dict]:
+    """Fase CS: strategi bottom-rebound -- trigger = closing "cross pertama" di atas
+    bottom_10d(hari sebelumnya) * 1.05. "Cross pertama" (bukan cuma >= threshold) supaya tidak
+    trigger berulang tiap hari selagi harga bertahan di zona konfirmasi -- persis logic
+    collect_trades() di backtest_bottom_rebound.py, WAJIB konsisten karena itu yang divalidasi
+    P1-P4, bukan versi lain."""
+    found = []
+
+    for ticker in sorted(BOTTOM_REBOUND_TICKERS):
+        stock = fetch_recent(f"{ticker}.JK").dropna(subset=["bottom_10d"])
+        if len(stock) < 3:
+            continue
+
+        for i in range(1, len(stock) - 1):
+            prev_row = stock.iloc[i - 1]
+            trigger_row = stock.iloc[i]
+            entry_row = stock.iloc[i + 1]
+            trigger_date = trigger_row["date"]
+
+            if trigger_date < BOTTOM_REBOUND_TRACKING_START_DATE:
+                continue
+
+            bottom_prev = prev_row["bottom_10d"]
+            if pd.isna(bottom_prev):
+                continue
+            threshold = bottom_prev * (1 + BOTTOM_REBOUND_THRESHOLD)
+
+            close_prev = prev_row["adj_close"]
+            close_now = trigger_row["adj_close"]
+            if pd.isna(close_prev) or pd.isna(close_now):
+                continue
+            if not (close_prev < threshold and close_now >= threshold):
+                continue
+
+            found.append({
+                "ticker": ticker,
+                "trigger_date": trigger_date.isoformat(),
+                "bottom_10d": float(bottom_prev),
+                "threshold": float(threshold),
+                "entry_date": entry_row["date"].isoformat(),
+                "entry_price": float(entry_row["adj_close"]),
+            })
+
+    return found
+
+
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
 
 
@@ -653,6 +746,7 @@ def main() -> None:
     conn = get_connection()
     signals = detect()
     momentum_signals = detect_momentum()
+    bottom_rebound_signals = detect_bottom_rebound()
     heads_up_signals = detect_heads_up()
 
     inserted = 0
@@ -700,6 +794,29 @@ def main() -> None:
         except sqlite3.IntegrityError:
             pass
 
+    inserted_bottom_rebound = 0
+    for s in bottom_rebound_signals:
+        try:
+            conn.execute(
+                """INSERT INTO bottom_rebound_signals
+                (ticker, trigger_date, bottom_10d, threshold, entry_date, entry_price)
+                VALUES (?, ?, ?, ?, ?, ?)""",
+                (s["ticker"], s["trigger_date"], s["bottom_10d"], s["threshold"],
+                 s["entry_date"], s["entry_price"]),
+            )
+            inserted_bottom_rebound += 1
+            print(f"SINYAL BOTTOM-REBOUND BARU: {s['ticker']} trigger {s['trigger_date']} "
+                  f"(bottom={s['bottom_10d']:.0f}, threshold={s['threshold']:.0f}) "
+                  f"-> entry {s['entry_date']} @ {s['entry_price']:.0f}")
+
+            send_telegram_alert(format_bottom_rebound_alert(s))
+
+            register_open_position(s["ticker"], s["entry_date"], s["entry_price"],
+                                    strategy="BOTTOM_REBOUND")
+            print(f"SYNC_OPEN|{s['ticker']}|{s['entry_price']}|{s['entry_date']}|BOTTOM_REBOUND|rebound5pct")
+        except sqlite3.IntegrityError:
+            pass
+
     inserted_heads_up = 0
     for s in heads_up_signals:
         try:
@@ -721,6 +838,7 @@ def main() -> None:
     conn.commit()
     total = conn.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
     total_momentum = conn.execute("SELECT COUNT(*) FROM momentum_signals").fetchone()[0]
+    total_bottom_rebound = conn.execute("SELECT COUNT(*) FROM bottom_rebound_signals").fetchone()[0]
     total_heads_up = conn.execute("SELECT COUNT(*) FROM heads_up_alerts").fetchone()[0]
     conn.close()
 
@@ -733,6 +851,13 @@ def main() -> None:
         print(f"Tidak ada sinyal momentum baru. Tidak ada trigger sejak {MOMENTUM_TRACKING_START_DATE}. Total tercatat: {total_momentum}.")
     else:
         print(f"{inserted_momentum} sinyal momentum baru dicatat. Total tercatat: {total_momentum}.")
+
+    if inserted_bottom_rebound == 0:
+        print(f"Tidak ada sinyal bottom-rebound baru. Tidak ada trigger sejak "
+              f"{BOTTOM_REBOUND_TRACKING_START_DATE}. Total tercatat: {total_bottom_rebound}.")
+    else:
+        print(f"{inserted_bottom_rebound} sinyal bottom-rebound baru dicatat. "
+              f"Total tercatat: {total_bottom_rebound}.")
 
     if inserted_heads_up == 0:
         print(f"Tidak ada peringatan dini baru. Total tercatat: {total_heads_up}.")

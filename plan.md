@@ -5169,3 +5169,101 @@ User pilih **"perbaiki kode dulu saja, jangan sentuh posisi yang sudah ada"** --
 
 ### Status: SELESAI (kode), siap commit+push. Posisi yatim (ESSA 14 Agu, BRPT #458) SENGAJA
 dibiarkan sesuai keputusan user -- bukan terlewat.
+
+## Fase CS — Strategi ketiga: BOTTOM-REBOUND (BUMI+DEWA), riset s.d. implementasi live
+
+### Konteks
+User usulkan (19 Agu 2026) strategi baru, beda paradigma dari GABUNGAN (entry SAAT harga masih
+turun) dan MOMENTUM (RSI>60 saat sudah naik): tunggu titik bawah 10 hari terkonfirmasi rebound
+>=5% dulu, baru entry, dengan trailing-stop ketat 2%. Analogi user: "jangan tangkap pisau jatuh,
+tangkap bola pantul yang sudah kepastian bounce." Diminta testing dulu ke BUMI+DEWA sebelum
+diperluas, dan didiskusikan step-by-step (bukan langsung implementasi).
+
+### Parameter final (dikonfirmasi via AskUserQuestion sebelum riset)
+- Bottom = rolling minimum 10 hari BURSA (bukan kalender)
+- Trigger = closing >= bottom_10d(hari sebelumnya) * 1.05, "cross pertama" (bukan re-trigger
+  selagi bertahan di zona)
+- Awalnya dites intraday 15-menit, TERNYATA data yfinance intraday cuma 60 hari -- terlalu tipis
+  utk gate P1-P4 (cuma dapat 7 sinyal). Diputuskan pakai closing harian sebagai proxy dulu.
+
+### Pass 1 -- backtest closing harian 2 tahun (`backtest_bottom_rebound.py`, baru)
+Trailing 2% (assumsi awal user): BUMI sendiri 2/3 gate (P4 gagal, CI95 lower -0,12%, marginal),
+DEWA sendiri 3/3 LULUS PENUH (CI95 lower +0,22%), gabungan BUMI+DEWA 3/3 LULUS PENUH (52 episode,
+CI95 lower +0,38%).
+
+**Eksperimen tambahan** (user minta coba longgarkan trailing ke 3%/4% supaya winner bisa lari
+lebih jauh): HASIL BERLAWANAN DARI EKSPEKTASI -- makin longgar makin RUSAK. Mean/episode gabungan
+turun dari +1,31% (trail 2%) -> +0,62% (3%) -> -0,15% (4%, NEGATIF). DEWA solo bahkan drop dari
+3/3 LULUS ke 1/3 di trail 3-4%. Penjelasan: ini strategi mean-reversion CEPAT (avg hold cuma ~1
+hari bursa) -- winner tidak "lari jauh", trailing longgar cuma bikin profit yang sudah kebentuk
+lepas lagi sebelum sempat dikunci. Insting awal user (2%) TERBUKTI paling optimal secara statistik
+-- keputusan akhir: trail 2%, BUMI+DEWA gabungan (bukan longgarkan).
+
+### Pass 2 -- verifikasi presisi intraday 15-menit (60 hari, 7 sinyal terakhir)
+Bandingkan entry closing harian (dipakai backtest) vs harga bar 15-menit PERTAMA yang beneran
+cross threshold. Median selisih cuma 0,86% -- closing harian cukup representatif. SATU outlier
+ekstrem: DEWA 9 Jul, closing harian @332 vs intraday cross pertama @302 (jam 09:00, gap-up pagi)
+-- selisih -9,04%. Insight: closing harian JUSTRU cenderung entry LEBIH MAHAL dari intraday
+(karena gap-up pagi sering terjadi tapi baru "kelihatan" closing sore) -- jadi backtest closing
+harian itu estimasi KONSERVATIF, bukan optimis. Keputusan: implementasi pakai closing harian
+(konsisten GABUNGAN/MOMENTUM), BUKAN polling 15-menit terus-menerus -- lebih simpel, dan sampel
+intraday (7 sinyal) jauh di bawah ambang MIN_EPISODES=12 utk divalidasi formal sendiri.
+
+### Cek timing produksi -- entry T+1 (bukan closing hari trigger)
+Pass 1/2 backtest asumsinya entry di closing HARI TRIGGER itu sendiri -- TIDAK BISA dieksekusi di
+produksi nyata (job jalan 15:18 WIB, SETELAH bursa tutup, jadi tidak mungkin entry di closing hari
+yang sama). Di-reverifikasi dengan entry T+1 (sama seperti GABUNGAN/MOMENTUM) sebelum implementasi
+-- HASIL TETAP LULUS PENUH, malah CI95 lower NAIK ke +0,54% (dari +0,38%), WR episode naik ke
+61,5% (dari 53,8%). Aman dilanjutkan ke implementasi.
+
+### Implementasi live
+**`quant/drawdown_bounce_tracker/detect_signal.py`**:
+- Constants baru: `BOTTOM_REBOUND_WINDOW=10`, `BOTTOM_REBOUND_THRESHOLD=0.05`,
+  `BOTTOM_REBOUND_TRAILING_STOP=0.02` (dokumentasi kontrak, dipakai beneran di
+  check_trailing_stop.py), `BOTTOM_REBOUND_TICKERS={"BUMI","DEWA"}`,
+  `BOTTOM_REBOUND_TRACKING_START_DATE=2026-08-19` (aktif hari ini).
+- `fetch_recent()`: tambah kolom `bottom_10d` (rolling min Close).
+- `detect_bottom_rebound()` (baru): mirror pola `detect_momentum()`, logic "cross pertama" SAMA
+  PERSIS dengan `collect_trades()` di `backtest_bottom_rebound.py` (WAJIB konsisten, itu yang
+  divalidasi P1-P4).
+- `format_bottom_rebound_alert()` (baru): header/icon terpisah, jelasin beda paradigma dari
+  GABUNGAN, catat CI95 dan caveat "BUMI sendiri marginal, selalu gabungan DEWA".
+- `main()`: wired penuh -- insert DB, kirim Telegram, `register_open_position(strategy=
+  "BOTTOM_REBOUND")`, baris ringkasan konsisten format GABUNGAN/MOMENTUM.
+
+**`quant/drawdown_bounce_tracker/schema.sql`**: tabel baru `bottom_rebound_signals`
+(UNIQUE(ticker, trigger_date), trigger append-only sama pola `momentum_signals`).
+
+**`quant/drawdown_bounce_tracker/check_trailing_stop.py`**: BUG DITEMUKAN & DIPERBAIKI saat
+implementasi -- alert "Target Waktu 10 Hari" (H-1 + hari-10) dulu berlaku ke SEMUA posisi tanpa
+peduli strategi, padahal itu temuan backtest KHUSUS GABUNGAN/MOMENTUM (Fase AB/AD/AE).
+BOTTOM_REBOUND tidak divalidasi pakai target waktu tetap (cuma trailing-stop 2% murni) -- tanpa
+guard, posisi bottom-rebound yang somehow bertahan 10 hari bakal dapat alert yang ngutip temuan
+strategi LAIN seolah berlaku buat dia. Ditambah `uses_time_target = strategy in ("GABUNGAN",
+"MOMENTUM")`, guard kedua alert itu.
+
+**`app/Console/Commands/DetectDrawdownBounceSignalCommand.php`**: BUG LAIN ditemukan & diperbaiki
+-- `syncOpenSignalsToTradeJournal()` dulu pakai ternary 2-cabang (`$strategy === 'MOMENTUM' ?
+'momentum' : 'gabungan'`) yang DEFAULT ke 'gabungan' untuk apapun selain MOMENTUM. Diam-diam
+berbahaya: begitu BOTTOM_REBOUND ditambah, sinyalnya bakal SALAH tercatat sebagai 'gabungan' dan
+mengotori statistik resmi GABUNGAN tanpa error apapun. Diganti `match()` eksplisit 3 cabang
+(GABUNGAN/MOMENTUM/BOTTOM_REBOUND) -- strategi baru ke depan WAJIB ditambah di sini dulu, tidak
+bisa jatuh ke default diam-diam.
+
+**UI**: badge `bottom_rebound` (hijau emerald, label "BOTTOM-REBOUND") ditambah ke
+`resources/views/trades/index.blade.php` (kartu Posisi Terbuka) dan `laporan.blade.php` (tabel
+Riwayat). `TradeController::laporan()`: `$strategyLabels` (arsip "Strategi Lain") +entry
+`bottom_rebound => 'Bottom-Rebound (BUMI+DEWA)'`.
+
+### Verifikasi
+- Simulasi python: `detect_bottom_rebound()` jalan bersih, 0 sinyal (start date = hari ini, bursa
+  belum tutup saat dites -- sesuai ekspektasi, bukan bug).
+- `get_connection()`: schema baru ter-apply bersih ke `tracker.sqlite3` produksi (`PRAGMA
+  table_info` dicek, 9 kolom sesuai desain).
+- Real run penuh `python3 detect_signal.py`: 4 blok ringkasan tampil (drawdown-bounce, momentum,
+  **bottom-rebound**, peringatan dini) -- terintegrasi mulus, format konsisten.
+- `php -l` bersih di 2 file PHP yang diubah.
+- `php artisan test --filter=Trade`: 39 passed. `--filter=DetectDrawdownBounceSignalCommandTest`:
+  6 passed (termasuk test SYNC_OPEN yang langsung tersentuh perubahan match()).
+
+### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).
