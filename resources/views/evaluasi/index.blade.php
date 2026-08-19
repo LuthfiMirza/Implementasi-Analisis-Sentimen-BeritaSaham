@@ -16,6 +16,24 @@
             </span>
         </div>
 
+        {{-- Audit 2026-07-19 (output/prediction_research/dss_scoring_weights_audit.txt): skor
+             komposit di bawah TERBUKTI tidak ada hubungan reliabel dengan return 5 hari ke depan
+             saat diuji walk-forward -- "Bullish Support" dari skor ini historisnya malah median
+             return NEGATIF. Status/Prediksi sudah diperbaiki (berasal dari model ML tervalidasi,
+             39.6% akurasi arah vs 33.3% baseline acak), tapi kolom Score/bobot di bawah masih
+             metrik LAMA yang dipertahankan cuma untuk tampilan -- jangan dipakai jadi dasar
+             keputusan. Lihat plan.md untuk detail audit. --}}
+        <div class="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200">
+            <p class="font-semibold text-amber-400">⚠️ Kolom "Score" & panel "Metodologi Bobot" di bawah adalah metrik LAMA</p>
+            <p class="mt-1 text-amber-200/80">
+                Audit 19 Jul 2026 membuktikan skor komposit ini <b>tidak berkorelasi dengan return 5 hari ke depan</b>
+                saat diuji walk-forward -- status "Bullish Support" darinya justru historis median return-nya
+                <b>negatif</b>. Kolom <b>Status</b> &amp; <b>Prediksi</b> di tabel bawah sudah diperbaiki (berasal dari
+                model ML tervalidasi), tapi <b>Score</b> masih metrik lama yang dipertahankan untuk tampilan saja --
+                jangan jadi dasar keputusan.
+            </p>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <x-panel class="p-4 space-y-2">
                 <div class="text-xs uppercase text-slate-400">Distribusi Prediksi</div>
@@ -50,10 +68,13 @@
             <x-panel class="p-4 space-y-2">
                 <div class="text-xs uppercase text-slate-400">Rata-rata Model</div>
                 <div class="text-sm flex items-center justify-between">
-                    <span>Avg Score</span><span class="font-semibold">{{ $summary['avg_score'] ?? 0 }}/100</span>
+                    <span title="Metrik lama, tidak terbukti berkorelasi dengan return -- lihat peringatan di atas">
+                        Avg Score <span class="text-amber-400">⚠</span>
+                    </span>
+                    <span class="font-semibold text-slate-400">{{ $summary['avg_score'] ?? 0 }}/100</span>
                 </div>
                 <div class="text-sm flex items-center justify-between">
-                    <span>Avg Confidence</span><span class="font-semibold">{{ $summary['avg_confidence'] ?? 0 }}</span>
+                    <span>Avg Confidence</span><span class="font-semibold text-green-400">{{ $summary['avg_confidence'] ?? 0 }}</span>
                 </div>
             </x-panel>
 
@@ -71,9 +92,12 @@
             </x-panel>
 
             <x-panel class="p-4 space-y-1 text-sm text-slate-300">
-                <div class="text-xs uppercase text-slate-400">Metodologi Bobot</div>
-                <div>Sentimen 20% • Trend 22% • Momentum 18%</div>
-                <div>Volume/OBV 13% • Volatilitas 12% • Fundamental 15%</div>
+                <div class="text-xs uppercase text-slate-400">
+                    Metodologi Bobot (Score) <span class="text-amber-400" title="Metrik lama, lihat peringatan di atas">⚠</span>
+                </div>
+                <div class="text-slate-500">Sentimen 20% • Trend 22% • Momentum 18%</div>
+                <div class="text-slate-500">Volume/OBV 13% • Volatilitas 12% • Fundamental 15%</div>
+                <div class="text-[11px] text-amber-400/80 pt-1">Bukan dasar Status/Prediksi -- lihat peringatan di atas.</div>
             </x-panel>
 
             @if(($summary['ml_total'] ?? 0) > 0)
@@ -91,7 +115,11 @@
                     <thead class="bg-slate-900 text-xs uppercase text-slate-400 sticky top-0">
                         <tr>
                             <th class="px-4 py-3 text-left">Saham</th>
-                            <th class="px-4 py-3 text-left">Score</th>
+                            <th class="px-4 py-3 text-left">
+                                <span title="Metrik lama, TIDAK terbukti berkorelasi dengan return -- lihat peringatan di atas">
+                                    Score <span class="text-amber-400">⚠</span>
+                                </span>
+                            </th>
                             <th class="px-4 py-3 text-left">Status</th>
                             <th class="px-4 py-3 text-left">Prediksi</th>
                             <th class="px-4 py-3 text-left">Confidence</th>
@@ -111,12 +139,12 @@
                                     <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">{{ $r['sector'] }}</span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-2" title="Metrik lama, TIDAK terbukti berkorelasi dengan return">
                                         <div class="w-16 bg-slate-800 rounded-full h-1.5">
-                                            <div class="h-1.5 rounded-full {{ $r['score'] >= 60 ? 'bg-green-500' : ($r['score'] >= 45 ? 'bg-amber-500' : 'bg-rose-500') }}"
+                                            <div class="h-1.5 rounded-full bg-slate-500"
                                                  style="width: {{ $r['score'] }}%"></div>
                                         </div>
-                                        <span class="font-mono text-sm {{ $r['score'] >= 60 ? 'text-green-400' : ($r['score'] >= 45 ? 'text-amber-400' : 'text-rose-400') }}">
+                                        <span class="font-mono text-sm text-slate-500">
                                             {{ $r['score'] }}
                                         </span>
                                     </div>

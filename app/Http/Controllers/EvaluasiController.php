@@ -6,10 +6,34 @@ use App\Models\NewsArticle;
 use App\Models\Stock;
 use App\Services\Analytics\DecisionSupportService;
 use App\Services\Stocks\PriceSeriesService;
+use Illuminate\Support\Facades\Cache;
 
 class EvaluasiController extends Controller
 {
+    protected const CACHE_TTL_MINUTES = 15;
+
     public function index()
+    {
+        // DecisionSupportService::analyze() per saham baca CSV + hitung indikator dari nol, TANPA
+        // cache internal apapun -- dengan 20 saham aktif (sejak Fase CH nambah 5 baru), loop ini
+        // kelewat limit 30 detik PHP dan halaman 500 timeout. Diukur langsung: 77 detik utk 20
+        // saham (~3,9 detik/saham, dominan baca+parse CSV historis). Cache 15 menit menutupi
+        // request KE-2 dst (pola sama BacktestController), tapi request PERTAMA (cache kosong)
+        // tetap butuh waktu penuh -- naikkan batas eksekusi PHP khusus jalur ini (bukan ubah
+        // php.ini global) dengan margin dari 77 detik terukur.
+        if (! Cache::store('file')->has('evaluasi:index:v1')) {
+            set_time_limit(120);
+        }
+        [$results, $summary] = Cache::store('file')->remember(
+            'evaluasi:index:v1',
+            now()->addMinutes(self::CACHE_TTL_MINUTES),
+            fn () => $this->computeResults()
+        );
+
+        return view('evaluasi.index', compact('results', 'summary'));
+    }
+
+    private function computeResults(): array
     {
         $stocks = Stock::where('is_active', 1)->get();
         $priceSeriesService = app(PriceSeriesService::class);
@@ -38,7 +62,11 @@ class EvaluasiController extends Controller
                 'pbv' => $stock->pbv,
                 'per' => $stock->per,
                 'roe' => $stock->roe,
-                'fundamentals_updated_at' => $stock->fundamentals_updated_at,
+                // String polos, BUKAN objek Carbon -- objek Carbon yang di-file-cache lalu
+                // di-unserialize balik jadi __PHP_Incomplete_Class (ditemukan live saat verifikasi
+                // fix timeout di atas), bikin Carbon::parse() di view meledak. String selalu aman
+                // di-serialize/unserialize apa pun cache driver-nya.
+                'fundamentals_updated_at' => $stock->fundamentals_updated_at?->toDateString(),
                 'macd_trend' => $result['indicators']['macd']['trend'] ?? null,
                 'bb_position' => $result['indicators']['bollinger']['position'] ?? null,
                 'stoch_signal' => $result['indicators']['stochastic']['signal'] ?? null,
@@ -72,7 +100,7 @@ class EvaluasiController extends Controller
             ? round(($mlStats->agree ?? 0) / $mlStats->total * 100, 1)
             : 0;
 
-        return view('evaluasi.index', compact('results', 'summary'));
+        return [$results, $summary];
     }
 
     public function show(string $code)

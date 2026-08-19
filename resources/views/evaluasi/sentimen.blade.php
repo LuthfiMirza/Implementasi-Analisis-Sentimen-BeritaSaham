@@ -10,7 +10,6 @@
                 <span class="px-3 py-1 rounded-full text-sm bg-slate-800 text-slate-200 border border-slate-700">
                     {{ $total ?? 0 }} artikel dianalisis
                 </span>
-                <a href="{{ route('evaluation.index') }}" class="text-xs text-sky-400 hover:underline">Evaluasi News →</a>
             </div>
         </div>
 

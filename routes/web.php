@@ -9,7 +9,6 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluasiController;
-use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\TradeController;
 use App\Http\Controllers\TradeJournalController;
 use App\Http\Controllers\BacktestController;
@@ -44,7 +43,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
     Route::get('/evaluasi/sentimen', [EvaluasiController::class, 'sentimen'])->name('evaluasi.sentimen');
     Route::get('/evaluasi/{code}', [EvaluasiController::class, 'show'])->name('evaluasi.show');
-    Route::get('/evaluation', [EvaluationController::class, 'index'])->name('evaluation.index');
     Route::get('/trades', [TradeController::class, 'index'])->name('trades.index');
     Route::get('/trades/laporan', [TradeController::class, 'laporan'])->name('trades.laporan');
     Route::post('/trades', [TradeController::class, 'store'])->name('trades.store');

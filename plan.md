@@ -5267,3 +5267,77 @@ Riwayat). `TradeController::laporan()`: `$strategyLabels` (arsip "Strategi Lain"
   6 passed (termasuk test SYNC_OPEN yang langsung tersentuh perubahan match()).
 
 ### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).
+
+## Fase CT -- Bersihkan nav "tidak penting" + perbaiki timeout Evaluasi Model
+
+### Konteks
+User minta diskusi menu sidebar (Dashboard, Berita Terkini, Watchlist, Prediksi, Evaluasi Model,
+Audit Sentimen, Backtest DSS, Evaluasi Sistem, Trade Journal) -- mana yang "tidak penting". Dicek
+kodenya langsung (bukan tebak dari nama), ketemu:
+
+1. **"Evaluasi Sistem" (`/evaluation`, `EvaluationController`)**: duplikat LEBIH LEMAH dari "Audit
+   Sentimen" (`/evaluasi/sentimen`). Confusion matrix-nya pakai ground truth ABAL-ABAL -- daftar
+   17 kata kunci hardcoded (`naik`/`melesat`/`dividen`... vs `turun`/`anjlok`/`jatuh`...), BUKAN
+   label manual tervalidasi yang dipakai proyek ini di tempat lain. "Audit Sentimen" sudah benar
+   (ML vs rule-based asli, precision/recall/F1 proper).
+2. **"Evaluasi Model" (`/evaluasi`)**: kolom `status` VALID (sudah diaudit ulang Fase sebelumnya,
+   berasal dari model ML tervalidasi), tapi kolom `score` di tabel yang SAMA itu skor komposit
+   LAMA yang audit 19 Jul 2026 buktikan TIDAK ADA hubungan dengan return 5 hari ke depan --
+   dicampur tanpa peringatan, berisiko menyesatkan.
+
+User setuju: hapus #1, tambah peringatan visual di #2.
+
+### Perubahan #1 -- Hapus "Evaluasi Sistem"
+- `resources/views/layouts/app.blade.php`: entry nav dihapus.
+- `routes/web.php`: route `/evaluation` + import `EvaluationController` dihapus.
+- `app/Http/Controllers/EvaluationController.php`: file DIHAPUS.
+- `resources/views/evaluation/`: direktori view DIHAPUS.
+- `resources/views/evaluasi/sentimen.blade.php`: link cross-reference "Evaluasi News →" yang
+  mengarah ke halaman terhapus, juga dihapus.
+- Dicek dulu: tidak ada test PHPUnit yang menyentuh controller/route ini (grep bersih).
+
+### Perubahan #2 -- Peringatan visual di "Evaluasi Model"
+`resources/views/evaluasi/index.blade.php`: 4 titik ditandai ⚠️ + teks penjelasan (banner besar di
+atas halaman, panel "Rata-rata Model" Avg Score, panel "Metodologi Bobot", header kolom tabel
+"Score") -- semua eksplisit bilang ini metrik lama, TIDAK terbukti berkorelasi dengan return,
+JANGAN jadi dasar keputusan, dan arahkan ke kolom Status/Prediksi yang sudah valid. Warna bar/teks
+score per-baris juga dinetralkan dari hijau/merah (kesan "baik/buruk") jadi abu-abu netral.
+
+### Bug DITEMUKAN saat verifikasi (bukan bagian permintaan awal, ditemukan+diperbaiki sekalian)
+Saat coba buka halaman "Evaluasi Model" buat verifikasi peringatan baru, halaman **500 timeout**
+(`Maximum execution time of 30 seconds exceeded`). Diukur langsung: `EvaluasiController::index()`
+loop 20 saham aktif (naik dari ~15 sejak Fase CH), tiap saham manggil `DecisionSupportService::
+analyze()` yang baca+parse CSV historis dari nol TANPA cache -- diukur **77,4 detik** end-to-end,
+jauh di atas limit 30 detik PHP. Ini sudah lama laten, baru kelihatan sekarang karena jumlah saham
+nambah.
+
+**Perbaikan** (dikonfirmasi user via AskUserQuestion sebelum dikerjakan):
+- `EvaluasiController::index()` dipecah: logic berat dipindah ke `computeResults()` private,
+  dibungkus `Cache::store('file')->remember(15 menit)` -- pola SAMA persis `BacktestController`
+  yang punya masalah serupa dan sudah diselesaikan begitu duluan.
+- Cache saja TIDAK CUKUP untuk request PERTAMA (cache kosong tetap butuh 77 detik penuh) --
+  ditambah `set_time_limit(120)` khusus jalur cache-miss (bukan ubah php.ini global).
+
+**Bug KEDUA ditemukan saat verifikasi fix di atas**: setelah cache dipasang, percobaan ke-2 malah
+500 error BARU -- `Carbon::parse(): __PHP_Incomplete_Class given`. Akar masalah: `$stock->
+fundamentals_updated_at` (objek `Carbon`) disimpan MENTAH ke dalam array yang di-cache; begitu
+file cache di-`serialize()`/`unserialize()` lewat request berbeda, objek Carbon-nya jadi rusak
+(`__PHP_Incomplete_Class`), dan blade yang manggil `Carbon::parse()` ke situ meledak. Diperbaiki:
+simpan `$stock->fundamentals_updated_at?->toDateString()` (string polos) ke array yang di-cache,
+BUKAN objek Carbon -- string selalu aman di-serialize apa pun cache driver-nya.
+
+Ketemu juga saat debugging: `php artisan cache:clear` TIDAK membersihkan `Cache::store('file')`
+eksplisit kalau `CACHE_STORE` default proyek ini `database` (dicek `.env`) -- flag `--store` juga
+tidak ada di versi Laravel ini. Harus `Cache::store('file')->forget($key)` manual buat clear
+store spesifik. Dicatat di sini supaya tidak bingung lagi kalau kejadian serupa ke depan.
+
+### Verifikasi
+- `php -l` bersih di semua file PHP yang diubah.
+- `php artisan route:list | grep evaluation`: kosong (route benar-benar hilang).
+- Browser real: percobaan PERTAMA (cache kosong, `set_time_limit(120)` aktif) -- halaman berhasil
+  render penuh, 4 peringatan ⚠️ tampil benar (banner, panel Avg Score, panel Metodologi Bobot,
+  header kolom Score). Percobaan KEDUA (cache terisi) -- render cepat, TIDAK ada error Carbon lagi,
+  data 20 saham konsisten dengan percobaan pertama.
+- Full test suite dijalankan ulang setelah SEMUA perubahan (termasuk 2 bug fix tambahan).
+
+### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).
