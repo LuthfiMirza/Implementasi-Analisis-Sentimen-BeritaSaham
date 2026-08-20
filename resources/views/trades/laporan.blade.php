@@ -2,8 +2,11 @@
 <div class="space-y-6">
 
   {{-- ── HEADER ── --}}
-  <div class="flex items-center justify-between">
-    <div>
+  {{-- Bug SAMA seperti toggle Rupiah/vs IHSG di bawah (ditemukan bareng, akar sebabnya sama):
+       tanpa flex-wrap, blok judul kiri tidak menyusut dan mendorong toggle GABUNGAN/Semua
+       Strategi keluar layar di viewport sempit. Sudah ada sejak Fase CL, baru ketahuan sekarang. --}}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="min-w-0">
       <a href="{{ route('trades.index') }}"
          class="text-[11px] text-slate-500 hover:text-slate-300 transition inline-flex items-center gap-1 mb-1">
         ← Kembali ke Trade Journal
@@ -25,7 +28,7 @@
     {{-- Fase CL: toggle GABUNGAN (resmi) vs SEMUA strategi -- link biasa (bukan JS), state
          murni dari query string ?scope=, jadi bisa di-bookmark/share dan tetap benar kalau
          halaman di-refresh. --}}
-    <div class="inline-flex rounded-xl border border-slate-800 bg-slate-900/60 p-1 text-xs">
+    <div class="inline-flex rounded-xl border border-slate-800 bg-slate-900/60 p-1 text-xs shrink-0">
       <a href="{{ route('trades.laporan') }}"
          class="px-3 py-1.5 rounded-lg font-medium transition
                 {{ $scope === 'gabungan' ? 'bg-sky-500 text-slate-900' : 'text-slate-400 hover:text-slate-200' }}">
@@ -44,11 +47,16 @@
        AskUserQuestion (2026-08-20): angka di sini harus konsisten dengan kartu resmi, tidak boleh
        ikut menggelembung kalau user sedang lihat mode "Semua Strategi". --}}
   <div class="glass-card border border-slate-800/80 rounded-2xl p-5" x-data="portfolioChart(@js($portfolioReport['chart']))">
-    <div class="flex items-center justify-between mb-1">
-      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">📈 Laporan Portofolio (GABUNGAN)</h2>
+    {{-- Fase CU bug (ditemukan user): tanpa flex-wrap, judul panjang "📈 Laporan Portofolio
+         (GABUNGAN)" tidak menyusut (flex child default min-width:auto) dan mendorong toggle
+         Rupiah/vs IHSG jauh keluar layar di viewport sempit (dicek: x=1116px di layar 375px lebar
+         -- tombolnya ADA di DOM, cuma kegeser total ke luar area kelihatan). flex-wrap + min-w-0
+         di judul supaya toggle turun ke baris baru alih-alih mendorong keluar. --}}
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider min-w-0">📈 Laporan Portofolio (GABUNGAN)</h2>
       {{-- Toggle Rupiah vs vs-IHSG -- Alpine murni client-side, data 2 mode sudah sama-sama
            dikirim dari server, tidak perlu reload halaman. --}}
-      <div class="inline-flex rounded-lg border border-slate-800 bg-slate-900/60 p-1 text-xs">
+      <div class="inline-flex rounded-lg border border-slate-800 bg-slate-900/60 p-1 text-xs shrink-0">
         <button type="button" @click="mode = 'rp'"
                 :class="mode === 'rp' ? 'bg-sky-500 text-slate-900' : 'text-slate-400 hover:text-slate-200'"
                 class="px-3 py-1 rounded-md font-medium transition">Rupiah</button>
@@ -67,8 +75,14 @@
         Belum ada trade GABUNGAN closed -- chart muncul setelah ada posisi yang direalisasi.
       </div>
     @else
-      <div class="h-56 md:h-64">
-        <canvas x-ref="canvas"></canvas>
+      {{-- Bug ditemukan user (chart bikin seluruh halaman overflow horizontal, toggle Rupiah/vs
+           IHSG kedorong keluar layar): kontainer canvas TIDAK punya `position: relative` --
+           dokumentasi Chart.js eksplisit bilang ini WAJIB untuk `responsive: true` supaya
+           ResizeObserver-nya bisa ukur ruang yang benar-benar tersedia. Tanpa itu, canvas bisa
+           "kabur" ukurannya jauh lebih lebar dari kontainer aslinya. `w-full` + `overflow-hidden`
+           di canvas sendiri sebagai pengaman tambahan. --}}
+      <div class="relative h-56 md:h-64 w-full overflow-hidden">
+        <canvas x-ref="canvas" class="!w-full"></canvas>
       </div>
     @endif
 

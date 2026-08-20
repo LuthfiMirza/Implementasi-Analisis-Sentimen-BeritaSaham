@@ -5401,3 +5401,50 @@ lain), tidak perlu install baru.
 - Full test suite dijalankan di background sebelum commit+push.
 
 ### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).
+
+## Fase CV — Bug: toggle "vs IHSG" ganti state tombol tapi chart tidak ikut redraw
+
+### Konteks
+User laporkan: "chart di sini masi ga ada vs ihsg" setelah Fase CU live. Awalnya saya salah arah
+menduga bug CSS overflow (tombol toggle kedorong keluar viewport di layar sempit) -- ternyata itu
+karakteristik lebar layout situs SECARA KESELURUHAN (site-wide, bukan spesifik section chart, di
+luar scope hari ini), bukan akar masalah sebenarnya. Baca ulang pesan user: maksudnya CHART tidak
+berubah pas tombol di-klik, bukan tombolnya hilang dari layar.
+
+### Root cause (dibuktikan lewat klik+screenshot ASLI, bukan cuma cek state JS)
+Klik nyata (`computer` tool, bukan `element.click()` via javascript_tool) ke tombol "vs IHSG":
+tombol berubah warna jadi aktif (state Alpine `mode` BENAR berubah ke 'ihsg', bahkan
+`chart.data.datasets` internal Chart.js JUGA sudah benar berisi 2 dataset "Portofolio"/"IHSG") --
+tapi CANVAS PIXEL-nya TIDAK ikut redraw, screenshot tetap menampilkan area hijau terisi (visual
+mode 'rp' lama), walau ditunggu 1,5 detik. Data model benar, tampilan tidak berubah -- klasik gejala
+Chart.js constructor dipanggil SAAT container belum selesai layout (Alpine `init()` jalan sinkron
+di tengah DOM walk, sebelum browser sempat reflow), bikin Chart.js ngukur dimensi yang belum
+settled dan render loop berikutnya (`update()`) tidak pernah benar-benar redraw pixel walau data
+internalnya sudah benar.
+
+### Perbaikan
+`resources/js/app.js` (`Alpine.data('portfolioChart', ...)`) dua lapis pengaman:
+1. `init()`: pembuatan `new Chart(...)` dipindah ke method `initChart()` terpisah, dipanggil lewat
+   `this.$nextTick(() => this.initChart())` -- nunda 1 tick sampai DOM benar-benar settled sebelum
+   Chart.js pertama kali ngukur container.
+2. `updateChart()`: tambah `this.chart.resize()` SEBELUM `this.chart.update()` -- paksa Chart.js
+   ukur ulang kontainer di titik waktu klik (saat layout pasti sudah settled), jaring pengaman
+   kedua kalau ResizeObserver internal Chart.js telat/gagal nangkep perubahan.
+
+### Verifikasi (klik+screenshot ASLI, bukan cek state JS doang -- itu yang bikin bug ini kelolos di verifikasi awal Fase CU)
+- SEBELUM fix: klik "vs IHSG" -> tombol aktif, data model benar, TAPI screenshot tetap area hijau
+  terisi (mode lama) -- bug direproduksi konkret.
+- SESUDAH fix + `npm run build`: klik "vs IHSG" -> screenshot BERUBAH jadi garis tipis (bukan area
+  terisi) -- scroll turun sedikit, garis putus-putus UNGU (dataset IHSG) KELIHATAN JELAS di
+  screenshot. Klik balik ke "Rupiah" -> `chart.data.datasets[0].fill === true` lagi (round-trip
+  benar).
+- `php artisan test --filter=Trade`: 39 passed. Full suite dijalankan di background sebelum
+  commit+push.
+
+### Pelajaran buat ke depan
+Verifikasi widget JS interaktif (chart, toggle, dsb) TIDAK CUKUP cuma cek state/data model lewat
+`javascript_tool` -- itu bisa 100% benar sementara TAMPILANNYA tetap salah (persis kejadian ini).
+Wajib klik ASLI (`computer` tool) + screenshot ASLI buat verifikasi visual, terutama utk apapun
+yang melibatkan Chart.js/canvas.
+
+### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).

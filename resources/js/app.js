@@ -89,6 +89,17 @@ document.addEventListener('alpine:init', () => {
             if (!data.labels || data.labels.length === 0) {
                 return;
             }
+            // Bug ditemukan user (toggle "vs IHSG" ganti state tombol tapi chart-nya diam tidak
+            // ikut berubah): Chart.js dibuat SAAT Alpine masih jalan (init() sinkron di tengah
+            // DOM walk), sebelum browser sempat selesai layout kontainer canvas -- Chart.js
+            // ngukur ukuran yang belum settled, lalu update()/data-swap berikutnya tidak pernah
+            // benar-benar redraw pixel-nya walau data internalnya sudah benar (dicek langsung:
+            // chart.data.datasets sudah kepindah ke 2 dataset "Portofolio"/"IHSG", tapi canvas
+            // TIDAK ikut ganti gambar). $nextTick nunda pembuatan chart sampai 1 tick setelah
+            // DOM benar-benar settled.
+            this.$nextTick(() => this.initChart());
+        },
+        initChart() {
             this.chart = new Chart(this.$refs.canvas, {
                 type: 'line',
                 data: {
@@ -174,6 +185,10 @@ document.addEventListener('alpine:init', () => {
             this.chart.options.scales.y.ticks.callback = (v) => this.mode === 'rp'
                 ? (Math.abs(v) >= 1000000 ? (v / 1000000).toFixed(1) + 'jt' : v.toLocaleString('id-ID'))
                 : v + '%';
+            // resize() paksa Chart.js ukur ulang kontainer SEBELUM update() -- jaring pengaman
+            // kedua utk bug yang sama di initChart() (canvas bisa nyangkut di ukuran lama kalau
+            // ResizeObserver-nya telat/gagal nangkep perubahan container).
+            this.chart.resize();
             this.chart.update();
         },
     }));
