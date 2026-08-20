@@ -5341,3 +5341,63 @@ store spesifik. Dicatat di sini supaya tidak bingung lagi kalau kejadian serupa 
 - Full test suite dijalankan ulang setelah SEMUA perubahan (termasuk 2 bug fix tambahan).
 
 ### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).
+
+## Fase CU — Laporan Portofolio ala StockBit di /trades/laporan
+
+### Konteks
+User kirim 2 referensi screenshot StockBit: tab "Portfolio" (return % kumulatif vs IHSG) dan tab
+"Trade" (Rupiah kumulatif + breakdown Realized Gain/Loss + leaderboard "Top Gainer" per saham).
+Diminta didiskusikan dulu -- 2 keputusan dikonfirmasi via AskUserQuestion:
+1. Basis hitung return %: **Rp PnL kumulatif / Rp10 juta referensi** (bukan compounding -- trade
+   kita memang tidak compounding, konsisten Fase CJ).
+2. Cakupan: **GABUNGAN resmi saja**, TIDAK ikut toggle scope yang sudah ada di halaman (supaya
+   tidak ikut menggelembung kalau user lagi lihat mode "Semua Strategi").
+3. Gaya chart: **dua-duanya, ada toggle** (Rupiah kumulatif / vs IHSG %) -- bukan pilih satu.
+
+**"Total Dividend Received"** di referensi StockBit SENGAJA tidak diikutkan -- sistem ini tidak
+melacak dividen sama sekali. Menampilkan Rp0 di situ akan terbaca sebagai "belum ada dividen"
+padahal kenyataannya "kita memang tidak mengukurnya" -- diam-diam salah lebih buruk daripada tidak
+ada elemen itu.
+
+### Perubahan
+
+**`app/Http/Controllers/TradeController.php`**:
+- `buildPortfolioReport()` (baru, private): Realized Gain/Loss, Profit Factor, Max Profit/Loss
+  trade, leaderboard per saham (`pnl_pct` dihitung relatif ke TOTAL MODAL DIKERAHKAN per ticker --
+  n_trade × Rp10jt, BUKAN rata-rata pnl_percent per trade yang akan bias ke trade kecil bermodal
+  sama tapi persentase kebetulan besar -- konsisten cara Fase CI melaporkan).
+- `portfolioChartData()` (baru, private): bangun 2 seri (Rupiah kumulatif per exit_date, dan %
+  ter-normalisasi ke basis Rp10jt) di 1 sumbu tanggal kalender yang SAMA, forward-fill hari
+  libur/weekend biar garis tidak putus-putus.
+- `fetchIhsgSeries()` (baru, private): fetch IHSG (`^JKSE`) langsung dari endpoint publik Yahoo
+  Finance (pola sama `HttpMarketDataProvider`) -- **`data/stocks/IHSG.csv` statis SENGAJA tidak
+  dipakai**, dicek dulu ketinggalan ~3 minggu (berhenti 31 Jul, trade kita sampai 19 Agu). Cache
+  15 menit (pola sama Fase CT) karena ini request eksternal.
+- `laporan()`: panggil `buildPortfolioReport($gabunganClosed)` dengan `$gabunganClosed` yang
+  SELALU difilter `strategy_label='gabungan'`, independen dari `$scope` toggle yang sudah ada.
+
+**`resources/views/trades/laporan.blade.php`**: section baru "📈 Laporan Portofolio (GABUNGAN)" di
+paling atas (sebelum Stats Cards) -- toggle Rupiah/vs IHSG, canvas Chart.js, 4 kartu (Realized
+Gain, Realized Loss, Profit Factor, Max Profit/Loss), tabel leaderboard "Top Saham (Rp)".
+
+**`resources/js/app.js`**: komponen Alpine baru `portfolioChart` -- terima data chart dari server
+(SEMUA mode sekaligus: `portfolioRp`/`portfolioPct`/`ihsgPct`), toggle client-side murni ganti
+dataset Chart.js (tidak reload/request baru). Chart.js sudah terpasang di proyek (dipakai halaman
+lain), tidak perlu install baru.
+
+### Verifikasi
+- `php -l` bersih di controller.
+- `npm run build`: sukses, JS baru ter-compile (295kB, naik dari 293kB).
+- `php artisan test --filter=Trade`: 39 passed.
+- Browser real (login): angka konsisten -- Realized Gain +Rp182.081.899, Realized Loss
+  -Rp41.855.346, Profit Factor 4.35 (=182.081.899/41.855.346, cocok), Realized Gain - Loss =
+  Rp140.226.553 = SAMA PERSIS dengan "Total PnL" kartu resmi di bawahnya (tidak nyimpang).
+  Leaderboard 8 saham GABUNGAN tampil terurut P&L terbesar (BRPT +38,1jt teratas).
+- Chart: `Chart.getChart(canvas)` konfirmasi instance ke-render, canvas 1150x224px.
+- Toggle "vs IHSG": diklik via JS, `Alpine.$data().mode` berubah ke 'ihsg', chart re-render jadi 2
+  dataset ("Portofolio", "IHSG") dengan legend muncul -- awalnya kelihatan gagal di 1 pengecekan
+  gara-gara microtask belum flush (baca state di script yang sama persis dgn klik), re-check
+  terpisah konfirmasi BEKERJA benar.
+- Full test suite dijalankan di background sebelum commit+push.
+
+### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).

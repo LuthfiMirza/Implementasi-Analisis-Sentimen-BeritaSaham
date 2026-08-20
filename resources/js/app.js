@@ -79,6 +79,105 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    // Fase CU: chart Laporan Portofolio /trades/laporan -- toggle Rupiah kumulatif vs %-vs-IHSG,
+    // dua-duanya sudah dikirim server sekaligus (portfolioRp/portfolioPct/ihsgPct sama-sama ada di
+    // payload) supaya toggle-nya instan tanpa reload/request baru, cukup ganti dataset Chart.js.
+    Alpine.data('portfolioChart', (data) => ({
+        mode: 'rp',
+        chart: null,
+        init() {
+            if (!data.labels || data.labels.length === 0) {
+                return;
+            }
+            this.chart = new Chart(this.$refs.canvas, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: this.buildDatasets(),
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: this.mode === 'ihsg',
+                            labels: { color: '#94a3b8', font: { size: 11 } },
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const v = ctx.parsed.y;
+                                    if (this.mode === 'rp') {
+                                        return 'Rp' + Math.round(v).toLocaleString('id-ID');
+                                    }
+                                    return ctx.dataset.label + ': ' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+                                },
+                            },
+                        },
+                    },
+                    scales: {
+                        x: { ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } },
+                        y: {
+                            ticks: {
+                                color: '#64748b', font: { size: 10 },
+                                callback: (v) => this.mode === 'rp'
+                                    ? (Math.abs(v) >= 1000000 ? (v / 1000000).toFixed(1) + 'jt' : v.toLocaleString('id-ID'))
+                                    : v + '%',
+                            },
+                            grid: { color: 'rgba(148,163,184,0.08)' },
+                        },
+                    },
+                },
+            });
+            this.$watch('mode', () => this.updateChart());
+        },
+        buildDatasets() {
+            if (this.mode === 'rp') {
+                return [{
+                    label: 'Portofolio (Rp)',
+                    data: data.portfolioRp,
+                    borderColor: '#4ade80',
+                    backgroundColor: 'rgba(74,222,128,0.1)',
+                    fill: true,
+                    tension: 0.15,
+                    pointRadius: 0,
+                    borderWidth: 2,
+                }];
+            }
+            return [
+                {
+                    label: 'Portofolio',
+                    data: data.portfolioPct,
+                    borderColor: '#4ade80',
+                    backgroundColor: 'transparent',
+                    tension: 0.15,
+                    pointRadius: 0,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'IHSG',
+                    data: data.ihsgPct,
+                    borderColor: '#a78bfa',
+                    backgroundColor: 'transparent',
+                    tension: 0.15,
+                    pointRadius: 0,
+                    borderWidth: 2,
+                    borderDash: [4, 3],
+                },
+            ];
+        },
+        updateChart() {
+            if (!this.chart) return;
+            this.chart.data.datasets = this.buildDatasets();
+            this.chart.options.plugins.legend.display = this.mode === 'ihsg';
+            this.chart.options.scales.y.ticks.callback = (v) => this.mode === 'rp'
+                ? (Math.abs(v) >= 1000000 ? (v / 1000000).toFixed(1) + 'jt' : v.toLocaleString('id-ID'))
+                : v + '%';
+            this.chart.update();
+        },
+    }));
+
     Alpine.data('priceQuote', (initialQuote, fallbackChange) => ({
         quote: {
             stock_code: initialQuote?.stock_code ?? null,

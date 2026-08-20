@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Stock;
 use App\Models\Trade;
 use App\Services\MarketData\LiveMarketDataService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Throwable;
 
 class TradeController extends Controller
@@ -219,10 +221,163 @@ class TradeController extends Controller
         $historyStrategyOptions = $closed->pluck('strategy_label')->filter()->unique()->sort()->values();
         $historyTickerOptions = $closed->pluck('ticker')->unique()->sort()->values();
 
+        // Fase CU: laporan portofolio ala StockBit (chart cumulative + leaderboard per saham).
+        // SELALU GABUNGAN resmi, TIDAK ikut toggle $scope di atas -- user eksplisit pilih ini
+        // supaya angkanya konsisten dengan kartu resmi lain, tidak ikut menggelembung kalau user
+        // sedang lihat mode "Semua Strategi" di bagian lain halaman yang sama.
+        $gabunganClosed = $closed->where('strategy_label', 'gabungan');
+        $portfolioReport = $this->buildPortfolioReport($gabunganClosed);
+
         return view('trades.laporan', compact(
             'stats', 'closed', 'strategyBreakdown', 'monthlyBreakdown', 'scope',
-            'closedPage', 'historyStrategy', 'historyTicker', 'historyStrategyOptions', 'historyTickerOptions'
+            'closedPage', 'historyStrategy', 'historyTicker', 'historyStrategyOptions', 'historyTickerOptions',
+            'portfolioReport'
         ));
+    }
+
+    /**
+     * Fase CU: laporan portofolio ala StockBit -- diminta user setelah lihat referensi tab
+     * "Portfolio" (return % vs IHSG) dan tab "Trade" (Rupiah kumulatif + leaderboard per saham).
+     * Digabung jadi satu (user pilih "dua-duanya, ada toggle" lewat AskUserQuestion) supaya tidak
+     * bikin 2 komponen terpisah yang isinya tumpang tindih.
+     *
+     * "Total Dividend Received" di referensi StockBit SENGAJA tidak diikutkan -- sistem ini tidak
+     * melacak dividen sama sekali, menampilkan Rp0 di situ akan terbaca sebagai "belum ada dividen"
+     * padahal kenyataannya "kita memang tidak mengukurnya". Diam-diam salah lebih buruk daripada
+     * tidak ada elemen itu sama sekali.
+     */
+    private function buildPortfolioReport($gabunganClosed): array
+    {
+        $winners = $gabunganClosed->where('pnl_total', '>', 0);
+        $losers = $gabunganClosed->where('pnl_total', '<=', 0);
+        $realizedGain = (float) $winners->sum('pnl_total');
+        $realizedLoss = (float) abs($losers->sum('pnl_total'));
+
+        // Leaderboard per saham -- pnl_pct dihitung relatif ke TOTAL MODAL DIKERAHKAN utk ticker
+        // itu (n_trade x Rp10jt LIVE_CAPITAL per trade, bukan compounding), konsisten dgn cara
+        // Fase CI melaporkan "Total PnL / Total modal dikerahkan" -- bukan rata-rata pnl_percent
+        // per trade (itu akan bias ke trade kecil yg persentasenya kebetulan besar).
+        $leaderboard = $gabunganClosed->groupBy('ticker')->map(function ($rows, $ticker) {
+            $pnl = (float) $rows->sum('pnl_total');
+            $capitalDeployed = $rows->count() * self::CAPITAL_PER_TRADE;
+
+            return [
+                'ticker' => $ticker,
+                'trades' => $rows->count(),
+                'pnl' => $pnl,
+                'pnl_pct' => $capitalDeployed > 0 ? round($pnl / $capitalDeployed * 100, 2) : 0,
+            ];
+        })->sortByDesc('pnl')->values()->all();
+
+        return [
+            'profit_factor' => $realizedLoss > 0 ? round($realizedGain / $realizedLoss, 2) : null,
+            'realized_gain' => $realizedGain,
+            'realized_loss' => $realizedLoss,
+            'max_profit_trade' => $gabunganClosed->sortByDesc('pnl_total')->first(),
+            'max_loss_trade' => $gabunganClosed->sortBy('pnl_total')->first(),
+            'leaderboard' => $leaderboard,
+            'chart' => $this->portfolioChartData($gabunganClosed),
+        ];
+    }
+
+    private const CAPITAL_PER_TRADE = 10_000_000;
+
+    /**
+     * Bangun 2 seri chart: Rupiah kumulatif (realisasi tiap exit_date) dan IHSG (Yahoo Finance,
+     * dinormalisasi 0% di hari trade pertama) -- 1 sumbu tanggal kalender yang sama, di-forward-
+     * fill supaya garis tetap jalan di hari libur/akhir pekan (bukan putus-putus).
+     */
+    private function portfolioChartData($gabunganClosed): array
+    {
+        $trades = $gabunganClosed->sortBy(fn ($t) => $t->exit_date)->values();
+        if ($trades->isEmpty()) {
+            return ['labels' => [], 'portfolio_rp' => [], 'portfolio_pct' => [], 'ihsg_pct' => []];
+        }
+
+        $startDate = $trades->min(fn ($t) => $t->entry_date)->copy()->startOfDay();
+        $endDate = now()->startOfDay();
+
+        $pnlByDate = [];
+        foreach ($trades as $t) {
+            $key = $t->exit_date->format('Y-m-d');
+            $pnlByDate[$key] = ($pnlByDate[$key] ?? 0) + (float) $t->pnl_total;
+        }
+
+        $ihsg = $this->fetchIhsgSeries();
+
+        $labels = [];
+        $portfolioRp = [];
+        $portfolioPct = [];
+        $ihsgPct = [];
+
+        $cumulative = 0.0;
+        $ihsgBase = null;
+        $lastIhsg = null;
+
+        for ($d = $startDate->copy(); $d->lte($endDate); $d->addDay()) {
+            $key = $d->format('Y-m-d');
+            if (isset($pnlByDate[$key])) {
+                $cumulative += $pnlByDate[$key];
+            }
+
+            if (isset($ihsg[$key])) {
+                $lastIhsg = $ihsg[$key];
+                $ihsgBase ??= $lastIhsg;
+            }
+
+            $labels[] = $d->format('d M');
+            $portfolioRp[] = round($cumulative, 0);
+            $portfolioPct[] = round($cumulative / self::CAPITAL_PER_TRADE * 100, 2);
+            $ihsgPct[] = ($ihsgBase && $lastIhsg) ? round(($lastIhsg / $ihsgBase - 1) * 100, 2) : null;
+        }
+
+        return compact('labels', 'portfolioRp', 'portfolioPct', 'ihsgPct');
+    }
+
+    /**
+     * IHSG (^JKSE) daily close via endpoint publik Yahoo Finance yang sama dgn HttpMarketDataProvider
+     * -- data/stocks/IHSG.csv statis SENGAJA tidak dipakai, ketinggalan ~3 minggu dari trade
+     * terbaru (dicek langsung: berhenti 31 Jul, trade kita sampai 19 Agu). Cache 15 menit -- ini
+     * request eksternal, jangan tembak tiap kali halaman laporan dibuka (pola sama Fase CT).
+     */
+    private function fetchIhsgSeries(): array
+    {
+        return Cache::store('file')->remember('trades:ihsg-series:v1', now()->addMinutes(15), function () {
+            try {
+                $resp = Http::withHeaders(['User-Agent' => 'Mozilla/5.0'])
+                    ->timeout(15)
+                    ->get('https://query2.finance.yahoo.com/v8/finance/chart/%5EJKSE', [
+                        'range' => '2y',
+                        'interval' => '1d',
+                    ]);
+
+                if (! $resp->ok()) {
+                    return [];
+                }
+
+                $result = $resp->json('chart.result.0');
+                if (! $result) {
+                    return [];
+                }
+
+                $timestamps = $result['timestamp'] ?? [];
+                $closes = $result['indicators']['quote'][0]['close'] ?? [];
+
+                $series = [];
+                foreach ($timestamps as $i => $ts) {
+                    $close = $closes[$i] ?? null;
+                    if ($close === null) {
+                        continue;
+                    }
+                    $date = Carbon::createFromTimestamp($ts)->timezone('Asia/Jakarta')->format('Y-m-d');
+                    $series[$date] = (float) $close;
+                }
+
+                return $series;
+            } catch (Throwable $e) {
+                return [];
+            }
+        });
     }
 
     /**

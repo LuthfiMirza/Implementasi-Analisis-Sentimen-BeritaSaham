@@ -39,6 +39,95 @@
     </div>
   </div>
 
+  {{-- ── LAPORAN PORTOFOLIO (Fase CU, ala StockBit) ── --}}
+  {{-- SELALU GABUNGAN resmi, TIDAK ikut toggle scope di atas -- dikonfirmasi user via
+       AskUserQuestion (2026-08-20): angka di sini harus konsisten dengan kartu resmi, tidak boleh
+       ikut menggelembung kalau user sedang lihat mode "Semua Strategi". --}}
+  <div class="glass-card border border-slate-800/80 rounded-2xl p-5" x-data="portfolioChart(@js($portfolioReport['chart']))">
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">📈 Laporan Portofolio (GABUNGAN)</h2>
+      {{-- Toggle Rupiah vs vs-IHSG -- Alpine murni client-side, data 2 mode sudah sama-sama
+           dikirim dari server, tidak perlu reload halaman. --}}
+      <div class="inline-flex rounded-lg border border-slate-800 bg-slate-900/60 p-1 text-xs">
+        <button type="button" @click="mode = 'rp'"
+                :class="mode === 'rp' ? 'bg-sky-500 text-slate-900' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-md font-medium transition">Rupiah</button>
+        <button type="button" @click="mode = 'ihsg'"
+                :class="mode === 'ihsg' ? 'bg-sky-500 text-slate-900' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-md font-medium transition">vs IHSG</button>
+      </div>
+    </div>
+    <p class="text-[11px] text-slate-500 mb-3">
+      <span x-show="mode === 'rp'">Total PnL kumulatif (Rp) direalisasi tiap posisi ditutup.</span>
+      <span x-show="mode === 'ihsg'" x-cloak>Return % (basis modal Rp10jt/trade) vs IHSG, dinormalisasi 0% di trade pertama.</span>
+    </p>
+
+    @if(empty($portfolioReport['chart']['labels']))
+      <div class="h-48 flex items-center justify-center text-sm text-slate-500">
+        Belum ada trade GABUNGAN closed -- chart muncul setelah ada posisi yang direalisasi.
+      </div>
+    @else
+      <div class="h-56 md:h-64">
+        <canvas x-ref="canvas"></canvas>
+      </div>
+    @endif
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+      <div class="bg-slate-900/60 rounded-xl p-3">
+        <p class="text-[10px] text-slate-500 uppercase mb-1">Realized Gain</p>
+        <p class="font-mono font-bold text-green-400 text-sm">+Rp{{ number_format($portfolioReport['realized_gain'], 0, ',', '.') }}</p>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3">
+        <p class="text-[10px] text-slate-500 uppercase mb-1">Realized Loss</p>
+        <p class="font-mono font-bold text-rose-400 text-sm">-Rp{{ number_format($portfolioReport['realized_loss'], 0, ',', '.') }}</p>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3">
+        <p class="text-[10px] text-slate-500 uppercase mb-1"
+           title="Total untung ÷ total rugi (absolut). >1 berarti untung total lebih besar dari rugi total.">Profit Factor</p>
+        <p class="font-mono font-bold text-slate-100 text-sm">
+          {{ $portfolioReport['profit_factor'] !== null ? number_format($portfolioReport['profit_factor'], 2) : '—' }}
+        </p>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3">
+        <p class="text-[10px] text-slate-500 uppercase mb-1">Max Profit / Loss</p>
+        <p class="font-mono text-[11px]">
+          <span class="text-green-400">+Rp{{ number_format($portfolioReport['max_profit_trade']->pnl_total ?? 0, 0, ',', '.') }}</span>
+          <span class="text-slate-600">/</span>
+          <span class="text-rose-400">Rp{{ number_format($portfolioReport['max_loss_trade']->pnl_total ?? 0, 0, ',', '.') }}</span>
+        </p>
+      </div>
+    </div>
+
+    @if(!empty($portfolioReport['leaderboard']))
+    <div class="mt-5">
+      <p class="text-[11px] text-slate-500 uppercase font-medium mb-2">Top Saham (Rp)</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-[10px] text-slate-500 uppercase border-b border-slate-800">
+              <th class="py-2 pr-4">Saham</th>
+              <th class="py-2 pr-4 text-right">Trade</th>
+              <th class="py-2 text-right">P&amp;L</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($portfolioReport['leaderboard'] as $row)
+            <tr class="border-b border-slate-800/50">
+              <td class="py-2 pr-4 font-semibold text-slate-200">{{ $row['ticker'] }}</td>
+              <td class="py-2 pr-4 text-right text-slate-500">{{ $row['trades'] }}</td>
+              <td class="py-2 text-right font-mono {{ $row['pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
+                {{ $row['pnl'] >= 0 ? '+' : '' }}Rp{{ number_format($row['pnl'], 0, ',', '.') }}
+                <span class="text-[10px] text-slate-500">({{ $row['pnl_pct'] >= 0 ? '+' : '' }}{{ $row['pnl_pct'] }}%)</span>
+              </td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    </div>
+    @endif
+  </div>
+
   {{-- ── STATS CARDS ── --}}
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
 
