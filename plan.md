@@ -5514,4 +5514,43 @@ buat sesi berikutnya.
 
 ### Status: SELESAI, siap commit+push.
 
+## Catatan: LaunchAgent scheduler mati saat laptop off (temuan operasional, bukan bug)
+
+Konteks: DSSA MOMENTUM (entry 20 Agu @1.020) BARU tercatat di Trade Journal tanggal 21 Agu 15:18
+bareng sinyal 21 Agu -- awalnya kelihatan seperti dua sinyal dobel, ternyata sinyal 20 Agu memang
+telat masuk 1 hari karena laptop off seharian.
+
+Root cause: `com.luthfimirza.sentimena.scheduler` dipasang sebagai **LaunchAgent** (di
+`~/Library/LaunchAgents/`, bukan LaunchDaemon di `/Library/LaunchDaemons/`), StartInterval 60s.
+LaunchAgent HANYA hidup selagi user login DAN Mac tidak mati/tidak sleep. Kalau laptop dimatikan
+seharian: `php artisan schedule:run` tidak pernah tereksekusi hari itu -- jadwal 15:18
+(`research:detect-drawdown-bounce-signal`) hilang total, alert Telegram trailing-stop juga tidak
+jalan.
+
+Kabar baik (jaring pengaman yang sudah ada + terbukti bekerja hari ini):
+- `DetectDrawdownBounceSignalCommand::syncOpenSignalsToTradeJournal()` idempotent -- cek "sudah
+  ada di DB?" sebelum insert, jadi begitu Mac nyala lagi & scheduler jalan, sinyal yang terlewat
+  otomatis nyusul dengan harga & tanggal ENTRY yang BENAR (bukan tanggal saat nyusul).
+- `open_positions.json` juga ikut ke-update sesuai sinyal.
+
+Konsekuensi yang TETAP ada selama off:
+- Alert Telegram real-time (trailing-stop 2%, target waktu) TIDAK jalan -- kalau posisi kena SL
+  saat off, baru ketahuan pas Mac nyala lagi.
+- Untuk paper-trading skripsi ini konsekuensinya kecil (bukan uang riil), tapi WAJIB cek posisi
+  terbuka begitu Mac nyala lagi setelah off panjang.
+
+Keputusan user: **opsi A** -- biarkan status quo (LaunchAgent), cukup cek posisi manual begitu
+online lagi. Opsi B (`pmset repeat wakeorpoweron` bangunin Mac otomatis dari sleep) dicatat
+sebagai fallback kalau pola off ini sering; tidak dijalankan sekarang (perlu password admin).
+
+Konvensi ke depan (jangan lupa di sesi berikutnya):
+- Kalau user laporan "sinyal aneh muncul di tanggal salah / dobel di jam yang sama": cek dulu
+  `storage/logs/scheduler.log` untuk pola catch-up (sinyal beberapa tanggal masuk bareng), sebelum
+  duga logic sinyalnya bugged.
+- Jangan usulkan konversi LaunchAgent -> LaunchDaemon sebagai "fix" -- LaunchDaemon perlu Mac
+  nyala juga (cuma tidak butuh login), tetap sama masalahnya kalau Mac dimatikan.
+- MySQL manual tetap konvensi FINAL -- sudah ada `news:auto-recover-gap` 30 menit sekali untuk
+  backfill news gap; extend pola yang sama ke domain lain kalau butuh, JANGAN convert ke
+  auto-start MySQL.
+
 ### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).
