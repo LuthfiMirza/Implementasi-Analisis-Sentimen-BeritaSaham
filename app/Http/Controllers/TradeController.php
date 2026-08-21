@@ -283,24 +283,35 @@ class TradeController extends Controller
     private const CAPITAL_PER_TRADE = 10_000_000;
 
     /**
-     * Bangun 2 seri chart: Rupiah kumulatif (realisasi tiap exit_date) dan IHSG (Yahoo Finance,
-     * dinormalisasi 0% di hari trade pertama) -- 1 sumbu tanggal kalender yang sama, di-forward-
-     * fill supaya garis tetap jalan di hari libur/akhir pekan (bukan putus-putus).
+     * Bangun 3 seri chart: Rupiah kumulatif (realisasi tiap exit_date), Portfolio % vs IHSG.
+     *
+     * Fase CW (fix): dulu `portfolioPct = cumulative / Rp10jt * 100` -- APPLES-TO-ORANGES:
+     * pembilang PnL kumulatif dari N slot (~294 trade GABUNGAN), penyebut cuma 1 slot Rp10jt.
+     * Angka jadi +1400% menyesatkan (harusnya +4,77% kalau dibagi total modal yg BENERAN
+     * dikerahkan). User laporan gara-gara di chart "vs IHSG" garis IHSG kelihatan RATA di dasar
+     * (memang bergerak -32%, tapi tenggelam skala portfolio +1400%). Sekarang basis = total modal
+     * kumulatif yg dikerahkan sampai TANGGAL ITU (bukan tetap Rp10jt, bukan juga total akhir --
+     * modal dihitung incremental: tiap trade baru buka posisi = +Rp10jt modal DIKERAHKAN mulai
+     * hari entry-nya, jadi persentase tiap hari mencerminkan "return thd modal yg lagi jalan hari
+     * itu"). Angka `portfolioRp` (mode Rupiah) TIDAK DIUBAH -- itu Rp absolut, tetap intuitif.
      */
     private function portfolioChartData($gabunganClosed): array
     {
         $trades = $gabunganClosed->sortBy(fn ($t) => $t->exit_date)->values();
         if ($trades->isEmpty()) {
-            return ['labels' => [], 'portfolio_rp' => [], 'portfolio_pct' => [], 'ihsg_pct' => []];
+            return ['labels' => [], 'portfolioRp' => [], 'portfolioPct' => [], 'ihsgPct' => []];
         }
 
         $startDate = $trades->min(fn ($t) => $t->entry_date)->copy()->startOfDay();
         $endDate = now()->startOfDay();
 
         $pnlByDate = [];
+        $capitalDeployedByDate = [];
         foreach ($trades as $t) {
-            $key = $t->exit_date->format('Y-m-d');
-            $pnlByDate[$key] = ($pnlByDate[$key] ?? 0) + (float) $t->pnl_total;
+            $exitKey = $t->exit_date->format('Y-m-d');
+            $entryKey = $t->entry_date->format('Y-m-d');
+            $pnlByDate[$exitKey] = ($pnlByDate[$exitKey] ?? 0) + (float) $t->pnl_total;
+            $capitalDeployedByDate[$entryKey] = ($capitalDeployedByDate[$entryKey] ?? 0) + self::CAPITAL_PER_TRADE;
         }
 
         $ihsg = $this->fetchIhsgSeries();
@@ -310,14 +321,18 @@ class TradeController extends Controller
         $portfolioPct = [];
         $ihsgPct = [];
 
-        $cumulative = 0.0;
+        $cumulativePnl = 0.0;
+        $cumulativeCapital = 0.0;
         $ihsgBase = null;
         $lastIhsg = null;
 
         for ($d = $startDate->copy(); $d->lte($endDate); $d->addDay()) {
             $key = $d->format('Y-m-d');
+            if (isset($capitalDeployedByDate[$key])) {
+                $cumulativeCapital += $capitalDeployedByDate[$key];
+            }
             if (isset($pnlByDate[$key])) {
-                $cumulative += $pnlByDate[$key];
+                $cumulativePnl += $pnlByDate[$key];
             }
 
             if (isset($ihsg[$key])) {
@@ -326,8 +341,10 @@ class TradeController extends Controller
             }
 
             $labels[] = $d->format('d M');
-            $portfolioRp[] = round($cumulative, 0);
-            $portfolioPct[] = round($cumulative / self::CAPITAL_PER_TRADE * 100, 2);
+            $portfolioRp[] = round($cumulativePnl, 0);
+            $portfolioPct[] = $cumulativeCapital > 0
+                ? round($cumulativePnl / $cumulativeCapital * 100, 2)
+                : 0;
             $ihsgPct[] = ($ihsgBase && $lastIhsg) ? round(($lastIhsg / $ihsgBase - 1) * 100, 2) : null;
         }
 

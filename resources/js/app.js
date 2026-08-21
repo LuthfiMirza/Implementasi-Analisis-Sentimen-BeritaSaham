@@ -98,6 +98,7 @@ document.addEventListener('alpine:init', () => {
             // TIDAK ikut ganti gambar). $nextTick nunda pembuatan chart sampai 1 tick setelah
             // DOM benar-benar settled.
             this.$nextTick(() => this.initChart());
+            this.$watch('mode', () => this.updateChart());
         },
         initChart() {
             this.chart = new Chart(this.$refs.canvas, {
@@ -127,21 +128,47 @@ document.addEventListener('alpine:init', () => {
                             },
                         },
                     },
-                    scales: {
-                        x: { ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } },
-                        y: {
-                            ticks: {
-                                color: '#64748b', font: { size: 10 },
-                                callback: (v) => this.mode === 'rp'
-                                    ? (Math.abs(v) >= 1000000 ? (v / 1000000).toFixed(1) + 'jt' : v.toLocaleString('id-ID'))
-                                    : v + '%',
-                            },
-                            grid: { color: 'rgba(148,163,184,0.08)' },
-                        },
-                    },
+                    scales: this.buildScales(),
                 },
             });
-            this.$watch('mode', () => this.updateChart());
+        },
+        // Fase CW: sumbu Y dibagi jadi "y" (kiri, Portfolio) dan "yIhsg" (kanan, IHSG) di mode
+        // vs IHSG -- angka Portfolio dan IHSG boleh punya rentang beda tanpa satu tenggelam.
+        // Ganti scale set (y-only <-> y+yIhsg) lewat assignment `chart.options.scales = {...}`
+        // ternyata bikin Chart.js v4 lempar "RangeError: Maximum call stack size exceeded" saat
+        // update()/resize() -- resolver opsi internalnya rekursif kalau shape scales berubah di
+        // tempat. Redraw jadi diam-diam gagal (data & scale kepindah di JS, canvas tidak pernah
+        // ikut). Fix: destroy chart lalu initChart() ulang tiap ganti mode -- lebih mahal dikit
+        // tapi selalu bikin instance Chart.js fresh, tidak pernah nyangkut di state lama.
+        buildScales() {
+            const xScale = { ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } };
+            if (this.mode === 'rp') {
+                return {
+                    x: xScale,
+                    y: {
+                        ticks: {
+                            color: '#64748b', font: { size: 10 },
+                            callback: (v) => Math.abs(v) >= 1000000 ? (v / 1000000).toFixed(1) + 'jt' : v.toLocaleString('id-ID'),
+                        },
+                        grid: { color: 'rgba(148,163,184,0.08)' },
+                    },
+                };
+            }
+            return {
+                x: xScale,
+                y: {
+                    position: 'left',
+                    ticks: { color: '#4ade80', font: { size: 10 }, callback: (v) => v + '%' },
+                    grid: { color: 'rgba(148,163,184,0.08)' },
+                    title: { display: true, text: 'Portofolio', color: '#4ade80', font: { size: 10 } },
+                },
+                yIhsg: {
+                    position: 'right',
+                    ticks: { color: '#a78bfa', font: { size: 10 }, callback: (v) => v + '%' },
+                    grid: { display: false },
+                    title: { display: true, text: 'IHSG', color: '#a78bfa', font: { size: 10 } },
+                },
+            };
         },
         buildDatasets() {
             if (this.mode === 'rp') {
@@ -165,6 +192,7 @@ document.addEventListener('alpine:init', () => {
                     tension: 0.15,
                     pointRadius: 0,
                     borderWidth: 2,
+                    yAxisID: 'y',
                 },
                 {
                     label: 'IHSG',
@@ -175,21 +203,14 @@ document.addEventListener('alpine:init', () => {
                     pointRadius: 0,
                     borderWidth: 2,
                     borderDash: [4, 3],
+                    yAxisID: 'yIhsg',
                 },
             ];
         },
         updateChart() {
             if (!this.chart) return;
-            this.chart.data.datasets = this.buildDatasets();
-            this.chart.options.plugins.legend.display = this.mode === 'ihsg';
-            this.chart.options.scales.y.ticks.callback = (v) => this.mode === 'rp'
-                ? (Math.abs(v) >= 1000000 ? (v / 1000000).toFixed(1) + 'jt' : v.toLocaleString('id-ID'))
-                : v + '%';
-            // resize() paksa Chart.js ukur ulang kontainer SEBELUM update() -- jaring pengaman
-            // kedua utk bug yang sama di initChart() (canvas bisa nyangkut di ukuran lama kalau
-            // ResizeObserver-nya telat/gagal nangkep perubahan container).
-            this.chart.resize();
-            this.chart.update();
+            this.chart.destroy();
+            this.initChart();
         },
     }));
 

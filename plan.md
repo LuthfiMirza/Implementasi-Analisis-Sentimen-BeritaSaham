@@ -5447,4 +5447,71 @@ Verifikasi widget JS interaktif (chart, toggle, dsb) TIDAK CUKUP cuma cek state/
 Wajib klik ASLI (`computer` tool) + screenshot ASLI buat verifikasi visual, terutama utk apapun
 yang melibatkan Chart.js/canvas.
 
+## Fase CW — Bug: skala chart "vs IHSG" timpang (Portfolio +1400% menenggelamkan IHSG -32%)
+
+### Konteks
+User (setelah live Fase CV) laporkan lewat screenshot: mode "vs IHSG" nunjukin garis Portfolio
+melonjak ke +1201,02% sementara garis IHSG kelihatan RATA di dasar, padahal tooltip-nya sendiri
+bilang IHSG bergerak -32,45%. Pesan user persis: "ini ihsg kenapa rata bantu sepertinya ga dapat
+sumber harga ihsg ya" -- dugaan awal user: data IHSG-nya tidak ke-fetch.
+
+### Investigasi -- bukan data hilang, tapi salah skala
+Cek `fetchIhsgSeries()` via tinker: data `^JKSE` dari Yahoo Finance lengkap dan angkanya PERSIS
+sama dengan yang muncul di tooltip (-32,45% di titik yang dilaporkan user) -- IHSG bukan masalah.
+Akar masalahnya di `portfolioPct`: dihitung sebagai `cumulative_pnl_dari_~294_trade / Rp10jt (basis
+1 trade doang) * 100` -- APPLES-TO-ORANGES, pembilang akumulasi dari ratusan slot capital, penyebut
+cuma nilai 1 slot. Hasilnya angka >1000% yang menenggelamkan skala -32% IHSG kalau dipaksa di satu
+sumbu Y yang sama.
+
+### Keputusan user
+Ditawari 3 opsi lewat `AskUserQuestion` (ubah basis Portfolio% ke total modal dikerahkan / dual
+y-axis / kombinasi keduanya) -- user pilih **"Kombinasi keduanya"**.
+
+### Perbaikan (2 bagian)
+1. **`TradeController::portfolioChartData()`** -- basis `portfolioPct` diganti dari `CAPITAL_PER_TRADE`
+   tetap (Rp10jt) jadi `$cumulativeCapital` yang dibangun incremental: tiap trade baru BUKA posisi
+   (`entry_date`) nambah Rp10jt ke modal yang "lagi dikerahkan" hari itu, jadi persentase tiap hari
+   mencerminkan return terhadap modal yang benar-benar jalan di hari itu (bukan basis tetap 1 trade,
+   bukan juga basis total akhir yang menyamarkan awal periode). `portfolioRp` (mode Rupiah, angka
+   absolut) tidak diubah.
+2. **`resources/js/app.js` (`portfolioChart`)** -- tambah `buildScales()`: mode 'ihsg' pakai 2 sumbu
+   (`y` kiri buat Portfolio, `yIhsg` kanan buat IHSG), masing-masing dataset ditandai `yAxisID`.
+
+### Bug baru ketemu saat verifikasi: `RangeError: Maximum call stack size exceeded`
+Percobaan pertama `updateChart()` assign `this.chart.options.scales = this.buildScales()` (ganti
+seluruh object scales) lalu `resize()`+`update()` -- persis pola yang dipakai utk fix legend di Fase
+CV. Dicek lewat klik ASLI (`btn.click()` di elemen live, bukan simulasi state) + `read_console_messages`:
+muncul `RangeError: Maximum call stack size exceeded` di app.js, dan canvas GAGAL DIAM-DIAM redraw
+-- `chart.data.datasets` sudah benar (2 dataset %), tapi `chart.scales` AKTIF (bukan `.options.scales`)
+tetap cuma `{x, y}` dengan `y.max` nyangkut di 160.000.000 (skala Rupiah lama). Root cause: Chart.js
+v4 resolver opsi internalnya rekursif kalau shape `scales` diganti total lewat assignment langsung
+-- update()/resize() gagal di tengah jalan tanpa keliatan di UI (exception silently berhenti render).
+
+### Fix final
+`updateChart()` disederhanakan jadi `this.chart.destroy(); this.initChart();` -- hancurkan instance
+Chart.js lama, bikin baru dari nol tiap ganti mode (bukan coba patch scales di tempat). Konsekuensi:
+`this.$watch('mode', ...)` dipindah dari `initChart()` (yang sekarang dipanggil berulang) ke `init()`
+(dipanggil sekali) -- supaya watcher tidak menumpuk tiap toggle.
+
+### Verifikasi
+- `php -l` + `npm run build` (bundle baru `app-DDGGMVOq.js`, 295,27 kB) -- bersih.
+- Tinker: `portfolioPct` sekarang wajar (+4,77% di titik akhir, dari sebelumnya +1400%-an),
+  `ihsgPct` -25,36%, `portfolioRp` Rp140.226.553 (konsisten dgn kartu "Total PnL").
+- Klik ASLI di elemen live (bukan simulasi Alpine state) + `read_console_messages`: SEBELUM fix
+  `RangeError` muncul & scale aktif nyangkut lama; SESUDAH fix, `chart.scales` aktif berisi
+  `{x, y, yIhsg}` dgn `yIhsg.max=5` (wajar), `legendDisplay=true`, TANPA error baru di console.
+- Screenshot ASLI (`computer` tool) konfirmasi visual: mode "vs IHSG" nampilkan 2 garis (Portofolio
+  hijau solid + IHSG ungu putus-putus) dgn skala kanan/kiri terpisah, legend muncul. Toggle balik ke
+  "Rupiah" kembali ke area hijau terisi seperti semula (round-trip benar, tidak regresi Fase CV).
+- `php artisan test --filter=Trade`: 39 passed. Full suite dijalankan sebelum commit+push.
+
+### Temuan sampingan (di luar scope, dicatat saja)
+Ditemukan overflow horizontal layout header (`scrollWidth 1476px > viewport 1280px` bahkan di
+desktop) yang mendorong tombol toggle "Rupiah"/"vs IHSG" separuh keluar viewport pada lebar tertentu
+-- bug lama pre-existing (bukan dari Fase CW), sempat disinggung "unconfirmed" di Fase CV, sekarang
+terkonfirmasi nyata. Belum diperbaiki di fase ini (di luar scope task chart), dicatat sebagai temuan
+buat sesi berikutnya.
+
+### Status: SELESAI, siap commit+push.
+
 ### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).
