@@ -15,13 +15,15 @@
     "entry_price": 179.0,
     "alerted_pullback_pct": 0.026737967914438502,
     "strategy": "MOMENTUM",
-    "alerted_pullback_at_peak": 187.0
+    "alerted_pullback_at_peak": 187.0,
+    "milestone_peak": 202.0
   },
   {
     "ticker": "BUMI",
     "entry_date": "2026-08-19",
     "entry_price": 183.0,
     "alerted_pullback_pct": null,
-    "strategy": "MOMENTUM"
+    "strategy": "MOMENTUM",
+    "milestone_peak": 202.0
   }
 ]
