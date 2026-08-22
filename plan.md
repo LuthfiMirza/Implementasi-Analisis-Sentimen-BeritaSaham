@@ -5543,6 +5543,27 @@ Keputusan user: **opsi A** -- biarkan status quo (LaunchAgent), cukup cek posisi
 online lagi. Opsi B (`pmset repeat wakeorpoweron` bangunin Mac otomatis dari sleep) dicatat
 sebagai fallback kalau pola off ini sering; tidak dijalankan sekarang (perlu password admin).
 
+Detail perintah `pmset` kalau nanti mau dipakai (dijalankan user sendiri di Terminal, minta
+password sudo -- Claude tidak jalankan sendiri karena ubah system settings):
+
+```
+# Bangun Senin-Jumat jam 15:10 WIB (8 menit sebelum jadwal sinyal 15:18)
+sudo pmset repeat wakeorpoweron MTWRF 15:10:00
+```
+
+Catatan penting:
+- Cuma bangunin Mac dari **sleep** -- kalau laptop benar-benar **shutdown**, ini TIDAK jalan.
+- Konflik dengan jadwal sleep otomatis dari macOS (Battery / Power Adapter settings) -- kalau Mac
+  di-set sleep terlalu cepat, bangun-lalu-tidur-lagi bisa terjadi sebelum LaunchAgent 60s cycle
+  sempat jalan. Kalau mau serius, set sleep timer ke minimum 5 menit di System Settings > Battery
+  > Options > "Prevent automatic sleeping" saat charger nyambung.
+- Cek jadwal aktif: `pmset -g sched`. Hapus jadwal: `sudo pmset repeat cancel`.
+
+Alternatif Opsi C (di luar scope hari ini, catatan aja): kalau off panjang berkali-kali, pindah
+scheduler ke VPS kecil (Rp30-50rb/bulan) -- MySQL tetap manual di Mac tapi sinyal dieksekusi dari
+server always-on. Perubahan arsitektur besar, cuma dipertimbangkan kalau streak-loss / signal-miss
+jadi problem berulang.
+
 Konvensi ke depan (jangan lupa di sesi berikutnya):
 - Kalau user laporan "sinyal aneh muncul di tanggal salah / dobel di jam yang sama": cek dulu
   `storage/logs/scheduler.log` untuk pola catch-up (sinyal beberapa tanggal masuk bareng), sebelum
