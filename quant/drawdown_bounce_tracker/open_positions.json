@@ -13,17 +13,56 @@
     "ticker": "BUMI",
     "entry_date": "2026-08-13",
     "entry_price": 179.0,
-    "alerted_pullback_pct": 0.026737967914438502,
+    "alerted_pullback_pct": 0.024752475247524754,
     "strategy": "MOMENTUM",
-    "alerted_pullback_at_peak": 187.0,
+    "alerted_pullback_at_peak": 202.0,
     "milestone_peak": 202.0
   },
   {
     "ticker": "BUMI",
     "entry_date": "2026-08-19",
     "entry_price": 183.0,
-    "alerted_pullback_pct": null,
+    "alerted_pullback_pct": 0.024752475247524754,
     "strategy": "MOMENTUM",
-    "milestone_peak": 202.0
+    "milestone_peak": 202.0,
+    "alerted_pullback_at_peak": 202.0
+  },
+  {
+    "ticker": "ESSA",
+    "entry_date": "2026-08-20",
+    "entry_price": 635.0,
+    "alerted_pullback_pct": null,
+    "strategy": "GABUNGAN",
+    "signal_type": "ret2d"
+  },
+  {
+    "ticker": "BUMI",
+    "entry_date": "2026-08-21",
+    "entry_price": 198.0,
+    "alerted_pullback_pct": null,
+    "strategy": "MOMENTUM"
+  },
+  {
+    "ticker": "DSSA",
+    "entry_date": "2026-08-20",
+    "entry_price": 1020.0,
+    "alerted_pullback_pct": 0.023148148148148147,
+    "strategy": "MOMENTUM",
+    "milestone_peak": 1080.0,
+    "alerted_pullback_at_peak": 1080.0
+  },
+  {
+    "ticker": "DSSA",
+    "entry_date": "2026-08-21",
+    "entry_price": 1055.0,
+    "alerted_pullback_pct": null,
+    "strategy": "MOMENTUM"
+  },
+  {
+    "ticker": "BUMI",
+    "entry_date": "2026-08-21",
+    "entry_price": 198.0,
+    "alerted_pullback_pct": null,
+    "strategy": "BOTTOM_REBOUND"
   }
 ]
