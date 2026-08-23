@@ -246,7 +246,7 @@
     @if(!empty($portfolioReport['leaderboard']))
     <div class="mt-5">
       <p class="text-[11px] text-slate-500 uppercase font-medium mb-2">Top Gainer / Loser (Rp)</p>
-      <div class="overflow-x-auto">
+      <div class="slim-scrollbar overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-[10px] text-slate-500 uppercase border-b border-slate-800">
@@ -362,7 +362,7 @@
       Dikelompokkan berdasar bulan MULAI tiap episode (entry trade pertamanya) -- trigger
       berdekatan (jeda ≤15 hari, saham sama) dihitung 1 episode, bukan banyak trade terpisah.
     </p>
-    <div class="overflow-x-auto">
+    <div class="slim-scrollbar overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
           <tr class="text-left text-[10px] text-slate-500 uppercase border-b border-slate-800">
@@ -468,7 +468,7 @@
     </div>
     @elseif($closed->count() > 0)
     <div class="glass-card border border-slate-800/80 rounded-2xl overflow-hidden">
-      <div class="overflow-x-auto">
+      <div class="slim-scrollbar overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-800 text-[11px] text-slate-500 uppercase">
