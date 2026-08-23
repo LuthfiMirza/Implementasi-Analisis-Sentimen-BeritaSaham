@@ -60,10 +60,17 @@
       <div class="flex items-start justify-between mb-3">
         <div class="min-w-0">
           <p class="text-[10px] text-slate-500 uppercase font-medium">Total Equity ({{ $portfolioReport['scope_label'] }})</p>
-          {{-- Fase CY: angka & delta REACTIVE ke range -- Alpine x-text panggil computed getter
-               equityAtEnd/rangeDeltaRp/rangeDeltaPct/formatEquity dari component equityChart. --}}
-          <p class="text-2xl font-bold text-slate-100 font-mono mt-1"
-             x-text="formatEquity(equityAtEnd())"></p>
+          {{-- Fase CY polish: TIGA angka reactive ke range --
+               (1) awal-periode -> (2) sekarang, plus (3) delta di bawah.
+               User laporan "Rp150.226.553 ga berubah" -- itu equity AKHIR (sekarang, selalu
+               hari ini, jadi memang tidak berubah kalau semua range ending today). Solusi:
+               tampilkan equity AWAL periode juga (yg jelas beda-beda per range) di sebelahnya
+               dgn format "X -> Y" -- keduanya ikut range, jadi visual jelas responsif. --}}
+          <p class="text-2xl font-bold font-mono mt-1 flex items-baseline gap-2 flex-wrap">
+            <span class="text-slate-500 text-lg" x-text="formatEquity(equityAtStart())"></span>
+            <span class="text-slate-500 text-lg">→</span>
+            <span class="text-slate-100" x-text="formatEquity(equityAtEnd())"></span>
+          </p>
           <p class="text-xs font-mono mt-1"
              :class="rangeDeltaRp() >= 0 ? 'text-green-400' : 'text-rose-400'"
              x-text="formatRp(rangeDeltaRp()) + ' (' + formatPct(rangeDeltaPct()) + ') · ' + range">
