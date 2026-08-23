@@ -50,19 +50,24 @@
   {{-- BARIS 1: 3-kolom StockBit -- Total Equity | Total Equity Return | Portfolio Allocation --}}
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-    {{-- ═══ TOTAL EQUITY (kartu kiri atas + mini chart) ═══ --}}
-    <div class="glass-card border border-slate-800/80 rounded-2xl p-5">
+    {{-- ═══ TOTAL EQUITY (kartu kiri atas + mini chart + range filter) ═══ --}}
+    {{-- Fase CY: basis DIGANTI ke single-account compounding realistis -- start Rp10jt, tiap PnL
+         nambah ke saldo. Sebelumnya (Fase CX) "Modal Dikerahkan + PnL Kumulatif" bikin angka ~Rp3M
+         yg bikin user bingung ("saya gapunya dana sampe 3 M"). Sekarang angka akhir ~Rp150jt --
+         realistis akun retail. --}}
+    <div class="glass-card border border-slate-800/80 rounded-2xl p-5"
+         x-data="equityChart(@js($portfolioReport['chart']))">
       <div class="flex items-start justify-between mb-3">
-        <div>
+        <div class="min-w-0">
           <p class="text-[10px] text-slate-500 uppercase font-medium">Total Equity ({{ $portfolioReport['scope_label'] }})</p>
           <p class="text-2xl font-bold text-slate-100 font-mono mt-1">
             @php
-              $lastEquity = !empty($portfolioReport['daily_equity_table']) ? $portfolioReport['daily_equity_table'][0]['equity'] : 0;
+              $lastEquity = !empty($portfolioReport['daily_equity_table']) ? $portfolioReport['daily_equity_table'][0]['equity'] : ($portfolioReport['chart']['startingCapital'] ?? 10_000_000);
             @endphp
             Rp{{ number_format($lastEquity, 0, ',', '.') }}
           </p>
-          <p class="text-[10px] text-slate-500 mt-1" title="Sistem non-compounding: Modal Dikerahkan (n_trade × Rp10jt LIVE_CAPITAL) + PnL Kumulatif realisasi. Bukan compounding fiktif dari Rp10jt awal.">
-            = Modal Dikerahkan + PnL Kumulatif (non-compounding)
+          <p class="text-[10px] text-slate-500 mt-1" title="Simulasi single-account: mulai Rp10jt modal awal, tiap PnL realized nambah ke saldo. Menjawab pertanyaan 'kalau saya start Rp10jt dan ikuti semua sinyal, saldo saya jadi berapa'. Bukan LIVE_CAPITAL Rp10jt per trade (itu buat evaluasi kualitas sinyal, non-compounding, dipakai di kartu resmi lain).">
+            = Modal Awal Rp10jt + PnL kumulatif (compounding realistis)
           </p>
         </div>
       </div>
@@ -70,7 +75,17 @@
         <div class="h-32 flex items-center justify-center text-xs text-slate-500">Belum ada trade closed.</div>
       @else
         <div class="relative h-32 w-full overflow-hidden">
-          <canvas x-data="equityChart(@js($portfolioReport['chart']))" x-ref="canvas" class="!w-full"></canvas>
+          <canvas x-ref="canvas" class="!w-full"></canvas>
+        </div>
+        {{-- Fase CY: range filter (1W/1M/3M/YTD/1Y/All). Client-side slice via Alpine, tidak butuh
+             reload -- chart data full range sudah dikirim, JS pilih subset. --}}
+        <div class="flex items-center justify-center gap-3 mt-2 text-[11px]">
+          <template x-for="r in ['1W','1M','3M','YTD','1Y','All']" :key="r">
+            <button type="button" @click="range = r"
+                    :class="range === r ? 'text-green-400 border-green-400 font-semibold' : 'text-slate-500 border-transparent hover:text-slate-300'"
+                    class="px-1.5 pb-0.5 border-b transition"
+                    x-text="r"></button>
+          </template>
         </div>
       @endif
     </div>

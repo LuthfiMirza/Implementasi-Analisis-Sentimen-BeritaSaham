@@ -333,33 +333,27 @@ class TradeController extends Controller
             return [];
         }
 
+        // Fase CY: pakai basis single-account compounding realistis (STARTING_CAPITAL + cumulative
+        // PnL) supaya konsisten dgn chart Total Equity. Cuma tanggal dgn EXIT (PnL berubah) yg
+        // masuk tabel -- tanggal entry doang tidak nambah baris karena equity tidak berubah di
+        // hari entry (baru berubah pas exit).
         $pnlByDate = [];
-        $capitalByDate = [];
         foreach ($trades as $t) {
             $exitKey = $t->exit_date->format('Y-m-d');
-            $entryKey = $t->entry_date->format('Y-m-d');
             $pnlByDate[$exitKey] = ($pnlByDate[$exitKey] ?? 0) + (float) $t->pnl_total;
-            $capitalByDate[$entryKey] = ($capitalByDate[$entryKey] ?? 0) + self::CAPITAL_PER_TRADE;
         }
 
-        // Kumpulkan semua tanggal unik yg ADA aktivitas (entry atau exit) supaya tabel tidak
-        // penuh hari-hari kosong -- StockBit skip weekend dan libur otomatis, ikut pola itu.
-        $activityDates = collect(array_merge(array_keys($pnlByDate), array_keys($capitalByDate)))
-            ->unique()->sort()->values();
+        $activityDates = collect(array_keys($pnlByDate))->unique()->sort()->values();
 
         $cumulativePnl = 0.0;
-        $cumulativeCapital = 0.0;
         $rows = [];
         foreach ($activityDates as $key) {
-            $capitalDelta = $capitalByDate[$key] ?? 0;
             $pnlDelta = $pnlByDate[$key] ?? 0;
-            $cumulativeCapital += $capitalDelta;
+            $equityBefore = self::STARTING_CAPITAL + $cumulativePnl;
             $cumulativePnl += $pnlDelta;
-            $equity = $cumulativeCapital + $cumulativePnl;
-            // pnl_pct daily: delta PnL hari itu / equity di hari yg sama (kalau equity > 0)
-            $pnlPct = $equity > 0 && $pnlDelta != 0
-                ? round($pnlDelta / ($equity - $pnlDelta) * 100, 2)
-                : 0.0;
+            $equity = self::STARTING_CAPITAL + $cumulativePnl;
+            // pnl_pct daily: delta PnL hari itu / equity SEBELUM realisasi hari itu.
+            $pnlPct = $equityBefore > 0 ? round($pnlDelta / $equityBefore * 100, 2) : 0.0;
 
             $rows[] = [
                 'date' => $key,
@@ -376,6 +370,16 @@ class TradeController extends Controller
     private const CAPITAL_PER_TRADE = 10_000_000;
 
     /**
+     * Fase CY: modal AWAL simulasi single-account (bukan kumulatif per-trade seperti
+     * CAPITAL_PER_TRADE). Dipakai buat basis chart "Total Equity" yang compounding realistis:
+     * start di Rp10jt, tiap PnL ditambah ke saldo -- angka akhir jadi ~Rp150jt (realistis akun
+     * retail), bukan Rp3M yang bikin user bingung. Angka pnl_pct chart tetap dihitung relatif
+     * ke modal awal ini, jadi return % konsisten dgn "kalau saya mulai Rp10jt, sekarang saldonya
+     * sekian".
+     */
+    private const STARTING_CAPITAL = 10_000_000;
+
+    /**
      * Bangun 3 seri chart: Rupiah kumulatif (realisasi tiap exit_date), Portfolio % vs IHSG.
      *
      * Fase CW (fix): dulu `portfolioPct = cumulative / Rp10jt * 100` -- APPLES-TO-ORANGES:
@@ -388,42 +392,42 @@ class TradeController extends Controller
      * hari entry-nya, jadi persentase tiap hari mencerminkan "return thd modal yg lagi jalan hari
      * itu"). Angka `portfolioRp` (mode Rupiah) TIDAK DIUBAH -- itu Rp absolut, tetap intuitif.
      */
-    private function portfolioChartData($gabunganClosed): array
+    private function portfolioChartData($closedTrades): array
     {
-        $trades = $gabunganClosed->sortBy(fn ($t) => $t->exit_date)->values();
+        $trades = $closedTrades->sortBy(fn ($t) => $t->exit_date)->values();
         if ($trades->isEmpty()) {
-            return ['labels' => [], 'portfolioRp' => [], 'portfolioPct' => [], 'ihsgPct' => []];
+            return ['labels' => [], 'dates' => [], 'portfolioRp' => [], 'portfolioPct' => [], 'ihsgPct' => [], 'startingCapital' => self::STARTING_CAPITAL];
         }
 
         $startDate = $trades->min(fn ($t) => $t->entry_date)->copy()->startOfDay();
         $endDate = now()->startOfDay();
 
         $pnlByDate = [];
-        $capitalDeployedByDate = [];
         foreach ($trades as $t) {
             $exitKey = $t->exit_date->format('Y-m-d');
-            $entryKey = $t->entry_date->format('Y-m-d');
             $pnlByDate[$exitKey] = ($pnlByDate[$exitKey] ?? 0) + (float) $t->pnl_total;
-            $capitalDeployedByDate[$entryKey] = ($capitalDeployedByDate[$entryKey] ?? 0) + self::CAPITAL_PER_TRADE;
         }
 
         $ihsg = $this->fetchIhsgSeries();
 
+        // Fase CY: basis chart pindah ke SINGLE-ACCOUNT compounding realistis.
+        // portfolioRp SEKARANG = saldo akun (bukan cumulative_pnl doang) = STARTING_CAPITAL + PnL kumulatif.
+        // Angka akhir ~Rp150jt (10jt + 140jt PnL) -- realistis akun retail, bukan Rp3M pool virtual.
+        // portfolioPct = return% dari modal awal, jadi konsisten dgn "kalau saya mulai Rp10jt di
+        // tanggal X, sekarang saldo saya Rp Y (return +Z%)". IHSG series tetap sama (normalisasi 0
+        // di trade pertama), jadi perbandingan return% Portfolio vs IHSG apples-to-apples.
         $labels = [];
+        $dates = [];
         $portfolioRp = [];
         $portfolioPct = [];
         $ihsgPct = [];
 
         $cumulativePnl = 0.0;
-        $cumulativeCapital = 0.0;
         $ihsgBase = null;
         $lastIhsg = null;
 
         for ($d = $startDate->copy(); $d->lte($endDate); $d->addDay()) {
             $key = $d->format('Y-m-d');
-            if (isset($capitalDeployedByDate[$key])) {
-                $cumulativeCapital += $capitalDeployedByDate[$key];
-            }
             if (isset($pnlByDate[$key])) {
                 $cumulativePnl += $pnlByDate[$key];
             }
@@ -433,15 +437,17 @@ class TradeController extends Controller
                 $ihsgBase ??= $lastIhsg;
             }
 
+            $equity = self::STARTING_CAPITAL + $cumulativePnl;
             $labels[] = $d->format('d M');
-            $portfolioRp[] = round($cumulativePnl, 0);
-            $portfolioPct[] = $cumulativeCapital > 0
-                ? round($cumulativePnl / $cumulativeCapital * 100, 2)
-                : 0;
+            $dates[] = $key; // ISO date untuk filter range di JS (labels 'd M' ambigu antar tahun)
+            $portfolioRp[] = round($equity, 0);
+            $portfolioPct[] = round($cumulativePnl / self::STARTING_CAPITAL * 100, 2);
             $ihsgPct[] = ($ihsgBase && $lastIhsg) ? round(($lastIhsg / $ihsgBase - 1) * 100, 2) : null;
         }
 
-        return compact('labels', 'portfolioRp', 'portfolioPct', 'ihsgPct');
+        return compact('labels', 'dates', 'portfolioRp', 'portfolioPct', 'ihsgPct') + [
+            'startingCapital' => self::STARTING_CAPITAL,
+        ];
     }
 
     /**

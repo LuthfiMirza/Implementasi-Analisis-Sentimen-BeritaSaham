@@ -214,32 +214,54 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
-    // Fase CX: mini equity line chart (top-left StockBit-style Total Equity card). Data yang sama
-    // dgn portfolioChart (labels + portfolioRp), tapi ditampilkan sebagai equity ABSOLUTE
-    // (cumulativePnl + total capital deployed di titik itu) -- direconstruksi client-side supaya
-    // tidak perlu kirim series baru dari server.
+    // Fase CY: mini equity line chart (StockBit-style Total Equity card) + range filter
+    // (1W/1M/3M/YTD/1Y/All). Data.portfolioRp SEKARANG = saldo akun (STARTING_CAPITAL + PnL kum)
+    // langsung dari server, bukan reconstructed lagi. `range` state reactive -- ganti pilihan =
+    // chart re-render dgn subset dates.
     Alpine.data('equityChart', (data) => ({
         chart: null,
+        range: 'All',
         init() {
             if (!data.labels || data.labels.length === 0) return;
             this.$nextTick(() => this.initChart());
+            this.$watch('range', () => this.updateChart());
+        },
+        // Fase CY: pilih rentang berdasar `data.dates` (ISO YYYY-MM-DD dari server, tidak ambigu
+        // antar tahun spt 'd M'). Kembalikan indeks awal (start) dari array full utk di-slice.
+        rangeStartIndex() {
+            const dates = data.dates || [];
+            if (dates.length === 0 || this.range === 'All') return 0;
+            const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00');
+            let cutoff = new Date(lastDate);
+            switch (this.range) {
+                case '1W': cutoff.setDate(lastDate.getDate() - 7); break;
+                case '1M': cutoff.setMonth(lastDate.getMonth() - 1); break;
+                case '3M': cutoff.setMonth(lastDate.getMonth() - 3); break;
+                case 'YTD': cutoff = new Date(lastDate.getFullYear(), 0, 1); break;
+                case '1Y': cutoff.setFullYear(lastDate.getFullYear() - 1); break;
+                default: return 0;
+            }
+            const cutoffIso = cutoff.toISOString().slice(0, 10);
+            for (let i = 0; i < dates.length; i++) {
+                if (dates[i] >= cutoffIso) return i;
+            }
+            return dates.length - 1;
+        },
+        sliced() {
+            const start = this.rangeStartIndex();
+            return {
+                labels: data.labels.slice(start),
+                equity: data.portfolioRp.slice(start),
+            };
         },
         initChart() {
-            // portfolioRp = PnL kumulatif; portfolioPct = PnL / cumulative_capital * 100.
-            // cumulative_capital bisa direconstruksi: pnl / (pct/100).
-            // Equity = cumulative_capital + PnL.
-            const equity = data.labels.map((_, i) => {
-                const pnl = data.portfolioRp[i] || 0;
-                const pct = data.portfolioPct[i] || 0;
-                const capital = pct !== 0 ? pnl / (pct / 100) : 0;
-                return Math.round(capital + pnl);
-            });
+            const s = this.sliced();
             this.chart = new Chart(this.$refs.canvas, {
                 type: 'line',
                 data: {
-                    labels: data.labels,
+                    labels: s.labels,
                     datasets: [{
-                        data: equity,
+                        data: s.equity,
                         borderColor: '#4ade80',
                         backgroundColor: 'rgba(74,222,128,0.12)',
                         fill: true,
@@ -264,6 +286,13 @@ document.addEventListener('alpine:init', () => {
                     },
                 },
             });
+        },
+        updateChart() {
+            if (!this.chart) return;
+            const s = this.sliced();
+            this.chart.data.labels = s.labels;
+            this.chart.data.datasets[0].data = s.equity;
+            this.chart.update();
         },
     }));
 
