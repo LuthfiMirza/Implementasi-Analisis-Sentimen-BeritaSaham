@@ -221,10 +221,39 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('equityChart', (data) => ({
         chart: null,
         range: 'All',
+        // Fase CY polish: counter animasi utk equity SEKARANG. User minta "dari kecil ke gede
+        // gitu, masa langsung 150" -- angka jangan langsung meloncat ke Rp150jt, tapi tumbuh
+        // dari equity awal periode -> equity sekarang biar kelihatan "perjalanan"-nya.
+        animatedEquity: 0,
+        animationHandle: null,
         init() {
             if (!data.labels || data.labels.length === 0) return;
-            this.$nextTick(() => this.initChart());
-            this.$watch('range', () => this.updateChart());
+            this.$nextTick(() => {
+                this.initChart();
+                this.animateEquityFromStartToEnd();
+            });
+            this.$watch('range', () => {
+                this.updateChart();
+                this.animateEquityFromStartToEnd();
+            });
+        },
+        // Animate `animatedEquity` dari equity di AWAL range -> equity di AKHIR range (sekarang),
+        // ease-out cubic, ~900ms. Tiap ganti range = jalan lagi dari awal (biar user lihat
+        // "kalau saya start dari titik ini, saldonya tumbuh sampai sekarang segini").
+        animateEquityFromStartToEnd() {
+            if (this.animationHandle) cancelAnimationFrame(this.animationHandle);
+            const from = this.equityAtStart();
+            const to = this.equityAtEnd();
+            const startTime = performance.now();
+            const duration = 900;
+            const step = (now) => {
+                const t = Math.min((now - startTime) / duration, 1);
+                const eased = 1 - Math.pow(1 - t, 3);
+                this.animatedEquity = Math.round(from + (to - from) * eased);
+                if (t < 1) this.animationHandle = requestAnimationFrame(step);
+                else this.animationHandle = null;
+            };
+            this.animationHandle = requestAnimationFrame(step);
         },
         // Fase CY: pilih rentang berdasar `data.dates` (ISO YYYY-MM-DD dari server, tidak ambigu
         // antar tahun spt 'd M'). Kembalikan indeks awal (start) dari array full utk di-slice.
