@@ -254,6 +254,38 @@ document.addEventListener('alpine:init', () => {
                 equity: data.portfolioRp.slice(start),
             };
         },
+        // Fase CY: header info yg reactive ke range -- equity di ujung range (kanan) dan delta
+        // dari start-of-range ke end. Sebelumnya angka header hardcoded dari daily_equity_table
+        // (fixed, tidak ikut range) -- user laporan "total equity ga berubah". Sekarang header
+        // ikut hidup: pilih 1W -> lihat perubahan seminggu terakhir, pilih All -> perubahan sejak
+        // mulai. Format Rp pakai Intl (locale id-ID) supaya konsisten dgn format server.
+        equityAtEnd() {
+            const s = this.sliced();
+            return s.equity.length ? s.equity[s.equity.length - 1] : 0;
+        },
+        equityAtStart() {
+            const s = this.sliced();
+            return s.equity.length ? s.equity[0] : 0;
+        },
+        rangeDeltaRp() {
+            return this.equityAtEnd() - this.equityAtStart();
+        },
+        rangeDeltaPct() {
+            const start = this.equityAtStart();
+            if (!start) return 0;
+            return (this.equityAtEnd() - start) / start * 100;
+        },
+        formatRp(n) {
+            const sign = n >= 0 ? '+' : '-';
+            return sign + 'Rp' + Math.abs(Math.round(n)).toLocaleString('id-ID');
+        },
+        formatPct(n) {
+            const sign = n >= 0 ? '+' : '';
+            return sign + n.toFixed(2) + '%';
+        },
+        formatEquity(n) {
+            return 'Rp' + Math.round(n).toLocaleString('id-ID');
+        },
         initChart() {
             const s = this.sliced();
             this.chart = new Chart(this.$refs.canvas, {

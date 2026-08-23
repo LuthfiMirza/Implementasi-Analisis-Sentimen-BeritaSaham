@@ -60,11 +60,13 @@
       <div class="flex items-start justify-between mb-3">
         <div class="min-w-0">
           <p class="text-[10px] text-slate-500 uppercase font-medium">Total Equity ({{ $portfolioReport['scope_label'] }})</p>
-          <p class="text-2xl font-bold text-slate-100 font-mono mt-1">
-            @php
-              $lastEquity = !empty($portfolioReport['daily_equity_table']) ? $portfolioReport['daily_equity_table'][0]['equity'] : ($portfolioReport['chart']['startingCapital'] ?? 10_000_000);
-            @endphp
-            Rp{{ number_format($lastEquity, 0, ',', '.') }}
+          {{-- Fase CY: angka & delta REACTIVE ke range -- Alpine x-text panggil computed getter
+               equityAtEnd/rangeDeltaRp/rangeDeltaPct/formatEquity dari component equityChart. --}}
+          <p class="text-2xl font-bold text-slate-100 font-mono mt-1"
+             x-text="formatEquity(equityAtEnd())"></p>
+          <p class="text-xs font-mono mt-1"
+             :class="rangeDeltaRp() >= 0 ? 'text-green-400' : 'text-rose-400'"
+             x-text="formatRp(rangeDeltaRp()) + ' (' + formatPct(rangeDeltaPct()) + ') · ' + range">
           </p>
           <p class="text-[10px] text-slate-500 mt-1" title="Simulasi single-account: mulai Rp10jt modal awal, tiap PnL realized nambah ke saldo. Menjawab pertanyaan 'kalau saya start Rp10jt dan ikuti semua sinyal, saldo saya jadi berapa'. Bukan LIVE_CAPITAL Rp10jt per trade (itu buat evaluasi kualitas sinyal, non-compounding, dipakai di kartu resmi lain).">
             = Modal Awal Rp10jt + PnL kumulatif (compounding realistis)
