@@ -221,12 +221,11 @@ class TradeController extends Controller
         $historyStrategyOptions = $closed->pluck('strategy_label')->filter()->unique()->sort()->values();
         $historyTickerOptions = $closed->pluck('ticker')->unique()->sort()->values();
 
-        // Fase CU: laporan portofolio ala StockBit (chart cumulative + leaderboard per saham).
-        // SELALU GABUNGAN resmi, TIDAK ikut toggle $scope di atas -- user eksplisit pilih ini
-        // supaya angkanya konsisten dengan kartu resmi lain, tidak ikut menggelembung kalau user
-        // sedang lihat mode "Semua Strategi" di bagian lain halaman yang sama.
-        $gabunganClosed = $closed->where('strategy_label', 'gabungan');
-        $portfolioReport = $this->buildPortfolioReport($gabunganClosed);
+        // Fase CX: laporan portofolio ala StockBit -- sekarang IKUT toggle $scope (GABUNGAN vs
+        // Semua Strategi) sesuai keputusan user, konsisten dgn kartu ringkasan resmi di atas.
+        // Sebelumnya (Fase CU) SELALU GABUNGAN, tapi user minta bisa switch supaya bisa lihat
+        // performa gabungan semua strategi juga di section ini.
+        $portfolioReport = $this->buildPortfolioReport($officialClosed, $officialOpen, $scope);
 
         return view('trades.laporan', compact(
             'stats', 'closed', 'strategyBreakdown', 'monthlyBreakdown', 'scope',
@@ -246,10 +245,10 @@ class TradeController extends Controller
      * padahal kenyataannya "kita memang tidak mengukurnya". Diam-diam salah lebih buruk daripada
      * tidak ada elemen itu sama sekali.
      */
-    private function buildPortfolioReport($gabunganClosed): array
+    private function buildPortfolioReport($closedTrades, $openTrades, string $scope): array
     {
-        $winners = $gabunganClosed->where('pnl_total', '>', 0);
-        $losers = $gabunganClosed->where('pnl_total', '<=', 0);
+        $winners = $closedTrades->where('pnl_total', '>', 0);
+        $losers = $closedTrades->where('pnl_total', '<=', 0);
         $realizedGain = (float) $winners->sum('pnl_total');
         $realizedLoss = (float) abs($losers->sum('pnl_total'));
 
@@ -257,7 +256,7 @@ class TradeController extends Controller
         // itu (n_trade x Rp10jt LIVE_CAPITAL per trade, bukan compounding), konsisten dgn cara
         // Fase CI melaporkan "Total PnL / Total modal dikerahkan" -- bukan rata-rata pnl_percent
         // per trade (itu akan bias ke trade kecil yg persentasenya kebetulan besar).
-        $leaderboard = $gabunganClosed->groupBy('ticker')->map(function ($rows, $ticker) {
+        $leaderboard = $closedTrades->groupBy('ticker')->map(function ($rows, $ticker) {
             $pnl = (float) $rows->sum('pnl_total');
             $capitalDeployed = $rows->count() * self::CAPITAL_PER_TRADE;
 
@@ -269,15 +268,109 @@ class TradeController extends Controller
             ];
         })->sortByDesc('pnl')->values()->all();
 
+        // Fase CX: metrik detail Trade Summary ala StockBit -- Max/Min pnl_pct, avg profit/loss,
+        // total transaction value, total orders. Nilai % dihitung dari pnl_percent per trade (%
+        // trade individual, cocok untuk "Max Profit %" dan "Max Loss %"), Rp dari pnl_total.
+        $maxProfitTrade = $closedTrades->sortByDesc('pnl_total')->first();
+        $maxLossTrade = $closedTrades->sortBy('pnl_total')->first();
+        $totalTransactionValue = (float) $closedTrades->sum(fn ($t) => (float) ($t->position_value ?? 0));
+
+        // Fase CX: Portfolio Allocation dari posisi terbuka (bukan closed). Value posisi = quantity
+        // * entry_price -- BUKAN market value real time (kalau mau real time butuh fetch harga live
+        // per ticker, jadi tambahan overhead HTTP -- untuk section ini cukup entry_value supaya
+        // ringan dan tetap informatif komposisi holding).
+        $allocation = $openTrades->groupBy('ticker')->map(function ($rows, $ticker) {
+            $value = (float) $rows->sum(fn ($t) => (float) ($t->position_value ?? 0));
+
+            return [
+                'ticker' => $ticker,
+                'positions' => $rows->count(),
+                'value' => $value,
+            ];
+        })->sortByDesc('value')->values()->all();
+        $allocationTotal = array_sum(array_column($allocation, 'value'));
+        foreach ($allocation as &$a) {
+            $a['pct'] = $allocationTotal > 0 ? round($a['value'] / $allocationTotal * 100, 2) : 0;
+        }
+        unset($a);
+
         return [
+            'scope' => $scope,
+            'scope_label' => $scope === 'all' ? 'Semua Strategi' : 'GABUNGAN (resmi)',
             'profit_factor' => $realizedLoss > 0 ? round($realizedGain / $realizedLoss, 2) : null,
             'realized_gain' => $realizedGain,
             'realized_loss' => $realizedLoss,
-            'max_profit_trade' => $gabunganClosed->sortByDesc('pnl_total')->first(),
-            'max_loss_trade' => $gabunganClosed->sortBy('pnl_total')->first(),
+            'total_trades' => $closedTrades->count(),
+            'win_count' => $winners->count(),
+            'loss_count' => $losers->count(),
+            'total_transaction_value' => $totalTransactionValue,
+            'total_orders' => $closedTrades->count() * 2, // buy + sell per trade
+            'max_profit_trade' => $maxProfitTrade,
+            'max_loss_trade' => $maxLossTrade,
+            'max_profit_pct' => $maxProfitTrade ? (float) $maxProfitTrade->pnl_percent : null,
+            'max_loss_pct' => $maxLossTrade ? (float) $maxLossTrade->pnl_percent : null,
+            'avg_profit' => $winners->count() > 0 ? (float) $winners->avg('pnl_total') : null,
+            'avg_loss' => $losers->count() > 0 ? (float) $losers->avg('pnl_total') : null,
             'leaderboard' => $leaderboard,
-            'chart' => $this->portfolioChartData($gabunganClosed),
+            'allocation' => $allocation,
+            'allocation_total' => $allocationTotal,
+            'chart' => $this->portfolioChartData($closedTrades),
+            'daily_equity_table' => $this->buildDailyEquityTable($closedTrades),
         ];
+    }
+
+    /**
+     * Fase CX: tabel "Total Equity Return" harian ala StockBit -- tampilkan 30 hari terakhir yg
+     * ADA aktivitas (trade close, PnL berubah), dgn Equity = Modal Dikerahkan kumulatif + PnL
+     * kumulatif dan daily PnL delta dari hari sebelumnya. Basis equity: keputusan user "Jujur:
+     * Modal Dikerahkan + PnL Kumulatif" (bukan compounding fiktif dari Rp10jt awal, yang tidak
+     * mencerminkan bagaimana strategi ini benar-benar dijalankan di sistem non-compounding kita).
+     */
+    private function buildDailyEquityTable($closedTrades): array
+    {
+        $trades = $closedTrades->sortBy(fn ($t) => $t->exit_date)->values();
+        if ($trades->isEmpty()) {
+            return [];
+        }
+
+        $pnlByDate = [];
+        $capitalByDate = [];
+        foreach ($trades as $t) {
+            $exitKey = $t->exit_date->format('Y-m-d');
+            $entryKey = $t->entry_date->format('Y-m-d');
+            $pnlByDate[$exitKey] = ($pnlByDate[$exitKey] ?? 0) + (float) $t->pnl_total;
+            $capitalByDate[$entryKey] = ($capitalByDate[$entryKey] ?? 0) + self::CAPITAL_PER_TRADE;
+        }
+
+        // Kumpulkan semua tanggal unik yg ADA aktivitas (entry atau exit) supaya tabel tidak
+        // penuh hari-hari kosong -- StockBit skip weekend dan libur otomatis, ikut pola itu.
+        $activityDates = collect(array_merge(array_keys($pnlByDate), array_keys($capitalByDate)))
+            ->unique()->sort()->values();
+
+        $cumulativePnl = 0.0;
+        $cumulativeCapital = 0.0;
+        $rows = [];
+        foreach ($activityDates as $key) {
+            $capitalDelta = $capitalByDate[$key] ?? 0;
+            $pnlDelta = $pnlByDate[$key] ?? 0;
+            $cumulativeCapital += $capitalDelta;
+            $cumulativePnl += $pnlDelta;
+            $equity = $cumulativeCapital + $cumulativePnl;
+            // pnl_pct daily: delta PnL hari itu / equity di hari yg sama (kalau equity > 0)
+            $pnlPct = $equity > 0 && $pnlDelta != 0
+                ? round($pnlDelta / ($equity - $pnlDelta) * 100, 2)
+                : 0.0;
+
+            $rows[] = [
+                'date' => $key,
+                'equity' => round($equity, 0),
+                'pnl' => round($pnlDelta, 0),
+                'pnl_pct' => $pnlPct,
+            ];
+        }
+
+        // Return DESC (terbaru dulu) dan batasi 30 baris paling recent -- ala tabel StockBit.
+        return array_slice(array_reverse($rows), 0, 30);
     }
 
     private const CAPITAL_PER_TRADE = 10_000_000;

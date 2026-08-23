@@ -214,6 +214,99 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    // Fase CX: mini equity line chart (top-left StockBit-style Total Equity card). Data yang sama
+    // dgn portfolioChart (labels + portfolioRp), tapi ditampilkan sebagai equity ABSOLUTE
+    // (cumulativePnl + total capital deployed di titik itu) -- direconstruksi client-side supaya
+    // tidak perlu kirim series baru dari server.
+    Alpine.data('equityChart', (data) => ({
+        chart: null,
+        init() {
+            if (!data.labels || data.labels.length === 0) return;
+            this.$nextTick(() => this.initChart());
+        },
+        initChart() {
+            // portfolioRp = PnL kumulatif; portfolioPct = PnL / cumulative_capital * 100.
+            // cumulative_capital bisa direconstruksi: pnl / (pct/100).
+            // Equity = cumulative_capital + PnL.
+            const equity = data.labels.map((_, i) => {
+                const pnl = data.portfolioRp[i] || 0;
+                const pct = data.portfolioPct[i] || 0;
+                const capital = pct !== 0 ? pnl / (pct / 100) : 0;
+                return Math.round(capital + pnl);
+            });
+            this.chart = new Chart(this.$refs.canvas, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: equity,
+                        borderColor: '#4ade80',
+                        backgroundColor: 'rgba(74,222,128,0.12)',
+                        fill: true,
+                        tension: 0.15,
+                        pointRadius: 0,
+                        borderWidth: 1.5,
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => 'Rp' + Math.round(ctx.parsed.y).toLocaleString('id-ID'),
+                            },
+                        },
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false },
+                    },
+                },
+            });
+        },
+    }));
+
+    // Fase CX: Portfolio Allocation donut (open positions). Data = [{ticker, positions, value, pct}].
+    // Warna cycling supaya tiap saham beda warna tanpa perlu palette per-saham eksplisit.
+    Alpine.data('allocationDonut', (allocations) => ({
+        chart: null,
+        init() {
+            if (!allocations || allocations.length === 0) return;
+            this.$nextTick(() => this.initChart());
+        },
+        initChart() {
+            const palette = ['#4ade80', '#a78bfa', '#38bdf8', '#f472b6', '#fbbf24', '#f87171', '#22d3ee', '#fb923c'];
+            this.chart = new Chart(this.$refs.canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: allocations.map(a => a.ticker),
+                    datasets: [{
+                        data: allocations.map(a => a.value),
+                        backgroundColor: allocations.map((_, i) => palette[i % palette.length]),
+                        borderColor: '#0f172a',
+                        borderWidth: 2,
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const a = allocations[ctx.dataIndex];
+                                    return a.ticker + ': Rp' + a.value.toLocaleString('id-ID') + ' (' + a.pct + '%)';
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+        },
+    }));
+
     Alpine.data('priceQuote', (initialQuote, fallbackChange) => ({
         quote: {
             stock_code: initialQuote?.stock_code ?? null,

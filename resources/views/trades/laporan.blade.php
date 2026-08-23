@@ -42,10 +42,108 @@
     </div>
   </div>
 
-  {{-- ── LAPORAN PORTOFOLIO (Fase CU, ala StockBit) ── --}}
-  {{-- SELALU GABUNGAN resmi, TIDAK ikut toggle scope di atas -- dikonfirmasi user via
-       AskUserQuestion (2026-08-20): angka di sini harus konsisten dengan kartu resmi, tidak boleh
-       ikut menggelembung kalau user sedang lihat mode "Semua Strategi". --}}
+  {{-- ── LAPORAN PORTOFOLIO ala StockBit (Fase CU rework Fase CX) ── --}}
+  {{-- Fase CX: sekarang IKUT toggle scope (GABUNGAN vs Semua Strategi) -- dikonfirmasi user via
+       AskUserQuestion (2026-08-23). Sebelumnya (Fase CU) selalu GABUNGAN, tapi user minta bisa
+       switch supaya bisa lihat performa gabungan semua strategi juga di section ini. --}}
+
+  {{-- BARIS 1: 3-kolom StockBit -- Total Equity | Total Equity Return | Portfolio Allocation --}}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+    {{-- ═══ TOTAL EQUITY (kartu kiri atas + mini chart) ═══ --}}
+    <div class="glass-card border border-slate-800/80 rounded-2xl p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <p class="text-[10px] text-slate-500 uppercase font-medium">Total Equity ({{ $portfolioReport['scope_label'] }})</p>
+          <p class="text-2xl font-bold text-slate-100 font-mono mt-1">
+            @php
+              $lastEquity = !empty($portfolioReport['daily_equity_table']) ? $portfolioReport['daily_equity_table'][0]['equity'] : 0;
+            @endphp
+            Rp{{ number_format($lastEquity, 0, ',', '.') }}
+          </p>
+          <p class="text-[10px] text-slate-500 mt-1" title="Sistem non-compounding: Modal Dikerahkan (n_trade × Rp10jt LIVE_CAPITAL) + PnL Kumulatif realisasi. Bukan compounding fiktif dari Rp10jt awal.">
+            = Modal Dikerahkan + PnL Kumulatif (non-compounding)
+          </p>
+        </div>
+      </div>
+      @if(empty($portfolioReport['chart']['labels']))
+        <div class="h-32 flex items-center justify-center text-xs text-slate-500">Belum ada trade closed.</div>
+      @else
+        <div class="relative h-32 w-full overflow-hidden">
+          <canvas x-data="equityChart(@js($portfolioReport['chart']))" x-ref="canvas" class="!w-full"></canvas>
+        </div>
+      @endif
+    </div>
+
+    {{-- ═══ TOTAL EQUITY RETURN (tabel harian, tengah) ═══ --}}
+    <div class="glass-card border border-slate-800/80 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-[10px] text-slate-500 uppercase font-medium">Total Equity Return</p>
+        <span class="text-[10px] text-slate-500 italic">Last 30 aktivitas</span>
+      </div>
+      @if(empty($portfolioReport['daily_equity_table']))
+        <div class="h-32 flex items-center justify-center text-xs text-slate-500">Belum ada trade closed.</div>
+      @else
+        <div class="overflow-y-auto max-h-64 -mx-2 px-2">
+          <table class="w-full text-xs">
+            <thead class="sticky top-0 bg-slate-900/95 backdrop-blur">
+              <tr class="text-left text-[10px] text-slate-500 uppercase border-b border-slate-800">
+                <th class="py-1.5 pr-2">Date</th>
+                <th class="py-1.5 pr-2 text-right">Equity</th>
+                <th class="py-1.5 text-right">P&amp;L</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($portfolioReport['daily_equity_table'] as $row)
+              <tr class="border-b border-slate-800/40">
+                <td class="py-1 pr-2 text-slate-400 font-mono">{{ \Carbon\Carbon::parse($row['date'])->format('d M y') }}</td>
+                <td class="py-1 pr-2 text-right font-mono text-slate-200">{{ number_format($row['equity'], 0, ',', '.') }}</td>
+                <td class="py-1 text-right font-mono {{ $row['pnl'] > 0 ? 'text-green-400' : ($row['pnl'] < 0 ? 'text-rose-400' : 'text-slate-500') }}">
+                  {{ $row['pnl'] > 0 ? '+' : '' }}{{ number_format($row['pnl'], 0, ',', '.') }}
+                  <span class="text-[9px] opacity-70">({{ $row['pnl_pct'] > 0 ? '+' : '' }}{{ $row['pnl_pct'] }}%)</span>
+                </td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      @endif
+    </div>
+
+    {{-- ═══ PORTFOLIO ALLOCATION (donut kanan) ═══ --}}
+    <div class="glass-card border border-slate-800/80 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-[10px] text-slate-500 uppercase font-medium">Portfolio Allocation</p>
+        <span class="text-[10px] text-slate-500 italic">Posisi terbuka</span>
+      </div>
+      @if(empty($portfolioReport['allocation']))
+        <div class="h-40 flex items-center justify-center text-xs text-slate-500 text-center px-4">
+          Tidak ada posisi terbuka di scope {{ $portfolioReport['scope_label'] }}.
+        </div>
+      @else
+        <div class="flex flex-col items-center">
+          <div class="relative w-40 h-40" x-data="allocationDonut(@js($portfolioReport['allocation']))">
+            <canvas x-ref="canvas" class="!w-full !h-full"></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <p class="text-[9px] text-slate-500 uppercase">Total</p>
+              <p class="text-sm font-bold font-mono text-slate-100">Rp{{ number_format($portfolioReport['allocation_total'], 0, ',', '.') }}</p>
+              <p class="text-[9px] text-slate-500 mt-0.5">{{ count($portfolioReport['allocation']) }} saham</p>
+            </div>
+          </div>
+          <div class="w-full mt-4 space-y-1.5">
+            @foreach($portfolioReport['allocation'] as $a)
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-200">{{ $a['ticker'] }} <span class="text-[10px] text-slate-500 font-normal">({{ $a['positions'] }} pos)</span></span>
+              <span class="font-mono text-slate-400">Rp{{ number_format($a['value'], 0, ',', '.') }} <span class="text-slate-500">· {{ $a['pct'] }}%</span></span>
+            </div>
+            @endforeach
+          </div>
+        </div>
+      @endif
+    </div>
+  </div>
+
+  {{-- BARIS 2: Cumulative Portfolio Return chart (Rupiah/vs IHSG toggle) -- yang sudah ada, kena rework layout --}}
   <div class="glass-card border border-slate-800/80 rounded-2xl p-5" x-data="portfolioChart(@js($portfolioReport['chart']))">
     {{-- Fase CU bug (ditemukan user): tanpa flex-wrap, judul panjang "📈 Laporan Portofolio
          (GABUNGAN)" tidak menyusut (flex child default min-width:auto) dan mendorong toggle
@@ -53,7 +151,7 @@
          -- tombolnya ADA di DOM, cuma kegeser total ke luar area kelihatan). flex-wrap + min-w-0
          di judul supaya toggle turun ke baris baru alih-alih mendorong keluar. --}}
     <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider min-w-0">📈 Laporan Portofolio (GABUNGAN)</h2>
+      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider min-w-0">📈 Cumulative Portfolio Return ({{ $portfolioReport['scope_label'] }})</h2>
       {{-- Toggle Rupiah vs vs-IHSG -- Alpine murni client-side, data 2 mode sudah sama-sama
            dikirim dari server, tidak perlu reload halaman. --}}
       <div class="inline-flex rounded-lg border border-slate-800 bg-slate-900/60 p-1 text-xs shrink-0">
@@ -112,9 +210,42 @@
       </div>
     </div>
 
+    {{-- Fase CX: Trade Summary DETAIL ala StockBit -- Max/Avg Profit%, Total Transaction Value, Total Orders.
+         Section terpisah dari 4 kartu di atas supaya tidak terlalu penuh di 1 baris di layar sempit. --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+      <div class="bg-slate-900/60 rounded-xl p-3">
+        <p class="text-[10px] text-slate-500 uppercase mb-1">Max Profit %</p>
+        <p class="font-mono font-bold text-green-400 text-sm">
+          {{ $portfolioReport['max_profit_pct'] !== null ? '+'.number_format($portfolioReport['max_profit_pct'], 2).'%' : '—' }}
+        </p>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3">
+        <p class="text-[10px] text-slate-500 uppercase mb-1">Max Loss %</p>
+        <p class="font-mono font-bold text-rose-400 text-sm">
+          {{ $portfolioReport['max_loss_pct'] !== null ? number_format($portfolioReport['max_loss_pct'], 2).'%' : '—' }}
+        </p>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3">
+        <p class="text-[10px] text-slate-500 uppercase mb-1">Avg Profit / Loss</p>
+        <p class="font-mono text-[11px]">
+          <span class="text-green-400">+Rp{{ number_format($portfolioReport['avg_profit'] ?? 0, 0, ',', '.') }}</span>
+          <span class="text-slate-600">/</span>
+          <span class="text-rose-400">Rp{{ number_format($portfolioReport['avg_loss'] ?? 0, 0, ',', '.') }}</span>
+        </p>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3">
+        <p class="text-[10px] text-slate-500 uppercase mb-1"
+           title="Total nilai transaksi = jumlah semua position_value trade closed (bukan turnover intraday).">Total Transaction Value</p>
+        <p class="font-mono font-bold text-slate-100 text-sm">
+          Rp{{ number_format($portfolioReport['total_transaction_value'], 0, ',', '.') }}
+        </p>
+        <p class="text-[10px] text-slate-500 mt-0.5">{{ $portfolioReport['total_orders'] }} orders (buy+sell)</p>
+      </div>
+    </div>
+
     @if(!empty($portfolioReport['leaderboard']))
     <div class="mt-5">
-      <p class="text-[11px] text-slate-500 uppercase font-medium mb-2">Top Saham (Rp)</p>
+      <p class="text-[11px] text-slate-500 uppercase font-medium mb-2">Top Gainer / Loser (Rp)</p>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
