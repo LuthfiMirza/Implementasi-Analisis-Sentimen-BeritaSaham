@@ -287,12 +287,14 @@ document.addEventListener('alpine:init', () => {
                 },
             });
         },
+        // Fase CY: destroy+recreate tiap ganti range -- pola yang sama dgn portfolioChart (Fase CW).
+        // `chart.update()` doang kadang tidak repaint canvas walau data internal sudah benar
+        // (bug Chart.js v4 di kombinasi container kecil + data range yg beda drastis). Destroy
+        // paksa Chart.js bikin instance baru dari nol, canvas dijamin fresh.
         updateChart() {
             if (!this.chart) return;
-            const s = this.sliced();
-            this.chart.data.labels = s.labels;
-            this.chart.data.datasets[0].data = s.equity;
-            this.chart.update();
+            this.chart.destroy();
+            this.initChart();
         },
     }));
 
