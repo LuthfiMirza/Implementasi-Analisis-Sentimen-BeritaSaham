@@ -84,7 +84,7 @@
       @if(empty($portfolioReport['daily_equity_table']))
         <div class="h-32 flex items-center justify-center text-xs text-slate-500">Belum ada trade closed.</div>
       @else
-        <div class="overflow-y-auto max-h-64 -mx-2 px-2">
+        <div class="slim-scrollbar overflow-y-auto max-h-64 -mx-2 px-2">
           <table class="w-full text-xs">
             <thead class="sticky top-0 bg-slate-900/95 backdrop-blur">
               <tr class="text-left text-[10px] text-slate-500 uppercase border-b border-slate-800">

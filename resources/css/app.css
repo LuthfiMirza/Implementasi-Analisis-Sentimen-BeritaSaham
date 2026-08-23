@@ -2106,6 +2106,33 @@
         padding-right: 8px;
     }
 
+    /* Fase CX: scrollbar netral slate (bukan cyan-blue) untuk tabel/section umum spt Total Equity
+       Return -- referensi StockBit: scrollbar sangat halus, warna netral, tidak menonjol.
+       Default scrollbar putih macOS/Chrome tidak nyambung dgn tema dark, bikin section
+       kelihatan tidak selesai. */
+    .slim-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+    }
+
+    .slim-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .slim-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .slim-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.22);
+        border-radius: 999px;
+    }
+
+    .slim-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.42);
+    }
+
     .dashboard-news-scroll::-webkit-scrollbar {
         width: 8px;
     }
