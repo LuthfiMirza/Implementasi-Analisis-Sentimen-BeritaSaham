@@ -485,7 +485,9 @@
           <option value="hit_target_1">✅ Hit Target 1 (2R)</option>
           <option value="hit_target_2">✅ Hit Target 2 (3R)</option>
           <option value="stop_loss">❌ Stop Loss Triggered</option>
-          <option value="manual_close">📌 Manual Close</option>
+          <option value="trailing_stop">📉 Trailing Stop (2% dari puncak)</option>
+          <option value="time_target">⏰ Target Waktu (10 hari bursa)</option>
+          <option value="manual_close">📌 Manual Close (diskresi)</option>
         </select>
       </div>
 

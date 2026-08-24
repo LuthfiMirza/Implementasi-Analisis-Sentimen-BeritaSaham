@@ -566,11 +566,13 @@
               <td class="px-4 py-3 text-center">
                 @php
                   $resultConfig = match($trade->result) {
-                    'hit_target_1' => ['bg-green-500/10 text-green-400 border-green-500/30', '✅ TP1 Hit'],
-                    'hit_target_2' => ['bg-emerald-500/10 text-emerald-400 border-emerald-500/30', '✅ TP2 Hit'],
-                    'stop_loss'    => ['bg-rose-500/10 text-rose-400 border-rose-500/30', '❌ SL Hit'],
-                    'manual_close' => ['bg-amber-500/10 text-amber-400 border-amber-500/30', '📌 Manual'],
-                    default        => ['bg-slate-800 text-slate-400 border-slate-700', '—'],
+                    'hit_target_1'  => ['bg-green-500/10 text-green-400 border-green-500/30', '✅ TP1 Hit'],
+                    'hit_target_2'  => ['bg-emerald-500/10 text-emerald-400 border-emerald-500/30', '✅ TP2 Hit'],
+                    'stop_loss'     => ['bg-rose-500/10 text-rose-400 border-rose-500/30', '❌ SL Hit'],
+                    'trailing_stop' => ['bg-orange-500/10 text-orange-400 border-orange-500/30', '📉 Trailing'],
+                    'time_target'   => ['bg-sky-500/10 text-sky-400 border-sky-500/30', '⏰ Target Waktu'],
+                    'manual_close'  => ['bg-amber-500/10 text-amber-400 border-amber-500/30', '📌 Manual'],
+                    default         => ['bg-slate-800 text-slate-400 border-slate-700', '—'],
                   };
                 @endphp
                 <span class="px-2 py-0.5 rounded-full text-[10px] border {{ $resultConfig[0] }}">

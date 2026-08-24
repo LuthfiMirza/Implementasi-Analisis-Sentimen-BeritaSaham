@@ -649,7 +649,7 @@ class TradeController extends Controller
 
         $validated = $request->validate([
             'exit_price' => 'required|numeric|min:0',
-            'result' => 'required|in:hit_target_1,hit_target_2,stop_loss,manual_close',
+            'result' => 'required|in:hit_target_1,hit_target_2,stop_loss,trailing_stop,time_target,manual_close',
             'notes' => 'nullable|string|max:500',
         ]);
 
