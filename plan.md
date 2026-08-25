@@ -5575,3 +5575,63 @@ Konvensi ke depan (jangan lupa di sesi berikutnya):
   auto-start MySQL.
 
 ### Status: SELESAI, siap commit+push (menunggu full suite selesai di background).
+
+## Fase CX-CZ — Rework Laporan Portofolio + fix MySQL keeps-dying + Trailing Stop/Target Waktu di Hasil Trade
+
+Ringkasan 3 fase yang kepush 2026-08-23/24 tapi belum sempat didokumentasikan di sini (langsung
+lanjut ke permintaan berikutnya) -- ditulis susulan sebelum lupa detailnya.
+
+### Fase CX — Laporan Portofolio ala StockBit dashboard
+User kasih 2 screenshot referensi StockBit (tab Portfolio Tracker) minta section baru di
+`/trades/laporan`: Total Equity card (mini chart), Total Equity Return (tabel harian), Portfolio
+Allocation (donut posisi terbuka). Resolusi 3 pertanyaan via AskUserQuestion:
+1. Basis Total Equity = "Modal Dikerahkan + PnL Kumulatif" (bukan compounding fiktif) -- versi
+   AWAL, direvisi lagi di Fase CY setelah user protes angka Rp3M (lihat bawah).
+2. Section IKUT toggle GABUNGAN/Semua Strategi (bukan fixed GABUNGAN kayak section lama Fase CU).
+3. Donut Portfolio Allocation dari posisi TERBUKA (bukan simulasi).
+
+Implementasi: `TradeController::buildPortfolioReport()` diperluas terima `$openTrades` + `$scope`,
+tambah `daily_equity_table` + `allocation`. Component Alpine baru: `equityChart`, `allocationDonut`.
+Ditambah `.slim-scrollbar` (scrollbar netral slate, ganti default putih macOS yg tidak nyambung
+dark theme) -- dipasang di semua tabel scroll (Total Equity Return, Riwayat Trading, Top Gainer,
+Episode per Bulan).
+
+### Fase CY — Basis Total Equity direvisi ke single-account compounding + range filter
+User protes: "Rp3.080.226.553 -- saya gapunya dana sampe 3 M". Root cause: basis Fase CX (Modal
+Dikerahkan = n_trade x Rp10jt) menjumlahkan modal dari 294 trade historis, bukan simulasi 1 akun
+realistis. Fix: `portfolioChartData()` basis diganti ke **single-account compounding** -- mulai
+`STARTING_CAPITAL = Rp10.000.000`, tiap PnL exit ditambah ke saldo. Angka akhir jadi Rp150.226.553
+(realistis akun retail). Ditambah range filter 1W/1M/3M/YTD/1Y/All (client-side slice by ISO date).
+
+Bug ditemukan saat verifikasi (POLA SAMA PERSIS Fase CV -- lihat pelajaran di atas): `chart.update()`
+tidak repaint canvas walau data internal benar, kali ini di `equityChart` range-switch. Fix: destroy
++ recreate chart (sama seperti fix Fase CW). User lapor lagi "angka Total Equity ga berubah pas
+ganti range" -- ternyata angka besar itu equity SEKARANG (selalu sama utk semua range yg berakhir
+hari ini), fix: tampilkan animated counter dari equity-awal-range ke equity-sekarang
+(`requestAnimationFrame`, ease-out cubic ~900ms) + baris delta (Rp & % , warna hijau/merah).
+
+### Fase CZ — Trailing Stop + Target Waktu ditambah ke dropdown "Hasil Trade"
+User nemu form Tutup Trade cuma punya 4 opsi (Hit TP1/TP2/SL/Manual) padahal strategi live pakai
+trailing-stop 2% dan target-waktu 10 hari (dari `check_trailing_stop.py`) yang selama ini terpaksa
+dicatat sbg "Manual Close" -- audit hasil per exit-type jadi tidak jujur. Migration nambah ENUM
+`result`: `trailing_stop`, `time_target` (guard `DB::getDriverName() !== 'mysql'` return early
+supaya test sqlite tidak error -- ENUM MODIFY COLUMN itu sintaks MySQL-only). `Trade::resultColor()`
++ dropdown modal + badge di tabel Riwayat Trading disesuaikan (orange utk trailing, sky utk target
+waktu).
+
+### Fase (tanpa nomor) — MySQL "keeps dying" -> LaunchAgent auto-start
+User lapor error Connection Refused berulang (2026-07-30, 2026-08-22, 2026-08-24, pola sama:
+"Normal shutdown (initiated by: unknown)" di log MariaDB, konsisten dgn macOS ngirim SIGTERM ke
+user processes sebelum sleep/shutdown panjang). Kebijakan lama "MySQL manual FINAL" (lihat
+[[project-gap-remediation-plan]]) DIREVISI oleh user sendiri lewat AskUserQuestion setelah
+diberi 3 opsi (manual+script / LaunchAgent user-level / LaunchDaemon system-wide) -- user pilih
+**LaunchAgent user-level** (`~/Library/LaunchAgents/com.luthfimirza.mariadb.autostart.plist`,
+`RunAtLoad=true`, cuma jalan `mysql.server start` tiap user login -- BUKAN LaunchDaemon system-wide,
+jadi filosofi "bukan daemon selalu-nyala" tetap terjaga, cuma auto-restart on session).
+
+**PENTING buat sesi depan**: keputusan "MySQL manual FINAL, jangan usulkan auto-start" yang lama
+SUDAH TIDAK BERLAKU LAGI -- update di memory `feedback-check-mysql-session-start.md`. Awal sesi
+tetap cek `nc -z 127.0.0.1 3306` (LaunchAgent kadang gagal atau user manual stop), tapi biasanya
+sudah UP tanpa perlu diminta.
+
+### Status: Semua 3 fase SELESAI, sudah commit+push (6039fe4 dst), test suite hijau tiap fase.
