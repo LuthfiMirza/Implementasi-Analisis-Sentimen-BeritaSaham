@@ -35,6 +35,7 @@
                         ['label' => 'Audit Sentimen', 'route' => 'evaluasi.sentimen', 'href' => route('evaluasi.sentimen'), 'icon' => 'M12 8c1.656 0 3-1.567 3-3.5S13.656 1 12 1 9 2.567 9 4.5 10.344 8 12 8zm0 0v6m0 0l-4 9m4-9l4 9'],
                         ['label' => 'Backtest DSS', 'route' => 'backtest.index', 'href' => route('backtest.index'), 'icon' => 'M4 12h16m-8-8v16'],
                         ['label' => 'Trade Journal', 'route' => 'trades.index', 'href' => route('trades.index'), 'icon' => 'M9 7h6m-6 4h6m-9 4h12M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z'],
+                        ['label' => 'Live Monitor', 'route' => 'trades.live', 'href' => route('trades.live'), 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z'],
                     ];
                     if (auth()->user()?->isAdmin()) {
                         $nav[] = ['label' => 'Admin Users', 'route' => 'admin.users.*', 'href' => route('admin.users.index'), 'icon' => 'M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m0-4a4 4 0 100-8 4 4 0 000 8zm8 0a3 3 0 100-6 3 3 0 000 6z'];

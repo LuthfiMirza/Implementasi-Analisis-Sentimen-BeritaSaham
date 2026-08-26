@@ -399,6 +399,57 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    // Fase DA: Live Position Monitor -- poll /trades/live-data tiap 30 detik, render ulang cards
+    // posisi terbuka dgn harga live + jarak ke trailing stop. Dibuka pas jam bursa buat pantau
+    // cepat tanpa buka Telegram terus.
+    Alpine.data('livePositionMonitor', (initialPositions) => ({
+        positions: initialPositions || [],
+        loading: false,
+        lastUpdate: new Date(),
+        pollHandle: null,
+        init() {
+            this.pollHandle = setInterval(() => this.fetchData(), 30000);
+            this.$watch('positions', () => {}); // no-op, placeholder utk reactivity trigger
+        },
+        destroy() {
+            if (this.pollHandle) clearInterval(this.pollHandle);
+        },
+        fetchData() {
+            this.loading = true;
+            fetch('/trades/live-data', { headers: { Accept: 'application/json' } })
+                .then((res) => res.json())
+                .then((data) => {
+                    this.positions = data.positions || [];
+                    this.lastUpdate = new Date();
+                })
+                .catch((e) => console.warn('Live monitor fetch error:', e))
+                .finally(() => { this.loading = false; });
+        },
+        get lastUpdateLabel() {
+            return this.lastUpdate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        },
+        countByStatus(status) {
+            return this.positions.filter((p) => p.status === status).length;
+        },
+        totalFloatingPnl() {
+            return this.positions.reduce((sum, p) => sum + (p.pnl || 0), 0);
+        },
+        // Lebar bar visual (0-100%) dari jarak-ke-SL -- di-clamp supaya bar tetap kebaca di kedua
+        // ekstrem (posisi jauh di atas SL = bar penuh, posisi di bawah SL/negatif = bar kosong).
+        // Skala referensi 10% jarak = bar penuh (kasar tapi cukup buat sinyal visual cepat).
+        slBarWidth(p) {
+            if (p.distance_to_sl_pct === null) return 0;
+            const pct = Math.max(0, Math.min(100, (p.distance_to_sl_pct / 10) * 100));
+            return pct;
+        },
+        fmtRp(n) {
+            return 'Rp' + Math.round(n).toLocaleString('id-ID');
+        },
+        fmtNum(n) {
+            return Math.round(n).toLocaleString('id-ID');
+        },
+    }));
+
     Alpine.data('priceQuote', (initialQuote, fallbackChange) => ({
         quote: {
             stock_code: initialQuote?.stock_code ?? null,

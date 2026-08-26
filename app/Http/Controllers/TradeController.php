@@ -60,6 +60,183 @@ class TradeController extends Controller
     }
 
     /**
+     * Fase DA: halaman "Live Monitor" -- semua posisi terbuka dgn harga live, floating PnL,
+     * jarak ke trailing stop (bar hijau/kuning/merah), dan sisa hari ke target waktu (10 hari
+     * bursa). Dipisah dari index() (yg juga nampilin open positions tapi statis, refresh cuma
+     * pas reload halaman) -- ini didesain buat dibuka pas jam bursa, auto-refresh tiap 30 detik
+     * via polling ke liveData(), dibuka di HP sambil pantau tanpa perlu buka Telegram terus.
+     */
+    public function live(Request $request)
+    {
+        $positions = $this->buildLiveSnapshot();
+
+        return view('trades.live', compact('positions'));
+    }
+
+    /**
+     * Endpoint JSON dipoll Alpine.js tiap 30 detik dari halaman live(). Dipisah dari live() (yg
+     * render HTML) supaya polling ringan -- tidak perlu re-render seluruh layout/navbar tiap 30
+     * detik, cuma data mentah yg di-diff di client.
+     */
+    public function liveData(Request $request)
+    {
+        return response()->json(['positions' => $this->buildLiveSnapshot()]);
+    }
+
+    // Ambang jarak-ke-SL buat pewarnaan status ("danger" kalau sisa <1%, matching threshold yg
+    // sudah dipakai user secara implisit -- posisi paling mepet BUMI 21 Agu ~1,01% dianggap
+    // "waspada" di percakapan sebelumnya). "warning" <3% kasih ruang napas sebelum ke "danger".
+    private const SL_DISTANCE_DANGER_PCT = 1.0;
+
+    private const SL_DISTANCE_WARNING_PCT = 3.0;
+
+    private const TRAILING_PULLBACK_PCT = 0.02; // 2% -- HARUS sama persis dgn PULLBACK_THRESHOLD
+
+    // di check_trailing_stop.py (Fase AU) -- ini cuma DISPLAY status yg sama, bukan logic ganti.
+
+    private const TIME_TARGET_DAYS = 10; // hari bursa -- sama dgn TARGET_HOLD_DAYS python.
+
+    /**
+     * Bangun snapshot semua posisi open: harga live (reuse livePnlFor -- cached 60s), status
+     * jarak ke trailing stop (peak dari open_positions.json, fallback entry_price kalau belum
+     * ada milestone tercatat), dan sisa hari bursa ke target waktu 10 hari. Diurutkan PALING
+     * URGENT dulu (jarak ke SL paling kecil) -- itu yg paling perlu diperhatikan user duluan.
+     */
+    private function buildLiveSnapshot(): array
+    {
+        $open = Trade::with('stock')
+            ->where('user_id', auth()->id())
+            ->where('status', 'open')
+            ->orderByDesc('entry_date')
+            ->get();
+
+        if ($open->isEmpty()) {
+            return [];
+        }
+
+        $live = $this->livePnlFor($open);
+        $peaks = $this->readTrackerPeaks();
+
+        $rows = $open->map(function (Trade $trade) use ($live, $peaks) {
+            $quote = $live[$trade->id] ?? null;
+            $entry = (float) $trade->entry_price;
+            $current = $quote['last'] ?? null;
+
+            $trackerKey = strtoupper($trade->ticker).'|'.strtoupper($trade->strategy_label ?? '').'|'.$trade->entry_date->format('Y-m-d');
+            $milestonePeak = $peaks[$trackerKey] ?? null;
+
+            // Peak buat hitung trailing SL: nilai TERTINGGI di antara milestone tercatat, harga
+            // live sekarang, dan entry_price. Milestone di tracker cuma ke-update tiap kelipatan
+            // 5% (Fase AU) -- kalau harga live sekarang lebih tinggi dari milestone terakhir
+            // (belum sempat ke-flag "puncak baru"), tetap dianggap peak biar SL tidak understate.
+            $peakForSl = max($milestonePeak ?? $entry, $current ?? $entry, $entry);
+            $trailingSl = round($peakForSl * (1 - self::TRAILING_PULLBACK_PCT), 2);
+
+            $distanceToSlPct = ($current !== null && $trailingSl > 0)
+                ? round(($current - $trailingSl) / $trailingSl * 100, 2)
+                : null;
+
+            $status = 'unknown';
+            if ($distanceToSlPct !== null) {
+                $status = match (true) {
+                    $distanceToSlPct <= self::SL_DISTANCE_DANGER_PCT => 'danger',
+                    $distanceToSlPct <= self::SL_DISTANCE_WARNING_PCT => 'warning',
+                    default => 'safe',
+                };
+            }
+
+            $tradingDaysHeld = $this->countTradingDays($trade->entry_date, now());
+            $daysRemaining = self::TIME_TARGET_DAYS - $tradingDaysHeld;
+
+            return [
+                'id' => $trade->id,
+                'ticker' => $trade->ticker,
+                'stock_name' => $trade->stock->name ?? $trade->ticker,
+                'strategy_label' => $trade->strategy_label,
+                'entry_date' => $trade->entry_date->format('Y-m-d'),
+                'entry_price' => $entry,
+                'lot_size' => $trade->lot_size,
+                'current_price' => $current,
+                'is_live' => $quote['is_live'] ?? false,
+                'pnl' => $quote['pnl'] ?? null,
+                'pnl_percent' => $quote['pnl_percent'] ?? null,
+                'peak_since_entry' => $peakForSl,
+                'trailing_sl' => $trailingSl,
+                'distance_to_sl_pct' => $distanceToSlPct,
+                'status' => $status,
+                'trading_days_held' => $tradingDaysHeld,
+                'days_remaining_to_target' => $daysRemaining,
+                'time_target_overdue' => $daysRemaining <= 0,
+            ];
+        });
+
+        return $rows->sortBy(fn ($r) => $r['distance_to_sl_pct'] ?? 999)->values()->all();
+    }
+
+    /**
+     * Baca open_positions.json (tracker Python, sumber kebenaran yg SAMA dipakai
+     * check_trailing_stop.py) -- ambil milestone_peak per (ticker, strategy, entry_date).
+     * File ini bisa berubah isinya tiap 15 menit (cron), makanya dibaca fresh tiap request
+     * (tidak di-cache lama) -- data kecil (<20 baris biasanya), murah dibaca ulang.
+     */
+    private function readTrackerPeaks(): array
+    {
+        $path = base_path('quant/drawdown_bounce_tracker/open_positions.json');
+        if (! is_file($path)) {
+            return [];
+        }
+
+        try {
+            $data = json_decode(file_get_contents($path), true);
+        } catch (Throwable $e) {
+            return [];
+        }
+
+        if (! is_array($data)) {
+            return [];
+        }
+
+        $peaks = [];
+        foreach ($data as $pos) {
+            $ticker = strtoupper($pos['ticker'] ?? '');
+            $strategy = strtoupper($pos['strategy'] ?? '');
+            $entryDate = $pos['entry_date'] ?? '';
+            if (! $ticker || ! $entryDate) {
+                continue;
+            }
+
+            $key = "{$ticker}|{$strategy}|{$entryDate}";
+            $peaks[$key] = (float) ($pos['milestone_peak'] ?? $pos['entry_price'] ?? 0);
+        }
+
+        return $peaks;
+    }
+
+    /**
+     * Hitung hari bursa (Senin-Jumat) sejak entry_date sampai $until, INKLUSIF hari entry itu
+     * sendiri (day 1 = hari entry) -- matching cara Python `df.index.normalize().nunique()`
+     * ngitung "berapa hari data harga ada sejak entry". Approksimasi: cuma exclude weekend,
+     * TIDAK exclude libur nasional IDX (python versi asli exclude otomatis krn tidak ada data
+     * harga di hari libur bursa) -- utk display dashboard ini cukup akurat +-1 hari di sekitar
+     * libur nasional, bukan sumber kebenaran (itu tetap check_trailing_stop.py cron).
+     */
+    private function countTradingDays(Carbon $entryDate, Carbon $until): int
+    {
+        $count = 0;
+        $cursor = $entryDate->copy()->startOfDay();
+        $end = $until->copy()->startOfDay();
+
+        while ($cursor->lte($end)) {
+            if (! $cursor->isWeekend()) {
+                $count++;
+            }
+            $cursor->addDay();
+        }
+
+        return $count;
+    }
+
+    /**
      * Fase CN: halaman laporan lengkap -- stats resmi, toggle GABUNGAN/Semua Strategi (Fase CL),
      * episode independensi per bulan, arsip strategi lain, dan tabel riwayat penuh dengan filter
      * + pagination (Fase CM). Dipisah dari index() supaya operasional harian tetap ringkas.
