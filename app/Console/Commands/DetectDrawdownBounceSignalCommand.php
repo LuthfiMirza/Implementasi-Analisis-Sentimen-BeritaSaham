@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\NewsArticle;
 use App\Models\Stock;
 use App\Models\Trade;
 use Illuminate\Console\Command;
@@ -33,8 +34,24 @@ class DetectDrawdownBounceSignalCommand extends Command
      */
     private const LIVE_CAPITAL = 10_000_000.0;
 
+    // Fase DG: universe ticker yg dicek beritanya -- SAMA PERSIS gabungan
+    // SignalRadarService::GABUNGAN_TICKERS + MOMENTUM_TICKERS + BOTTOM_REBOUND_TICKERS (Fase
+    // DB/DC). Di-hardcode terpisah (bukan reuse class itu) supaya command ini TETAP jalan mandiri
+    // tanpa dependency ke App\Services\Trading -- kalau daftar ticker berubah di sana, WAJIB
+    // diubah juga di sini (dicek manual, tidak ada single-source-of-truth constant bersama --
+    // trade-off kesederhanaan vs duplikasi kecil, 11 ticker jarang berubah).
+    private const NEWS_CONTEXT_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA', 'DSSA'];
+
     public function handle(): int
     {
+        // Fase DG: News-in-Signal -- cache berita+sentimen terbaru per ticker DITULIS SEBELUM
+        // python script jalan (pola sama persis refreshClosedTradesCache() di
+        // CheckTelegramCommandsCommand.php). detect_signal.py SENGAJA tidak pernah query MySQL
+        // langsung (resilience pattern -- lihat docstring lama di telegram_commands.py), jadi PHP
+        // (yg SUDAH asumsikan DB nyala saat command artisan ini jalan) yg jembatani datanya lewat
+        // file cache, bukan python connect ke MySQL sendiri.
+        $this->refreshNewsContextCache();
+
         $python = env('PYTHON_BINARY', 'python3');
         $script = base_path('quant/drawdown_bounce_tracker/detect_signal.py');
 
@@ -153,6 +170,52 @@ class DetectDrawdownBounceSignalCommand extends Command
             } catch (Throwable $e) {
                 $this->warn("Sync Trade Journal (open) gagal untuk {$ticker} (DB mungkin mati): ".$e->getMessage());
             }
+        }
+    }
+
+    /**
+     * Fase DG: News-in-Signal -- tulis cache 3 berita TERBARU (ANY AGE, tidak dibatasi window
+     * ketat -- ticker sepi berita spt DEWA bisa saja terakhir 8 hari lalu, tetap ditampilkan
+     * dgn tanggalnya biar user tahu itu "stale", bukan disembunyikan diam-diam jadi "tidak ada
+     * berita sama sekali") per ticker yg dipantau, dibaca detect_signal.py buat lampirkan konteks
+     * berita ke alert sinyal BELI (cegah beli di saham yg lagi ada bad news padahal technical
+     * bagus). `sentiment_label` (BUKAN ml_sentiment_label) -- field yg sama dipakai halaman /news
+     * publik (resources/views/news/index.blade.php), sudah "final" method output (rule-based/
+     * hybrid), konsisten dgn yg user lihat di web.
+     *
+     * Kegagalan (DB mati dst) TIDAK BOLEH menggagalkan seluruh command -- deteksi sinyal +
+     * alert dasar (tanpa konteks berita) harus tetap jalan, News-in-Signal murni tambahan.
+     */
+    private function refreshNewsContextCache(): void
+    {
+        $cachePath = base_path('quant/drawdown_bounce_tracker/news_context_cache.json');
+
+        try {
+            $context = [];
+            foreach (self::NEWS_CONTEXT_TICKERS as $ticker) {
+                $stock = Stock::where('code', $ticker)->first();
+                if (! $stock) {
+                    $context[$ticker] = [];
+                    continue;
+                }
+
+                $context[$ticker] = NewsArticle::where('stock_id', $stock->id)
+                    ->whereNotNull('sentiment_label')
+                    ->whereNotNull('published_at')
+                    ->orderByDesc('published_at')
+                    ->limit(3)
+                    ->get(['title', 'sentiment_label', 'published_at'])
+                    ->map(fn (NewsArticle $a) => [
+                        'title' => $a->title,
+                        'sentiment' => $a->sentiment_label,
+                        'published_at' => $a->published_at->toIso8601String(),
+                    ])
+                    ->values()->all();
+            }
+
+            file_put_contents($cachePath, json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        } catch (Throwable $e) {
+            $this->warn('Gagal refresh cache konteks berita (DB mungkin mati): '.$e->getMessage());
         }
     }
 }

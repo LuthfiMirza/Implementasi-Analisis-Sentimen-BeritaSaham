@@ -5991,3 +5991,63 @@ tidak pernah dipakai codebase ini (cuma `sendMessage`/`getUpdates` sebelumnya).
 - Full suite dijalankan sebelum commit.
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DG — News-in-Signal (konteks berita di alert sinyal)
+
+### Konteks
+Fitur terakhir dari daftar prioritas trading nyata (Live Monitor -> Signal Radar -> Position
+Sizing -> Total Exposure -> Tombol Aksi -> ini, T2.2). Masalah: sinyal BELI 100% technical, tidak
+peduli berita -- bisa saja saham "sudah jatuh 5%" (syarat GABUNGAN) justru karena ADA kabar buruk
+riil (bukan noise), padahal technical-nya kelihatan "murah, layak beli".
+
+### Desain -- jembatan PHP->cache->Python, SAMA POLA persis refreshClosedTradesCache()
+`detect_signal.py` SENGAJA tidak pernah query MySQL langsung (resilience pattern, lihat docstring
+lama telegram_commands.py) -- News-in-Signal TIDAK mengubah prinsip itu. `DetectDrawdownBounceSignalCommand::
+refreshNewsContextCache()` (BARU, dipanggil PALING AWAL di `handle()`, SEBELUM python script
+jalan) query `NewsArticle` (Eloquent, PHP sudah asumsikan DB nyala) utk 3 berita TERBARU (ANY AGE,
+TIDAK dibatasi window 7 hari -- dicek dulu coverage-nya: DEWA kosong dalam 7 hari tapi tetap ada
+riwayat lebih lama, jadi window ketat akan bikin "tidak ada berita" palsu utk ticker yg sebenarnya
+ada beritanya cuma agak lama) per ticker di universe (11 ticker, gabungan GABUNGAN+MOMENTUM+
+BOTTOM_REBOUND, SAMA PERSIS SignalRadarService), tulis ke `news_context_cache.json`. Python baca
+cache ini via `load_news_context()`/`format_news_block()`, lampirkan section "📰 Berita terkini"
+ke SEMUA 3 alert sinyal BELI (GABUNGAN/MOMENTUM/BOTTOM_REBOUND).
+
+`sentiment_label` (BUKAN `ml_sentiment_label`) dipilih sbg field sumber -- field yg SAMA dipakai
+halaman `/news` publik (`resources/views/news/index.blade.php:131`), method output "final"
+(rule-based/hybrid), konsisten dgn yg user lihat kalau mau cek lebih detail di web. `ml_sentiment_
+label` cuma dipakai internal di halaman evaluasi/audit model, beda tujuan.
+
+### Bug keamanan ditemukan & diperbaiki SAAT implementasi: HTML injection dari judul berita
+Judul berita = teks bebas dari scraping sumber eksternal, BISA mengandung karakter `<`, `>`, `&`
+yang merusak `parse_mode="HTML"` Telegram (alert bisa gagal terkirim TOTAL kalau HTML tidak valid,
+beda dari field lain di alert yg semua angka/string terkontrol dari sistem sendiri). Diperbaiki:
+`html.escape()` WAJIB dipakai sebelum judul masuk ke pesan -- diverifikasi konkret dgn judul
+sengaja berisi `<naik> & untung > rugi` -> keluar `&lt;naik&gt; &amp; untung &gt; rugi` (aman).
+
+### Verifikasi
+- **PHP**: `refreshNewsContextCache()` diuji lewat Reflection (method private) -- isi cache cocok
+  data DB nyata (BUMI dst, semua 11 ticker return 3 artikel masing2, TIDAK ada yg kosong walau
+  DEWA sempat dikira "0 berita dalam 7 hari" saat riset awal -- window ANY AGE terbukti tepat).
+- **Python**: `format_signal_alert()`/`format_momentum_alert()` diuji END-TO-END dgn data cache
+  REAL (bukan mock) -- output lengkap dicek: section berita muncul dgn icon sentiment benar
+  (🟢positive/🔴negative/⚪neutral), waktu relatif masuk akal ("11 jam lalu", "2 hari lalu").
+- **3 skenario fallback graceful diuji EKSPLISIT** (bukan diasumsikan): ticker tidak dikenal,
+  cache file korup (JSON invalid), cache file tidak ada sama sekali -- ketiganya return pesan
+  "tidak ada data berita X" TANPA exception, alert dasar tetap bisa terkirim.
+- **HTML escaping diuji dgn judul berisi karakter sengaja jahat** (`<naik> & untung > rugi`) --
+  ter-escape benar jadi entity HTML aman.
+- 3 test PHP baru (`DetectDrawdownBounceSignalCommandTest`, total 9 test/32 assertions): cache
+  tertulis benar dgn data DB, dibatasi 3 artikel TERBARU per ticker (urut published_at DESC),
+  array kosong (bukan missing key) utk ticker tanpa artikel.
+- **Pelajaran Fase DF diterapkan lagi**: `news_context_cache.json` ditulis command ke path
+  PRODUKSI (bukan path testing terisolasi) -- `tearDown()` test WAJIB hapus file itu (sudah
+  ditambahkan sejak awal, bukan ditemukan lewat insiden spt Fase DF -- pelajaran itu langsung
+  diterapkan preventif kali ini). Setelah semua test selesai, cache DIREGENERASI MANUAL dgn data
+  produksi asli (bukan dibiarkan kosong) supaya command produksi berikutnya tidak mulai dari
+  keadaan "file hilang" tanpa alasan jelas (walau sebenarnya aman krn fallback graceful).
+- File `news_context_cache.json` DITRACK di git (git status awalnya `??` alias baru) -- diikutkan
+  ke commit ini, konsisten pola project yg men-track `open_positions.json`/`closed_trades_cache.
+  json` sbg bagian state (bukan di-gitignore).
+- Full suite dijalankan sebelum commit.
+
+### Status: SELESAI, siap commit+push.

@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import os
+import html
 import sqlite3
 from datetime import date, datetime, time, timezone, timedelta
 from pathlib import Path
@@ -169,6 +170,13 @@ BOTTOM_REBOUND_TRACKING_START_DATE = date(2026, 8, 19)  # aktif hari ini -- jang
 DB_PATH = Path(__file__).parent / "tracker.sqlite3"
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 ENV_PATH = Path(__file__).parent.parent.parent / ".env"
+
+# Fase DG: News-in-Signal -- cache DITULIS PHP (DetectDrawdownBounceSignalCommand::
+# refreshNewsContextCache(), SEBELUM script ini dijalankan), DIBACA di sini. Script ini SENGAJA
+# tidak pernah query MySQL langsung (resilience pattern sama spt open_positions.json) -- kalau
+# file tidak ada/korup/DB mati saat PHP refresh, format_news_block() cukup skip section berita,
+# TIDAK BOLEH menggagalkan alert sinyal dasarnya.
+NEWS_CONTEXT_PATH = Path(__file__).parent / "news_context_cache.json"
 
 
 def load_telegram_credentials() -> tuple[str | None, str | None]:
@@ -334,6 +342,65 @@ def describe_stoch(stoch_k: float | None) -> str:
     return f"{stoch_k:.0f} (netral)"
 
 
+SENTIMENT_ICON = {"positive": "\U0001F7E2", "negative": "\U0001F534", "neutral": "\U000026AA"}
+
+
+def load_news_context(ticker: str) -> list[dict]:
+    """Fase DG: baca cache berita+sentimen yg ditulis PHP sebelum script ini jalan. Gagal diam-diam
+    (file tidak ada/korup/ticker tidak dikenal) -> list kosong, BUKAN exception -- alert sinyal
+    dasar harus tetap terkirim walau konteks berita tidak tersedia."""
+    if not NEWS_CONTEXT_PATH.is_file():
+        return []
+    try:
+        cache = json.loads(NEWS_CONTEXT_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    return cache.get(ticker, [])
+
+
+def _relative_time_id(published_at_iso: str) -> str:
+    """'2026-08-26T10:00:00+07:00' -> '2 jam lalu' / '3 hari lalu' -- lebih cepat dibaca di HP
+    drpd tanggal ISO penuh, sama semangat dgn _short_date() di telegram_commands.py."""
+    try:
+        published = datetime.fromisoformat(published_at_iso)
+    except ValueError:
+        return published_at_iso
+
+    now = datetime.now(WIB)
+    delta = now - published
+    hours = delta.total_seconds() / 3600
+
+    if hours < 1:
+        return "baru saja"
+    if hours < 24:
+        return f"{int(hours)} jam lalu"
+    days = int(hours / 24)
+    return f"{days} hari lalu"
+
+
+def format_news_block(ticker: str) -> str:
+    """Fase DG: News-in-Signal -- lampirkan 3 berita terbaru + sentimen ke alert sinyal BELI,
+    supaya user bisa cek cepat "ada kabar buruk yang bikin technical ini palsu?" tanpa buka app
+    terpisah. sentiment_label dari NewsArticle -- field YANG SAMA dipakai halaman /news publik
+    (bukan ml_sentiment_label yg cuma dipakai internal evaluasi model), jadi konsisten dgn yg user
+    lihat di web kalau mau cek lebih detail."""
+    articles = load_news_context(ticker)
+    if not articles:
+        return f"\U0001F4F0 <b>Berita terkini</b>: tidak ada data berita {ticker} di radar kami saat ini.\n"
+
+    lines = [f"\U0001F4F0 <b>Berita terkini ({ticker})</b>:"]
+    for a in articles:
+        icon = SENTIMENT_ICON.get(a.get("sentiment"), "\U000026AA")
+        rel_time = _relative_time_id(a["published_at"])
+        # html.escape() WAJIB -- judul berita teks bebas dari scraping eksternal, bisa mengandung
+        # '<', '>', '&' yang merusak parse_mode="HTML" Telegram (alert bisa gagal terkirim total)
+        # kalau tidak di-escape. Beda dari field lain di alert ini (ticker/harga/tanggal) yang
+        # semuanya string/angka terkontrol dari sistem sendiri, tidak butuh escaping.
+        title = html.escape(a["title"])
+        lines.append(f"{icon} {title} <i>({rel_time})</i>")
+    return "\n".join(lines) + "\n"
+
+
 def format_signal_alert(signal: dict) -> str:
     """HTML-formatted, scannable Telegram alert for one new signal (live-verified readable on
     mobile: bold labels, blank-line-separated sections, plain numbers not a wall of text).
@@ -404,7 +471,8 @@ def format_signal_alert(signal: dict) -> str:
         f"<b>Info tambahan</b> (bukan bagian aturan -- live-checked hanya cocok ~3/8 kasus):\n"
         f"RSI14: {describe_rsi(signal.get('rsi14'))}\n"
         f"Stoch %K: {describe_stoch(signal.get('stoch_k'))}"
-        f"{warning}"
+        f"{warning}\n\n"
+        f"{format_news_block(signal['ticker'])}"
     )
 
 
@@ -429,7 +497,8 @@ def format_momentum_alert(signal: dict) -> str:
         f"⚠️ <b>EXPLORATORY</b> — beda dari sinyal drawdown-bounce (mean-reversion): ini "
         f"strategi MOMENTUM (beli saat menguat, bukan saat jatuh). Divalidasi ketat tapi HANYA "
         f"di dalam rezim tren-naik 2024-sekarang -- belum teruji di kondisi pasar sideways/turun "
-        f"panjang. Lihat plan.md Fase BL sebelum all-in."
+        f"panjang. Lihat plan.md Fase BL sebelum all-in.\n\n"
+        f"{format_news_block(signal['ticker'])}"
     )
 
 
@@ -451,7 +520,8 @@ def format_bottom_rebound_alert(signal: dict) -> str:
         f"ℹ️ Beda paradigma dari GABUNGAN: ini NUNGGU rebound terkonfirmasi dulu, bukan masuk saat "
         f"harga masih jatuh. Divalidasi P1-P4 penuh (BUMI+DEWA gabungan, 52 episode, "
         f"CI95 lower +0,54%) -- BUMI SENDIRI masih marginal, jadi selalu dipantau gabungan dengan "
-        f"DEWA, jangan dinilai per-saham. Lihat plan.md Fase CS."
+        f"DEWA, jangan dinilai per-saham. Lihat plan.md Fase CS.\n\n"
+        f"{format_news_block(signal['ticker'])}"
     )
 
 
