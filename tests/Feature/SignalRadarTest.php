@@ -10,11 +10,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
-// Fase DB: Signal Radar -- /trades/radar (halaman) + /trades/radar-data (polling JSON).
-// SignalRadarService::GABUNGAN/MOMENTUM/BOTTOM_REBOUND_TICKERS dipakai penuh di build() (BUMI,
-// DEWA, BRPT, SMGR, ESSA, UNVR, DSSA -- 7 ticker unik) -- ticker yg TIDAK sengaja diuji di test
-// tertentu diberi seri historis PENDEK (<25 titik) supaya di-skip diam-diam (guard
-// `count($series) < 25`), tanpa perlu craft data realistis utk semua 7 ticker di tiap test.
+// Fase DB (+ Fase DC nambah TINS/PTRO/ENRG/RAJA): Signal Radar -- /trades/radar (halaman) +
+// /trades/radar-data (polling JSON). SignalRadarService::GABUNGAN/MOMENTUM/BOTTOM_REBOUND_TICKERS
+// dipakai penuh di build() (BUMI, DEWA, BRPT, SMGR, ESSA, UNVR, DSSA, TINS, PTRO, ENRG, RAJA -- 11
+// ticker unik) -- ticker yg TIDAK sengaja diuji di test tertentu diberi seri historis PENDEK
+// (<25 titik) supaya di-skip diam-diam (guard `count($series) < 25`), tanpa perlu craft data
+// realistis utk semua 11 ticker di tiap test.
 class SignalRadarTest extends TestCase
 {
     protected function setUp(): void
@@ -41,7 +42,7 @@ class SignalRadarTest extends TestCase
     private function seedAllTickers(): array
     {
         $stocks = [];
-        foreach (['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'DSSA'] as $code) {
+        foreach (['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'DSSA', 'TINS', 'PTRO', 'ENRG', 'RAJA'] as $code) {
             $stocks[$code] = $this->seedStock($code);
         }
 
@@ -108,7 +109,7 @@ class SignalRadarTest extends TestCase
     {
         $shortSeries = array_fill(0, 5, 100.0); // < 25 -> di-skip guard
         $fakes = [];
-        foreach (['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'DSSA'] as $code) {
+        foreach (['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'DSSA', 'TINS', 'PTRO', 'ENRG', 'RAJA'] as $code) {
             $closes = $overrides[$code] ?? $shortSeries;
             $fakes["query2.finance.yahoo.com/v8/finance/chart/{$code}.JK*"] = Http::response($this->fakeChartJson($closes));
         }

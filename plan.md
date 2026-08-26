@@ -5737,3 +5737,55 @@ ditemukan lewat trial-and-error debug ~20 menit).
   match trade real yg ada), disclaimer kuning tampil jelas.
 
 ### Status: SELESAI, siap commit+push (menunggu full suite).
+
+## Fase DC — Perbaiki gap: TINS/PTRO/ENRG/RAJA sekarang benar-benar di-scan live
+
+### Konteks
+User eksplisit minta perbaiki temuan sampingan Fase DB: "perbaiki (nambah scan 4 ticker itu)".
+Sebelumnya `detect()`/`detect_heads_up()` di `detect_signal.py` HARDCODE loop 6 ticker
+(`BUMI,DEWA,BRPT,SMGR,ESSA,UNVR`) walau `COMBINED_RULE_TICKERS` (dipakai leg drawdown_20d) sudah
+berisi 9 ticker termasuk TINS/PTRO/ENRG/RAJA sejak Fase CH (screening 109 kandidat, lolos P1-P4 +
+filter likuiditas). Keempat ticker itu TIDAK PERNAH benar-benar menghasilkan sinyal live sejak
+ditambahkan -- gap murni, bukan by design.
+
+### Temuan penting saat verifikasi: 4 sinyal historis KELEWAT beneran ada
+Dicek langsung (`detect()` dipanggil READ-ONLY, bukan `main()` -- tidak sentuh DB/Telegram) SEBELUM
+tambah start-date guard:
+```
+ENRG | trigger 2026-08-11 | entry 2026-08-12 @988  | ganda
+ENRG | trigger 2026-08-12 | entry 2026-08-13 @947  | ganda
+ENRG | trigger 2026-08-13 | entry 2026-08-14 @1255 | drawdown
+RAJA | trigger 2026-08-14 | entry 2026-08-18 @820  | ret2d
+```
+TINS/PTRO: NOL sinyal kelewat (aman). Kalau scan langsung dinyalakan tanpa guard, run BERIKUTNYA
+(`research:detect-drawdown-bounce-signal`, dijadwalkan 15:18 WIB) bakal treat 4 sinyal lama ini
+sbg "baru" (UNIQUE constraint cuma cek ticker+trigger_date, bukan freshness) -- kirim Telegram
+alert + auto-insert trade PALSU utk entry tanggal 12-18 Agu, padahal harga sekarang sudah jauh
+beda dari harga saat itu. **Ini persis skenario "gap-recovery yang salah arah" yg pernah kejadian
+nyata di Fase CX (DSSA MOMENTUM 20-21 Agu)** -- bedanya kali ini BUKAN karena MySQL/scheduler
+mati, tapi karena ticker BARU DIAKTIFKAN dan histori lama-nya "kelihatan" seolah baru.
+
+### Perbaikan
+1. `detect_signal.py`: `GABUNGAN_SCAN_TICKERS` (list eksplisit 10 ticker, MENGGANTIKAN 2 hardcode
+   list di `detect()` dan `detect_heads_up()`) + `GABUNGAN_START_DATE_BY_TICKER` (dict, TINS/PTRO/
+   ENRG/RAJA = `date(2026,8,26)`, hari fix ini dibuat) -- pola SAMA PERSIS `MOMENTUM_START_DATE_
+   BY_TICKER` yg sudah ada utk DSSA. Kedua fungsi (`detect()` line ~534, `detect_heads_up()` line
+   ~592) pakai `GABUNGAN_START_DATE_BY_TICKER.get(ticker, TRACKING_START_DATE)` sbg cutoff, bukan
+   `TRACKING_START_DATE` global lagi.
+2. `SignalRadarService.php`: `GABUNGAN_TICKERS` & `DRAWDOWN_LEG_TICKERS` diupdate ikut nambah
+   TINS/PTRO/ENRG/RAJA -- radar SEKARANG match persis scan resmi yg sudah diperbaiki (bukan lagi
+   sengaja dikecilkan ke 6 ticker spt Fase DB).
+3. Test (`SignalRadarTest.php`): universe 7 -> 11 ticker.
+
+### Verifikasi
+- `detect()` read-only (tanpa `main()`) SEBELUM guard: 9 sinyal (termasuk 4 ENRG/RAJA yg kelewat).
+  SESUDAH guard: 5 sinyal (DEWA/BRPT/ESSA yg SUDAH tercatat sebelumnya -- idempotent lewat UNIQUE
+  constraint kalau run beneran, bukan duplikat baru). ENRG/RAJA nol -- confirmed guard bekerja.
+- `detect_heads_up()`: 0 hasil, tidak exception dgn 10-ticker universe.
+- `php -l` bersih di semua file PHP yg diubah.
+- `SignalRadarTest`: 6/6 hijau, 29 assertions, dgn universe 11 ticker.
+- `DetectDrawdownBounceSignalCommandTest`: 6/6 hijau (tidak ada regresi ke command PHP yg wrap
+  `detect_signal.py`).
+- Full suite dijalankan sebelum commit.
+
+### Status: SELESAI, siap commit+push.

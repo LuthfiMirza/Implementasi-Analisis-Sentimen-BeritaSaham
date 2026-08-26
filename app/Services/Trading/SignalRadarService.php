@@ -24,20 +24,21 @@ use Throwable;
  */
 class SignalRadarService
 {
-    // SAMA PERSIS loop `detect()` di detect_signal.py -- BUKAN daftar lengkap COMBINED_RULE_TICKERS
-    // python (yang 9 ticker itu ada TINS/PTRO/ENRG/RAJA yang TERNYATA TIDAK PERNAH benar-benar
-    // di-scan di detect() live -- gap lama pre-existing, di luar scope radar ini, dicatat di
-    // plan.md sbg temuan terpisah, BUKAN diperbaiki diam-diam di sini).
-    private const GABUNGAN_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR'];
+    // Fase DC: SAMA PERSIS `GABUNGAN_SCAN_TICKERS` di detect_signal.py -- gap lama (TINS/PTRO/
+    // ENRG/RAJA terdaftar di COMBINED_RULE_TICKERS python tapi TIDAK PERNAH benar-benar di-scan
+    // detect()) sudah DIPERBAIKI di Python (ticker baru diaktifkan mulai 2026-08-26, per-ticker
+    // start-date guard spt DSSA MOMENTUM -- supaya sinyal historis yg kelewat, mis. ENRG/RAJA
+    // 11-18 Agu, TIDAK backdate jadi alert Telegram + trade palsu). Radar ikut nambah 4 ticker
+    // ini SEKARANG karena scan resminya SUDAH benar-benar mencakup mereka mulai hari ini.
+    private const GABUNGAN_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA'];
 
     private const MOMENTUM_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'DSSA'];
 
     private const BOTTOM_REBOUND_TICKERS = ['BUMI', 'DEWA'];
 
-    // Ticker yg leg drawdown_20d berlaku -- SAMA PERSIS COMBINED_RULE_TICKERS python DIKURANGI
-    // TINS/PTRO/ENRG/RAJA (karena radar cuma scan ticker yg live-scanned, lihat GABUNGAN_TICKERS
-    // di atas) DAN DIKURANGI SMGR (SMGR gagal gate P4 validasi ketat, tetap ret_2d saja).
-    private const DRAWDOWN_LEG_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'ESSA', 'UNVR'];
+    // Ticker yg leg drawdown_20d berlaku -- SAMA PERSIS COMBINED_RULE_TICKERS python (9 ticker,
+    // SMGR sengaja TIDAK termasuk -- gagal gate P4 validasi ketat, tetap ret_2d saja).
+    private const DRAWDOWN_LEG_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA'];
 
     private const DROP_THRESHOLD = -0.05;       // ret_2d, sama persis DROP_THRESHOLD python
 

@@ -49,6 +49,18 @@ WIB = timezone(timedelta(hours=7))
 MARKET_CLOSE_TIME = time(15, 15)
 
 TRACKING_START_DATE = date(2026, 7, 31)  # PROTOCOL.md lock date -- do not backdate
+
+# Fase DC: TINS/PTRO/ENRG/RAJA baru BENERAN diaktifkan hari ini (lihat GABUNGAN_SCAN_TICKERS di
+# bawah) -- kalau dibiarkan pakai TRACKING_START_DATE lama (31 Jul), run pertama setelah fix ini
+# bakal "menemukan" sinyal historis yang SEBENARNYA SUDAH LEWAT (dicek langsung: ENRG trigger 11,
+# 12, 13 Agu + RAJA trigger 14 Agu, entry price @988/@947/@1255/@820 -- harga hari ini sudah jauh
+# beda) dan kirim Telegram alert + bikin trade PALSU utk tanggal yang sudah lewat. Sama pola persis
+# MOMENTUM_START_DATE_BY_TICKER (DSSA diaktifkan belakangan, per-ticker start date) -- jangan
+# dihapus/disamakan lagi ke TRACKING_START_DATE global tanpa sadar konsekuensinya.
+GABUNGAN_START_DATE_BY_TICKER = {
+    "TINS": date(2026, 8, 26), "PTRO": date(2026, 8, 26),
+    "ENRG": date(2026, 8, 26), "RAJA": date(2026, 8, 26),
+}
 DROP_THRESHOLD = -0.05
 DRAWDOWN_THRESHOLD = -0.20  # Fase BK: leg kedua aturan gabungan, lihat COMBINED_RULE_TICKERS
 # Fase BK: aturan gabungan (ret_2d<=-5% ATAU drawdown_20d<=-20%) divalidasi ketat (protokol P1-P4,
@@ -66,6 +78,22 @@ DRAWDOWN_THRESHOLD = -0.20  # Fase BK: leg kedua aturan gabungan, lihat COMBINED
 # KOKA. MINA dan MLPT dibuang lebih dulu karena hasilnya didominasi 1 episode ekstrem (+126% dan
 # +92% dari cuma 2-4 trade) -- pola yang sama menjatuhkan TPIA di Fase AY. Lihat plan.md Fase CH.
 COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA"}
+
+# Fase DC: GAP DITEMUKAN (bukan sengaja) -- detect()/detect_heads_up() sebelumnya HARDCODE loop
+# "BUMI, DEWA, BRPT, SMGR, ESSA, UNVR" saja, TIDAK PERNAH ikut scan TINS/PTRO/ENRG/RAJA walau
+# keempatnya sudah lolos screening P1-P4 + filter likuiditas sejak Fase CH dan sudah masuk
+# COMBINED_RULE_TICKERS di atas. Efeknya: 4 ticker itu TIDAK PERNAH benar-benar menghasilkan
+# sinyal live sejak ditambahkan -- cuma nongol di tombol /close Telegram (BUTTON_CLOSE_TINS dkk,
+# buat kasus /open manual doang). Ditemukan user & Claude lewat pembangunan Signal Radar (halaman
+# heads-up /trades/radar) yang SENGAJA discope cuma ke ticker yang BENERAN live-scanned -- radar
+# jadi bukti tidak langsung bahwa 4 ticker itu tidak pernah muncul.
+#
+# GABUNGAN_SCAN_TICKERS = universe LENGKAP yang benar-benar di-loop detect()/detect_heads_up().
+# SMGR TETAP ikut (aturan lama ret_2d-saja, bukan leg drawdown -- lihat komentar Fase BK di atas)
+# walau SMGR TIDAK ada di COMBINED_RULE_TICKERS. TINS/PTRO/ENRG/RAJA sekarang ditambahkan supaya
+# scan yang jalan SAMA PERSIS dengan yang sudah divalidasi P1-P4 (bukan cuma "terdaftar" tapi tidak
+# pernah dipakai).
+GABUNGAN_SCAN_TICKERS = ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA"]
 LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "tracked",
           "ESSA": "tracked", "UNVR": "tracked", "TINS": "tracked", "PTRO": "tracked",
           "ENRG": "tracked", "RAJA": "tracked", "DSSA": "tracked"}  # DEWA dinaikkan dari
@@ -491,7 +519,7 @@ def detect() -> list[dict]:
     ihsg = fetch_recent("^JKSE")
     found = []
 
-    for ticker in ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR"]:
+    for ticker in GABUNGAN_SCAN_TICKERS:
         stock = fetch_recent(f"{ticker}.JK")
         merged = stock.merge(ihsg, on="date", suffixes=("_stock", "_ihsg")).dropna()
         if len(merged) < 2:
@@ -503,7 +531,8 @@ def detect() -> list[dict]:
             entry_row = merged.iloc[i + 1]
             trigger_date = trigger_row["date"]
 
-            if trigger_date < TRACKING_START_DATE:
+            start_date = GABUNGAN_START_DATE_BY_TICKER.get(ticker, TRACKING_START_DATE)
+            if trigger_date < start_date:
                 continue
             # Fase AW: BUMI-only -- syarat IHSG ikut ambruk DIHAPUS (dulu wajib
             # ret_2d_ihsg <= DROP_THRESHOLD juga). ihsg_ret_2d masih dicatat & ditampilkan di
@@ -552,7 +581,7 @@ def detect_heads_up() -> list[dict]:
     ihsg = fetch_recent("^JKSE")
     found = []
 
-    for ticker in ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR"]:
+    for ticker in GABUNGAN_SCAN_TICKERS:
         stock = fetch_recent(f"{ticker}.JK")
         merged = stock.merge(ihsg, on="date", suffixes=("_stock", "_ihsg")).dropna()
         if merged.empty:
@@ -560,7 +589,8 @@ def detect_heads_up() -> list[dict]:
 
         latest = merged.iloc[-1]
         trigger_date = latest["date"]
-        if trigger_date < TRACKING_START_DATE:
+        start_date = GABUNGAN_START_DATE_BY_TICKER.get(ticker, TRACKING_START_DATE)
+        if trigger_date < start_date:
             continue
 
         ret2d_hit = bool(latest["ret_2d_stock"] <= DROP_THRESHOLD)
