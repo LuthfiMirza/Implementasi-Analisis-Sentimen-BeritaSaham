@@ -82,7 +82,8 @@
     "ticker": "DSSA",
     "entry_date": "2026-08-24",
     "entry_price": 1065.0,
-    "alerted_pullback_pct": null,
-    "strategy": "MOMENTUM"
+    "alerted_pullback_pct": 0.022727272727272728,
+    "strategy": "MOMENTUM",
+    "alerted_pullback_at_peak": 1100.0
   }
 ]
