@@ -46,6 +46,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/trades', [TradeController::class, 'index'])->name('trades.index');
     Route::get('/trades/live', [TradeController::class, 'live'])->name('trades.live');
     Route::get('/trades/live-data', [TradeController::class, 'liveData'])->name('trades.live-data');
+    Route::get('/trades/radar', [TradeController::class, 'radar'])->name('trades.radar');
+    Route::get('/trades/radar-data', [TradeController::class, 'radarData'])->name('trades.radar-data');
     Route::get('/trades/laporan', [TradeController::class, 'laporan'])->name('trades.laporan');
     Route::post('/trades', [TradeController::class, 'store'])->name('trades.store');
     Route::post('/trades/{trade}/close', [TradeController::class, 'close'])->name('trades.close');

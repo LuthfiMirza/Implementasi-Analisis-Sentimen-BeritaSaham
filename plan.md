@@ -5635,3 +5635,105 @@ tetap cek `nc -z 127.0.0.1 3306` (LaunchAgent kadang gagal atau user manual stop
 sudah UP tanpa perlu diminta.
 
 ### Status: Semua 3 fase SELESAI, sudah commit+push (6039fe4 dst), test suite hijau tiap fase.
+
+## Fase DB — Signal Radar: heads-up SEBELUM sinyal resmi dikirim
+
+### Konteks
+Skripsi sudah kelar (grade A, sidang selesai). User eksplisit geser konteks: "sekarang jangkauannya
+dipakai di trading, bantu saya" -- prioritas berubah dari "metrik akademik" ke "bantu keputusan
+trading nyata". Didiskusikan panjang lebar opsi-opsi (Tier 1-4: sizing calculator, live monitor,
+alert dgn tombol aksi, news-in-signal, signal radar, dst) via jabaran plus/minus, TANPA langsung
+implementasi (user diminta pilih prioritas dulu). User pilih **T1.2 Live Position Monitor** duluan
+(selesai Fase DA, commit 8dc0b3d) -- lalu follow-up: "halaman rekomendasi SEBELUM sinyal dikirim".
+
+Konsep: "Signal Radar" -- BUKAN sinyal resmi, estimasi LIVE seberapa dekat tiap ticker x strategi ke
+threshold trigger, pakai harga BERJALAN sbg hipotetis closing hari ini. Membantu user "siap-siap"
+sebelum closing 15:18 WIB, bukan instruksi beli.
+
+### Keputusan arsitektur kritis: PHP native, BUKAN invoke Python
+Awalnya dipertimbangkan panggil `detect_signal.py` via subprocess (pola sama
+DetectDrawdownBounceSignalCommand). DIBATALKAN: yfinance punya overhead proses + startup Python
+tiap request, sementara TradeController::fetchIhsgSeries() SUDAH punya pola PHP native (HTTP
+langsung ke `query2.finance.yahoo.com/v8/finance/chart/`) yg jauh lebih ringan utk halaman live yg
+di-poll 45 detik. Diputuskan tulis ulang RSI Wilder/EWM + ret_2d + dd_20d + bottom_10d di PHP.
+
+**RISIKO UTAMA yg WAJIB dihindari** (persis kelas bug yg sudah pernah kejadian nyata -- lihat
+komentar Fase BY di detect_signal.py soal window-sensitivity RSI rekursif): kalau formula RSI PHP
+beda dari Python, "jarak ke threshold" yg ditampilkan radar BISA MENYESATKAN. `FeatureBuilderService::
+rsi()` yg sudah ada TIDAK BISA dipakai -- itu simple-average, BUKAN EWM/Wilder recursive spt
+`detect_signal.py::rsi()` (`.ewm(alpha=1/period, adjust=False)`). Ditulis ulang PHP versi EWM yg
+PERSIS sama di `SignalRadarService::rsiWilder()`.
+
+**Verifikasi numerik langsung** (BUKAN cuma "kelihatan masuk akal" -- dibuktikan presisi): dicek
+RSI14 BUMI di titik closing 24 Agu 2026 (close=194.0) lewat KEDUA jalur:
+- Python asli (`fetch_recent('BUMI.JK')` via system python3 + yfinance): **64.521033**
+- PHP baru (`rsiWilder()` di titik yg sama, series identik dari historicalSeries()): **64.521033366749**
+
+Match sampai 6 desimal -- formula PHP 100% konsisten dgn sinyal resmi.
+
+### Cakupan ticker x strategi (SAMA PERSIS yg live-scanned, BUKAN daftar lengkap python)
+- GABUNGAN: BUMI, DEWA, BRPT, SMGR, ESSA, UNVR (loop `detect()` python) -- leg drawdown_20d cuma
+  berlaku utk BUMI/DEWA/BRPT/ESSA/UNVR (SMGR gagal gate P4, cuma ret_2d).
+- MOMENTUM: BUMI, DEWA, BRPT, DSSA (RSI14 > 60).
+- BOTTOM_REBOUND: BUMI, DEWA (cross pertama > bottom_10d kemarin x 1,05).
+
+**TEMUAN SAMPINGAN (di luar scope, dicatat aja, JANGAN diperbaiki diam-diam)**: `COMBINED_RULE_
+TICKERS` python (dipakai leg drawdown_20d) berisi 9 ticker termasuk TINS/PTRO/ENRG/RAJA, tapi loop
+`detect()` yg BENERAN jalan live cuma hardcode 6 ticker (`BUMI,DEWA,BRPT,SMGR,ESSA,UNVR`) --
+TINS/PTRO/ENRG/RAJA TIDAK PERNAH benar-benar di-scan utk sinyal live, cuma nongol di tombol
+`/close` Telegram (buat kasus `/open` manual). Gap lama pre-existing, bukan pekerjaan sesi ini --
+radar SENGAJA scan cuma 6 ticker yg beneran live-scanned, supaya konsisten dgn kenyataan produksi.
+Kalau mau diperbaiki (nambah scan 4 ticker itu ke `detect()`), itu keputusan terpisah yg perlu
+didiskusikan dgn user, bukan side-effect radar.
+
+### Implementasi
+- `app/Services/Trading/SignalRadarService.php` (baru) -- `build()` return 3 array (gabungan/
+  momentum/bottom_rebound), masing2 diurutkan closest-to-trigger dulu (TIDAK dibandingkan lintas
+  strategi, unit beda: persentase-poin vs poin-RSI vs persentase-harga).
+- `historicalSeries()`: cache 15 menit (`Cache::store('file')`, pola sama `fetchIhsgSeries()`),
+  HARI INI SELALU di-exclude eksplisit dari hasil (walau Yahoo chart API kadang sertakan bar
+  intraday parsial) -- radar SELALU pakai `livePrice()` terpisah (reuse `LiveMarketDataService`,
+  cache key SAMA `trade-live-quote:{code}` dgn Live Position Monitor -- share 1 quote kalau kedua
+  halaman dibuka bersamaan) sbg hipotetis closing, biar sumber harga hari ini tidak ambigu.
+- `BOTTOM_REBOUND`: dibedakan `triggered_today` (cross BARU, closing kemarin < threshold TAPI
+  sekarang >= threshold) vs `already_in_zone` (closing kemarin SUDAH >= threshold -- harga
+  bertahan tinggi BUKAN sinyal baru, cross-nya sudah terjadi di hari sebelumnya). Tanpa bedain ini,
+  radar bisa salah tampilkan "mendekati sinyal" padahal sebenarnya sinyal sudah lewat berhari-hari.
+- Route `/trades/radar` (halaman) + `/trades/radar-data` (JSON, dipoll 45 detik via Alpine
+  `signalRadarMonitor`). Nav baru "Signal Radar" di sidebar.
+- Disclaimer WAJIB tampil di halaman: "ESTIMASI LIVE, bukan sinyal resmi... jangan jadikan
+  instruksi beli."
+
+### Bug ditemukan SAAT verifikasi manual: file cache test BOCOR ke dev server
+Setelah implementasi, buka `/trades/radar` di browser nunjukkan **DEWA ret_2d = 348%** -- jelas
+data absurd. Root cause BUKAN bug service: `SignalRadarTest` pakai `Http::fake()` + fixture data
+absurd sengaja (`array_fill(..., 100.0)` dst) buat uji logic threshold, dan `Cache::store('file')`
+di test TERNYATA nulis ke path fisik YANG SAMA dgn dev server (`storage/framework/cache/data`) --
+`CACHE_STORE=array` di phpunit.xml cuma ganti DEFAULT store, TIDAK mengisolasi named store 'file'.
+Hasil test fixture (DEWA=[100x9,110]) ke-cache 15 menit dan "bocor" muncul di browser manual
+sungguhan. Diperbaiki: tambah `tearDown()` yg flush `Cache::store('file')` (selain `setUp()` yg
+sudah ada) + flush manual cache dev yg sudah terlanjur kena. **Pelajaran buat test lain ke depan
+yg pakai `Cache::store('file')`**: WAJIB flush di tearDown juga, tidak cukup cuma di setUp --
+codebase ini TIDAK mengisolasi file-cache path antara testing & dev environment.
+
+### Bug kedua ditemukan saat debug: `LiveMarketDataService` skip provider yg di-inject
+Test awal `fakeLivePrices()` bind provider fake via `app()->instance(LiveMarketDataService::class,
+...)` TAPI provider tidak pernah ke-panggil ("QUOTE CALLED FOR" tidak pernah print). Root cause:
+`config('market.data_source')` di test env = **'snapshot'** (dari `STOCK_DATA_SOURCE=snapshot` di
+phpunit.xml), dan `LiveMarketDataService::quote()` SENGAJA skip provider yg di-inject sama sekali
+kalau `data_source==='snapshot'` (`$quote = $dataSource === 'snapshot' ? null : $this->provider?->
+quote($stock)`) -- selalu coba baca `stock_prices` snapshot dulu. Diperbaiki: `fakeLivePrices()`
+WAJIB `config(['market.data_source' => 'live']);` dulu sebelum bind provider fake -- pola yg SAMA
+dipakai `LiveQuoteApiTest` yg sudah ada (harusnya dicek dulu SEBELUM nulis test baru, bukan
+ditemukan lewat trial-and-error debug ~20 menit).
+
+### Verifikasi
+- 6 test baru (`tests/Feature/SignalRadarTest.php`, 29 assertions): guest redirect, render+
+  disclaimer, graceful-empty saat Yahoo down, GABUNGAN ret_2d trigger (steep drop -15%), MOMENTUM
+  RSI trigger (uptrend kuat), BOTTOM_REBOUND cross-baru vs already-in-zone.
+- Cross-check numerik RSI PHP vs Python (lihat di atas): match 6 desimal.
+- Browser real (login, screenshot): 3 seksi render, data GABUNGAN masuk akal (ESSA -3,2% paling
+  dekat -5%, dst), sorted closest-first per seksi, MOMENTUM DSSA RSI 69,24 (triggered=true, sudah
+  match trade real yg ada), disclaimer kuning tampil jelas.
+
+### Status: SELESAI, siap commit+push (menunggu full suite).

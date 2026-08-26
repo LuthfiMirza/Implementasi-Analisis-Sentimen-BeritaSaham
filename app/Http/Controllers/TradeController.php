@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Stock;
 use App\Models\Trade;
 use App\Services\MarketData\LiveMarketDataService;
+use App\Services\Trading\SignalRadarService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -81,6 +82,24 @@ class TradeController extends Controller
     public function liveData(Request $request)
     {
         return response()->json(['positions' => $this->buildLiveSnapshot()]);
+    }
+
+    /**
+     * Fase DB: "Signal Radar" -- halaman heads-up SEBELUM sinyal resmi dikirim (closing 15:18
+     * WIB). BUKAN instruksi beli -- estimasi pakai harga BERJALAN, bisa berubah sampai closing.
+     * User eksplisit minta ini stlh diskusi opsi (lihat plan.md Fase DB): "halaman rekomendasi
+     * sebelum sinyal dikirim".
+     */
+    public function radar(Request $request, SignalRadarService $radarService)
+    {
+        $radar = $radarService->build();
+
+        return view('trades.radar', compact('radar'));
+    }
+
+    public function radarData(Request $request, SignalRadarService $radarService)
+    {
+        return response()->json($radarService->build());
     }
 
     // Ambang jarak-ke-SL buat pewarnaan status ("danger" kalau sisa <1%, matching threshold yg

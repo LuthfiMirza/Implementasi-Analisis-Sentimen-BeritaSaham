@@ -36,6 +36,7 @@
                         ['label' => 'Backtest DSS', 'route' => 'backtest.index', 'href' => route('backtest.index'), 'icon' => 'M4 12h16m-8-8v16'],
                         ['label' => 'Trade Journal', 'route' => 'trades.index', 'href' => route('trades.index'), 'icon' => 'M9 7h6m-6 4h6m-9 4h12M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z'],
                         ['label' => 'Live Monitor', 'route' => 'trades.live', 'href' => route('trades.live'), 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z'],
+                        ['label' => 'Signal Radar', 'route' => 'trades.radar', 'href' => route('trades.radar'), 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
                     ];
                     if (auth()->user()?->isAdmin()) {
                         $nav[] = ['label' => 'Admin Users', 'route' => 'admin.users.*', 'href' => route('admin.users.index'), 'icon' => 'M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m0-4a4 4 0 100-8 4 4 0 000 8zm8 0a3 3 0 100-6 3 3 0 000 6z'];

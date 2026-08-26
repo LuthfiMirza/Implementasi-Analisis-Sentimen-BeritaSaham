@@ -450,6 +450,42 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    // Fase DB: Signal Radar -- poll /trades/radar-data tiap 45 detik (agak lebih jarang dari
+    // Live Position Monitor krn tiap poll bisa memicu re-fetch harga live utk 7 ticker sekaligus,
+    // bukan cuma posisi terbuka user). Render 3 seksi (GABUNGAN/MOMENTUM/BOTTOM_REBOUND) terpisah.
+    Alpine.data('signalRadarMonitor', (initialRadar) => ({
+        radar: initialRadar || { gabungan: [], momentum: [], bottom_rebound: [], generated_at: null },
+        loading: false,
+        pollHandle: null,
+        init() {
+            this.pollHandle = setInterval(() => this.fetchData(), 45000);
+        },
+        destroy() {
+            if (this.pollHandle) clearInterval(this.pollHandle);
+        },
+        fetchData() {
+            this.loading = true;
+            fetch('/trades/radar-data', { headers: { Accept: 'application/json' } })
+                .then((res) => res.json())
+                .then((data) => { this.radar = data; })
+                .catch((e) => console.warn('Signal radar fetch error:', e))
+                .finally(() => { this.loading = false; });
+        },
+        // Bar visual (0-100%) jarak ke trigger -- skala referensi beda per strategi krn unit beda
+        // (persentase-poin GABUNGAN, poin RSI MOMENTUM, persentase harga BOTTOM_REBOUND).
+        // Sudah triggered (distance <= 0) = bar penuh 100%.
+        barWidth(distance, fullScale) {
+            if (distance === null || distance === undefined) return 0;
+            if (distance <= 0) return 100;
+            const pct = Math.max(0, Math.min(100, 100 - (distance / fullScale) * 100));
+            return pct;
+        },
+        fmtNum(n, decimals = 2) {
+            if (n === null || n === undefined) return '—';
+            return Number(n).toLocaleString('id-ID', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        },
+    }));
+
     Alpine.data('priceQuote', (initialQuote, fallbackChange) => ({
         quote: {
             stock_code: initialQuote?.stock_code ?? null,
