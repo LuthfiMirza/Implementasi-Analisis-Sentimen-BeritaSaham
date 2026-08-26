@@ -68,6 +68,51 @@
     📊 Lihat Laporan Lengkap →
   </a>
 
+  {{-- ── POSITION SIZING (Fase DD) ── --}}
+  {{-- Modal trading + risk% per trade, dipakai kalkulator "lot disarankan" di modal Catat Trade
+       Baru. Disimpan di system_settings (global, app ini single-trader) -- diletakkan di halaman
+       operasional (bukan Admin) supaya gampang diubah kapan saja modal berubah. --}}
+  @if(session('status'))
+    <div class="rounded-xl border border-green-500/30 bg-green-500/10 text-green-300 text-sm px-4 py-2.5">
+      ✓ {{ session('status') }}
+    </div>
+  @endif
+  <div class="glass-card rounded-2xl p-4 border border-slate-800/80" x-data="{ editing: {{ $sizing['capital'] === null ? 'true' : 'false' }} }">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[10px] text-slate-500 uppercase font-medium">⚖️ Position Sizing</p>
+      <button type="button" @click="editing = !editing" class="text-[11px] text-sky-400 hover:text-sky-300" x-text="editing ? 'Batal' : 'Ubah'"></button>
+    </div>
+
+    <div x-show="!editing" x-cloak class="flex items-center gap-4 text-sm">
+      @if($sizing['capital'] !== null)
+        <span class="text-slate-300">Modal: <span class="font-mono font-semibold text-slate-100">Rp{{ number_format($sizing['capital'], 0, ',', '.') }}</span></span>
+        <span class="text-slate-600">•</span>
+        <span class="text-slate-300">Risk/trade: <span class="font-mono font-semibold text-slate-100">{{ $sizing['risk_pct'] }}%</span></span>
+        <span class="text-slate-500 text-[11px]">(= Rp{{ number_format($sizing['capital'] * $sizing['risk_pct'] / 100, 0, ',', '.') }} maks rugi/trade)</span>
+      @else
+        <span class="text-amber-400 text-[13px]">Belum diatur -- kalkulator "lot disarankan" belum bisa dipakai. Klik "Ubah" utk isi modal Anda.</span>
+      @endif
+    </div>
+
+    <form x-show="editing" x-cloak method="POST" action="{{ route('trades.position-sizing') }}" class="flex flex-wrap items-end gap-3 mt-1">
+      @csrf
+      <div>
+        <label class="block text-[11px] text-slate-500 mb-1">Modal Trading (Rp)</label>
+        <input type="number" name="capital" step="1" min="0" required
+               value="{{ old('capital', $sizing['capital']) }}" placeholder="mis. 30000000"
+               class="w-40 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-200 font-mono focus:border-sky-500 focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-[11px] text-slate-500 mb-1">Risk per Trade (%)</label>
+        <input type="number" name="risk_pct" step="0.1" min="0.1" max="100" required
+               value="{{ old('risk_pct', $sizing['risk_pct']) }}"
+               class="w-24 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-200 font-mono focus:border-sky-500 focus:outline-none">
+      </div>
+      <p class="text-[10px] text-slate-500 mb-2">Standar risk management: 1-2% per trade.</p>
+      <button type="submit" class="px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 text-sm font-semibold transition">Simpan</button>
+    </form>
+  </div>
+
   {{-- ── OPEN POSITIONS ── --}}
   @if($open->count() > 0)
   <div>
@@ -331,19 +376,38 @@
               (zone: {{ request('entry_zone_low') }}–{{ request('entry_zone_high') }})
             </span>
           </label>
-          <input type="number" name="entry_price" required step="1"
-                 value="{{ request('entry_price') }}"
+          <input type="number" name="entry_price" required step="1" id="tradeEntryPriceInput"
+                 value="{{ request('entry_price') }}" oninput="updateSuggestedLot()"
                  class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5
                         text-sm text-slate-200 focus:border-sky-500 focus:outline-none font-mono">
         </div>
         <div>
           <label class="block text-xs text-rose-400 font-medium mb-1.5">Stop Loss</label>
-          <input type="number" name="stop_loss" required step="1"
-                 value="{{ request('stop_loss') }}"
+          <input type="number" name="stop_loss" required step="1" id="tradeStopLossInput"
+                 value="{{ request('stop_loss') }}" oninput="updateSuggestedLot()"
                  class="w-full bg-slate-800 border border-rose-500/30 rounded-xl px-3 py-2.5
                         text-sm text-rose-300 focus:border-rose-500 focus:outline-none font-mono">
         </div>
       </div>
+
+      {{-- Fase DD: Lot Disarankan -- muncul begitu Entry+SL keisi, dihitung dari Modal Trading &
+           Risk% yg diatur di kartu Position Sizing atas halaman. Cuma tampil kalau sizing sudah
+           diatur (capital != null) -- tanpa itu tidak ada dasar hitung, jangan tampilkan angka
+           yg salah asumsi. --}}
+      @if($sizing['capital'] !== null)
+      <div id="suggestedLotBox" class="hidden rounded-xl border border-sky-500/30 bg-sky-500/[0.06] px-4 py-3">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <p class="text-[11px] text-sky-400 font-medium">💡 Lot Disarankan (risk {{ $sizing['risk_pct'] }}% dari Rp{{ number_format($sizing['capital'], 0, ',', '.') }})</p>
+            <p class="text-sm font-mono text-slate-100 mt-0.5" id="suggestedLotText">—</p>
+          </div>
+          <button type="button" onclick="applySuggestedLot()"
+                  class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 text-xs font-semibold transition">
+            Pakai Ini
+          </button>
+        </div>
+      </div>
+      @endif
 
       {{-- Target 1 + Target 2 --}}
       <div class="grid grid-cols-2 gap-4">
@@ -526,6 +590,54 @@ function updateLotHelper() {
     const helper = document.getElementById('tradeLotHelper');
     const lot = parseInt(input.value, 10) || 0;
     helper.textContent = `= ${(lot * 100).toLocaleString('id-ID')} lembar`;
+}
+
+// Fase DD: Position Sizing Calculator. POSITION_SIZING diisi server-side (null kalau belum
+// diatur -- box "Lot Disarankan" tidak dirender sama sekali di kasus itu, lihat kondisi Blade
+// di atas, jadi function ini aman dipanggil kapan saja tanpa null-check berulang di tiap caller).
+//
+// Formula: risk_amount = capital * risk_pct / 100 (maks Rupiah yg boleh hilang kalau kena SL).
+// sl_distance = entry_price - stop_loss (per lembar, HARUS > 0 -- entry di atas SL, posisi long).
+// suggested_shares = floor(risk_amount / sl_distance / 100) * 100 -- dibulatkan KE BAWAH ke
+// kelipatan 100 lembar (1 lot IDX = 100 lembar), supaya risk aktual TIDAK PERNAH melebihi target
+// (round-down, bukan round-nearest -- lebih aman utk risk management drpd presisi).
+const POSITION_SIZING = @json($sizing['capital'] !== null ? $sizing : null);
+
+function updateSuggestedLot() {
+    if (!POSITION_SIZING) return;
+    const box = document.getElementById('suggestedLotBox');
+    const text = document.getElementById('suggestedLotText');
+    if (!box || !text) return;
+
+    const entry = parseFloat(document.getElementById('tradeEntryPriceInput').value) || 0;
+    const sl = parseFloat(document.getElementById('tradeStopLossInput').value) || 0;
+    const slDistance = entry - sl;
+
+    if (entry <= 0 || sl <= 0 || slDistance <= 0) {
+        box.classList.add('hidden');
+        return;
+    }
+
+    const riskAmount = POSITION_SIZING.capital * POSITION_SIZING.risk_pct / 100;
+    const suggestedShares = Math.floor(riskAmount / slDistance / 100) * 100;
+    const suggestedLot = suggestedShares / 100;
+    const positionValue = suggestedShares * entry;
+
+    box.classList.remove('hidden');
+    if (suggestedLot < 1) {
+        text.textContent = `Terlalu kecil (SL jauh dari entry) -- risk Rp${Math.round(riskAmount).toLocaleString('id-ID')} tidak cukup utk 1 lot (100 lembar) di jarak SL ini.`;
+        box.dataset.lot = '';
+    } else {
+        text.textContent = `${suggestedLot.toLocaleString('id-ID')} lot (${suggestedShares.toLocaleString('id-ID')} lembar) ≈ Rp${Math.round(positionValue).toLocaleString('id-ID')} -- rugi maks kalau kena SL: Rp${Math.round(suggestedShares * slDistance).toLocaleString('id-ID')}`;
+        box.dataset.lot = suggestedLot;
+    }
+}
+
+function applySuggestedLot() {
+    const box = document.getElementById('suggestedLotBox');
+    if (!box || !box.dataset.lot) return;
+    document.getElementById('tradeLotInput').value = box.dataset.lot;
+    updateLotHelper();
 }
 
 function openCloseModal(tradeId, stockCode, entryPrice) {

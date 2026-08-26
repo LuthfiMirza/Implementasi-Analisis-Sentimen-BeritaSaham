@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stock;
+use App\Models\SystemSetting;
 use App\Models\Trade;
 use App\Services\MarketData\LiveMarketDataService;
 use App\Services\Trading\SignalRadarService;
@@ -57,7 +58,45 @@ class TradeController extends Controller
         $stocks = Stock::where('is_active', true)->orderBy('code')->get();
         $live = $this->livePnlFor($open);
 
-        return view('trades.index', compact('trades', 'open', 'stocks', 'live', 'preview'));
+        // Fase DD: Position Sizing Calculator -- modal & risk% disimpan di system_settings
+        // (global, bukan per-user -- app ini single-trader, pola sama dgn 'news_provider' yg
+        // sudah ada). Dipakai buat hitung "lot disarankan" di modal Catat Trade Baru, supaya user
+        // tidak asal comot jumlah lot tanpa dasar risk management yg jelas.
+        $sizing = $this->positionSizingSettings();
+
+        return view('trades.index', compact('trades', 'open', 'stocks', 'live', 'preview', 'sizing'));
+    }
+
+    /**
+     * Fase DD: simpan modal trading + risk% per trade -- dipakai kalkulator lot disarankan.
+     * Disimpan di system_settings (bukan tabel baru) -- 2 baris key-value, konsisten dgn
+     * 'news_provider'/'stock_chart_mode' yg sudah ada.
+     */
+    public function updatePositionSizing(Request $request)
+    {
+        $data = $request->validate([
+            'capital' => ['required', 'numeric', 'min:0'],
+            'risk_pct' => ['required', 'numeric', 'min:0.1', 'max:100'],
+        ]);
+
+        SystemSetting::updateOrCreate(['key' => 'position_sizing_capital'], ['value' => ['value' => $data['capital']]]);
+        SystemSetting::updateOrCreate(['key' => 'position_sizing_risk_pct'], ['value' => ['value' => $data['risk_pct']]]);
+
+        return back()->with('status', 'Modal trading & risk per trade disimpan.');
+    }
+
+    /**
+     * @return array{capital: float|null, risk_pct: float}
+     */
+    private function positionSizingSettings(): array
+    {
+        $capitalSetting = SystemSetting::where('key', 'position_sizing_capital')->first();
+        $riskSetting = SystemSetting::where('key', 'position_sizing_risk_pct')->first();
+
+        return [
+            'capital' => $capitalSetting ? (float) ($capitalSetting->value['value'] ?? null) : null,
+            'risk_pct' => $riskSetting ? (float) ($riskSetting->value['value'] ?? 1.0) : 1.0,
+        ];
     }
 
     /**

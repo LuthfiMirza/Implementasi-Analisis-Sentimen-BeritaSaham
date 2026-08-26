@@ -5789,3 +5789,69 @@ mati, tapi karena ticker BARU DIAKTIFKAN dan histori lama-nya "kelihatan" seolah
 - Full suite dijalankan sebelum commit.
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DD — Position Sizing Calculator
+
+### Konteks
+Lanjutan diskusi "sekarang dipakai buat trading nyata" -- user pilih T1.1 (dari daftar prioritas
+yg didiskusikan: Live Monitor sudah, Signal Radar sudah) sbg fitur berikutnya. Masalah yg
+diselesaikan: semua sinyal & statistik sistem pakai simulasi Rp10jt/trade tetap (LIVE_CAPITAL),
+padahal kalau dipakai uang riil, modal user beda dan TANPA sizing yg benar user gampang
+over-position di 1 trade jelek (risk management dasar, bukan fitur nice-to-have).
+
+### Desain
+- Modal trading + risk% per trade disimpan di `system_settings` (key-value GLOBAL yg sudah ada,
+  dipakai jg utk 'news_provider' -- app ini single-trader, tidak perlu tabel/kolom per-user baru).
+- Kartu "⚖️ Position Sizing" di `/trades` (BUKAN di Admin -- supaya gampang diubah kapan saja
+  modal berubah, tidak nyelip di halaman admin yg jarang dibuka).
+- Kalkulator "Lot Disarankan" muncul di modal "Catat Trade Baru" begitu Entry Price + Stop Loss
+  keisi -- dihitung LIVE client-side (JS), formula:
+  ```
+  risk_amount = capital * risk_pct / 100          (maks Rupiah yg boleh hilang kalau kena SL)
+  sl_distance = entry_price - stop_loss            (per lembar, harus > 0 -- posisi long)
+  suggested_shares = floor(risk_amount / sl_distance / 100) * 100   (round DOWN ke kelipatan
+                                                       100 lembar = 1 lot IDX -- supaya risk
+                                                       aktual TIDAK PERNAH melebihi target,
+                                                       bukan round-nearest)
+  ```
+  Tombol "Pakai Ini" auto-isi field Lot dari hasil kalkulator (native DOM `.value` set +
+  `input` event dispatch, bukan cuma visual -- form submit tetap ambil nilai yg benar).
+- Kalkulator TIDAK dirender sama sekali (bukan cuma disembunyikan) kalau capital belum diatur --
+  `@if($sizing['capital'] !== null)` di Blade -- supaya tidak ada kemungkinan tampil angka NaN/0
+  yg salah asumsi sebelum user isi modal.
+
+### Bug ditemukan & diperbaiki saat implementasi: `@if` literal di komentar JS ke-compile jadi Blade directive
+Nulis komentar JS `// ...lihat blade @if di atas...` bikin Blade compiler (yg scan SELURUH file
+utk `@directive`, termasuk di dalam `<script>` block/komentar JS -- Blade tidak tahu bedanya)
+mengubah teks itu jadi `<?php if: ?>` (syntax PHP tidak valid, `@if` butuh kondisi). Error baru
+ketahuan pas runtime ("syntax error, unexpected token ':'"), BUKAN pas `php -l` (itu cuma cek file
+asli, bukan hasil compile Blade). **Pelajaran:** hindari kata `@if`/`@foreach`/dst literal di
+komentar JS/CSS manapun di file .blade.php, walau di dalam string comment -- Blade compiler naif,
+tidak parse konteks. Kalau perlu, tulis "kondisi Blade" atau escape `@@if`.
+
+### Bug ditemukan & diperbaiki saat verifikasi browser: pixel-coordinate click meleset
+`computer` tool klik berbasis koordinat piksel/ref sempat MELESET dari tombol Simpan (submit
+form tidak terkirim sama sekali -- 0 network request tercatat, session malah pernah nyasar ke
+`/dashboard` krn ref stale setelah reflow). Root cause: glitch rendering screenshot di browser
+pane (viewport 1280px dilaporkan benar oleh JS, tapi screenshot capture cuma render ~217px lebar
+dari kanvas 800px, gap-nya hitam kosong) -- BUKAN bug di kode aplikasi (dikonfirmasi: `scrollX=0`,
+`scrollWidth===clientWidth`, tidak ada overflow beneran). Diperbaiki verifikasi dgn native DOM
+click (`element.click()` + `Object.getOwnPropertyDescriptor(...).set` utk trigger React/Alpine-
+style reactive `input` event dgn benar) -- BUKAN sekadar baca state, ini klik ASLI pada elemen
+ASLI di halaman live, cuma metode dispatch-nya yg beda dari simulasi mouse pixel.
+
+### Verifikasi
+- 7 test baru (`PositionSizingTest.php`, 23 assertions): guest ditolak, save+persist ke DB,
+  validasi input invalid ditolak (capital negatif, risk_pct di bawah 0.1), halaman tampil prompt
+  kalau belum diatur, halaman tampil angka benar (capital/risk%/max-loss) kalau sudah diatur,
+  kontrak formula round-down didokumentasikan.
+- `TradeJournalTest`: 10/10 tetap hijau (tidak ada regresi ke form Catat Trade yg sudah ada).
+- Verifikasi end-to-end browser REAL (bukan simulasi): isi capital Rp30jt -> submit -> DB
+  konfirmasi tersimpan (`position_sizing_capital={"value":"30000000"}`) -> buka modal Catat Trade
+  -> isi Entry 1000 + SL 980 -> box "Lot Disarankan" muncul teks **"150 lot (15.000 lembar) ≈
+  Rp15.000.000 -- rugi maks kalau kena SL: Rp300.000"** (match PERSIS hitungan manual: risk
+  300rb / jarak SL 20 / 100 = 150 lot) -> klik "Pakai Ini" -> field Lot terisi "150", helper
+  "= 15.000 lembar" ikut update.
+- Full suite dijalankan sebelum commit.
+
+### Status: SELESAI, siap commit+push.
