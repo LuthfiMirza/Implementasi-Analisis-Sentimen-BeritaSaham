@@ -113,6 +113,58 @@
     </form>
   </div>
 
+  {{-- ── TOTAL EXPOSURE WARNING (Fase DE) ── --}}
+  {{-- Deteksi konsentrasi modal di posisi terbuka -- total exposure vs capital, plus breakdown
+       per-sektor & per-ticker. Validasi nyata yg memicu fitur ini: pernah ada 3 dari 4 posisi
+       terbuka semuanya DSSA (sektor Energy) = 75% total exposure -- kalau sektor itu kena
+       sentimen negatif, ketiganya nyungsep bareng tanpa user sadar konsentrasinya sebesar itu. --}}
+  @if($open->count() > 0)
+  <div class="glass-card rounded-2xl p-4 border
+    {{ $exposure['total_status'] === 'danger' ? 'border-rose-500/40 bg-rose-500/[0.04]' :
+       ($exposure['total_status'] === 'warning' ? 'border-amber-500/30 bg-amber-500/[0.03]' : 'border-slate-800/80') }}">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[10px] text-slate-500 uppercase font-medium">🎯 Total Exposure</p>
+      @if($exposure['total_status'] === 'danger')
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold">⚠️ OVER-EXPOSED</span>
+      @elseif($exposure['total_status'] === 'warning')
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold">🟡 WASPADA</span>
+      @endif
+    </div>
+
+    <div class="flex items-baseline gap-3 mb-3">
+      <p class="text-xl font-bold font-mono
+        {{ $exposure['total_status'] === 'danger' ? 'text-rose-400' :
+           ($exposure['total_status'] === 'warning' ? 'text-amber-400' : 'text-slate-100') }}">
+        Rp{{ number_format($exposure['total_value'], 0, ',', '.') }}
+      </p>
+      @if($exposure['total_pct'] !== null)
+        <p class="text-sm text-slate-500">= {{ $exposure['total_pct'] }}% dari modal Rp{{ number_format($sizing['capital'], 0, ',', '.') }}</p>
+      @else
+        <p class="text-[11px] text-amber-400">(isi Modal Trading di atas utk lihat % dari capital)</p>
+      @endif
+    </div>
+
+    @if(!empty($exposure['by_sector']))
+    <div class="space-y-2">
+      <p class="text-[10px] text-slate-500 uppercase font-medium">Konsentrasi per Sektor</p>
+      @foreach($exposure['by_sector'] as $s)
+        <div>
+          <div class="flex justify-between text-[11px] mb-0.5">
+            <span class="text-slate-300">{{ $s['label'] }} <span class="text-slate-500">({{ implode(', ', $s['tickers']) }})</span></span>
+            <span class="font-mono {{ $s['status'] === 'danger' ? 'text-rose-400' : ($s['status'] === 'warning' ? 'text-amber-400' : 'text-slate-400') }}">{{ $s['pct_of_exposure'] }}%</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div class="h-full rounded-full transition-all
+              {{ $s['status'] === 'danger' ? 'bg-rose-500' : ($s['status'] === 'warning' ? 'bg-amber-500' : 'bg-sky-500') }}"
+              style="width: {{ min(100, $s['pct_of_exposure']) }}%"></div>
+          </div>
+        </div>
+      @endforeach
+    </div>
+    @endif
+  </div>
+  @endif
+
   {{-- ── OPEN POSITIONS ── --}}
   @if($open->count() > 0)
   <div>
@@ -347,11 +399,11 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-xs text-slate-400 font-medium mb-1.5">Saham</label>
-          <select name="stock_id" required
+          <select name="stock_id" id="tradeStockSelect" required onchange="updateExposureWarning()"
                   class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5
                          text-sm text-slate-200 focus:border-sky-500 focus:outline-none">
             @foreach($stocks as $s)
-              <option value="{{ $s->id }}"
+              <option value="{{ $s->id }}" data-sector="{{ $s->sector ?? 'Lainnya' }}" data-code="{{ $s->code }}"
                 {{ request('stock_id') == $s->id ? 'selected' : '' }}>
                 {{ $s->code }} — {{ $s->company_name }}
               </option>
@@ -377,7 +429,7 @@
             </span>
           </label>
           <input type="number" name="entry_price" required step="1" id="tradeEntryPriceInput"
-                 value="{{ request('entry_price') }}" oninput="updateSuggestedLot()"
+                 value="{{ request('entry_price') }}" oninput="updateSuggestedLot(); updateExposureWarning();"
                  class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5
                         text-sm text-slate-200 focus:border-sky-500 focus:outline-none font-mono">
         </div>
@@ -409,6 +461,14 @@
       </div>
       @endif
 
+      {{-- Fase DE: Warning hipotetis exposure -- "kalau posisi ini ditambahkan, exposure total/
+           sektor jadi berapa%". Cuma soft-warning, TIDAK memblokir submit -- keputusan tetap di
+           user, sistem cuma kasih tahu. --}}
+      <div id="exposureWarningBox" class="hidden rounded-xl border px-4 py-3">
+        <p class="text-[11px] font-medium" id="exposureWarningTitle"></p>
+        <p class="text-sm font-mono mt-0.5" id="exposureWarningText"></p>
+      </div>
+
       {{-- Target 1 + Target 2 --}}
       <div class="grid grid-cols-2 gap-4">
         <div>
@@ -434,7 +494,7 @@
         <div>
           <label class="block text-xs text-slate-400 font-medium mb-1.5">Jumlah Lot</label>
           <input type="number" name="lot" required min="1" id="tradeLotInput"
-                 value="{{ request('lot') }}" oninput="updateLotHelper()"
+                 value="{{ request('lot') }}" oninput="updateLotHelper(); updateExposureWarning();"
                  placeholder="mis. 500"
                  class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5
                         text-sm text-slate-200 focus:border-sky-500 focus:outline-none font-mono">
@@ -640,6 +700,86 @@ function applySuggestedLot() {
     updateLotHelper();
 }
 
+// Fase DE: Total Exposure Warning -- kalkulator HIPOTETIS "kalau trade ini jadi ditambahkan,
+// exposure total & sektor jadi berapa%". Ambang SAMA PERSIS dgn PHP (TradeController::
+// EXPOSURE_WARNING_PCT dst) -- kalau salah satu diubah, ubah juga yg satu lagi.
+//
+// PENTING (pelajaran dari bug nyata): directive json-encode Blade SALAH HITUNG kurung kalau
+// argumennya array literal nested (closure yg return array di dalam array literal lain). Aman
+// cuma dipakai dgn ekspresi sederhana (variabel tunggal) -- bangun array PHP biasa dulu di
+// blok terpisah, baru encode variabelnya. (Catatan meta: bahkan kata kunci Blade yg ditulis
+// literal di KOMENTAR ini pun bisa ke-compile jadi directive asli -- itulah kenapa kalimat di
+// atas sengaja tidak menyebut nama directive-nya secara harfiah.)
+@php
+    $exposureStateForJs = [
+        'capital' => $sizing['capital'],
+        'totalValue' => $exposure['total_value'] ?? 0,
+        'bySector' => collect($exposure['by_sector'] ?? [])->mapWithKeys(fn ($s) => [$s['label'] => $s['value']]),
+    ];
+@endphp
+const EXPOSURE_STATE = @json($exposureStateForJs);
+const EXPOSURE_WARNING_PCT = 70.0;
+const EXPOSURE_DANGER_PCT = 100.0;
+const CONCENTRATION_WARNING_PCT = 40.0;
+const CONCENTRATION_DANGER_PCT = 60.0;
+
+function updateExposureWarning() {
+    const box = document.getElementById('exposureWarningBox');
+    if (!box) return;
+    const titleEl = document.getElementById('exposureWarningTitle');
+    const textEl = document.getElementById('exposureWarningText');
+
+    const select = document.getElementById('tradeStockSelect');
+    const opt = select?.options[select.selectedIndex];
+    const sector = opt?.dataset.sector || 'Lainnya';
+    const entry = parseFloat(document.getElementById('tradeEntryPriceInput')?.value) || 0;
+    const lot = parseInt(document.getElementById('tradeLotInput')?.value, 10) || 0;
+    const newValue = entry * lot * 100;
+
+    if (newValue <= 0) {
+        box.classList.add('hidden');
+        return;
+    }
+
+    const newTotal = EXPOSURE_STATE.totalValue + newValue;
+    const newSectorValue = (EXPOSURE_STATE.bySector[sector] || 0) + newValue;
+    const sectorPct = newTotal > 0 ? (newSectorValue / newTotal * 100) : 0;
+    const totalPct = EXPOSURE_STATE.capital ? (newTotal / EXPOSURE_STATE.capital * 100) : null;
+
+    const totalStatus = totalPct === null ? 'unknown'
+        : totalPct >= EXPOSURE_DANGER_PCT ? 'danger'
+        : totalPct >= EXPOSURE_WARNING_PCT ? 'warning' : 'safe';
+    const sectorStatus = sectorPct >= CONCENTRATION_DANGER_PCT ? 'danger'
+        : sectorPct >= CONCENTRATION_WARNING_PCT ? 'warning' : 'safe';
+
+    // Level tertinggi dari kedua status yg dipakai buat warna box (danger > warning > safe).
+    const worst = [totalStatus, sectorStatus].includes('danger') ? 'danger'
+        : [totalStatus, sectorStatus].includes('warning') ? 'warning' : 'safe';
+
+    if (worst === 'safe') {
+        box.classList.add('hidden');
+        return;
+    }
+
+    box.classList.remove('hidden');
+    const styles = {
+        danger: { border: 'border-rose-500/40 bg-rose-500/[0.06]', text: 'text-rose-400', title: '🔴 PERINGATAN: Exposure Tinggi' },
+        warning: { border: 'border-amber-500/30 bg-amber-500/[0.05]', text: 'text-amber-400', title: '🟡 Waspada: Konsentrasi Naik' },
+    };
+    const s = styles[worst];
+    box.className = `rounded-xl border px-4 py-3 ${s.border}`;
+    titleEl.className = `text-[11px] font-medium ${s.text}`;
+    titleEl.textContent = s.title;
+
+    const lines = [];
+    if (totalPct !== null) {
+        lines.push(`Total exposure jadi Rp${Math.round(newTotal).toLocaleString('id-ID')} (${totalPct.toFixed(1)}% dari modal)`);
+    }
+    lines.push(`${sector}: ${sectorPct.toFixed(1)}% dari total exposure kalau posisi ini ditambahkan`);
+    textEl.className = `text-sm font-mono mt-0.5 ${s.text}`;
+    textEl.textContent = lines.join(' • ');
+}
+
 function openCloseModal(tradeId, stockCode, entryPrice) {
     const modal = document.getElementById('closeTradeModal');
     const form  = document.getElementById('closeTradeForm');
@@ -650,6 +790,13 @@ function openCloseModal(tradeId, stockCode, entryPrice) {
     document.getElementById('closeExitPrice').value = '';
 
     modal.classList.remove('hidden');
+}
+
+// Fase DE: kalau modal Catat Trade Baru dibuka pre-filled (dari link sinyal DSS dgn query params
+// stock_id/entry_price), langsung hitung warning-nya juga -- bukan nunggu user ngetik dulu.
+if (!document.getElementById('addTradeModal').classList.contains('hidden')) {
+    updateSuggestedLot();
+    updateExposureWarning();
 }
 </script>
 @endpush

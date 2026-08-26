@@ -64,7 +64,93 @@ class TradeController extends Controller
         // tidak asal comot jumlah lot tanpa dasar risk management yg jelas.
         $sizing = $this->positionSizingSettings();
 
-        return view('trades.index', compact('trades', 'open', 'stocks', 'live', 'preview', 'sizing'));
+        // Fase DE: Total Exposure Warning -- deteksi konsentrasi modal (total maupun per-sektor/
+        // per-ticker) di posisi terbuka. Data nyata yg langsung memvalidasi kebutuhan fitur ini:
+        // user pernah punya 3 dari 4 posisi terbuka semuanya DSSA (sektor Energy) senilai ~75%
+        // total exposure -- kalau sektor itu kena sentimen negatif, ketiganya nyungsep bareng.
+        $exposure = $this->buildExposureSummary($open, $sizing['capital']);
+
+        // Data sektor per stock (utk kalkulator hipotetis client-side di modal Catat Trade Baru --
+        // "kalau posisi ini ditambahkan, exposure sektor X jadi berapa%").
+        $stockSectors = $stocks->mapWithKeys(fn ($s) => [$s->id => $s->sector ?? 'Lainnya']);
+
+        return view('trades.index', compact('trades', 'open', 'stocks', 'live', 'preview', 'sizing', 'exposure', 'stockSectors'));
+    }
+
+    // Ambang persentase exposure/konsentrasi -- dipakai server-side (kartu ringkasan) DAN
+    // di-mirror persis di JS (kalkulator hipotetis modal Catat Trade) supaya warna/status
+    // konsisten di kedua tempat.
+    private const EXPOSURE_WARNING_PCT = 70.0;
+
+    private const EXPOSURE_DANGER_PCT = 100.0;
+
+    private const CONCENTRATION_WARNING_PCT = 40.0;
+
+    private const CONCENTRATION_DANGER_PCT = 60.0;
+
+    /**
+     * Fase DE: ringkasan exposure -- total modal terpakai vs capital, plus breakdown per-sektor
+     * & per-ticker (persentase DARI TOTAL EXPOSURE, bukan dari capital -- supaya "BUMI 75% dari
+     * exposure" tetap kebaca benar walau capital belum diisi/exposure jauh di atas capital).
+     *
+     * @return array{total_value: float, total_pct: float|null, status: string, by_sector: array, by_ticker: array}
+     */
+    private function buildExposureSummary($open, ?float $capital): array
+    {
+        $totalValue = (float) $open->sum(fn ($t) => (float) ($t->position_value ?? 0));
+
+        $totalPct = $capital !== null && $capital > 0 ? round($totalValue / $capital * 100, 1) : null;
+        $totalStatus = $totalPct === null ? 'unknown' : match (true) {
+            $totalPct >= self::EXPOSURE_DANGER_PCT => 'danger',
+            $totalPct >= self::EXPOSURE_WARNING_PCT => 'warning',
+            default => 'safe',
+        };
+
+        $bySector = $open->groupBy(fn ($t) => $t->stock->sector ?? 'Lainnya')
+            ->map(function ($rows, $sector) use ($totalValue) {
+                $value = (float) $rows->sum(fn ($t) => (float) ($t->position_value ?? 0));
+                $pct = $totalValue > 0 ? round($value / $totalValue * 100, 1) : 0;
+
+                return [
+                    'label' => $sector,
+                    'value' => $value,
+                    'pct_of_exposure' => $pct,
+                    'tickers' => $rows->pluck('ticker')->unique()->values()->all(),
+                    'status' => match (true) {
+                        $pct >= self::CONCENTRATION_DANGER_PCT => 'danger',
+                        $pct >= self::CONCENTRATION_WARNING_PCT => 'warning',
+                        default => 'safe',
+                    },
+                ];
+            })
+            ->sortByDesc('value')->values()->all();
+
+        $byTicker = $open->groupBy('ticker')
+            ->map(function ($rows, $ticker) use ($totalValue) {
+                $value = (float) $rows->sum(fn ($t) => (float) ($t->position_value ?? 0));
+                $pct = $totalValue > 0 ? round($value / $totalValue * 100, 1) : 0;
+
+                return [
+                    'label' => $ticker,
+                    'value' => $value,
+                    'pct_of_exposure' => $pct,
+                    'positions' => $rows->count(),
+                    'status' => match (true) {
+                        $pct >= self::CONCENTRATION_DANGER_PCT => 'danger',
+                        $pct >= self::CONCENTRATION_WARNING_PCT => 'warning',
+                        default => 'safe',
+                    },
+                ];
+            })
+            ->sortByDesc('value')->values()->all();
+
+        return [
+            'total_value' => $totalValue,
+            'total_pct' => $totalPct,
+            'total_status' => $totalStatus,
+            'by_sector' => $bySector,
+            'by_ticker' => $byTicker,
+        ];
     }
 
     /**

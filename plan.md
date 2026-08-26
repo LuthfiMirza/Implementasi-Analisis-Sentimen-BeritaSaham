@@ -5855,3 +5855,72 @@ ASLI di halaman live, cuma metode dispatch-nya yg beda dari simulasi mouse pixel
 - Full suite dijalankan sebelum commit.
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DE — Total Exposure Warning
+
+### Konteks
+Lanjutan prioritas trading nyata (Live Monitor -> Signal Radar -> Position Sizing -> ini). User
+pilih T1.3 dari daftar diskusi. Masalah: sistem bisa generate banyak sinyal sekaligus di ticker
+yg berkorelasi (mis. MOMENTUM BUMI+DEWA+BRPT+DSSA barengan) -- diikuti semua tanpa sadar
+konsentrasinya = taruhan besar terselubung di 1 sektor, kalau sektor itu kena sentimen negatif
+semua nyungsep bareng.
+
+**Data real yg langsung memvalidasi kebutuhan fitur ini** (bukan skenario karangan): dicek posisi
+terbuka user SAAT itu -- 3 dari 4 posisi semuanya DSSA (sektor Energy) senilai Rp29,8jt dari total
+Rp39,7jt (75,2%), terhadap modal Rp30jt yg baru diisi di Fase DD = **132,3% over-exposed**. Angka
+ini didapat dari tinker LANGSUNG ke data produksi, bukan dibuat-buat -- bukti kuat fitur ini
+memang dibutuhkan, bukan sekadar nice-to-have teoretis.
+
+### Desain
+- Kolom `sector` SUDAH ADA di tabel `stocks` (terisi: Pertambangan, Basic Materials, Energy,
+  Konsumsi, Utilities, dst) -- tidak perlu skema baru.
+- Ambang (server PHP & client JS WAJIB sinkron, didokumentasikan di kedua tempat):
+  - Total exposure vs capital: `<70% aman`, `70-100% waspada`, `>=100% danger`.
+  - Konsentrasi per-sektor/per-ticker (dari TOTAL EXPOSURE, bukan dari capital -- supaya tetap
+    kebaca benar walau capital belum diisi/exposure jauh di atas capital): `<40% aman`,
+    `40-60% waspada`, `>=60% danger`.
+- Kartu "🎯 Total Exposure" di `/trades` (dekat kartu Position Sizing) -- tampil status badge +
+  breakdown bar per sektor, cuma render kalau ada posisi terbuka.
+- Kalkulator HIPOTETIS di modal "Catat Trade Baru": begitu pilih saham + isi Entry+Lot, langsung
+  hitung "kalau posisi ini ditambahkan, total exposure & sektor jadi berapa%" -- **soft warning,
+  TIDAK memblokir submit** (keputusan tetap di user, sistem cuma kasih tahu, konsisten dgn
+  filosofi keseluruhan sistem "alert saja, bukan eksekusi otomatis").
+
+### Bug ditemukan & diperbaiki (2x, kelas bug yg SAMA dgn Fase DD -- makin penting dicatat sbg pola)
+1. **Directive Blade literal di komentar JS** -- SAMA PERSIS pola Fase DD (`@if`), kali ini beda
+   directive: comment awal menyebut "argumen @json() ... blok @php" secara harfiah, compiler
+   Blade membaca KEDUANYA sbg directive asli di tengah komentar JS, hasilnya PHP tidak valid.
+   Diperbaiki 2x iterasi (comment pertama masih menyebut nama directive scr eksplisit -> masih
+   collision -> direwrite total supaya TIDAK ADA kata `@[a-z]` literal apapun, bahkan sengaja
+   ditulis meta-comment "kalimat ini sengaja tidak menyebut nama directive-nya secara harfiah").
+   **Aturan baku ke depan**: JANGAN PERNAH tulis `@kata` di komentar JS/CSS dalam file .blade.php
+   apapun konteksnya -- Blade compiler scan seluruh file scr naif, tidak parse konteks
+   string/komentar. Cek cepat sebelum commit: `grep -n "^\s*//.*@[a-z]" resources/views/**/*.blade.php`.
+2. **Directive json-encode gagal parse array literal nested** -- `@json([... 'bySector' =>
+   collect(...)->mapWithKeys(fn ($s) => [$s['label'] => $s['value']])])` (closure yg return array
+   di DALAM array literal lain, di dalam argumen directive) bikin Blade compiler SALAH HITUNG
+   kurung tutup, compiled PHP jadi terpotong. Diperbaiki: bangun array PHP biasa dulu di blok
+   terpisah (variabel `$exposureStateForJs`), baru encode VARIABELNYA (ekspresi sederhana) --
+   directive json-encode Blade cuma aman dipakai dgn ekspresi tunggal, bukan konstruksi array
+   kompleks inline.
+
+### Verifikasi
+- 4 test baru (`TotalExposureWarningTest.php`, 15 assertions): kartu tersembunyi kalau tidak ada
+  posisi terbuka, status danger match data real (132,3% total, Energy 75,2%), status aman kalau
+  well-diversified, kontrak formula manual match.
+- Kompilasi Blade dicek LANGSUNG lewat `BladeCompiler::compile()` + `php -l` pada hasil compile
+  (bukan cuma `php -l` file asli -- itu TIDAK menangkap bug directive-di-komentar, cuma kelihatan
+  pas runtime request beneran).
+- Verifikasi end-to-end browser REAL dgn data produksi SESUNGGUHNYA (posisi berubah sendiri di
+  antara pengecekan krn cron trailing-stop jalan live -- BRPT ke-close otomatis, total settle ke
+  3 DSSA = Rp29.817.500 vs capital Rp30jt = **99,4% (warning)**, Energy **100% (danger)**): badge
+  "WASPADA" tampil benar (bukan "OVER-EXPOSED", krn 99,4% < ambang 100%), bar sektor Energy penuh
+  merah.
+- Kalkulator hipotetis: tambah 100 lot DSSA @1050 -> "Total exposure jadi Rp40.317.500 (134,4%
+  dari modal) • Energy: 100,0%" (match manual: 29.817.500+10.500.000=40.317.500). Ganti ke BBCA
+  (sektor Perbankan, beda sektor) 5 lot @10000 -> box TETAP tampil (benar -- total exposure MASIH
+  danger krn portfolio sudah penuh 99,4%+apapun>=100%) TAPI teks membedakan dgn jelas: "Perbankan:
+  14,4%" (aman) -- user paham masalahnya di TOTAL, bukan konsentrasi sektor baru.
+- Full suite dijalankan sebelum commit.
+
+### Status: SELESAI, siap commit+push.
