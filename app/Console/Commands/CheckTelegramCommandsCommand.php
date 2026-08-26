@@ -45,6 +45,7 @@ class CheckTelegramCommandsCommand extends Command
         }
 
         $this->syncTelegramClosesToTradeJournal($outputLines);
+        $this->syncTelegramSkipsToTradeJournal($outputLines);
 
         if (! $result->successful()) {
             $this->error('Gagal cek perintah Telegram: '.trim($result->errorOutput()));
@@ -93,6 +94,58 @@ class CheckTelegramCommandsCommand extends Command
                 $this->info("Sync Trade Journal: {$ticker} ditutup otomatis di web (exit Rp{$price}, {$exitDate->toDateString()}).");
             } catch (Throwable $e) {
                 $this->warn("Sync Trade Journal gagal untuk {$ticker} (DB mungkin mati): ".$e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Fase DF: jembatan tombol "⏭️ Skip" (Telegram) -> web Trade Journal. telegram_commands.py
+     * mencetak "SYNC_SKIP|TICKER|STRATEGI|TANGGAL_ENTRY" begitu user tap Skip di alert sinyal --
+     * di sini kita HAPUS SEPENUHNYA record `trades` yang cocok (bukan close/tutup spt SYNC_CLOSE
+     * -- Skip artinya "saya tidak pernah niat ikuti sinyal ini", jadi trade auto-tercipta itu
+     * seharusnya TIDAK PERNAH ada di journal sama sekali, beda semantik dari "saya ikuti lalu
+     * keluar"). Dicocokkan via (ticker, strategy_label, entry_date) -- 3 field itu identifier unik
+     * yang SAMA dipakai register_open_position() di detect_signal.py buat dedup posisi, jadi
+     * matching di sini konsisten dgn sumber kebenaran yang sama.
+     *
+     * HANYA hapus trade berstatus 'open' -- kalau trade itu SUDAH ditutup (mis. user sempat
+     * /close duluan sebelum sempat tap Skip, race condition kecil tapi mungkin), JANGAN hapus
+     * riwayat closed yang sah, cukup log peringatan.
+     */
+    private function syncTelegramSkipsToTradeJournal(array $outputLines): void
+    {
+        foreach ($outputLines as $line) {
+            if (! str_starts_with($line, 'SYNC_SKIP|')) {
+                continue;
+            }
+
+            [, $ticker, $strategy, $entryDateStr] = array_pad(explode('|', $line), 4, null);
+            if (! $ticker || ! $strategy || ! $entryDateStr) {
+                continue;
+            }
+
+            try {
+                $strategyLabelColumn = match ($strategy) {
+                    'MOMENTUM' => 'momentum',
+                    'BOTTOM_REBOUND' => 'bottom_rebound',
+                    default => 'gabungan',
+                };
+
+                $trade = Trade::where('ticker', $ticker)
+                    ->where('strategy_label', $strategyLabelColumn)
+                    ->whereDate('entry_date', $entryDateStr)
+                    ->where('status', 'open')
+                    ->first();
+
+                if (! $trade) {
+                    $this->warn("Sync Trade Journal (skip): tidak ada posisi OPEN {$ticker} [{$strategy}] entry {$entryDateStr} di web -- dilewati.");
+                    continue;
+                }
+
+                $trade->delete();
+                $this->info("Sync Trade Journal: {$ticker} [{$strategy}] entry {$entryDateStr} dihapus dari web (di-skip via Telegram).");
+            } catch (Throwable $e) {
+                $this->warn("Sync Trade Journal (skip) gagal untuk {$ticker} (DB mungkin mati): ".$e->getMessage());
             }
         }
     }

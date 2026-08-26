@@ -29,7 +29,7 @@ from __future__ import annotations
 import json
 import re
 import sys
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -37,6 +37,7 @@ import yfinance as yf
 
 sys.path.insert(0, str(Path(__file__).parent))
 from detect_signal import (  # noqa: E402
+    ACTION_CALLBACK_PREFIX,
     BUTTON_CLOSE_BUMI,
     BUTTON_CLOSE_DEWA,
     BUTTON_CLOSE_BRPT,
@@ -53,6 +54,7 @@ from detect_signal import (  # noqa: E402
     BUTTON_STATUS,
     DROP_THRESHOLD,
     LABELS,
+    build_action_keyboard,
     default_keyboard,
     load_allowed_chat_ids,
     load_telegram_credentials,
@@ -68,6 +70,7 @@ from check_trailing_stop import (  # noqa: E402
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
 OFFSET_PATH = Path(__file__).parent / "telegram_update_offset.txt"
 CLOSED_TRADES_CACHE_PATH = Path(__file__).parent / "closed_trades_cache.json"
+SNOOZED_PATH = Path(__file__).parent / "snoozed_alerts.json"  # Fase DF
 
 # Icon button labels -> canonical command text, so handle_command()'s parsing only needs to know
 # the /open, /close, /status forms.
@@ -154,6 +157,163 @@ def load_offset() -> int:
 
 def save_offset(update_id: int) -> None:
     OFFSET_PATH.write_text(str(update_id + 1), encoding="utf-8")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Fase DF: Tombol Aksi (Konfirmasi/Skip/Snooze) di alert sinyal BELI baru.
+# ═══════════════════════════════════════════════════════════════════════════
+SNOOZE_MINUTES = 30
+
+
+def load_snoozed() -> list[dict]:
+    if not SNOOZED_PATH.is_file():
+        return []
+    try:
+        return json.loads(SNOOZED_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+
+
+def save_snoozed(entries: list[dict]) -> None:
+    SNOOZED_PATH.write_text(json.dumps(entries, indent=2), encoding="utf-8")
+
+
+def answer_callback_query(token: str, callback_query_id: str, text: str) -> None:
+    """Telegram WAJIB di-answer tiap callback_query (dalam beberapa detik) -- kalau tidak, tombol
+    yang di-tap kelihatan 'loading' terus di UI Telegram si user. `text` muncul sbg toast kecil
+    di atas keyboard, bukan pesan baru di chat -- feedback instan tanpa nambah spam chat."""
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{token}/answerCallbackQuery",
+            json={"callback_query_id": callback_query_id, "text": text},
+            timeout=10,
+        )
+    except Exception as e:
+        print(f"Gagal answerCallbackQuery: {e}")
+
+
+def edit_message_reply_markup(token: str, chat_id: str, message_id: int, keyboard: dict | None) -> None:
+    """Ganti/hapus inline keyboard pesan yang SUDAH terkirim -- dipakai supaya begitu user tap
+    salah satu dari 3 tombol aksi, ketiganya diganti 1 tombol status (bukan tombol aksi lagi) --
+    mencegah tap dobel/aksi yang saling bertentangan (mis. Skip lalu Konfirmasi pada sinyal yang
+    sama)."""
+    payload = {"chat_id": chat_id, "message_id": message_id}
+    payload["reply_markup"] = json.dumps(keyboard if keyboard is not None else {"inline_keyboard": []})
+    try:
+        resp = requests.post(
+            f"https://api.telegram.org/bot{token}/editMessageReplyMarkup",
+            json=payload,
+            timeout=10,
+        )
+        if not resp.ok:
+            print(f"Gagal editMessageReplyMarkup: HTTP {resp.status_code} {resp.text}")
+    except Exception as e:
+        print(f"Gagal editMessageReplyMarkup: {e}")
+
+
+def status_only_keyboard(label: str) -> dict:
+    """Keyboard 1-tombol non-aktif (callback_data NOOP, tidak diproses handle_callback_query) --
+    dipasang menggantikan 3 tombol aksi setelah salah satunya di-tap, sbg jejak visual keputusan
+    yang sudah diambil."""
+    return {"inline_keyboard": [[{"text": label, "callback_data": f"{ACTION_CALLBACK_PREFIX}|NOOP|-|-|-"}]]}
+
+
+def handle_callback_query(token: str, callback_query: dict) -> str | None:
+    """Fase DF: proses tap tombol Konfirmasi/Skip/Snooze di alert sinyal. Return baris SYNC_SKIP
+    (dikonsumsi CheckTelegramCommandsCommand.php, sama pola dgn SYNC_CLOSE) kalau aksinya Skip,
+    None kalau bukan.
+
+    Posisi SUDAH otomatis terdaftar ke open_positions.json & Trade Journal SAAT sinyal terdeteksi
+    (LIVE, tidak menunggu tap tombol ini) -- jadi:
+    - CONFIRM: tidak ubah state apapun, murni acknowledgment visual (posisi memang sudah dipantau).
+    - SKIP: HAPUS dari open_positions.json (skip diam-diam berikutnya, tidak ada alert exit) +
+      cetak SYNC_SKIP supaya PHP hapus juga record Trade Journal yang auto-tercipta.
+    - SNOOZE: simpan ke snoozed_alerts.json, reminder dikirim ulang 30 menit lagi lewat
+      check_snoozed_alerts() (dipanggil tiap kali script ini jalan, tiap 1 menit 08.00-20.00 WIB).
+    """
+    data = callback_query.get("data", "")
+    sender_chat_id = str(callback_query.get("message", {}).get("chat", {}).get("id"))
+    message_id = callback_query.get("message", {}).get("message_id")
+    callback_id = callback_query.get("id")
+
+    parts = data.split("|")
+    if len(parts) != 5 or parts[0] != ACTION_CALLBACK_PREFIX:
+        answer_callback_query(token, callback_id, "Aksi tidak dikenali.")
+        return None
+
+    _, action, ticker, strategy, entry_date = parts
+
+    if action == "NOOP":
+        answer_callback_query(token, callback_id, "Sudah diproses sebelumnya.")
+        return None
+
+    if action == "CONFIRM":
+        answer_callback_query(token, callback_id, f"✅ {ticker} dikonfirmasi.")
+        edit_message_reply_markup(token, sender_chat_id, message_id, status_only_keyboard("✅ Dikonfirmasi"))
+        return None
+
+    if action == "SKIP":
+        positions = load_positions()
+        positions = [
+            p for p in positions
+            if not (p["ticker"] == ticker and p.get("strategy", "GABUNGAN") == strategy
+                    and p.get("entry_date") == entry_date)
+        ]
+        save_positions(positions)
+        answer_callback_query(token, callback_id, f"⏭️ {ticker} dilewati.")
+        edit_message_reply_markup(token, sender_chat_id, message_id, status_only_keyboard("⏭️ Dilewati"))
+        return f"SYNC_SKIP|{ticker}|{strategy}|{entry_date}"
+
+    if action == "SNOOZE":
+        snoozed = load_snoozed()
+        snoozed = [
+            s for s in snoozed
+            if not (s["ticker"] == ticker and s["strategy"] == strategy and s["entry_date"] == entry_date)
+        ]
+        snooze_until = (datetime.now(timezone.utc) + timedelta(minutes=SNOOZE_MINUTES)).isoformat()
+        snoozed.append({
+            "ticker": ticker, "strategy": strategy, "entry_date": entry_date,
+            "snooze_until": snooze_until,
+        })
+        save_snoozed(snoozed)
+        answer_callback_query(token, callback_id, f"\U0001F4A4 Diingatkan lagi {SNOOZE_MINUTES} menit.")
+        edit_message_reply_markup(token, sender_chat_id, message_id, status_only_keyboard(f"\U0001F4A4 Di-snooze {SNOOZE_MINUTES}m"))
+        return None
+
+    answer_callback_query(token, callback_id, "Aksi tidak dikenali.")
+    return None
+
+
+def check_snoozed_alerts() -> None:
+    """Fase DF: kirim ULANG reminder singkat (bukan alert lengkap -- teks HTML asli tidak
+    disimpan, terlalu berat utk disalin persis) begitu waktu snooze-nya lewat, dgn 3 tombol aksi
+    yang SAMA supaya user masih bisa Konfirmasi/Skip/Snooze lagi dari reminder ini. Broadcast ke
+    semua chat yang diizinkan (sama pola dgn alert sinyal asli), BUKAN cuma ke chat yang nge-tap
+    snooze -- user bisa pantau dari akun manapun."""
+    snoozed = load_snoozed()
+    if not snoozed:
+        return
+
+    now = datetime.now(timezone.utc)
+    still_pending = []
+    for s in snoozed:
+        try:
+            due = datetime.fromisoformat(s["snooze_until"])
+        except (KeyError, ValueError):
+            continue  # entri korup -- buang diam-diam, bukan fatal
+
+        if now < due:
+            still_pending.append(s)
+            continue
+
+        text = (
+            f"\U0001F514 <b>Reminder: {s['ticker']} [{s['strategy']}]</b>\n\n"
+            f"Sinyal ini di-snooze {SNOOZE_MINUTES} menit lalu, masih menunggu keputusan Anda "
+            f"(posisi tetap dipantau selama ini -- Skip kalau mau berhenti dipantau)."
+        )
+        send_telegram_alert(text, reply_markup=build_action_keyboard(s["ticker"], s["strategy"], s["entry_date"]))
+
+    save_snoozed(still_pending)
 
 
 def handle_command(text: str, positions: list[dict]) -> tuple[list[dict], str]:
@@ -375,8 +535,12 @@ def format_help() -> str:
         "Contoh: <code>/close BUMI</code> atau tombol Tutup di bawah.\n\n"
         "❓ <b>/help</b>\n"
         "Tampilkan pesan ini.\n\n"
-        "Tombol di bawah kotak pesan cuma jalan pintas untuk /status, /history, /close BUMI/DEWA, "
-        "dan /help -- /price dan /open harus diketik karena ticker-nya bebas."
+        "✅⏭️\U0001F4A4 <b>Tombol di alert sinyal BELI baru</b>\n"
+        "Konfirmasi (cuma tanda terima, posisi memang sudah otomatis dipantau) / "
+        "Skip (batalkan, tidak dipantau lagi &amp; dihapus dari Trade Journal) / "
+        f"Snooze {SNOOZE_MINUTES}m (diingatkan lagi nanti, posisi tetap dipantau selama menunggu).\n\n"
+        "Tombol keyboard di bawah kotak pesan cuma jalan pintas untuk /status, /history, "
+        "/close BUMI/DEWA, dan /help -- /price dan /open harus diketik karena ticker-nya bebas."
     )
 
 
@@ -457,6 +621,12 @@ def main() -> None:
         print("Telegram belum dikonfigurasi -- tidak bisa cek perintah.")
         return
 
+    # Fase DF: cek reminder snooze yg sudah lewat DULU -- WAJIB jalan tiap kali script ini
+    # dipanggil (tiap 1 menit, lihat routes/console.php), terlepas ada update Telegram baru atau
+    # tidak. Kalau ditaruh SETELAH early-return "Tidak ada perintah baru" di bawah, reminder tidak
+    # akan pernah terkirim di menit-menit sepi tanpa command masuk.
+    check_snoozed_alerts()
+
     offset = load_offset()
     resp = requests.get(
         f"https://api.telegram.org/bot{token}/getUpdates",
@@ -476,6 +646,21 @@ def main() -> None:
 
     for update in updates:
         latest_update_id = update["update_id"]
+
+        # Fase DF: tap tombol Konfirmasi/Skip/Snooze datang sbg callback_query, BUKAN message --
+        # ditangani terpisah, lalu lanjut ke update berikutnya (tidak masuk parsing command teks
+        # di bawah).
+        callback_query = update.get("callback_query")
+        if callback_query:
+            cq_chat_id = str(callback_query.get("message", {}).get("chat", {}).get("id"))
+            if cq_chat_id not in allowed_ids:
+                continue  # sama proteksi dgn message -- abaikan chat yg tidak diizinkan
+            sync_line = handle_callback_query(token, callback_query)
+            if sync_line:
+                print(sync_line)
+            processed += 1
+            continue
+
         message = update.get("message")
         if not message:
             continue

@@ -5924,3 +5924,70 @@ memang dibutuhkan, bukan sekadar nice-to-have teoretis.
 - Full suite dijalankan sebelum commit.
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DF — Alert Telegram + Tombol Aksi (Konfirmasi/Skip/Snooze)
+
+### Konteks
+Lanjutan prioritas trading nyata (Live Monitor -> Signal Radar -> Position Sizing -> Total
+Exposure -> ini, T2.1 dari daftar diskusi awal). Masalah: sinyal BELI otomatis auto-tercatat ke
+Trade Journal begitu terdeteksi (LIVE), tapi kalau user TIDAK setuju ikuti sinyal itu, satu-
+satunya cara "batalkan" adalah buka web lalu klik Hapus manual -- ribet, sering lupa, bikin
+statistik resmi kotor sama trade yang sebenarnya tidak pernah diniatkan user.
+
+### Desain
+Alert sinyal BELI baru (GABUNGAN/MOMENTUM/BOTTOM_REBOUND) sekarang dikirim dgn inline keyboard
+3 tombol: **✅ Konfirmasi / ⏭️ Skip / 💤 Snooze 30m**.
+
+- **Konfirmasi**: TIDAK mengubah state apapun -- posisi memang SUDAH otomatis dipantau sejak
+  sinyal terdeteksi (register_open_position() jalan duluan, sebelum tombol ada). Murni
+  acknowledgment visual: keyboard 3-tombol diganti 1 tombol status "✅ Dikonfirmasi".
+- **Skip**: HAPUS dari `open_positions.json` (tidak ada alert exit lagi ke depan) + cetak
+  `SYNC_SKIP|TICKER|STRATEGI|TANGGAL_ENTRY` ke stdout -- dikonsumsi
+  `CheckTelegramCommandsCommand::syncTelegramSkipsToTradeJournal()` (pola sama persis SYNC_CLOSE
+  Fase BJ), yg lalu **MENGHAPUS SEPENUHNYA** (bukan close) record `trades` yang cocok
+  (ticker+strategy_label+entry_date -- identifier unik yg SAMA dipakai register_open_position()
+  utk dedup). Beda semantik dgn Close: Skip = "saya tidak pernah niat ikuti ini", record
+  seharusnya TIDAK PERNAH ada di journal sama sekali.
+- **Snooze 30 menit**: simpan `{ticker, strategy, entry_date, snooze_until}` ke
+  `snoozed_alerts.json` (file baru). `check_snoozed_alerts()` dipanggil di AWAL tiap
+  `telegram_commands.py` jalan (tiap 1 menit, 08.00-20.00 WIB, numpang jadwal
+  `research:check-telegram-commands` yg sudah ada) -- begitu waktu snooze lewat, kirim reminder
+  singkat (BUKAN alert lengkap asli -- teks HTML original tidak disimpan, terlalu berat) dgn 3
+  tombol yg SAMA, jadi user masih bisa Konfirmasi/Skip/Snooze lagi dari reminder itu.
+
+Semua callback_data format `"ACT|AKSI|TICKER|STRATEGI|TANGGAL"` (jauh di bawah limit 64 byte
+Telegram). Ditangani lewat `handle_callback_query()` baru di `telegram_commands.py::main()` --
+loop update sekarang cabang ke callback_query DULU (return awal, skip parsing command teks)
+sebelum lanjut ke message biasa. `answerCallbackQuery` (WAJIB di-panggil tiap callback, kalau
+tidak tombol Telegram kelihatan "loading" terus) + `editMessageReplyMarkup` (ganti 3 tombol jadi
+1 tombol status, cegah tap dobel/aksi bertentangan) -- 2 endpoint Telegram API BARU yg sebelumnya
+tidak pernah dipakai codebase ini (cuma `sendMessage`/`getUpdates` sebelumnya).
+
+### Verifikasi ekstra hati-hati krn nyentuh Telegram API produksi + auto-delete data
+- Import chain penuh dicek via `python3 -c "import telegram_commands"` -- OK, semua nama resolve.
+- `build_action_keyboard()` dicek outputnya persis format `InlineKeyboardMarkup` resmi Telegram.
+- **`handle_callback_query()` diuji OFFLINE** dgn token PALSU (`invalid_token_for_offline_test`)
+  supaya TIDAK ADA network call nyata ke Telegram production -- `answerCallbackQuery`/
+  `editMessageReplyMarkup` gagal dgn error (di-print, non-fatal, sudah dibungkus try/except),
+  TIDAK ADA efek samping nyata (2 endpoint itu bukan `sendMessage`, tidak pernah kirim pesan baru
+  ke chat manapun walau gagal). Ketiga aksi (CONFIRM/SKIP/SNOOZE) diuji pakai ticker dummy
+  "ZZTEST" -- return value & isi file dicek cocok desain.
+- **BUG OPERASIONAL ditemukan & diperbaiki SAAT testing** (bukan bug kode, tapi kelalaian
+  prosedur): test SNOOZE ("ZZTEST") menulis entry REAL ke `snoozed_alerts.json` -- file itu akan
+  DIBACA scheduler produksi (`research:check-telegram-commands`, jalan tiap 1 menit) dan **AKAN
+  BENERAN KIRIM** pesan reminder sampah "🔔 Reminder: ZZTEST..." ke Telegram user asli dalam 30
+  menit kalau dibiarkan! Langsung dihapus (`rm snoozed_alerts.json`) begitu ketahuan, dikonfirmasi
+  `git status` file itu memang baru/untracked (aman dihapus total, bukan restore versi lama).
+  **Pelajaran buat ke depan**: fitur yg nulis ke file yg DIBACA scheduler produksi WAJIB
+  di-cleanup SEGERA setelah test manual, JANGAN nunggu sampai akhir sesi -- window antara nulis
+  file test & cleanup adalah window nyata di mana scheduler produksi bisa "keburu jalan" duluan
+  (di project ini scheduler jalan tiap 1 menit, window realistis cuma puluhan detik).
+- Test SKIP dgn ticker dummy dicek TIDAK mengubah `open_positions.json` real (`git diff --stat`
+  kosong) -- ticker palsu tidak match apapun, filter list-comprehension aman.
+- 3 test PHP baru (`CheckTelegramCommandsCommandTest`, ditambahkan ke suite yg sudah ada, total
+  8 test/22 assertions): SYNC_SKIP hapus trade OPEN yg cocok, TIDAK ikut hapus trade strategi
+  BEDA di ticker SAMA (kasus BUMI GABUNGAN+MOMENTUM bersamaan, pola Fase CR), graceful kalau tidak
+  ada trade yg cocok.
+- Full suite dijalankan sebelum commit.
+
+### Status: SELESAI, siap commit+push.

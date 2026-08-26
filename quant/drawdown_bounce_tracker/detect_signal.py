@@ -254,6 +254,27 @@ def default_keyboard() -> dict:
     }
 
 
+# Fase DF: prefix wajib di tiap callback_data supaya handle_callback_query() (telegram_commands.py)
+# bisa bedain "tombol aksi sinyal" dari kemungkinan callback_data lain di masa depan tanpa ambigu.
+ACTION_CALLBACK_PREFIX = "ACT"
+
+
+def build_action_keyboard(ticker: str, strategy: str, entry_date: str) -> dict:
+    """Fase DF: inline keyboard 3 tombol (Konfirmasi/Skip/Snooze) di tiap alert sinyal BELI baru.
+    callback_data format "ACT|AKSI|TICKER|STRATEGI|TANGGAL_ENTRY" -- 4 field pemisah pipe, semua
+    string pendek (ticker max 6 char, tanggal ISO 10 char) jadi jauh di bawah limit 64 byte
+    Telegram utk callback_data. Posisi SUDAH otomatis terdaftar ke open_positions.json &amp; Trade
+    Journal begitu sinyal terdeteksi (LIVE, bukan menunggu tap tombol ini) -- tombol di sini
+    murni utk ACK/batalkan/tunda KEPUTUSAN user, bukan trigger pendaftaran itu sendiri."""
+    return {
+        "inline_keyboard": [[
+            {"text": "✅ Konfirmasi", "callback_data": f"{ACTION_CALLBACK_PREFIX}|CONFIRM|{ticker}|{strategy}|{entry_date}"},
+            {"text": "⏭️ Skip", "callback_data": f"{ACTION_CALLBACK_PREFIX}|SKIP|{ticker}|{strategy}|{entry_date}"},
+            {"text": "\U0001F4A4 Snooze 30m", "callback_data": f"{ACTION_CALLBACK_PREFIX}|SNOOZE|{ticker}|{strategy}|{entry_date}"},
+        ]],
+    }
+
+
 def send_telegram_alert(text: str, reply_markup: dict | None = None, chat_id: str | None = None) -> None:
     """chat_id opsional, dan artinya beda tergantung dipakai dari mana (Fase AV):
     - Diisi EKSPLISIT (dipakai telegram_commands.py untuk balas perintah /status dst) -> kirim
@@ -794,7 +815,8 @@ def main() -> None:
             print(f"SIGNAL BARU: {s['ticker']} ({s['label']}) trigger {s['trigger_date']} "
                   f"-> entry {s['entry_date']} @ {s['entry_price']:.0f}")
 
-            send_telegram_alert(format_signal_alert(s))
+            send_telegram_alert(format_signal_alert(s),
+                                 reply_markup=build_action_keyboard(s["ticker"], "GABUNGAN", s["entry_date"]))
 
             # Fase BM: daftar otomatis ke pemantauan trailing-stop + jembatan ke Trade Journal
             # web (SYNC_OPEN diparsing PHP, sama pola dengan SYNC_CLOSE Fase BJ).
@@ -817,7 +839,8 @@ def main() -> None:
             print(f"SINYAL MOMENTUM BARU: {s['ticker']} trigger {s['trigger_date']} "
                   f"(RSI14={s['rsi14']:.0f}) -> entry {s['entry_date']} @ {s['entry_price']:.0f}")
 
-            send_telegram_alert(format_momentum_alert(s))
+            send_telegram_alert(format_momentum_alert(s),
+                                 reply_markup=build_action_keyboard(s["ticker"], "MOMENTUM", s["entry_date"]))
 
             register_open_position(s["ticker"], s["entry_date"], s["entry_price"], strategy="MOMENTUM")
             print(f"SYNC_OPEN|{s['ticker']}|{s['entry_price']}|{s['entry_date']}|MOMENTUM|rsi{s['rsi14']:.0f}")
@@ -839,7 +862,8 @@ def main() -> None:
                   f"(bottom={s['bottom_10d']:.0f}, threshold={s['threshold']:.0f}) "
                   f"-> entry {s['entry_date']} @ {s['entry_price']:.0f}")
 
-            send_telegram_alert(format_bottom_rebound_alert(s))
+            send_telegram_alert(format_bottom_rebound_alert(s),
+                                 reply_markup=build_action_keyboard(s["ticker"], "BOTTOM_REBOUND", s["entry_date"]))
 
             register_open_position(s["ticker"], s["entry_date"], s["entry_price"],
                                     strategy="BOTTOM_REBOUND")
