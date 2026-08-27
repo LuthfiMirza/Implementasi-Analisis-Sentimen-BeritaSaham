@@ -219,14 +219,16 @@ Schedule::command('news:analyze')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
-// SNAPSHOT DEMO: Perbarui snapshot harga sederhana di luar jam pasar
-// Sebelumnya jadwal ini hidup di bootstrap/app.php dan efektif berjalan 23:15 WIB
-// karena timezone app masih UTC. Sekarang dieksplisitkan di source-of-truth scheduler.
-Schedule::command('stocks:update-snapshots')
-    ->dailyAt('23:15')
-    ->timezone('Asia/Jakarta')
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/scheduler.log'));
+// Fase DI: jadwal 'stocks:update-snapshots' DICABUT PERMANEN -- command itu menulis harga
+// RANDOM (bukan data pasar asli, lihat docblock command-nya sendiri: "demo") dengan
+// updateOrCreate() ke key (stock_id, price_date, interval_type) YANG SAMA dipakai data Yahoo
+// asli, jadi tiap jalan otomatis diam-diam MENIMPA harga historis nyata dengan angka acak.
+// Ketahuan lewat audit akurasi /analytics: Support BUMI (window 20 hari) kebaca Rp84 -- radikal
+// beda dari harga wajar Rp150-190 -- root cause: baris 2026-08-01 (dan 294 baris lain, 20 saham,
+// 27 Apr - 23 Agu 2026) ketiban source='command' random. Sudah dibersihkan (lihat plan.md Fase
+// DI): 295 baris korup dibackfill ulang dari Yahoo asli / dihapus kalau tanggal libur bursa.
+// JANGAN dihidupkan lagi -- kalau butuh snapshot demo, pakai source-tag yang TIDAK bentrok
+// dengan key data historis asli.
 
 // WEEKLY PRICE HISTORY REFRESH: data/stocks/*.csv (sumber fitur teknikal training V6A/V6B/BUMI/DEWA)
 // ternyata tidak pernah dijadwalkan sama sekali -- ditemukan mentok ~2026-04-22 saat verifikasi

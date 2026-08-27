@@ -6052,6 +6052,86 @@ sengaja berisi `<naik> & untung > rugi` -> keluar `&lt;naik&gt; &amp; untung &gt
 
 ### Status: SELESAI, siap commit+push.
 
+## Fase DI — Bongkar & bersihkan kontaminasi data harga acak (`stocks:update-snapshots`)
+
+### Konteks
+User cek akurasi `/analytics?code=BUMI&period=30`: panel "Level Kunci" menampilkan **Support:
+84** -- jauh di luar rentang harga wajar BUMI 4 bulan terakhir (Rp150-240). Ditelusuri:
+`DecisionSupportService::supportResistance()` (window 20 bar terakhir, independen dari
+`period=` URL) mengambil `min(close)` dari 20 baris `StockPrice` paling baru -- salah satu di
+antaranya bernilai close=Rp84, sebuah angka RANDOM, bukan harga pasar asli.
+
+**Root cause**: `app/Console/Commands/UpdateStockSnapshotsCommand.php` (`stocks:update-snapshots
+{--days=1}`, deskripsi command sendiri: "Perbarui snapshot harga saham secara sederhana untuk
+demo") dijadwalkan **harian jam 23:15 WIB** via `routes/console.php`. Command ini menghasilkan
+harga RANDOM (`close = max(10, $base + random_int(-50,50))`, `$base` = close terakhir yg
+diketahui) lalu `StockPrice::updateOrCreate(['stock_id','price_date','interval_type'], [...
+'source'=>'command'])` -- key yang PERSIS SAMA dipakai data Yahoo asli
+(`FetchStockHistoryCommand`, `source='yahoo_history_incremental'`). Karena
+`Carbon::now()->subDays($i)->toDateString()` menghasilkan string tanggal yang, setelah lewat
+cast Eloquent, tersimpan dengan time-component non-midnight (mis. `2026-04-27 15:00:00`, bukan
+`2026-04-27 00:00:00`) -- baris korup TIDAK benar-benar menimpa baris asli (key `price_date`
+beda persis di jam), melainkan nyangkut sebagai baris DUPLIKAT terpisah untuk stock+tanggal yang
+sama. Efek gabungannya: baris duplikat acak ini tetap ikut kehitung tiap kali query mengambil
+"N bar/hari terakhir" tanpa filter `source`, mengotori window Support/Resistance, MA, RSI, dst.
+Error bisa berkomposisi lintas hari karena `$base` hari-N dihitung dari kemungkinan baris korup
+hari-(N-1).
+
+**Skala kontaminasi**: 295 baris `source='command'`, 20 saham aktif (semua saham di sistem),
+rentang tanggal 27 Apr - 23 Agu 2026 (~4 bulan). Dicek satu-satu, breakdown penyebab tiap baris
+tidak punya "baris asli" di tanggal sama:
+- 108 baris: PUNYA kembaran baris asli valid di tanggal sama (murni duplikat time-mismatch).
+- 187 baris TANPA kembaran, tapi semuanya jatuh di hari BEI tutup: 151 Minggu + 24 Sabtu + 12
+  Senin **1 Juni 2026 (libur nasional Hari Lahir Pancasila)** -- jadi memang tidak ada data
+  pasar asli yang seharusnya ada di tanggal-tanggal itu untuk mulanya.
+
+Kesimpulan: seluruh 295 baris korup aman DIHAPUS langsung (bukan di-backfill) -- baik karena
+sudah ada baris asli valid di tanggal yang sama, maupun karena tanggalnya memang bukan hari
+bursa sama sekali.
+
+User diberi 3 opsi remediasi via AskUserQuestion, memilih: **"Matikan scheduler + bersihkan 295
+baris korup (Rekomendasi)"**.
+
+### Perbaikan
+1. `routes/console.php`: hapus blok `Schedule::command('stocks:update-snapshots')->dailyAt('23:15')...`
+   (komentar lama "SNAPSHOT DEMO"), diganti komentar yang menjelaskan kenapa dicabut permanen dan
+   referensi ke fase ini -- supaya tidak ada yang menghidupkan lagi tanpa konteks.
+2. Backup pengaman SEBELUM hapus apa pun: seluruh 295 baris `source='command'` di-dump ke
+   `storage/app/backups/stock_prices_command_backup_20260827_194652.json` (tidak di-commit ke
+   git, murni arsip lokal jaga-jaga).
+3. Re-fetch histori asli via `php artisan stocks:fetch-history --days=140` (cover 27 Apr - 27
+   Agu) untuk 20 saham aktif -- mengisi/menimpa baris valid di tanggal yang key-nya cocok persis
+   (119-122 baris per saham berhasil, `source='yahoo_history_incremental'`).
+4. Verifikasi tiap baris korup punya kembaran baris asli di tanggal sama ATAU jatuh di hari bursa
+   tutup (lihat breakdown di atas) -- keduanya mengonfirmasi aman dihapus tanpa risiko kehilangan
+   data pasar asli.
+5. `StockPrice::where('source','command')->delete()` -- 295 baris terhapus, 0 sisa.
+6. Command `UpdateStockSnapshotsCommand.php` sendiri TIDAK dihapus (di luar cakupan opsi yang
+   dipilih user, "matikan scheduler" != "hapus command") -- masih bisa dipanggil manual tapi
+   sudah tidak lagi berjalan otomatis.
+
+### Verifikasi
+- `StockPrice::where('source','command')->count()` -- 0 (sebelumnya 295).
+- Raw query 30 hari terakhir BUMI (`source<>'seed'`): Support (min close) **Rp148**, Resistance
+  (max close) Rp196, Last close Rp194 -- masuk akal, konsisten rentang harga riil.
+- Browser real (`http://localhost:8012/analytics?code=BUMI&period=30`, URL PERSIS user):
+  Support **162**, Resistance 196 (window 20-bar `DecisionSupportService`, beda dari raw 30-hari
+  di atas by design -- lihat catatan lama ttg window tetap). VWAP 183, MA20 181, BB
+  162.49-199.71, semua level kini saling konsisten -- tidak ada lagi outlier Rp84.
+- Full suite: dijalankan setelah pembersihan (lihat baris hasil di bawah tanda tangan commit).
+- `grep` konfirmasi tidak ada pemanggilan lain ke `stocks:update-snapshots` selain entri scheduler
+  yang sudah dicabut (registrasi di `bootstrap/app.php` cuma daftar command tersedia, bukan
+  auto-run; disebut juga di `README.md`/`plan.md` lama sbg dokumentasi historis, tidak diubah).
+
+### Catatan tambahan
+- `2026-08-23` (Minggu) sempat disebut di ringkasan awal investigasi sbg "contoh baris libur" --
+  konsisten dgn temuan breakdown final (Minggu, tanpa kembaran, dihapus).
+- Tidak ada backfill manual per-tanggal yang diperlukan -- kombinasi re-fetch Yahoo (utk baris yg
+  key-nya cocok) + delete langsung (utk baris yg key-nya tidak cocok tapi memang bukan hari
+  bursa) menuntaskan seluruh 295 baris tanpa sisa kasus khusus.
+
+### Status: SELESAI, siap commit+push.
+
 ## Fase DH — Cabut "Catat Trade Manual" + panel Position Sizing dari /analytics
 
 ### Konteks
