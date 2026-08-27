@@ -6051,3 +6051,37 @@ sengaja berisi `<naik> & untung > rugi` -> keluar `&lt;naik&gt; &amp; untung &gt
 - Full suite dijalankan sebelum commit.
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DH — Cabut "Catat Trade Manual" + panel Position Sizing dari /analytics
+
+### Konteks
+User: buka `/analytics?code=BUMI&period=30`, minta hilangkan tombol "📝 Catat Trade Manual" dan
+panel "Position Sizing (Modal Rp 10jt • Risk 2%)" -- "ya ga butuh disini kan hanya informasi saja".
+Halaman `/analytics` memang murni analisis teknikal (chart, sentimen, prediksi V6A), BUKAN tempat
+aksi transaksi -- itu domainnya `/trades`, yang sejak Fase DD sudah punya Position Sizing
+Calculator SENDIRI berbasis modal & risk% yang BENERAN diatur user (bukan modal Rp10jt/risk 2%
+hardcoded spt di panel lama `/analytics` ini). Dua fitur position-sizing yang beda basis di dua
+halaman beda itu sendirinya berpotensi bikin bingung (angka Lot Size di /analytics vs /trades bisa
+beda tergantung modal user), jadi pencabutan ini juga sekalian menghilangkan potensi kebingungan
+itu, bukan cuma "user ga suka".
+
+### Perbaikan
+`resources/views/analytics/index.blade.php`: hapus blok tombol "Catat Trade Manual" (link ke
+`trades.index` dgn query params pre-fill) + panel "Position Sizing" (Lot Size/Nilai Posisi/Max
+Loss, 3 kolom). Section "Level Kunci" (VWAP/MA20/BB Upper-Lower/Resistance/Support) DIPERTAHANKAN
+-- itu genuinely informasi analisis, bukan aksi transaksi, sesuai maksud user "hanya informasi
+saja" (bedakan mana yg informasi vs mana yg mengarah ke aksi trading). Komentar developer di baris
+~146 (referensi ATR utk "position sizing") diupdate supaya tidak menyesatkan -- sekarang
+menjelaskan ATR dipakai utk Stop Loss saja, panel Position Sizing sudah dicabut.
+
+### Verifikasi
+- Kompilasi Blade dicek langsung (`BladeCompiler::compile()` + `php -l`) -- bersih, tidak ada
+  directive-di-komentar (komentar baru sengaja dicek tidak mengandung kata `@apapun` literal,
+  pelajaran Fase DD/DE diterapkan preventif).
+- `AnalyticsPageTest`: 2/2 tetap hijau (tidak ada assertion yg gantung ke section yg dihapus).
+- Browser real (`/analytics?code=BUMI&period=30`, URL PERSIS yg dipakai user): `Catat Trade
+  Manual` dan `Position Sizing`/`Lot Size` dikonfirmasi HILANG dari textContent halaman, `Level
+  Kunci`/`VWAP` dikonfirmasi TETAP ADA. Screenshot: halaman render normal, chart+insight utuh.
+- Full suite: 520 passed (2162 assertions).
+
+### Status: SELESAI, siap commit+push.

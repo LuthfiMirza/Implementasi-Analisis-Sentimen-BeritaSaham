@@ -143,8 +143,9 @@
                                 cross EMA/RSI/MACD/dst tidak punya edge OOS yang bisa diandalkan di saham
                                 IDX ini. Arah yang benar-benar diuji walk-forward tetap skor "Prediksi
                                 Teknikal" V6A di bawah, bukan chart ini. ATR di sini juga bukan sinyal --
-                                dipakai project untuk position sizing (lihat "Position Sizing" & "Stop Loss"
-                                di panel bawah), justifikasi yang sama dipertahankan di chart.
+                                dipakai project untuk hitung Stop Loss (lihat panel bawah) -- panel
+                                Position Sizing sendiri sudah dicabut dari halaman ini (Fase DH), sekarang
+                                cuma ada di /trades (Position Sizing Calculator, berbasis modal riil user).
 
                                 Sisa indikator (BB/MACD/Stochastic/ADX/VWAP/OBV) tetap bisa ditambah manual
                                 lewat tombol "Indikator" bawaan widget -- tidak hilang, cuma tidak dipaksa
@@ -261,55 +262,14 @@
                                 </div>
                             @endif
 
-                            <div class="mt-3">
-                                <a href="{{ route('trades.index', [
-                                    'stock_id' => $stock->id,
-                                    'entry_price' => $signal['entry'],
-                                    'stop_loss' => $signal['stop_recommended'],
-                                    'target_1' => $signal['target_2r'],
-                                    'target_2' => $signal['target_3r'],
-                                    // Form Catat Trade sekarang minta Jumlah Lot (kebiasaan broker), bukan
-                                    // lembar mentah -- dibulatkan ke bawah ke kelipatan lot terdekat karena
-                                    // order riil di IDX memang cuma bisa dalam satuan lot utuh.
-                                    'lot' => max(1, intdiv($signal['lot_size'], 100)),
-                                    'rr_ratio' => $signal['rr_ratio_2r'],
-                                    'dss_score' => $decision['final_score'] ?? 0,
-                                    'dss_prediction' => $decision['prediction'] ?? 'flat',
-                                    'dss_confidence' => $decision['prediction_confidence'] ?? 0,
-                                    'signal_quality' => $signal['quality'],
-                                    'entry_zone_low' => $signal['entry_zone_low'] ?? null,
-                                    'entry_zone_high' => $signal['entry_zone_high'] ?? null,
-                                ]) }}"
-                                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold text-sm transition">
-                                    📝 Catat Trade Manual (isi sendiri, bukan rekomendasi otomatis)
-                                </a>
-                            </div>
-
-                            <div class="border-t border-slate-800 pt-3 mb-3">
-                                <div class="text-xs text-slate-500 uppercase mb-2">
-                                    Position Sizing (Modal Rp 10jt • Risk 2%)
-                                </div>
-                                    <div class="grid grid-cols-3 gap-3">
-                                        <div>
-                                            <div class="text-[10px] text-slate-500">Lot Size</div>
-                                            <div class="font-mono font-bold text-slate-200">
-                                                {{ number_format($signal['lot_size']) }} lembar
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div class="text-[10px] text-slate-500">Nilai Posisi</div>
-                                            <div class="font-mono font-bold text-slate-200">
-                                                Rp {{ number_format($signal['lot_value']) }}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div class="text-[10px] text-slate-500">Max Loss</div>
-                                            <div class="font-mono font-bold text-rose-400">
-                                                Rp {{ number_format($signal['risk_amount']) }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            {{-- Fase DH: tombol "Catat Trade Manual" + panel "Position Sizing" DIHAPUS dari
+                                 halaman ini atas permintaan user -- /analytics murni informasi analisis
+                                 teknikal, bukan tempat aksi transaksi (itu domainnya /trades, yang sudah
+                                 punya Position Sizing Calculator sendiri sejak Fase DD, berbasis modal &
+                                 risk% yang BENERAN diatur user, bukan modal Rp10jt/risk 2% hardcoded di
+                                 sini). Kalau user mau catat trade dari sinyal ini, tetap bisa lewat
+                                 /trades manual seperti biasa -- cuma link pintasnya yang dicabut dari
+                                 halaman analisis. --}}
 
                                 <div class="border-t border-slate-800 pt-3 mb-3">
                                     <div class="text-xs text-slate-500 uppercase mb-2">Level Kunci</div>
