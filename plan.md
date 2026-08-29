@@ -6165,3 +6165,68 @@ menjelaskan ATR dipakai utk Stop Loss saja, panel Position Sizing sudah dicabut.
 - Full suite: 520 passed (2162 assertions).
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DJ — Batas maksimal posisi bersamaan per ticker+strategi (anti-pyramiding tak terbatas)
+
+### Konteks
+User minta cek "ada sinyal aman buat entri now" (28 Agu 2026, siang). Ditemukan jadwal otomatis
+`research:detect-drawdown-bounce-signal` (15:18 WIB) hari itu TIDAK jalan (log scheduler kosong
+sampai command dijalankan manual) -- dijalankan manual, menghasilkan 4 sinyal baru untuk entry
+28 Agu: BUMI MOMENTUM, DSSA MOMENTUM, BUMI BOTTOM-REBOUND, DEWA BOTTOM-REBOUND.
+
+Sambil verifikasi, dicek `TradeController::buildExposureSummary()` (fitur Total Exposure Warning,
+Fase DE) -- hasilnya **DANGER: 430.5% dari modal** (Rp129.144.200 total posisi terbuka vs modal
+riil user Rp30.000.000, `by_ticker` menunjukkan DSSA sendirian 38.5% dari total exposure dengan
+**5 posisi MOMENTUM terbuka beruntun** -- entry 21, 24, 26, 27, 28 Agustus, RSI14 tetap >60 tiap
+hari sehingga sinyal MOMENTUM terus retrigger).
+
+**Root cause**: `DetectDrawdownBounceSignalCommand::syncOpenSignalsToTradeJournal()` SEBELUM fase
+ini tidak pernah cek berapa posisi sudah terbuka sebelum membuka yang baru -- tiap sinyal
+dianggap independen, masing-masing "pakai" `LIVE_CAPITAL` (Rp10jt) sendiri-sendiri seolah modal
+tidak terbatas. Idempotency check yang ADA (`$exists`) cuma mencegah duplikat di TANGGAL yang
+sama, bukan mencegah penumpukan lintas-hari. Ini bukan sinyal palsu (RSI14 DSSA memang >60
+setiap hari itu, datanya valid) -- akar masalahnya murni tidak ada batas pyramiding di sisi
+sinkronisasi Trade Journal.
+
+User memilih (via AskUserQuestion, opsi "Rekomendasi"): batasi maksimal posisi bersamaan per
+ticker+strategi.
+
+### Perbaikan
+`app/Console/Commands/DetectDrawdownBounceSignalCommand.php`:
+- Tambah `MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY = 3` (default konservatif, BUKAN hasil
+  backtest/OOS -- murni keputusan risk management manual, didokumentasikan eksplisit sebagai
+  angka yang bisa didiskusikan ulang).
+- Di `syncOpenSignalsToTradeJournal()`: sebelum `Trade::create()`, hitung
+  `Trade::where('ticker', $ticker)->where('strategy_label', $strategyLabelColumn)->where('status',
+  'open')->count()` -- kalau sudah >= batas, sinyal dilewati (`continue`) dengan pesan warning
+  eksplisit, TIDAK membuat baris Trade baru. Data tetap masuk `open_positions.json` via
+  `detect_signal.py` (alert Telegram tetap terkirim) -- yang dibatasi HANYA representasi di web
+  Trade Journal, bukan tracking sinyal itu sendiri.
+- Batas dihitung PER TICKER+STRATEGI (bukan per ticker keseluruhan) -- `strategyLabelColumn`
+  (momentum/bottom_rebound/gabungan) dipindah ke atas SEBELUM cek batas (sebelumnya dihitung
+  setelah), supaya BUMI MOMENTUM dan BUMI BOTTOM-REBOUND tetap dianggap slot independen (2
+  strategi berbeda pada ticker sama = 2 "kuota" terpisah, bukan 1).
+- 5 posisi DSSA MOMENTUM yang SUDAH terbuka (dari sebelum fase ini) TIDAK disentuh/ditutup paksa
+  -- batas ini hanya mencegah penambahan posisi BARU ke depan, bukan trading action retroaktif
+  (menutup posisi adalah keputusan trading, di luar wewenang untuk diputuskan otomatis).
+
+### Verifikasi
+- 3 test baru di `DetectDrawdownBounceSignalCommandTest.php`:
+  - `test_sync_open_is_skipped_when_max_concurrent_positions_reached`: 3 posisi momentum sudah
+    ada -> sinyal ke-4 dilewati, tetap 3 di DB.
+  - `test_sync_open_allowed_when_under_max_concurrent_positions`: 2 posisi sudah ada -> sinyal
+    ke-3 lolos (pas di batas).
+  - `test_max_concurrent_positions_cap_is_per_strategy_not_per_ticker`: BUMI sudah 3 posisi
+    MOMENTUM (kena batas), tapi sinyal baru BOTTOM_REBOUND (strategi beda) tetap lolos.
+- `DetectDrawdownBounceSignalCommandTest`: 12/12 passed (41 assertions), termasuk 9 test lama.
+- Full suite dijalankan setelah perubahan (lihat hasil di commit).
+
+### Catatan
+- Angka batas (3) adalah keputusan risk-management manual, bukan hasil validasi statistik --
+  didokumentasikan jelas di kode supaya gampang didiskusikan ulang kalau user mau ubah.
+- Bug terpisah yang juga ditemukan sesi ini (BUMI BOTTOM-REBOUND sempat hilang dari Trade Journal
+  karena idempotency check `$exists` cuma cek ticker+tanggal, bukan ticker+tanggal+strategi) --
+  user memilih untuk TIDAK diperbaiki sekarang (dicatat sebagai temuan terbuka, prioritas
+  ditunda).
+
+### Status: SELESAI, siap commit+push.

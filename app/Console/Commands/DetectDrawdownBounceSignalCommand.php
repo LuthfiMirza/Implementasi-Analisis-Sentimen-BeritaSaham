@@ -34,6 +34,19 @@ class DetectDrawdownBounceSignalCommand extends Command
      */
     private const LIVE_CAPITAL = 10_000_000.0;
 
+    /**
+     * Fase DJ: batas maksimal posisi LIVE bersamaan per ticker+strategi. Ketahuan lewat audit
+     * Total Exposure (28 Agu 2026): DSSA MOMENTUM menumpuk 5 posisi beruntun (21-28 Agu, RSI14
+     * tetap >60 tiap hari) karena command ini SEBELUMNYA tidak pernah cek berapa posisi sudah
+     * terbuka sebelum buka yang baru -- tiap sinyal dianggap independen, masing-masing "pakai"
+     * LIVE_CAPITAL sendiri-sendiri seolah modal tidak terbatas. Akibatnya Total Exposure sempat
+     * DANGER (430% dari modal riil user Rp30jt) padahal setiap sinyal individualnya sah secara
+     * teknikal -- akar masalahnya bukan sinyal palsu, tapi tidak ada batas pyramiding. Angka 3
+     * dipilih sebagai default konservatif (bukan hasil backtest/OOS -- murni keputusan risk
+     * management, bisa didiskusikan ulang kalau user mau lebih longgar/ketat).
+     */
+    private const MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY = 3;
+
     // Fase DG: universe ticker yg dicek beritanya -- SAMA PERSIS gabungan
     // SignalRadarService::GABUNGAN_TICKERS + MOMENTUM_TICKERS + BOTTOM_REBOUND_TICKERS (Fase
     // DB/DC). Di-hardcode terpisah (bukan reuse class itu) supaya command ini TETAP jalan mandiri
@@ -116,12 +129,6 @@ class DetectDrawdownBounceSignalCommand extends Command
                     continue; // idempotent -- jangan dobel kalau command jalan ulang
                 }
 
-                $entryPrice = (float) $price;
-                $quantity = (int) (floor(self::LIVE_CAPITAL / $entryPrice / 100) * 100);
-                if ($quantity <= 0) {
-                    $quantity = 100;
-                }
-
                 // Fase CS: dulu ternary 2-cabang (MOMENTUM vs default-ke-GABUNGAN) -- aman selama
                 // cuma ada 2 strategi otomatis. Begitu BOTTOM_REBOUND ditambah, default itu jadi
                 // BAHAYA DIAM-DIAM: sinyal strategi baru bakal salah tercatat 'gabungan' dan
@@ -137,6 +144,28 @@ class DetectDrawdownBounceSignalCommand extends Command
                     'BOTTOM_REBOUND' => 'bottom_rebound',
                     default => 'gabungan',
                 };
+
+                // Fase DJ: batas pyramiding -- lihat docblock MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY.
+                // Dihitung per ticker+strategi (BUKAN per ticker keseluruhan) supaya BUMI MOMENTUM
+                // dan BUMI BOTTOM-REBOUND tetap dianggap dua "slot" terpisah -- keduanya sinyal
+                // independen secara teknikal, cuma kebetulan ticker sama.
+                $openCountForStrategy = Trade::where('ticker', $ticker)
+                    ->where('strategy_label', $strategyLabelColumn)
+                    ->where('status', 'open')
+                    ->count();
+                if ($openCountForStrategy >= self::MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY) {
+                    $this->warn("Sync Trade Journal (open): {$ticker} sudah {$openCountForStrategy} posisi ".
+                        "{$strategyLabelColumn} terbuka (batas ".self::MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY.
+                        "), sinyal baru @ Rp{$price} ({$dateStr}) dilewati -- tetap tercatat di ".
+                        'open_positions.json untuk alert Telegram, tapi tidak dibuka otomatis di Trade Journal.');
+                    continue;
+                }
+
+                $entryPrice = (float) $price;
+                $quantity = (int) (floor(self::LIVE_CAPITAL / $entryPrice / 100) * 100);
+                if ($quantity <= 0) {
+                    $quantity = 100;
+                }
 
                 Trade::create([
                     'user_id' => 2,

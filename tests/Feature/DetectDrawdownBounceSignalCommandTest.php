@@ -102,6 +102,79 @@ class DetectDrawdownBounceSignalCommandTest extends TestCase
         $this->assertDatabaseMissing('trades', ['ticker' => 'ZZZZ']);
     }
 
+    // Fase DJ: batas pyramiding -- DSSA MOMENTUM sempat menumpuk 5 posisi beruntun (21-28 Agu
+    // 2026, root cause Total Exposure DANGER 430%) karena command ini tidak pernah cek berapa
+    // posisi sudah terbuka sebelum buka yang baru. Lihat docblock
+    // MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY di command-nya sendiri.
+    public function test_sync_open_is_skipped_when_max_concurrent_positions_reached(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'DSSA']);
+        Trade::factory()->count(3)->create([
+            'ticker' => 'DSSA',
+            'stock_id' => $stock->id,
+            'strategy_label' => 'momentum',
+            'status' => 'open',
+        ]);
+
+        Process::fake([
+            '*' => Process::result(output: 'SYNC_OPEN|DSSA|1200|2026-08-29|MOMENTUM|rsi70'),
+        ]);
+
+        $this->artisan('research:detect-drawdown-bounce-signal')
+            ->expectsOutputToContain('sudah 3 posisi momentum terbuka')
+            ->assertExitCode(0);
+
+        // Tetap 3 -- sinyal ke-4 dilewati, bukan ditambahkan.
+        $this->assertSame(3, Trade::where('ticker', 'DSSA')->where('status', 'open')->count());
+        $this->assertDatabaseMissing('trades', ['ticker' => 'DSSA', 'entry_price' => 1200]);
+    }
+
+    public function test_sync_open_allowed_when_under_max_concurrent_positions(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'DSSA']);
+        Trade::factory()->count(2)->create([
+            'ticker' => 'DSSA',
+            'stock_id' => $stock->id,
+            'strategy_label' => 'momentum',
+            'status' => 'open',
+        ]);
+
+        Process::fake([
+            '*' => Process::result(output: 'SYNC_OPEN|DSSA|1200|2026-08-29|MOMENTUM|rsi70'),
+        ]);
+
+        $this->artisan('research:detect-drawdown-bounce-signal')->assertExitCode(0);
+
+        // 2 lama + 1 baru = 3, masih dalam batas.
+        $this->assertSame(3, Trade::where('ticker', 'DSSA')->where('status', 'open')->count());
+        $this->assertDatabaseHas('trades', ['ticker' => 'DSSA', 'entry_price' => 1200]);
+    }
+
+    public function test_max_concurrent_positions_cap_is_per_strategy_not_per_ticker(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'BUMI']);
+        Trade::factory()->count(3)->create([
+            'ticker' => 'BUMI',
+            'stock_id' => $stock->id,
+            'strategy_label' => 'momentum',
+            'status' => 'open',
+        ]);
+
+        // BUMI sudah 3 posisi MOMENTUM (kena batas), tapi sinyal baru ini BOTTOM_REBOUND --
+        // strategi beda, harus tetap dianggap slot terpisah dan lolos.
+        Process::fake([
+            '*' => Process::result(output: 'SYNC_OPEN|BUMI|195|2026-08-29|BOTTOM_REBOUND|rebound5pct'),
+        ]);
+
+        $this->artisan('research:detect-drawdown-bounce-signal')->assertExitCode(0);
+
+        $this->assertDatabaseHas('trades', [
+            'ticker' => 'BUMI',
+            'entry_price' => 195,
+            'strategy_label' => 'bottom_rebound',
+        ]);
+    }
+
     public function test_no_new_signal_still_exits_successfully(): void
     {
         Process::fake([
