@@ -6230,3 +6230,53 @@ ticker+strategi.
   ditunda).
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DK — Perbaiki bug sync: idempotency check tidak sadar strategi
+
+### Konteks
+Kelanjutan temuan Fase DJ, sekarang diminta user untuk diperbaiki: `syncOpenSignalsToTradeJournal()`
+punya idempotency check (`$exists`, tujuan aslinya cegah duplikat kalau command dijalankan ulang)
+yang cuma memfilter `ticker` + `entry_date`, TANPA strategi. Akibatnya kalau ada 2 sinyal berbeda
+strategi untuk ticker+tanggal yang sama (kasus nyata 28 Agu 2026: BUMI MOMENTUM dan BUMI
+BOTTOM-REBOUND, entry sama-sama Rp191 di tanggal sama), sinyal KEDUA yang diproses dianggap
+"sudah ada" (match ticker+tanggal dengan Trade dari sinyal pertama) dan di-skip diam-diam --
+padahal dua sinyal itu independen dan sah-sah saja terjadi bersamaan.
+
+### Perbaikan
+`app/Console/Commands/DetectDrawdownBounceSignalCommand.php`:
+- `$strategyLabel`/`$strategyLabelColumn` (blok `match()`) dipindah ke ATAS, sebelum pengecekan
+  `$exists` (sebelumnya dihitung SETELAH -- perlu nilainya duluan untuk filter tambahan).
+- `$exists` query ditambah `->where('strategy_label', $strategyLabelColumn)` -- jadi idempotency
+  sekarang per ticker+tanggal+STRATEGI, bukan cuma ticker+tanggal. Tujuan asli (cegah duplikat
+  kalau command dijalankan ulang persis sinyal yang sama) tetap terjaga, tapi tidak lagi
+  memblokir strategi lain yang kebetulan ticker+tanggalnya sama.
+
+### Backfill data produksi
+Sinyal BUMI BOTTOM-REBOUND (entry 2026-08-28 @ Rp191, sudah ada di
+`quant/drawdown_bounce_tracker/open_positions.json` sejak sinyal itu terdeteksi, jadi alert
+Telegram SUDAH terkirim benar) tapi belum tercatat di Trade Journal karena bug ini -- dibuatkan
+manual via `php artisan tinker`, PERSIS mereplikasi formula yang sama dipakai kode yang sudah
+diperbaiki (`stop_loss = entry*0.98`, `target_1 = entry*1.05`, `quantity =
+floor(10jt/entry/100)*100`, notes format identik + catatan tambahan menjelaskan ini backfill
+manual). Dicek dulu tidak melanggar batas Fase DJ (BUMI bottom_rebound = 0 posisi terbuka
+sebelum backfill, aman). Trade ID 683.
+
+Kenapa manual, bukan re-run command: `detect_signal.py` sendiri idempotent terhadap
+`open_positions.json` -- karena sinyal ini SUDAH tercatat di sana sejak 28 Agu, re-run command
+tidak akan mencetak ulang baris `SYNC_OPEN` untuk sinyal yang sama, jadi jembatan PHP tidak akan
+otomatis terpicu lagi. Backfill manual satu-satunya cara mengisi gap yang sudah terlanjur terjadi
+SEBELUM perbaikan kode ini ada.
+
+### Verifikasi
+- 2 test baru:
+  - `test_sync_open_records_both_strategies_same_ticker_same_date`: reproduksi persis kasus
+    nyata (BUMI MOMENTUM + BUMI BOTTOM-REBOUND, ticker+tanggal sama) -- keduanya sekarang
+    tercatat sebagai 2 baris Trade terpisah.
+  - `test_sync_open_idempotent_per_strategy_on_rerun`: pastikan idempotency ASLI (cegah duplikat
+    saat command dijalankan ulang) tetap jalan setelah filter strategi ditambahkan.
+- `DetectDrawdownBounceSignalCommandTest`: 14/14 passed (48 assertions).
+- Full suite dijalankan setelah perubahan (lihat hasil di commit).
+- Data produksi: `Trade::where('ticker','BUMI')->where('strategy_label','bottom_rebound')
+  ->whereDate('entry_date','2026-08-28')->exists()` sekarang `true` (sebelumnya `false`).
+
+### Status: SELESAI, siap commit+push.

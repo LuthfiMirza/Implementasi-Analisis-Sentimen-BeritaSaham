@@ -121,14 +121,6 @@ class DetectDrawdownBounceSignalCommand extends Command
                     continue;
                 }
 
-                $exists = Trade::where('ticker', $ticker)
-                    ->whereDate('entry_date', $dateStr)
-                    ->where('notes', 'like', 'LIVE — sinyal otomatis%')
-                    ->exists();
-                if ($exists) {
-                    continue; // idempotent -- jangan dobel kalau command jalan ulang
-                }
-
                 // Fase CS: dulu ternary 2-cabang (MOMENTUM vs default-ke-GABUNGAN) -- aman selama
                 // cuma ada 2 strategi otomatis. Begitu BOTTOM_REBOUND ditambah, default itu jadi
                 // BAHAYA DIAM-DIAM: sinyal strategi baru bakal salah tercatat 'gabungan' dan
@@ -144,6 +136,24 @@ class DetectDrawdownBounceSignalCommand extends Command
                     'BOTTOM_REBOUND' => 'bottom_rebound',
                     default => 'gabungan',
                 };
+
+                // Fase DK: idempotency check SEBELUMNYA cuma ticker+tanggal (tanpa strategi) --
+                // begitu BUMI MOMENTUM tercatat lebih dulu di suatu tanggal, sinyal BUMI
+                // BOTTOM-REBOUND di tanggal SAMA (strategi beda, entry beda) ikut dianggap
+                // "sudah ada" dan di-skip diam-diam -- padahal keduanya sinyal independen yang
+                // sah. Ketahuan 28 Agu 2026: BUMI BOTTOM-REBOUND hilang dari Trade Journal
+                // (tetap tercatat di open_positions.json/alert Telegram, tapi tidak di web).
+                // Tambah `strategy_label` ke pengecekan supaya idempotency tetap mencegah
+                // duplikat kalau command jalan ulang (tujuan ASLI-nya), tanpa ikut memblokir
+                // strategi lain yang kebetulan ticker+tanggalnya sama.
+                $exists = Trade::where('ticker', $ticker)
+                    ->whereDate('entry_date', $dateStr)
+                    ->where('strategy_label', $strategyLabelColumn)
+                    ->where('notes', 'like', 'LIVE — sinyal otomatis%')
+                    ->exists();
+                if ($exists) {
+                    continue; // idempotent -- jangan dobel kalau command jalan ulang
+                }
 
                 // Fase DJ: batas pyramiding -- lihat docblock MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY.
                 // Dihitung per ticker+strategi (BUKAN per ticker keseluruhan) supaya BUMI MOMENTUM

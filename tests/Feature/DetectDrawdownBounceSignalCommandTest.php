@@ -89,6 +89,42 @@ class DetectDrawdownBounceSignalCommandTest extends TestCase
         $this->assertSame(1, Trade::where('ticker', 'DEWA')->where('status', 'open')->count());
     }
 
+    // Fase DK: bug ditemukan 28 Agu 2026 -- idempotency check lama cuma ticker+tanggal (tanpa
+    // strategi), jadi BUMI MOMENTUM dan BUMI BOTTOM-REBOUND di tanggal SAMA saling menganggap
+    // "sudah ada" padahal dua sinyal independen. Test ini reproduksi persis kasus nyatanya.
+    public function test_sync_open_records_both_strategies_same_ticker_same_date(): void
+    {
+        Stock::factory()->create(['code' => 'BUMI']);
+
+        Process::fake([
+            '*' => Process::result(output: "SYNC_OPEN|BUMI|191|2026-08-28|MOMENTUM|rsi61\n"
+                .'SYNC_OPEN|BUMI|191|2026-08-28|BOTTOM_REBOUND|rebound5pct'),
+        ]);
+
+        $this->artisan('research:detect-drawdown-bounce-signal')->assertExitCode(0);
+
+        $this->assertSame(2, Trade::where('ticker', 'BUMI')->where('status', 'open')->count());
+        $this->assertDatabaseHas('trades', ['ticker' => 'BUMI', 'strategy_label' => 'momentum', 'entry_price' => 191]);
+        $this->assertDatabaseHas('trades', ['ticker' => 'BUMI', 'strategy_label' => 'bottom_rebound', 'entry_price' => 191]);
+    }
+
+    // Idempotency ASLI (per strategi, bukan lagi per ticker+tanggal saja) harus tetap jalan --
+    // rerun command yang sama tidak boleh membuat duplikat.
+    public function test_sync_open_idempotent_per_strategy_on_rerun(): void
+    {
+        Stock::factory()->create(['code' => 'BUMI']);
+
+        Process::fake([
+            '*' => Process::result(output: "SYNC_OPEN|BUMI|191|2026-08-28|MOMENTUM|rsi61\n"
+                .'SYNC_OPEN|BUMI|191|2026-08-28|BOTTOM_REBOUND|rebound5pct'),
+        ]);
+
+        $this->artisan('research:detect-drawdown-bounce-signal')->assertExitCode(0);
+        $this->artisan('research:detect-drawdown-bounce-signal')->assertExitCode(0);
+
+        $this->assertSame(2, Trade::where('ticker', 'BUMI')->where('status', 'open')->count());
+    }
+
     public function test_sync_open_skipped_gracefully_when_stock_unknown(): void
     {
         Process::fake([
