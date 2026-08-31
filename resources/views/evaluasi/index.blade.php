@@ -24,7 +24,9 @@
              metrik LAMA yang dipertahankan cuma untuk tampilan -- jangan dipakai jadi dasar
              keputusan. Lihat plan.md untuk detail audit. --}}
         <div class="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200">
-            <p class="font-semibold text-amber-400">⚠️ Kolom "Score" & panel "Metodologi Bobot" di bawah adalah metrik LAMA</p>
+            <p class="font-semibold text-amber-400 flex items-center gap-1.5">
+                <x-heroicon-o-exclamation-triangle class="w-4 h-4 shrink-0" /> Kolom "Score" & panel "Metodologi Bobot" di bawah adalah metrik LAMA
+            </p>
             <p class="mt-1 text-amber-200/80">
                 Audit 19 Jul 2026 membuktikan skor komposit ini <b>tidak berkorelasi dengan return 5 hari ke depan</b>
                 saat diuji walk-forward -- status "Bullish Support" darinya justru historis median return-nya

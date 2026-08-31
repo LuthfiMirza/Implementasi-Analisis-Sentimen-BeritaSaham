@@ -66,8 +66,8 @@
         </x-panel>
 
         <div class="glass-card border border-slate-800/80 rounded-2xl p-5 mt-4">
-            <h3 class="font-semibold text-slate-200 mb-3">
-                📊 Ringkasan Evaluasi Model (Semua Saham)
+            <h3 class="font-semibold text-slate-200 mb-3 flex items-center gap-1.5">
+                <x-heroicon-o-chart-bar class="w-4 h-4" /> Ringkasan Evaluasi Model (Semua Saham)
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>

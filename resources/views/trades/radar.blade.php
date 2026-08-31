@@ -6,7 +6,7 @@
     <div class="min-w-0">
       <p class="text-xs text-slate-500 uppercase font-medium tracking-wider">Portfolio Tracker</p>
       <h1 class="text-2xl font-bold text-slate-100 mt-0.5 flex items-center gap-2">
-        📡 Signal Radar
+        <x-heroicon-o-signal class="w-6 h-6" /> Signal Radar
         <span class="relative flex h-2.5 w-2.5">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500"></span>
@@ -32,7 +32,7 @@
   {{-- ── DISCLAIMER (WAJIB, jangan dihapus/dilemahkan) ── --}}
   <div class="glass-card border border-amber-500/30 bg-amber-500/[0.04] rounded-2xl p-4">
     <p class="text-sm text-amber-300 font-medium flex items-start gap-2">
-      <span>⚠️</span>
+      <x-heroicon-o-exclamation-triangle class="w-4 h-4 shrink-0 mt-0.5" />
       <span>
         Ini <strong>ESTIMASI LIVE</strong>, bukan sinyal resmi. Dihitung pakai harga BERJALAN
         sebagai hipotetis closing hari ini -- bisa berubah kapan saja sampai closing final
@@ -46,7 +46,7 @@
   {{-- ── SEKSI GABUNGAN ── --}}
   <div>
     <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-2">
-      🔻 GABUNGAN <span class="text-[10px] text-slate-500 font-normal normal-case">(ret_2d &le; -5% atau drawdown_20d &le; -20%)</span>
+      <x-heroicon-o-arrow-trending-down class="w-4 h-4 text-rose-400" /> GABUNGAN <span class="text-[10px] text-slate-500 font-normal normal-case">(ret_2d &le; -5% atau drawdown_20d &le; -20%)</span>
     </h2>
     <p class="text-[11px] text-slate-500 mb-3">Mean-reversion: beli saat harga sudah jatuh, taruhan rebound.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -55,8 +55,8 @@
              :class="row.triggered ? 'border-rose-500/50 bg-rose-500/[0.05]' : 'border-slate-800/80'">
           <div class="flex items-center justify-between mb-2">
             <span class="font-bold text-slate-100" x-text="row.ticker"></span>
-            <span x-show="row.triggered" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold">
-              🔴 SUDAH LEWAT THRESHOLD
+            <span x-show="row.triggered" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> SUDAH LEWAT THRESHOLD
             </span>
           </div>
           <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
@@ -97,7 +97,7 @@
   {{-- ── SEKSI MOMENTUM ── --}}
   <div>
     <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-2">
-      🚀 MOMENTUM <span class="text-[10px] text-amber-400 font-normal normal-case">(RSI14 &gt; 60 -- EXPLORATORY, regime-dependent)</span>
+      <x-heroicon-o-arrow-trending-up class="w-4 h-4 text-amber-400" /> MOMENTUM <span class="text-[10px] text-amber-400 font-normal normal-case">(RSI14 &gt; 60 -- EXPLORATORY, regime-dependent)</span>
     </h2>
     <p class="text-[11px] text-slate-500 mb-3">Trend-following: beli saat momentum sudah naik kencang.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -106,8 +106,8 @@
              :class="row.triggered ? 'border-rose-500/50 bg-rose-500/[0.05]' : 'border-slate-800/80'">
           <div class="flex items-center justify-between mb-2">
             <span class="font-bold text-slate-100" x-text="row.ticker"></span>
-            <span x-show="row.triggered" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold">
-              🔴 SUDAH LEWAT
+            <span x-show="row.triggered" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> SUDAH LEWAT
             </span>
           </div>
           <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
@@ -129,7 +129,7 @@
   {{-- ── SEKSI BOTTOM_REBOUND ── --}}
   <div>
     <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-2">
-      ⤴️ BOTTOM_REBOUND <span class="text-[10px] text-slate-500 font-normal normal-case">(cross pertama &gt; bottom_10d &times; 1,05)</span>
+      <x-heroicon-o-arrow-uturn-up class="w-4 h-4 text-sky-400" /> BOTTOM_REBOUND <span class="text-[10px] text-slate-500 font-normal normal-case">(cross pertama &gt; bottom_10d &times; 1,05)</span>
     </h2>
     <p class="text-[11px] text-slate-500 mb-3">Tunggu titik bawah 10 hari terkonfirmasi rebound, baru masuk.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -138,8 +138,8 @@
              :class="row.triggered_today ? 'border-rose-500/50 bg-rose-500/[0.05]' : 'border-slate-800/80'">
           <div class="flex items-center justify-between mb-2">
             <span class="font-bold text-slate-100" x-text="row.ticker"></span>
-            <span x-show="row.triggered_today" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold">
-              🔴 CROSS BARU HARI INI
+            <span x-show="row.triggered_today" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> CROSS BARU HARI INI
             </span>
             <span x-show="!row.triggered_today && row.already_in_zone" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 border border-slate-600 font-semibold">
               sudah di atas ambang (bukan sinyal baru)

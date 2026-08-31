@@ -154,7 +154,13 @@
                                     <td class="px-4 py-2">{{ $row['final_score'] }}</td>
                                     <td class="px-4 py-2">{{ round($row['confidence'] * 100, 1) }}%</td>
                                     <td class="px-4 py-2 text-xs text-slate-400">{{ $row['model_source'] ?? 'dss_legacy' }}</td>
-                                    <td class="px-4 py-2">{{ $row['is_correct'] ? '✅' : '❌' }}</td>
+                                    <td class="px-4 py-2">
+                                        @if($row['is_correct'])
+                                            <x-heroicon-o-check-circle class="w-4 h-4 text-green-400 inline-block" />
+                                        @else
+                                            <x-heroicon-o-x-circle class="w-4 h-4 text-rose-400 inline-block" />
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -199,7 +205,13 @@
                                         <td class="px-4 py-2">{{ strtoupper($row['actual_regime']) }}</td>
                                         <td class="px-4 py-2">{{ $row['actual_return'] }}%</td>
                                         <td class="px-4 py-2">{{ round($row['confidence'] * 100, 1) }}%</td>
-                                        <td class="px-4 py-2">{{ $row['is_correct'] ? '✅' : '❌' }}</td>
+                                        <td class="px-4 py-2">
+                                            @if($row['is_correct'])
+                                                <x-heroicon-o-check-circle class="w-4 h-4 text-green-400 inline-block" />
+                                            @else
+                                                <x-heroicon-o-x-circle class="w-4 h-4 text-rose-400 inline-block" />
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -209,7 +221,9 @@
             @endif
 
             <div class="glass-card border border-slate-800/80 rounded-2xl p-5 mt-4 space-y-4">
-                <h3 class="font-semibold text-slate-200">📊 Interpretasi Hasil Backtest</h3>
+                <h3 class="font-semibold text-slate-200 flex items-center gap-1.5">
+                    <x-heroicon-o-chart-bar class="w-4 h-4" /> Interpretasi Hasil Backtest
+                </h3>
 
                 {{-- Accuracy interpretation --}}
                 <div class="p-3 rounded-xl border
@@ -218,13 +232,17 @@
                        : ($result['accuracy'] >= 45
                           ? 'bg-amber-500/5 border-amber-500/20'
                           : 'bg-rose-500/5 border-rose-500/20') }}">
-                    <p class="text-sm font-medium
+                    <p class="text-sm font-medium inline-flex items-center gap-1 flex-wrap
                       {{ $result['accuracy'] >= 60 ? 'text-green-400'
                          : ($result['accuracy'] >= 45 ? 'text-amber-400' : 'text-rose-400') }}">
-                      Akurasi: {{ $result['accuracy'] }}%
-                      {{ $result['accuracy'] >= 60 ? '✅ Di atas random (50%)'
-                         : ($result['accuracy'] >= 45 ? '⚠ Mendekati random'
-                         : '❌ Di bawah random (50%)') }}
+                      <span>Akurasi: {{ $result['accuracy'] }}%</span>
+                      @if($result['accuracy'] >= 60)
+                        <x-heroicon-o-check-circle class="w-4 h-4" /> <span>Di atas random (50%)</span>
+                      @elseif($result['accuracy'] >= 45)
+                        <x-heroicon-o-exclamation-triangle class="w-4 h-4" /> <span>Mendekati random</span>
+                      @else
+                        <x-heroicon-o-x-circle class="w-4 h-4" /> <span>Di bawah random (50%)</span>
+                      @endif
                     </p>
                     <p class="text-xs text-slate-400 mt-1">
                       @if($result['accuracy'] >= 60)
@@ -267,16 +285,16 @@
 
                 {{-- Correlation interpretation --}}
                 <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700">
-                    <p class="text-sm font-medium text-slate-200">
-                        Korelasi Pearson: {{ $result['correlation'] }}
+                    <p class="text-sm font-medium text-slate-200 inline-flex items-center gap-1 flex-wrap">
+                        <span>Korelasi Pearson: {{ $result['correlation'] }}</span>
                         @if($result['correlation'] > 0.3)
-                            📈 Positif moderat
+                            <x-heroicon-o-arrow-trending-up class="w-4 h-4 text-green-400" /> <span>Positif moderat</span>
                         @elseif($result['correlation'] > 0)
-                            📊 Positif lemah
+                            <x-heroicon-o-arrow-trending-up class="w-4 h-4 text-slate-400" /> <span>Positif lemah</span>
                         @elseif($result['correlation'] > -0.3)
-                            📊 Negatif lemah
+                            <x-heroicon-o-arrow-trending-down class="w-4 h-4 text-slate-400" /> <span>Negatif lemah</span>
                         @else
-                            📉 Negatif moderat
+                            <x-heroicon-o-arrow-trending-down class="w-4 h-4 text-rose-400" /> <span>Negatif moderat</span>
                         @endif
                     </p>
                     <p class="text-xs text-slate-400 mt-1">
@@ -298,8 +316,8 @@
 
                 {{-- Academic note --}}
                 <div class="p-3 rounded-xl bg-sky-500/5 border border-sky-500/20">
-                    <p class="text-xs text-sky-400 font-medium mb-1">
-                        📚 Catatan untuk Skripsi (Bab 4 — Pembahasan)
+                    <p class="text-xs text-sky-400 font-medium mb-1 flex items-center gap-1">
+                        <x-heroicon-o-book-open class="w-3.5 h-3.5" /> Catatan untuk Skripsi (Bab 4 — Pembahasan)
                     </p>
                     <p class="text-xs text-slate-400">
                         Hasil backtest ini memberikan temuan penting:

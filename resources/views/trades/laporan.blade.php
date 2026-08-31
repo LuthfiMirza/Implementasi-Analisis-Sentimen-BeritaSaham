@@ -17,11 +17,12 @@
       {{-- Fase CA: dulu kartu ringkasan mencampur GABUNGAN + 2 aturan lama yang TERBUKTI
            tumpang tindih periode untuk saham sama (dicek dari notes backfill sendiri) --
            sekarang cuma GABUNGAN yang resmi, sisanya di bagian "Strategi Lain" di bawah. --}}
-      <p class="text-[11px] text-sky-400/80 mt-1">
+      <p class="text-[11px] text-sky-400/80 mt-1 flex items-center gap-1">
+        <x-heroicon-o-information-circle class="w-3 h-3 shrink-0" />
         @if($scope === 'all')
-          📊 Kartu di bawah = <b>SEMUA strategi digabung</b> (termasuk yang overlap/pensiun)
+          Kartu di bawah = <b>SEMUA strategi digabung</b> (termasuk yang overlap/pensiun)
         @else
-          📊 Kartu di bawah = <b>strategi resmi GABUNGAN</b> saja (ret_2d≤-5% atau drawdown≤-20%)
+          Kartu di bawah = <b>strategi resmi GABUNGAN</b> saja (ret_2d≤-5% atau drawdown≤-20%)
         @endif
       </p>
     </div>
@@ -169,7 +170,10 @@
          -- tombolnya ADA di DOM, cuma kegeser total ke luar area kelihatan). flex-wrap + min-w-0
          di judul supaya toggle turun ke baris baru alih-alih mendorong keluar. --}}
     <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider min-w-0">📈 Cumulative Portfolio Return ({{ $portfolioReport['scope_label'] }})</h2>
+      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider min-w-0 flex items-center gap-1.5">
+        <x-heroicon-o-arrow-trending-up class="w-4 h-4 shrink-0" />
+        <span>Cumulative Portfolio Return ({{ $portfolioReport['scope_label'] }})</span>
+      </h2>
       {{-- Toggle Rupiah vs vs-IHSG -- Alpine murni client-side, data 2 mode sudah sama-sama
            dikirim dari server, tidak perlu reload halaman. --}}
       <div class="inline-flex rounded-lg border border-slate-800 bg-slate-900/60 p-1 text-xs shrink-0">
@@ -373,8 +377,8 @@
   {{-- ── EPISODE INDEPENDEN PER BULAN (GABUNGAN resmi) ── --}}
   @if(!empty($monthlyBreakdown))
   <div>
-    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
-      📅 Episode Independen per Bulan
+    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+      <x-heroicon-o-calendar-days class="w-4 h-4" /> Episode Independen per Bulan
     </h2>
     <p class="text-[11px] text-slate-500 mb-3">
       Dikelompokkan berdasar bulan MULAI tiap episode (entry trade pertamanya) -- trigger
@@ -414,11 +418,12 @@
   {{-- ── STRATEGI LAIN (arsip, TIDAK dihitung ke kartu resmi di atas) ── --}}
   @if(!empty($strategyBreakdown))
   <div>
-    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
+    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+      <x-heroicon-o-archive-box class="w-4 h-4 shrink-0" />
       @if($scope === 'all')
-        📁 Strategi Lain (rincian -- SUDAH ikut kehitung di kartu "Semua Strategi" di atas)
+        <span>Strategi Lain (rincian -- SUDAH ikut kehitung di kartu "Semua Strategi" di atas)</span>
       @else
-        📁 Strategi Lain (di luar GABUNGAN — arsip riset, bukan angka resmi)
+        <span>Strategi Lain (di luar GABUNGAN — arsip riset, bukan angka resmi)</span>
       @endif
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -452,8 +457,9 @@
   {{-- ── CLOSED TRADES ── --}}
   <div>
     <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">
-        📋 Riwayat Trading ({{ $closedPage->total() }}{{ $closedPage->total() !== $closed->count() ? ' dari '.$closed->count() : '' }})
+      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+        <x-heroicon-o-clipboard-document-list class="w-4 h-4" />
+        Riwayat Trading ({{ $closedPage->total() }}{{ $closedPage->total() !== $closed->count() ? ' dari '.$closed->count() : '' }})
       </h2>
       {{-- Fase CM: filter strategi/saham + pagination -- 374+ baris terlalu berat dipindai
            tanpa ini. Form GET biasa (bukan JS) supaya bisa di-bookmark/refresh. --}}
@@ -564,14 +570,17 @@
                 1:{{ $trade->actual_rr ?? '-' }}
               </td>
               <td class="px-4 py-3 text-center">
+                {{-- Badge tabel padat -- warna border/text sudah jadi sinyal utama (hijau=target
+                     kena, merah=stop loss, dst), teks label polos tanpa emoji supaya baris tabel
+                     tetap ringkas dan gampang dipindai sekilas. --}}
                 @php
                   $resultConfig = match($trade->result) {
-                    'hit_target_1'  => ['bg-green-500/10 text-green-400 border-green-500/30', '✅ TP1 Hit'],
-                    'hit_target_2'  => ['bg-emerald-500/10 text-emerald-400 border-emerald-500/30', '✅ TP2 Hit'],
-                    'stop_loss'     => ['bg-rose-500/10 text-rose-400 border-rose-500/30', '❌ SL Hit'],
-                    'trailing_stop' => ['bg-orange-500/10 text-orange-400 border-orange-500/30', '📉 Trailing'],
-                    'time_target'   => ['bg-sky-500/10 text-sky-400 border-sky-500/30', '⏰ Target Waktu'],
-                    'manual_close'  => ['bg-amber-500/10 text-amber-400 border-amber-500/30', '📌 Manual'],
+                    'hit_target_1'  => ['bg-green-500/10 text-green-400 border-green-500/30', 'TP1 Hit'],
+                    'hit_target_2'  => ['bg-emerald-500/10 text-emerald-400 border-emerald-500/30', 'TP2 Hit'],
+                    'stop_loss'     => ['bg-rose-500/10 text-rose-400 border-rose-500/30', 'SL Hit'],
+                    'trailing_stop' => ['bg-orange-500/10 text-orange-400 border-orange-500/30', 'Trailing'],
+                    'time_target'   => ['bg-sky-500/10 text-sky-400 border-sky-500/30', 'Target Waktu'],
+                    'manual_close'  => ['bg-amber-500/10 text-amber-400 border-amber-500/30', 'Manual'],
                     default         => ['bg-slate-800 text-slate-400 border-slate-700', '—'],
                   };
                 @endphp
@@ -590,9 +599,9 @@
                                  in_array($trade->result, ['hit_target_1','hit_target_2']));
                 @endphp
                 @if($dssCorrect)
-                  <span class="text-green-400 text-sm" title="DSS prediksi benar">✅</span>
+                  <x-heroicon-o-check-circle class="w-4 h-4 text-green-400 inline-block" title="DSS prediksi benar" />
                 @elseif($dssWrong)
-                  <span class="text-rose-400 text-sm" title="DSS prediksi salah">❌</span>
+                  <x-heroicon-o-x-circle class="w-4 h-4 text-rose-400 inline-block" title="DSS prediksi salah" />
                 @else
                   <span class="text-slate-600">—</span>
                 @endif
@@ -633,7 +642,7 @@
     </div>
     @else
     <div class="glass-card border border-slate-800/80 rounded-2xl p-8 text-center">
-      <div class="text-4xl mb-3">📋</div>
+      <x-heroicon-o-clipboard-document-list class="w-10 h-10 text-slate-700 mx-auto mb-3" />
       <p class="text-slate-400 font-medium">Belum ada trade yang ditutup</p>
       <p class="text-sm text-slate-500 mt-1">
         Trade yang ditutup akan muncul di sini beserta analisis akurasi DSS

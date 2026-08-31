@@ -6280,3 +6280,59 @@ SEBELUM perbaikan kode ini ada.
   ->whereDate('entry_date','2026-08-28')->exists()` sekarang `true` (sebelumnya `false`).
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DL — Ganti emoji berwarna generik dengan SVG icon set (de-AI-ify UI)
+
+### Konteks
+User: "jangan ai banget iconnya" -- minta dicek dulu, dilaporkan, didiskusikan sebelum eksekusi.
+Audit: 48 emoji berwarna (💰🎯📊🟢🔴🟡📝💡💾📉📌📁📋📚🕐🔍✅❌⏰★⚪⚡⚖️⤴️⏸⌕, dst) tersebar di
+banyak halaman -- pola khas "AI-generated dashboard" (tiap judul kartu diawali emoji). Paling
+padat di `/trades` (15), `/trades/laporan` (11), `/backtest` (6+2), `/trades/radar` (6+2),
+`/trades/live` (5+2). Bagian lain aplikasi (dashboard watchlist, chart TradingView, panel
+prediksi) sudah rapi -- masalah terkonsentrasi di halaman trading/evaluasi/berita.
+
+User diberi 3 opsi via AskUserQuestion, memilih: **"SVG icon set minimal (Rekomendasi)"**.
+
+### Perbaikan
+- Pasang `blade-ui-kit/blade-heroicons` (composer, 324 outline icon, tanpa CDN eksternal --
+  konsisten dgn "self-contained" project ini, tidak perlu internet buat render icon).
+- Ganti emoji dengan `<x-heroicon-o-{nama}>` di semua judul kartu/section/tombol/badge yang bisa
+  memuat HTML: `trades/index.blade.php`, `trades/laporan.blade.php`, `trades/radar.blade.php`,
+  `trades/live.blade.php`, `backtest/index.blade.php`, `backtest/all.blade.php`,
+  `evaluasi/index.blade.php`, `evaluasi/show.blade.php`, `news/index.blade.php`,
+  `layouts/app.blade.php` (empty-state universal search).
+- Untuk konteks yang TIDAK bisa memuat HTML (native `<option>`, string JS lewat `x-text`/
+  `textContent`): emoji dihapus, teks polos saja -- bukan dipaksakan icon (browser mengabaikan
+  tag HTML di dalam `<option>`, dan `x-text`/`textContent` cuma render teks, bukan markup).
+  Warna badge/border yang sudah ada dianggap cukup membawa sinyal (hijau=baik, merah=bahaya, dst)
+  tanpa perlu dekorasi emoji tambahan.
+- Badge status sederhana (🟢🔴🟡 dipakai sbg indikator bulat, bukan makna gambar spesifik)
+  diganti CSS dot (`<span class="w-1.5 h-1.5 rounded-full bg-{warna}-400">`), bukan SVG icon --
+  lebih ringan & sudah jadi pola mapan di project (lihat live-indicator ping dot yang sudah ada
+  sebelum fase ini di header Signal Radar/Live Monitor).
+- Tabel padat (Riwayat Trading, hasil backtest per-window) SENGAJA tetap teks polos tanpa icon
+  untuk badge hasil (TP1 Hit/SL Hit/dst) -- kepadatan visual lebih penting dari dekorasi di baris
+  tabel; icon dipakai HANYA utk indikator boolean tunggal (DSS Akurat? -> check-circle/x-circle).
+- Simbol geometris konvensional (▲▼◆ untuk arah, ✓✕ untuk konfirmasi, ★ rating bintang, →←↑↓
+  panah, ≥≤≈ matematika) **SENGAJA DIPERTAHANKAN** -- ini bukan "AI banget", melainkan konvensi
+  UI finansial yang sudah dipakai puluhan tahun di software trading sungguhan (Bloomberg,
+  TradingView, dst). Mengganti SEMUA simbol non-ASCII akan over-scope dan bisa membuat UI
+  kehilangan kejelasan konvensionalnya.
+
+### Verifikasi
+- Scan python (regex blok emoji pictographic + varian tambahan spt ⚠️/⚡/⏰/⌕/⏸ dengan variation
+  selector) di SELURUH `resources/views/**/*.blade.php`: 0 sisa (kecuali 1 di komentar Blade
+  historis, tidak dirender ke user).
+- `Blade::compileString()` standalone TIDAK bisa dipakai utk lint halaman yang dibungkus
+  `<x-app-layout>` (component tag compiler butuh app context penuh) -- verifikasi dilakukan via
+  browser real (bukan compileString) untuk semua halaman yang diedit.
+- Browser real (login sbg `user@sentimena.test`), tiap halaman dicek `read_console_messages`
+  (tab baru, bukan tab lama yg riwayatnya bisa basi -- pelajaran sesi sebelumnya) + screenshot:
+  `/trades`, `/trades/laporan` (scroll penuh sampai tabel Riwayat Trading), `/trades/radar`,
+  `/trades/live`, `/backtest?code=BUMI`, `/evaluasi`, `/evaluasi/BUMI`, `/news` -- semua render
+  bersih, 0 console error baru, semua icon SVG muncul konsisten dgn tema dark yang ada.
+  `UIRouteSmokeTest` (bagian full suite) juga menghantam rute-rute ini otomatis.
+- Full suite: 525 passed (2178 assertions) -- sama seperti sebelum fase ini (murni perubahan
+  visual, tidak ada logika baru yg butuh test baru).
+
+### Status: SELESAI, siap commit+push.

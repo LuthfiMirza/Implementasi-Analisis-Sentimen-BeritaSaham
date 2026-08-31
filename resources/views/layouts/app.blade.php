@@ -236,7 +236,7 @@
                                     <div x-show="$store.universalSearch.isLoading" class="universal-search-state">Mencari hasil...</div>
                                     <div x-show="$store.universalSearch.error" class="universal-search-state universal-search-state-error">Gagal memuat hasil. Coba lagi.</div>
                                     <div x-show="!$store.universalSearch.isLoading && !$store.universalSearch.error && !$store.universalSearch.hasResults()" class="universal-search-empty">
-                                        <div class="text-2xl mb-2">⌕</div>
+                                        <x-heroicon-o-magnifying-glass-circle class="w-8 h-8 mx-auto mb-2 text-slate-600" />
                                         <div class="font-semibold">Tidak ada hasil untuk "<span x-text="$store.universalSearch.query"></span>"</div>
                                         <p>Coba cari kode saham seperti BBCA, TLKM, ASII, nama perusahaan, judul berita, atau nama halaman.</p>
                                     </div>

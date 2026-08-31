@@ -6,7 +6,7 @@
     <div class="min-w-0">
       <p class="text-xs text-slate-500 uppercase font-medium tracking-wider">Portfolio Tracker</p>
       <h1 class="text-2xl font-bold text-slate-100 mt-0.5 flex items-center gap-2">
-        ⚡ Live Monitor
+        <x-heroicon-o-bolt class="w-6 h-6" /> Live Monitor
         <span class="relative flex h-2.5 w-2.5">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
@@ -36,11 +36,15 @@
       <p class="text-2xl font-bold text-slate-100" x-text="positions.length"></p>
     </div>
     <div class="glass-card rounded-2xl p-4 border border-rose-500/20 bg-rose-500/[0.03]">
-      <p class="text-[10px] text-rose-400/80 uppercase font-medium mb-1">🔴 Bahaya (&le;1% ke SL)</p>
+      <p class="text-[10px] text-rose-400/80 uppercase font-medium mb-1 flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Bahaya (&le;1% ke SL)
+      </p>
       <p class="text-2xl font-bold text-rose-400" x-text="countByStatus('danger')"></p>
     </div>
     <div class="glass-card rounded-2xl p-4 border border-amber-500/20 bg-amber-500/[0.03]">
-      <p class="text-[10px] text-amber-400/80 uppercase font-medium mb-1">🟡 Waspada (&le;3% ke SL)</p>
+      <p class="text-[10px] text-amber-400/80 uppercase font-medium mb-1 flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Waspada (&le;3% ke SL)
+      </p>
       <p class="text-2xl font-bold text-amber-400" x-text="countByStatus('warning')"></p>
     </div>
     <div class="glass-card rounded-2xl p-4 border border-slate-800/80">
@@ -85,10 +89,10 @@
                   'bg-slate-700 text-slate-400': p.status === 'unknown',
                 }"
                 x-text="{
-                  danger: '🔴 BAHAYA',
-                  warning: '🟡 WASPADA',
-                  safe: '🟢 AMAN',
-                  unknown: '⚪ N/A',
+                  danger: 'BAHAYA',
+                  warning: 'WASPADA',
+                  safe: 'AMAN',
+                  unknown: 'N/A',
                 }[p.status]"></span>
         </div>
 
@@ -144,7 +148,7 @@
           </span>
           <span :class="p.time_target_overdue ? 'text-orange-400 font-semibold' : 'text-slate-400'"
                 x-text="p.time_target_overdue
-                  ? '⏰ Target waktu terlewat ' + Math.abs(p.days_remaining_to_target) + ' hari -- pertimbangkan tutup'
+                  ? 'Target waktu terlewat ' + Math.abs(p.days_remaining_to_target) + ' hari -- pertimbangkan tutup'
                   : 'Sisa ' + p.days_remaining_to_target + ' hari bursa'"></span>
         </div>
       </div>

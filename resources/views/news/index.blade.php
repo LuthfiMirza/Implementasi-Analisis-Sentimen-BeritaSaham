@@ -17,12 +17,12 @@
                     @endphp
                     <div class="flex gap-2 mt-3">
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'date_desc']) }}"
-                           class="px-3 py-1.5 rounded-full text-xs font-semibold transition {{ $isLatestSort ? 'bg-sky-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' }}">
-                            🕐 Berita Terbaru
+                           class="px-3 py-1.5 rounded-full text-xs font-semibold transition inline-flex items-center gap-1 {{ $isLatestSort ? 'bg-sky-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' }}">
+                            <x-heroicon-o-clock class="w-3.5 h-3.5" /> Berita Terbaru
                         </a>
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'quality']) }}"
-                           class="px-3 py-1.5 rounded-full text-xs font-semibold transition {{ $currentSort === 'quality' ? 'bg-sky-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' }}">
-                            ★ Kualitas Tertinggi
+                           class="px-3 py-1.5 rounded-full text-xs font-semibold transition inline-flex items-center gap-1 {{ $currentSort === 'quality' ? 'bg-sky-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' }}">
+                            <x-heroicon-o-star class="w-3.5 h-3.5" /> Kualitas Tertinggi
                         </a>
                     </div>
                 </div>
@@ -92,9 +92,12 @@
                             <input type="date" name="date" value="{{ $filters['date'] ?? '' }}"
                                    class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200">
 
-                            <input type="text" name="q" value="{{ $filters['q'] ?? '' }}"
-                                   placeholder="🔍 Cari judul..."
-                                   class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 min-w-[200px]">
+                            <div class="relative min-w-[200px]">
+                                <x-heroicon-o-magnifying-glass class="w-4 h-4 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                                <input type="text" name="q" value="{{ $filters['q'] ?? '' }}"
+                                       placeholder="Cari judul..."
+                                       class="bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-sm text-slate-200 w-full">
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -177,8 +180,8 @@
                                         Rule: {{ ucfirst($article->rule_sentiment_label) }}
                                     </span>
                                     @if($article->ml_rule_agree === false)
-                                        <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                                            ⚡ Berbeda
+                                        <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 inline-flex items-center gap-0.5">
+                                            <x-heroicon-o-bolt class="w-3 h-3" /> Berbeda
                                         </span>
                                     @endif
                                 @endif

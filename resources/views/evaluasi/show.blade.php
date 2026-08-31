@@ -52,15 +52,21 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-5">
-                <div class="text-xs text-green-400 uppercase font-medium mb-2">🟢 Skenario Bullish</div>
+                <div class="text-xs text-green-400 uppercase font-medium mb-2 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Skenario Bullish
+                </div>
                 <p class="text-sm text-slate-300 leading-relaxed">{{ $result['scenario_bullish'] ?? '-' }}</p>
             </div>
             <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-5">
-                <div class="text-xs text-slate-400 uppercase font-medium mb-2">⚪ Skenario Netral</div>
+                <div class="text-xs text-slate-400 uppercase font-medium mb-2 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Skenario Netral
+                </div>
                 <p class="text-sm text-slate-300 leading-relaxed">{{ $result['scenario_neutral'] ?? '-' }}</p>
             </div>
             <div class="bg-rose-500/5 border border-rose-500/20 rounded-2xl p-5">
-                <div class="text-xs text-rose-400 uppercase font-medium mb-2">🔴 Skenario Bearish</div>
+                <div class="text-xs text-rose-400 uppercase font-medium mb-2 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Skenario Bearish
+                </div>
                 <p class="text-sm text-slate-300 leading-relaxed">{{ $result['scenario_bearish'] ?? '-' }}</p>
             </div>
         </div>
@@ -70,7 +76,9 @@
             @if($signal['valid'])
                 <div class="glass-card border border-green-500/30 bg-green-500/5 rounded-2xl p-4">
                     <div class="flex items-center justify-between mb-3">
-                        <div class="text-xs text-green-400 uppercase font-medium">✅ Trading Signal — {{ strtoupper($signal['quality']) }}</div>
+                        <div class="text-xs text-green-400 uppercase font-medium flex items-center gap-1">
+                            <x-heroicon-o-check-circle class="w-3.5 h-3.5" /> Trading Signal — {{ strtoupper($signal['quality']) }}
+                        </div>
                         <span class="text-sm font-bold text-green-400">R:R 1:{{ $signal['rr_ratio_2r'] }}</span>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
@@ -94,7 +102,9 @@
                 </div>
             @else
                 <div class="border border-slate-700 bg-slate-900/50 rounded-2xl p-4">
-                    <div class="text-xs text-slate-500 uppercase">⏸ Trading Signal — {{ strtoupper($signal['quality']) }}</div>
+                    <div class="text-xs text-slate-500 uppercase flex items-center gap-1">
+                        <x-heroicon-o-pause-circle class="w-3.5 h-3.5" /> Trading Signal — {{ strtoupper($signal['quality']) }}
+                    </div>
                     <div class="text-sm text-slate-400 mt-1">
                         {{ $signal['warn_count'] ?? 0 }} peringatan aktif. Tunggu konfirmasi lebih kuat sebelum entry.
                     </div>
