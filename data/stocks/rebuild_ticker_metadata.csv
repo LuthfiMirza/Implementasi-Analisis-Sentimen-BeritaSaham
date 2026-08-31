@@ -1,2 +1,13 @@
 ticker,symbol,status,rows,date_start,date_end,issues,output_path
-BBCA,BBCA.JK,rebuilt,5453,2004-06-08,2026-07-21,,data/stocks/BBCA.csv
+BBCA,BBCA.JK,rebuilt,5479,2004-06-08,2026-08-28,,data/stocks/BBCA.csv
+BBRI,BBRI.JK,rebuilt,5630,2003-11-10,2026-08-28,,data/stocks/BBRI.csv
+BMRI,BMRI.JK,rebuilt,5715,2003-07-14,2026-08-28,,data/stocks/BMRI.csv
+TLKM,TLKM.JK,rebuilt,5398,2004-09-28,2026-08-28,,data/stocks/TLKM.csv
+ASII,ASII.JK,rebuilt,6428,2000-10-17,2026-08-28,,data/stocks/ASII.csv
+GOTO,GOTO.JK,rebuilt,1048,2022-04-11,2026-08-28,,data/stocks/GOTO.csv
+INDF,INDF.JK,rebuilt,6440,2000-10-02,2026-08-28,,data/stocks/INDF.csv
+ICBP,ICBP.JK,rebuilt,6439,2000-10-02,2026-08-28,,data/stocks/ICBP.csv
+ADRO,ADRO.JK,rebuilt,4447,2008-07-16,2026-08-28,,data/stocks/ADRO.csv
+UNVR,UNVR.JK,rebuilt,5678,2003-09-03,2026-08-28,,data/stocks/UNVR.csv
+BUMI,BUMI.JK,rebuilt,6262,2001-06-07,2026-08-28,,data/stocks/BUMI.csv
+DEWA,DEWA.JK,rebuilt,4639,2007-09-26,2026-08-28,,data/stocks/DEWA.csv

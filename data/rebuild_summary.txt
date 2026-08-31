@@ -1,1 +1,1 @@
-IHSG (^JKSE): rebuilt, rows=8831, range=1990-04-06..2026-07-21, issues=-
+IHSG (^JKSE): invalid, rows=8857, range=1990-04-06..2026-08-28, issues=missing_price_values

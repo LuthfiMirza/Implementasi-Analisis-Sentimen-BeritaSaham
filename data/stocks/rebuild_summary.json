@@ -4,11 +4,121 @@
       "name": "BBCA",
       "symbol": "BBCA.JK",
       "status": "rebuilt",
-      "rows": 5453,
+      "rows": 5479,
       "date_start": "2004-06-08",
-      "date_end": "2026-07-21",
+      "date_end": "2026-08-28",
       "issues": [],
       "output_path": "data/stocks/BBCA.csv"
+    },
+    {
+      "name": "BBRI",
+      "symbol": "BBRI.JK",
+      "status": "rebuilt",
+      "rows": 5630,
+      "date_start": "2003-11-10",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/BBRI.csv"
+    },
+    {
+      "name": "BMRI",
+      "symbol": "BMRI.JK",
+      "status": "rebuilt",
+      "rows": 5715,
+      "date_start": "2003-07-14",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/BMRI.csv"
+    },
+    {
+      "name": "TLKM",
+      "symbol": "TLKM.JK",
+      "status": "rebuilt",
+      "rows": 5398,
+      "date_start": "2004-09-28",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/TLKM.csv"
+    },
+    {
+      "name": "ASII",
+      "symbol": "ASII.JK",
+      "status": "rebuilt",
+      "rows": 6428,
+      "date_start": "2000-10-17",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/ASII.csv"
+    },
+    {
+      "name": "GOTO",
+      "symbol": "GOTO.JK",
+      "status": "rebuilt",
+      "rows": 1048,
+      "date_start": "2022-04-11",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/GOTO.csv"
+    },
+    {
+      "name": "INDF",
+      "symbol": "INDF.JK",
+      "status": "rebuilt",
+      "rows": 6440,
+      "date_start": "2000-10-02",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/INDF.csv"
+    },
+    {
+      "name": "ICBP",
+      "symbol": "ICBP.JK",
+      "status": "rebuilt",
+      "rows": 6439,
+      "date_start": "2000-10-02",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/ICBP.csv"
+    },
+    {
+      "name": "ADRO",
+      "symbol": "ADRO.JK",
+      "status": "rebuilt",
+      "rows": 4447,
+      "date_start": "2008-07-16",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/ADRO.csv"
+    },
+    {
+      "name": "UNVR",
+      "symbol": "UNVR.JK",
+      "status": "rebuilt",
+      "rows": 5678,
+      "date_start": "2003-09-03",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/UNVR.csv"
+    },
+    {
+      "name": "BUMI",
+      "symbol": "BUMI.JK",
+      "status": "rebuilt",
+      "rows": 6262,
+      "date_start": "2001-06-07",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/BUMI.csv"
+    },
+    {
+      "name": "DEWA",
+      "symbol": "DEWA.JK",
+      "status": "rebuilt",
+      "rows": 4639,
+      "date_start": "2007-09-26",
+      "date_end": "2026-08-28",
+      "issues": [],
+      "output_path": "data/stocks/DEWA.csv"
     }
   ]
 }

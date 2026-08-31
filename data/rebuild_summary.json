@@ -3,11 +3,13 @@
     {
       "name": "IHSG",
       "symbol": "^JKSE",
-      "status": "rebuilt",
-      "rows": 8831,
+      "status": "invalid",
+      "rows": 8857,
       "date_start": "1990-04-06",
-      "date_end": "2026-07-21",
-      "issues": [],
+      "date_end": "2026-08-28",
+      "issues": [
+        "missing_price_values"
+      ],
       "output_path": "data/IHSG.csv"
     }
   ]
