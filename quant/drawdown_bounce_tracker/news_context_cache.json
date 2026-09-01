@@ -1,19 +1,19 @@
 {
     "BUMI": [
         {
-            "title": "Laba Bumi Resources (BUMI) Naik 35% Jadi Rp 418 M di Kuartal I, Intip Faktornya",
-            "sentiment": "positive",
-            "published_at": "2026-08-27T14:57:22+07:00"
-        },
-        {
             "title": "Kepemilikan Chengdong Investment Corporation di Bumi Resources BUMI Sisa 2,8%",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T14:57:22+07:00"
+            "published_at": "2026-09-01T15:16:52+07:00"
         },
         {
-            "title": "BUMI Akuisisi Loyal Metals dan Pertahankan Posisi Indeks MSCI - SuaraGarut.ID",
+            "title": "Laba Bumi Resources (BUMI) Naik 35% Jadi Rp 418 M di Kuartal I, Intip Faktornya",
+            "sentiment": "positive",
+            "published_at": "2026-09-01T15:16:51+07:00"
+        },
+        {
+            "title": "Unit Usaha Bumi Resources (BUMI) Mulai Proyek Gasifikasi Batu Bara di Kutai Timur",
             "sentiment": "neutral",
-            "published_at": "2026-08-24T04:00:35+07:00"
+            "published_at": "2026-09-01T10:36:00+07:00"
         }
     ],
     "DEWA": [
@@ -37,7 +37,7 @@
         {
             "title": "Barito Pacific (BRPT) Milik Prajogo Ungkap Fakta di Balik Kabar IPO Griya Idola",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:03:37+07:00"
+            "published_at": "2026-09-01T15:24:26+07:00"
         },
         {
             "title": "Daftar Saham PER Terendah & Tertinggi LQ45 (24 Agustus 2026), INDY dan BRPT Disorot",
@@ -52,6 +52,11 @@
     ],
     "SMGR": [
         {
+            "title": "Semen Indonesia (SMGR) Siapkan Merger 7 Anak Usaha ke SID - market.bisnis.com",
+            "sentiment": "neutral",
+            "published_at": "2026-08-31T22:22:03+07:00"
+        },
+        {
             "title": "SMGR Bawa Inovasi Bata Interlock ke Danantara Housing Expo - KabarBursa.com",
             "sentiment": "neutral",
             "published_at": "2026-08-25T13:00:00+07:00"
@@ -60,18 +65,13 @@
             "title": "Industri Semen Mulai Pulih, Begini Prospek Saham INTP dan SMGR di Semester II-2026",
             "sentiment": "neutral",
             "published_at": "2026-08-24T00:00:00+07:00"
-        },
-        {
-            "title": "Permintaan Semen Mulai Pulih, Laba SMGR Diproyeksi Tumbuh Pada Semester I-2026",
-            "sentiment": "neutral",
-            "published_at": "2026-08-21T00:00:00+07:00"
         }
     ],
     "ESSA": [
         {
             "title": "Rilis Kinerja Keuangan, Ini Penyebab Laba ESSA Industries Anjlok 91%",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:09:05+07:00"
+            "published_at": "2026-09-01T15:31:26+07:00"
         },
         {
             "title": "IHSG Ditutup Turun 1,13% ke 6.301 pada Kamis (13\/8), MBMA, ESSA, INCO Top Losers LQ45",
@@ -79,21 +79,21 @@
             "published_at": "2026-08-14T12:07:31+07:00"
         },
         {
-            "title": "ESSA dan TPIA Sama-sama Ramai di Sesi I, Mana yang Lebih Agresif? - Rmol.id",
+            "title": "IHSG Sesi I 13 Agustus 2026 Melorot 75 Poin ke 6.298, ESSA Top Losers - money.kompas.com",
             "sentiment": "positive",
-            "published_at": "2026-08-11T07:50:00+07:00"
+            "published_at": "2026-08-13T07:00:00+07:00"
         }
     ],
     "UNVR": [
         {
-            "title": "Prinsip Penggunaan dan Pengelolaan Plastik ala Unilever Indonesia",
-            "sentiment": "neutral",
-            "published_at": "2026-08-27T14:54:55+07:00"
-        },
-        {
             "title": "Menengok Aksi Unilever Indonesia dan OCBC Kikis Bias Gender di Tempat Kerja",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T14:54:55+07:00"
+            "published_at": "2026-09-01T15:12:10+07:00"
+        },
+        {
+            "title": "Prinsip Penggunaan dan Pengelolaan Plastik ala Unilever Indonesia",
+            "sentiment": "neutral",
+            "published_at": "2026-09-01T15:12:09+07:00"
         },
         {
             "title": "IHSG Diramal Naik Meski Ada Kabar Buruk dari MSCI, Ini Pilihan Sahamnya",
@@ -103,31 +103,31 @@
     ],
     "TINS": [
         {
-            "title": "Tim Gabungan Polda Babel Amankan 365 Kg Pasir Timah Ilegal di Pelabuhan Pangkalbalam, 9 Orang Ditangkap - Media Daulat Rakyat",
+            "title": "Adu Kuat Kinerja PTBA, ANTM, TINS, INCO di Semester I 2026, Siapa Paling Cuan?",
             "sentiment": "neutral",
-            "published_at": "2026-08-26T23:36:50+07:00"
+            "published_at": "2026-09-01T14:54:00+07:00"
         },
         {
-            "title": "Cegah Stunting Sejak Dini, PT TIMAH Gandeng BKKBN Bangka Belitung Perkuat Pengasuhan Anak di Bangka Barat - babelreview.co.id",
+            "title": "Kain Cual Bercerita di Panggung Seni, PT TIMAH Dukung Kreativitas Seniman Bangka Barat - babelreview.co.id",
             "sentiment": "neutral",
-            "published_at": "2026-08-26T04:56:32+07:00"
+            "published_at": "2026-09-01T08:03:53+07:00"
         },
         {
-            "title": "Cegah Stunting Sejak Dini, PT Timah dan BKKBN Perkuat Edukasi Pola Asuh di Bangka Barat - Bangkapos.com",
+            "title": "Jaga Lingkungan, PT Timah dan Pemkab Bangka Barat Tanam Ratusan Pohon di Bekas Lapangan Golf - batamtoday.com",
             "sentiment": "neutral",
-            "published_at": "2026-08-26T03:27:15+07:00"
+            "published_at": "2026-08-30T23:28:00+07:00"
         }
     ],
     "PTRO": [
         {
             "title": "Mengulik Free Float Saham Emiten Prajogo di BEI, Baru BRPT-PTRO Lolos Batas 15%",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:18:31+07:00"
+            "published_at": "2026-09-01T15:40:23+07:00"
         },
         {
             "title": "Menilik Prospek Saham SINI - PTRO dari Aksi Duet di Tambang Batu Bara Kalimantan",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:18:31+07:00"
+            "published_at": "2026-09-01T15:40:23+07:00"
         },
         {
             "title": "Gandeng CDIA, Petrosea (PTRO) Bangun Infrastruktur Pengisian Kendaraan Listrik di Area Tambang - InvestorTrust",
@@ -139,51 +139,51 @@
         {
             "title": "Energi Mega (ENRG) Bidik Akuisisi Blok Migas Baru pada 2026, Siapkan Rp 3,3 T",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:21:25+07:00"
+            "published_at": "2026-09-01T15:43:12+07:00"
         },
         {
             "title": "Aksi Baru Emiten Bakrie (ENRG): Temukan Sumber Minyak Baru di Malacca Strait",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:21:25+07:00"
+            "published_at": "2026-09-01T15:43:11+07:00"
         },
         {
-            "title": "Kinerja Energi Mega Persada (ENRG) olid di Semester I-2026, Cek Rekomendasi Sahamnya - KONTAN",
+            "title": "Enterprise value to revenue forward of PT Energi Mega Persada Tbk – IDX:ENRG - TradingView",
             "sentiment": "neutral",
-            "published_at": "2026-08-20T05:49:34+07:00"
+            "published_at": "2026-08-27T22:41:08+07:00"
         }
     ],
     "RAJA": [
         {
             "title": "Rukun Raharja (RAJA) Akan Buyback Saham Rp 250 Miliar",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:24:43+07:00"
+            "published_at": "2026-09-01T15:46:08+07:00"
         },
         {
             "title": "Emiten Happy Hapsoro RAJA Bersiap Stock Split 1:5, Intip Jadwal dan Rencananya",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:24:43+07:00"
+            "published_at": "2026-09-01T15:46:07+07:00"
         },
         {
             "title": "RAJA Tebar Dividen Rp 274,17 Miliar, Akan Stock Split 1:5",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:24:43+07:00"
+            "published_at": "2026-09-01T15:46:07+07:00"
         }
     ],
     "DSSA": [
         {
+            "title": "Peta Market Cap BEI Berubah, BREN dan DSSA Mulai Tergusur",
+            "sentiment": "neutral",
+            "published_at": "2026-09-01T15:35:22+07:00"
+        },
+        {
             "title": "Membaca Arah Baru DSSA di Balik Perubahan Pemegang Saham, Bersiap Lepas Treasuri",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:12:21+07:00"
+            "published_at": "2026-09-01T15:35:03+07:00"
         },
         {
             "title": "Jalan Mulus Bisnis Hijau Emiten KEEN hingga DSSA dari PLTS 100 GW Pemerintah",
             "sentiment": "neutral",
-            "published_at": "2026-08-27T15:12:21+07:00"
-        },
-        {
-            "title": "Membaca Arah Transformasi Bisnis Emiten Grup Sinar Mas (DSSA) ke Ekosistem AI",
-            "sentiment": "neutral",
-            "published_at": "2026-08-27T15:12:21+07:00"
+            "published_at": "2026-09-01T15:35:03+07:00"
         }
     ]
 }
