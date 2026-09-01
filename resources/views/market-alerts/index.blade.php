@@ -71,6 +71,14 @@
     <span class="text-xs text-slate-500" x-text="`${rows().length} baris`"></span>
   </div>
 
+  {{-- Peringatan kalau data KSEI di tab ini bukan hasil impor asli --}}
+  <div x-show="active === 'ownership' && (payload.ownership || []).some(r => r.source && r.source !== 'ksei_manual')"
+       x-cloak
+       class="text-xs text-amber-400 flex items-center gap-1.5">
+    <x-heroicon-o-beaker class="w-3.5 h-3.5" />
+    Data kepemilikan di tab ini <strong>contoh/sintetis</strong>, bukan file KSEI asli.
+  </div>
+
   {{-- ── TABLES ── --}}
   <div class="glass-card rounded-2xl overflow-hidden border border-slate-800">
     <div class="overflow-x-auto">
@@ -112,16 +120,23 @@
               <th class="text-right font-medium px-4 py-3">% dari nilai</th>
             </template>
 
-            {{-- OWNERSHIP --}}
+            {{-- OWNERSHIP (monthly KSEI -- no daily price/turnover context) --}}
             <template x-if="active === 'ownership'">
               <th class="text-right font-medium px-4 py-3">Asing %</th>
             </template>
             <template x-if="active === 'ownership'">
               <th class="text-right font-medium px-4 py-3">Δ Asing (poin)</th>
             </template>
+            <template x-if="active === 'ownership'">
+              <th class="text-right font-medium px-4 py-3">Snapshot</th>
+            </template>
 
-            <th class="text-right font-medium px-4 py-3">Harga</th>
-            <th class="text-right font-medium px-4 py-3">%</th>
+            <template x-if="active !== 'ownership'">
+              <th class="text-right font-medium px-4 py-3">Harga</th>
+            </template>
+            <template x-if="active !== 'ownership'">
+              <th class="text-right font-medium px-4 py-3">%</th>
+            </template>
             <template x-if="active !== 'ownership'">
               <th class="text-right font-medium px-4 py-3">Nilai transaksi</th>
             </template>
@@ -175,9 +190,16 @@
               <template x-if="active === 'ownership'">
                 <td class="px-4 py-3 text-right font-mono font-semibold" :class="signClass(row.foreign_pct_delta)" x-text="fmtSignedNum(row.foreign_pct_delta)"></td>
               </template>
+              <template x-if="active === 'ownership'">
+                <td class="px-4 py-3 text-right font-mono text-slate-500 text-xs" x-text="row.snapshot_date || '—'"></td>
+              </template>
 
-              <td class="px-4 py-3 text-right font-mono text-slate-200" x-text="`Rp${fmtInt(row.close)}`"></td>
-              <td class="px-4 py-3 text-right font-mono" :class="signClass(row.pct_change)" x-text="fmtPct(row.pct_change)"></td>
+              <template x-if="active !== 'ownership'">
+                <td class="px-4 py-3 text-right font-mono text-slate-200" x-text="`Rp${fmtInt(row.close)}`"></td>
+              </template>
+              <template x-if="active !== 'ownership'">
+                <td class="px-4 py-3 text-right font-mono" :class="signClass(row.pct_change)" x-text="fmtPct(row.pct_change)"></td>
+              </template>
               <template x-if="active !== 'ownership'">
                 <td class="px-4 py-3 text-right font-mono text-slate-400" x-text="fmtRp(row.value)"></td>
               </template>

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\IdxDailySummary;
+use App\Models\KseiOwnership;
 use App\Services\MarketData\IdxMarketSummaryService;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -115,6 +116,31 @@ class IdxMarketSummaryServiceTest extends TestCase
         $this->assertSame('inflow', $alerts->firstWhere('stock_code', 'INFLOW')['direction']);
         $this->assertFalse($alerts->contains('stock_code', 'THIN_HI_RATIO'));
         $this->assertFalse($alerts->contains('stock_code', 'NEUTRAL'));
+    }
+
+    public function test_ownership_alert_flags_month_over_month_foreign_shift_only(): void
+    {
+        $mk = function (string $code, float $delta, string $source = 'ksei_manual') {
+            KseiOwnership::create([
+                'snapshot_date' => '2026-07-31', 'stock_code' => $code, 'stock_name' => "{$code} Tbk",
+                'total_shares' => 1_000_000, 'local_shares' => 700_000, 'foreign_shares' => 300_000,
+                'local_pct' => 70, 'foreign_pct' => 30, 'foreign_pct_delta' => $delta, 'source' => $source,
+            ]);
+        };
+        $mk('BIGUP', 2.5, 'ksei_sample');
+        $mk('BIGDN', -1.4);
+        $mk('TINY', 0.3);            // below 1.0pp threshold
+        KseiOwnership::create([      // no delta yet (first snapshot) -> excluded
+            'snapshot_date' => '2026-07-31', 'stock_code' => 'NEW', 'total_shares' => 1, 'local_shares' => 1,
+            'foreign_shares' => 0, 'local_pct' => 100, 'foreign_pct' => 0, 'foreign_pct_delta' => null, 'source' => 'ksei_manual',
+        ]);
+
+        $alerts = collect(app(IdxMarketSummaryService::class)->ownershipAlerts());
+
+        $this->assertEqualsCanonicalizing(['BIGUP', 'BIGDN'], $alerts->pluck('stock_code')->all());
+        $this->assertSame('accumulation', $alerts->firstWhere('stock_code', 'BIGUP')['direction']);
+        $this->assertSame('distribution', $alerts->firstWhere('stock_code', 'BIGDN')['direction']);
+        $this->assertSame('ksei_sample', $alerts->firstWhere('stock_code', 'BIGUP')['source']);
     }
 
     public function test_summary_payload_is_cached_per_trade_date(): void

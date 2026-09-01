@@ -223,6 +223,8 @@ class IdxMarketSummaryService
         if ($snapshot === null) {
             return [];
         }
+        // Normalise -- SQLite stores a `date` cast as "Y-m-d H:i:s", which whereDate() would miss.
+        $snapshot = Carbon::parse($snapshot)->toDateString();
 
         $cfg = config('market_alerts.ownership');
 
@@ -241,6 +243,7 @@ class IdxMarketSummaryService
                 'local_pct' => $r->local_pct,
                 'foreign_pct_delta' => $r->foreign_pct_delta,
                 'direction' => $r->foreign_pct_delta > 0 ? 'accumulation' : 'distribution',
+                'source' => $r->source,
             ])->all();
     }
 

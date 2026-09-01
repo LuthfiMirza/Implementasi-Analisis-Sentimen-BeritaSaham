@@ -24,6 +24,7 @@ class FetchKseiOwnershipCommand extends Command
     protected $signature = 'ksei:fetch-ownership
         {--file= : Path to the KSEI monthly ownership CSV (required -- no auto endpoint).}
         {--date= : Snapshot month-end date (YYYY-MM-DD). Default: last day of previous month.}
+        {--source=ksei_manual : Provenance tag stored on each row (use e.g. ksei_sample for synthetic data).}
         {--force : Overwrite an existing snapshot for that date.}';
 
     protected $description = 'Ingest a monthly KSEI local/foreign ownership snapshot for the Market Alerts "Kepemilikan" tab';
@@ -61,6 +62,11 @@ class FetchKseiOwnershipCommand extends Command
             return self::FAILURE;
         }
 
+        $source = (string) $this->option('source') ?: 'ksei_manual';
+        if ($source !== 'ksei_manual') {
+            $this->warn("Sumber ditandai '{$source}' -- bukan data KSEI asli.");
+        }
+
         // Previous snapshot for MoM delta.
         $prevDate = KseiOwnership::where('snapshot_date', '<', $snapshotDate)->max('snapshot_date');
         $prevForeignPct = $prevDate
@@ -89,7 +95,7 @@ class FetchKseiOwnershipCommand extends Command
                 'foreign_pct' => $foreignPct,
                 'foreign_pct_delta' => $prev !== null ? round($foreignPct - (float) $prev, 4) : null,
                 'breakdown' => $row['breakdown'] ? json_encode($row['breakdown']) : null,
-                'source' => 'ksei_manual',
+                'source' => $source,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];

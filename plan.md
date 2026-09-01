@@ -6536,6 +6536,20 @@ filter (tetap ditampilkan di kolom tabel sebagai konteks). Ambang baru: **`|net|
 absolut, limit 60** → 10–27 baris/hari (2026-09-01: 18 baris — BBRI +Rp849 M, BBCA +Rp437 M,
 ISAT -Rp70 M, dasar list ~Rp34 M).
 
+### Tab Kepemilikan — impor contoh + bereskan kolom (follow-up)
+- Command `ksei:fetch-ownership` dapat opsi `--source=` (default `ksei_manual`); dipakai
+  `--source=ksei_sample` untuk data sintetis supaya bisa dibedakan (pola sama `source<>'seed'`).
+- Diimpor 2 snapshot contoh (`storage/app/ksei/SAMPLE__2026-06-30.csv` & `__2026-07-31.csv`,
+  12 saham, angka rekaan) buat demo tab + verifikasi delta MoM. Service `ownershipAlerts()`
+  memunculkan 5 baris (Δ ≥ 1 poin): ADRO +2,5 / INDF -1,6 / BBRI +1,5 / GOTO -1,5 / ICBP +1,3.
+- Blade: kolom Harga/%/Nilai transaksi disembunyikan untuk tab ini (data KSEI bulanan, tak ada
+  harga harian — dulu tampil "Rp—"). Ganti kolom **Snapshot** (tanggal snapshot). Muncul baris
+  peringatan amber "data contoh/sintetis" kalau ada baris ber-`source != ksei_manual`.
+- Bug SQLite kena lagi: `KseiOwnership::max('snapshot_date')` balik `"Y-m-d H:i:s"` →
+  `whereDate()` meleset. Dinormalkan `Carbon::parse(...)->toDateString()` (sama pola
+  `latestTradeDate()`). Prod MySQL tidak kena (kolom DATE asli).
+- Test baru: `FetchKseiOwnershipCommandTest` (5) + `ownershipAlerts` (1 di service test).
+
 ## Fase DP — Tampilkan jam keluar (closed_at) di Laporan + bereskan kebingungan /trade-journal
 
 ### Konteks
