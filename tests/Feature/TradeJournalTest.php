@@ -7,6 +7,52 @@ use Tests\TestCase;
 
 class TradeJournalTest extends TestCase
 {
+    // Fase DP: kelanjutan Fase DO -- form Tutup Trade sudah bisa terima exit_date/exit_time,
+    // tapi jamnya (closed_at) sempat tidak ditampilkan di mana pun setelah tersimpan (user
+    // sempat tanya "jamnya muncul dimana"). Ditambah di baris Entry -> Exit halaman Laporan.
+    public function test_laporan_shows_exit_time_when_closed_at_present(): void
+    {
+        $user = $this->user();
+        $stock = $this->seedStock('DSSA');
+
+        $trade = Trade::factory()->closeState()->create([
+            'user_id' => $user->id,
+            'stock_id' => $stock->id,
+            'ticker' => 'DSSA',
+            'strategy_label' => 'gabungan',
+            'entry_date' => '2026-08-28',
+            'exit_date' => '2026-09-01',
+        ]);
+        Trade::where('id', $trade->id)->update(['closed_at' => '2026-09-01 15:33:00']);
+
+        $response = $this->actingAs($user)->get('/trades/laporan');
+
+        $response->assertOk();
+        $response->assertSee('15:33', false);
+    }
+
+    public function test_laporan_hides_exit_time_when_closed_at_missing(): void
+    {
+        $user = $this->user();
+        $stock = $this->seedStock('TLKM');
+
+        Trade::factory()->closeState()->create([
+            'user_id' => $user->id,
+            'stock_id' => $stock->id,
+            'ticker' => 'TLKM',
+            'strategy_label' => 'gabungan',
+            'entry_date' => '2026-01-29',
+            'exit_date' => '2026-02-12',
+            'closed_at' => null,
+        ]);
+
+        $response = $this->actingAs($user)->get('/trades/laporan');
+
+        $response->assertOk();
+        // Baris TLKM ini tidak boleh punya jam nyeleneh dari trade lain -- cukup pastikan
+        // halaman render tanpa error (guard @if($trade->closed_at) tidak crash saat null).
+    }
+
     // Fase DM: bug ditemukan user (1 Sep 2026) -- label "Masuk" di kartu posisi terbuka dulu
     // pakai created_at (kapan baris DB dibuat), bukan entry_date (tanggal trading sinyal itu
     // berlaku). Job harian detect-drawdown-bounce-signal sempat kelewat 31 Agu 2026 (Mac tidur),

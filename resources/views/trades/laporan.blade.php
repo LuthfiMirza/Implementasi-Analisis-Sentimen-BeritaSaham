@@ -70,9 +70,6 @@
              :class="rangeDeltaRp() >= 0 ? 'text-green-400' : 'text-rose-400'"
              x-text="formatRp(rangeDeltaRp()) + ' (' + formatPct(rangeDeltaPct()) + ') · ' + range">
           </p>
-          <p class="text-[10px] text-slate-500 mt-1" title="Simulasi single-account: mulai Rp10jt modal awal, tiap PnL realized nambah ke saldo. Menjawab pertanyaan 'kalau saya start Rp10jt dan ikuti semua sinyal, saldo saya jadi berapa'. Bukan LIVE_CAPITAL Rp10jt per trade (itu buat evaluasi kualitas sinyal, non-compounding, dipakai di kartu resmi lain).">
-            = Modal Awal Rp10jt + PnL kumulatif (compounding realistis)
-          </p>
         </div>
       </div>
       @if(empty($portfolioReport['chart']['labels']))
@@ -538,9 +535,17 @@
                 </span>
               </td>
               <td class="px-4 py-3 text-slate-400">
+                {{-- Fase DP: jam keluar (closed_at, diisi via form Tutup Trade Fase DO -- bisa
+                     retroaktif, BEDA dari created_at) sebelumnya tersimpan di DB tapi tidak
+                     ditampilkan di mana pun -- user sempat tanya "jamnya muncul dimana". --}}
                 <div class="text-[11px]">
                   <div>{{ $trade->entry_date->format('d M y') }}</div>
-                  <div class="text-slate-600">→ {{ $trade->exit_date?->format('d M y') }}</div>
+                  <div class="text-slate-600">
+                    → {{ $trade->exit_date?->format('d M y') }}
+                    @if($trade->closed_at)
+                      <span class="text-slate-700" title="Jam tercatat keluar (WIB)">· {{ $trade->closed_at->timezone('Asia/Jakarta')->format('H:i') }}</span>
+                    @endif
+                  </div>
                 </div>
               </td>
               <td class="px-4 py-3 text-right font-mono text-slate-300">

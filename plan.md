@@ -6520,3 +6520,50 @@ User: "gap alert terlalu noisy". Kalibrasi ulang ke data nyata 10 hari bursa ter
 - Ambang baru: `gap>=5% | move>=12%`, val>=Rp10 M, limit 60 → **8–22 baris/hari** (rata ~13).
   Hasil 2026-09-01: 12 baris — near-ARA (SQMI +35%, NZIA +24%) + gap open nyata (RGAS -14,5%,
   KOTA +6,5%). `gap_pct` tampil `null` ("—") kalau open=0 (hit lewat cabang move).
+
+### Tuning volume threshold (follow-up)
+Ambang lama (`>=3× rata-rata 20h`, val>=Rp1 M) = 42–65 baris/hari. Volume 3× rutin di IDX, dan
+val>=Rp1 M meloloskan saham super-tipis (BKDP 287× tapi cuma Rp1,7 M nilai transaksi — noise).
+Ambang baru: **`>=5×`, val>=Rp5 M, limit 60** → 7–27 baris/hari (2026-09-01: 15 baris — PTBA
+7,4× Rp315 M, SMGR 6,2× Rp230 M, COCO 15× Rp504 M). Konsisten dgn kepadatan tab gap (~12/hari).
+
+## Fase DP — Tampilkan jam keluar (closed_at) di Laporan + bereskan kebingungan /trade-journal
+
+### Konteks
+Dua temuan dari user sambil eksplorasi lanjutan Fase DO:
+
+1. **`/trade-journal` (dash, bukan `/trades`) ternyata halaman LEGACY terpisah** -- controller
+   sendiri (`TradeJournalController`, dibuat Mei 2026), views sendiri (`resources/views/trade-
+   journal/`), **tidak ada di menu sidebar sama sekali** (menu "Trade Journal" di sidebar
+   mengarah ke `trades.index` = `/trades`). Method `close()`-nya masih hardcode
+   `now()->toDateString()` -- TIDAK dapat perbaikan Fase DO sama sekali karena memang bukan
+   halaman yang disentuh. User sempat kebingungan mengira ini halaman yang sama. Diputuskan:
+   TIDAK dihapus/diubah sesi ini (di luar cakupan yang diminta, keputusan besar spt itu perlu
+   didiskusikan terpisah) -- cuma diinformasikan ke user supaya pakai `/trades`.
+
+2. **Field jam keluar dari Fase DO (`closed_at`) tersimpan benar ke DB tapi TIDAK ditampilkan di
+   mana pun di UI** -- gap murni "tulis tanpa baca" dari fase sebelumnya. User: "tapi ini muncul
+   jamnya dimana ya?"
+
+### Perbaikan
+- `resources/views/trades/laporan.blade.php`: baris "Entry → Exit" (kolom tanggal di tabel
+  Riwayat Trading) ditambah jam keluar dari `closed_at` (timezone Asia/Jakarta, format `H:i`),
+  cuma tampil kalau `closed_at` ada (`@if` guard -- 28 dari 393 baris closed lama tidak punya
+  `closed_at`, dibiarkan tanpa jam alih-alih nampilin nilai palsu/kosong).
+- Sekalian: user minta hapus caption kecil "= Modal Awal Rp10jt + PnL kumulatif (compounding
+  realistis)" di bawah angka Total Equity (halaman sama) -- dihapus, tidak ada test yang
+  menggantungkan teks itu.
+
+### Verifikasi
+- 2 test baru di `TradeJournalTest.php`:
+  - `test_laporan_shows_exit_time_when_closed_at_present`: trade dgn `closed_at` di-set eksplisit
+    ke jam tertentu -- halaman `/trades/laporan` menampilkan jam itu persis.
+  - `test_laporan_hides_exit_time_when_closed_at_missing`: trade dgn `closed_at=null` -- halaman
+    tetap render tanpa error (guard `@if` tidak crash saat null).
+- `TradeJournalTest`: 16/16 passed (39 assertions).
+- Browser real (data produksi, DSSA entry 28 Agu -> exit 1 Sep): baris tabel menampilkan persis
+  **"28 Aug 26 → 01 Sep 26 · 15:33"** -- sesuai yang user cari. Teks "Modal Awal..." dikonfirmasi
+  hilang dari halaman (`find` 0 match). 0 console error baru.
+- Full suite: dijalankan setelah perubahan (lihat hasil di commit).
+
+### Status: SELESAI, siap commit+push.
