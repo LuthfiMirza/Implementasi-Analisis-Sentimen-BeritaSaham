@@ -14,9 +14,9 @@ return [
 
     // Thresholds for a row to qualify as an alert.
     'volume' => [
-        'min_ratio' => 3.0,          // today's volume >= 3x the 20-day average
-        'min_value_rp' => 1_000_000_000, // and today's turnover >= Rp 1 B (cut illiquid noise)
-        'limit' => 100,
+        'min_ratio' => 5.0,          // today's volume >= 5x the 20-day average (3x is routine noise)
+        'min_value_rp' => 5_000_000_000, // and today's turnover >= Rp 5 B (a spike on an illiquid name isn't interesting)
+        'limit' => 60,
     ],
     'gap' => [
         'min_gap_pct' => 5.0,         // |open vs previous close| >= 5%

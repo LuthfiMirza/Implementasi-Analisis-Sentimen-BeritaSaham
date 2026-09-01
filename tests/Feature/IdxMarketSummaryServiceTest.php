@@ -50,13 +50,15 @@ class IdxMarketSummaryServiceTest extends TestCase
 
     public function test_volume_alert_fires_when_today_exceeds_moving_average_ratio(): void
     {
-        // Give the whole universe the same prior dates so the join has history.
-        $date = $this->seedHistory('SPIKE', 12, ['volume' => 6_000_000, 'value' => 5_000_000_000]);
-        $this->seedHistory('CALM', 12, ['volume' => 1_050_000, 'value' => 5_000_000_000]);
+        // Prior days sit at 1,000,000 volume for every name (seedHistory hardcodes that).
+        $date = $this->seedHistory('SPIKE', 12, ['volume' => 6_000_000, 'value' => 6_000_000_000]); // 6x -> fires
+        $this->seedHistory('MILD', 12, ['volume' => 4_000_000, 'value' => 6_000_000_000]);          // 4x -> below 5x bar
+        $this->seedHistory('CALM', 12, ['volume' => 1_050_000, 'value' => 6_000_000_000]);          // ~flat
 
         $alerts = collect(app(IdxMarketSummaryService::class)->volumeAlerts($date));
 
         $this->assertTrue($alerts->contains('stock_code', 'SPIKE'));
+        $this->assertFalse($alerts->contains('stock_code', 'MILD'));
         $this->assertFalse($alerts->contains('stock_code', 'CALM'));
         $this->assertEqualsWithDelta(6.0, $alerts->firstWhere('stock_code', 'SPIKE')['volume_ratio'], 0.1);
     }
