@@ -6336,3 +6336,52 @@ User diberi 3 opsi via AskUserQuestion, memilih: **"SVG icon set minimal (Rekome
   visual, tidak ada logika baru yg butuh test baru).
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DM — Label "Masuk" di kartu posisi terbuka pakai entry_date, bukan created_at
+
+### Konteks
+User tanya soal kartu DSSA MOMENTUM di `/trades`: "sinyal kapan kenapa masuk jam segini ga ada
+harga segini dijam segini" -- kartu menampilkan "Masuk 01 Sep 2026, 15:18 WIB" dengan entry
+Rp1.110, padahal harga live DSSA saat itu beda dan alert Telegram-nya sendiri bilang trigger
+28 Agu, entry 31 Agu.
+
+**Root cause**: label "Masuk {tanggal}, {jam} WIB" di `trades/index.blade.php` pakai
+`$trade->created_at` (kapan baris DB dibuat), bukan `$trade->entry_date` (tanggal trading sinyal
+itu berlaku) -- keduanya SELALU sama waktu kode ini ditulis (asumsi eksplisit di komentar lama:
+"untuk trade yang disinkron otomatis ... SAMA PERSIS dengan jam signal terdeteksi"), TAPI asumsi
+itu cuma benar kalau job harian `research:detect-drawdown-bounce-signal` (jadwal 15:18 WIB)
+betul-betul jalan tepat waktu SETIAP hari bursa. Sesi ini sudah berkali-kali ketahuan job itu
+sempat kelewat (Mac tidur pas jam segitu) -- ketika akhirnya jalan lagi (kadang beberapa hari
+kemudian), dia "mengejar" sinyal yang telat sekaligus sinyal baru dalam SATU eksekusi. Baris DB
+untuk sinyal yang telat itu punya `entry_date` sesuai tanggal sinyal ASLI (mis. 31 Agu, harga
+closing hari itu -- data VALID), tapi `created_at` ikut waktu job CATCH-UP jalan (1 Sep 15:18) --
+bukan bug data, murni salah pilih kolom buat ditampilkan.
+
+Dikonfirmasi lewat log (`storage/logs/scheduler.log`): satu eksekusi jam 15:18 tanggal 1
+September mencatat DUA sinyal MOMENTUM DSSA sekaligus -- trigger 28 Agu→entry 31 Agu (yang
+ditanyakan user) DAN trigger 31 Agu→entry 1 Sep (baru, kena batas Fase DJ karena DSSA sudah 3
+posisi momentum, sinyal ini dilewati -- bukti batas pyramiding Fase DJ bekerja seperti dirancang).
+
+### Perbaikan
+`resources/views/trades/index.blade.php`: label "Masuk" ganti dari `created_at` ke `entry_date`
+(format tanggal saja, `d M Y` -- `entry_date` selalu jam 00:00:00 jadi tidak ada gunanya
+menampilkan jam palsu). Kalau `created_at` dan `entry_date` beda tanggal (job telat catch-up),
+ditambah catatan kecil transparan "(tersinkron {tanggal created_at})" dengan tooltip penjelasan --
+supaya user tetap tahu KAPAN baris itu benar-benar muncul di Trade Journal tanpa menyembunyikan
+gap-nya, tapi tanggal/harga utama yang ditonjolkan tetap yang BENAR (entry_date).
+
+### Verifikasi
+- 2 test baru di `TradeJournalTest.php`:
+  - `test_open_position_card_shows_entry_date_not_created_at`: reproduksi persis kasus nyata
+    (entry_date 31 Agu, created_at di-set manual ke 1 Sep) -- kartu menampilkan "Masuk 31 Aug
+    2026" + "tersinkron 01 Sep", BUKAN "Masuk 01 Sep 2026".
+  - `test_open_position_card_hides_sync_note_when_same_day`: trade normal (entry_date =
+    created_at, hari yang sama) -- catatan "tersinkron" TIDAK muncul (tidak menambah noise utk
+    kasus normal, cuma tampil saat memang ada gap).
+- `TradeJournalTest`: 12/12 passed (29 assertions).
+- Browser real (data produksi asli, bukan fixture): kartu DSSA MOMENTUM yang jadi sumber
+  pertanyaan user sekarang menampilkan persis **"Masuk 31 Aug 2026 (tersinkron 01 Sep)"** --
+  dikonfirmasi via `get_page_text` pada halaman `/trades` yang login sungguhan. 0 console error.
+- Full suite: dijalankan setelah perubahan (lihat hasil di commit).
+
+### Status: SELESAI, siap commit+push.

@@ -7,6 +7,62 @@ use Tests\TestCase;
 
 class TradeJournalTest extends TestCase
 {
+    // Fase DM: bug ditemukan user (1 Sep 2026) -- label "Masuk" di kartu posisi terbuka dulu
+    // pakai created_at (kapan baris DB dibuat), bukan entry_date (tanggal trading sinyal itu
+    // berlaku). Job harian detect-drawdown-bounce-signal sempat kelewat 31 Agu 2026 (Mac tidur),
+    // baru catch-up 1 Sep -- sinyal MOMENTUM DSSA entry_date=31 Agu tapi created_at=1 Sep 15:18,
+    // bikin kartu terlihat seolah baru masuk hari ini dengan harga "salah" (padahal harga
+    // closing 31 Agu yang valid, cuma telat tersinkron). Test ini reproduksi persis kasus itu.
+    public function test_open_position_card_shows_entry_date_not_created_at(): void
+    {
+        $user = $this->user();
+        $stock = $this->seedStock('DSSA');
+
+        $trade = Trade::factory()->create([
+            'user_id' => $user->id,
+            'stock_id' => $stock->id,
+            'ticker' => 'DSSA',
+            'strategy_label' => 'momentum',
+            'status' => 'open',
+            'entry_price' => 1110,
+            'entry_date' => '2026-08-31',
+            'trade_date' => '2026-08-31',
+        ]);
+        // created_at di-set belakangan (simulasi job yang telat catch-up) -- Eloquent otomatis
+        // isi created_at saat create(), jadi di-override manual lewat query builder (bypass
+        // timestamps otomatis) supaya persis meniru kondisi produksi.
+        Trade::where('id', $trade->id)->update(['created_at' => '2026-09-01 15:18:21']);
+
+        $response = $this->actingAs($user)->get('/trades');
+
+        $response->assertOk();
+        $response->assertSee('Masuk 31 Aug 2026', false);
+        $response->assertDontSee('Masuk 01 Sep 2026', false);
+        // Transparansi: kartu tetap menyebut kapan sebenarnya tersinkron, supaya user tidak
+        // bingung kalau nemu harga "closing" tapi baris barusan muncul di halaman.
+        $response->assertSee('tersinkron 01 Sep', false);
+    }
+
+    public function test_open_position_card_hides_sync_note_when_same_day(): void
+    {
+        $user = $this->user();
+        $stock = $this->seedStock('BBCA');
+
+        Trade::factory()->create([
+            'user_id' => $user->id,
+            'stock_id' => $stock->id,
+            'ticker' => 'BBCA',
+            'status' => 'open',
+            'entry_date' => now()->toDateString(),
+            'trade_date' => now()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->get('/trades');
+
+        $response->assertOk();
+        $response->assertDontSee('tersinkron', false);
+    }
+
     public function test_authenticated_user_can_create_trade_entry(): void
     {
         $user = $this->user();

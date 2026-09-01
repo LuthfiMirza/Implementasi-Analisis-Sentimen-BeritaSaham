@@ -243,13 +243,23 @@
                 </span>
               </div>
               <p class="text-[11px] text-slate-400">
-                {{ $trade->stock->company_name }} • Masuk
-                {{-- entry_date cuma tanggal (selalu 00:00:00, lihat catatan whereDate() di
-                     DetectDrawdownBounceSignalCommand) -- created_at yang punya jam presisi,
-                     dan untuk trade yang disinkron otomatis (SYNC_OPEN) ini SAMA PERSIS dengan
-                     jam signal terdeteksi/terdaftar (dicek: 15:18 WIB, jam job harian). Beda dari
-                     jam "harga HH:MM WIB" di footer kartu -- itu jam quote LIVE, bukan jam masuk. --}}
-                {{ $trade->created_at->timezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB
+                {{-- Fase DM bug fix: dulu label ini pakai created_at (asumsi lama: SELALU sama
+                     dengan tanggal+jam entry, karena job harian "pasti" jalan tepat 15:18 WIB
+                     di entry_date yang sama -- asumsi ini TERBUKTI SALAH begitu job sempat
+                     kelewat, mis. Mac tidur pas jam segitu). Sekarang pakai entry_date -- tanggal
+                     TRADING sinyal ini berlaku, bukan kapan baris DB-nya dibuat. entry_date cuma
+                     tanggal (selalu 00:00:00) jadi tidak ada jam palsu yang ditampilkan -- beda
+                     dari jam "harga HH:MM WIB" di footer kartu, itu jam quote LIVE saat ini. --}}
+                {{ $trade->stock->company_name }} • Masuk {{ $trade->entry_date->format('d M Y') }}
+                @if($trade->created_at->timezone('Asia/Jakarta')->format('Y-m-d') !== $trade->entry_date->format('Y-m-d'))
+                  {{-- Transparan kalau sinyal ini "telat" tersinkron (job harian sempat kelewat)
+                       -- daripada diam-diam menyembunyikan gap-nya, dijelaskan eksplisit supaya
+                       harga entry yang ditampilkan (closing entry_date, BUKAN harga hari ini)
+                       tidak disalahartikan sebagai harga live saat baris ini muncul. --}}
+                  <span class="text-slate-600" title="Job deteksi sinyal harian sempat tidak jalan tepat waktu -- sinyal ini baru tersinkron ke Trade Journal belakangan, harga entry di atas tetap harga closing {{ $trade->entry_date->format('d M Y') }}, bukan harga saat tersinkron.">
+                    (tersinkron {{ $trade->created_at->timezone('Asia/Jakarta')->format('d M') }})
+                  </span>
+                @endif
               </p>
             </div>
           </div>
