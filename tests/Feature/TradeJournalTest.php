@@ -135,6 +135,50 @@ class TradeJournalTest extends TestCase
         ]);
     }
 
+    // Fase DO: user minta bisa catat trade yang SUDAH ditutup di sekuritas beberapa hari lalu
+    // (retroaktif) -- dulu exit_date/closed_at SELALU "sekarang" (waktu klik tombol), jadi
+    // kartu posisi yang sebenarnya sudah closed masih kelihatan open, dan begitu ditutup manual
+    // catatannya seolah baru terjadi hari itu (padahal sudah lewat trailing stop beberapa hari
+    // sebelumnya).
+    public function test_closing_trade_accepts_custom_exit_date_and_time(): void
+    {
+        $user = $this->user();
+        $trade = Trade::factory()->create([
+            'user_id' => $user->id,
+            'entry_price' => 1130,
+            'stop_loss' => 1107,
+            'lot_size' => 8800,
+            'entry_date' => '2026-08-27',
+        ]);
+
+        $this->actingAs($user)->post("/trades/{$trade->id}/close", [
+            'exit_price' => 1264,
+            'result' => 'trailing_stop',
+            'exit_date' => '2026-08-31',
+            'exit_time' => '14:32',
+        ])->assertRedirect('/trades');
+
+        $trade->refresh();
+        $this->assertSame('2026-08-31', $trade->exit_date->toDateString());
+        $this->assertSame('2026-08-31 14:32:00', $trade->closed_at->format('Y-m-d H:i:s'));
+    }
+
+    // Backward-compat: field exit_date/exit_time nullable -- kalau tidak dikirim (mis. dari
+    // caller lama), tetap fallback ke sekarang, tidak error.
+    public function test_closing_trade_without_exit_date_defaults_to_now(): void
+    {
+        $user = $this->user();
+        $trade = Trade::factory()->create(['user_id' => $user->id, 'entry_price' => 1000, 'stop_loss' => 950]);
+
+        $this->actingAs($user)->post("/trades/{$trade->id}/close", [
+            'exit_price' => 1050,
+            'result' => 'manual_close',
+        ])->assertRedirect('/trades');
+
+        $trade->refresh();
+        $this->assertSame(now()->toDateString(), $trade->exit_date->toDateString());
+    }
+
     public function test_win_rate_counts_profitable_manual_close_trades_as_wins(): void
     {
         $user = $this->user();

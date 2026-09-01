@@ -972,9 +972,21 @@ class TradeController extends Controller
             'exit_price' => 'required|numeric|min:0',
             'result' => 'required|in:hit_target_1,hit_target_2,stop_loss,trailing_stop,time_target,manual_close',
             'notes' => 'nullable|string|max:500',
+            // Fase DO: dulu tanggal/jam keluar SELALU "sekarang" (waktu klik tombol) -- tidak
+            // bisa mencatat retroaktif kalau posisi sebenarnya sudah ditutup di sekuritas
+            // beberapa hari lalu (mis. trailing stop yang baru ketahuan/dicatat belakangan).
+            // Nullable + fallback ke now() di bawah supaya tetap kompatibel kalau ada pemanggil
+            // lain (API, test lama) yang belum kirim field ini.
+            'exit_date' => 'nullable|date',
+            'exit_time' => 'nullable|date_format:H:i',
         ]);
 
-        $trade->close($validated['exit_price'], $validated['result']);
+        $exitAt = null;
+        if (! empty($validated['exit_date'])) {
+            $exitAt = Carbon::parse($validated['exit_date'].' '.($validated['exit_time'] ?? '00:00'));
+        }
+
+        $trade->close($validated['exit_price'], $validated['result'], $exitAt);
 
         if (!empty($validated['notes'])) {
             $trade->update(['notes' => $validated['notes']]);

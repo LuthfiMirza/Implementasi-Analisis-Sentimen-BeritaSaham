@@ -629,6 +629,25 @@
                placeholder="Harga keluar aktual">
       </div>
 
+      {{-- Fase DO: dulu tanggal/jam tutup SELALU "sekarang" (waktu submit form) -- tidak ada
+           cara mencatat retroaktif kalau posisi sebenarnya sudah keluar beberapa hari lalu
+           (mis. lewat trailing stop yang baru ketahuan belakangan). Default tetap "sekarang"
+           (paling umum: nutup saat itu juga), tapi sekarang bisa diubah. --}}
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-slate-400 font-medium mb-1.5">Tanggal Keluar</label>
+          <input type="date" name="exit_date" required id="closeExitDate"
+                 class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5
+                        text-sm text-slate-200 focus:border-sky-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 font-medium mb-1.5">Jam Keluar</label>
+          <input type="time" name="exit_time" required id="closeExitTime"
+                 class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5
+                        text-sm text-slate-200 focus:border-sky-500 focus:outline-none font-mono">
+        </div>
+      </div>
+
       <div>
         <label class="block text-xs text-slate-400 font-medium mb-1.5">Hasil Trade</label>
         <select name="result" required
@@ -821,6 +840,15 @@ function openCloseModal(tradeId, stockCode, entryPrice) {
     form.action = `/trades/${tradeId}/close`;
     subtitle.textContent = `${stockCode} • Entry: ${entryPrice.toLocaleString('id-ID')}`;
     document.getElementById('closeExitPrice').value = '';
+
+    // Fase DO: default tanggal/jam = SEKARANG (kasus paling umum -- nutup saat itu juga),
+    // tapi field-nya tetap bisa diubah manual kalau nutupnya retroaktif (mis. trailing stop
+    // yang kejadiannya beberapa hari lalu, baru dicatat sekarang).
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    document.getElementById('closeExitDate').value =
+        `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    document.getElementById('closeExitTime').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
     modal.classList.remove('hidden');
 }

@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -37,7 +38,20 @@ return new class extends Migration
             $table->decimal('exit_price', 12, 2)->nullable();
             $table->integer('holding_days')->nullable();
 
-            $table->enum('result', ['hit_target_1', 'hit_target_2', 'stop_loss', 'manual_close', 'open'])->default('open');
+            // Fase DO bug fix: ENUM di sini CUMA cocok utk MySQL (produksi) -- di SQLite (test
+            // env, in-memory), Schema::enum() diam-diam diterjemahkan jadi CHECK constraint
+            // sungguhan yg mengunci daftar nilai INI (versi lama, sebelum trailing_stop/
+            // time_target ditambah lewat migrasi 2026_08_24). Migrasi itu SENGAJA no-op di
+            // sqlite (komentarnya sendiri bilang "sqlite string bebas nilai apapun") -- niatnya
+            // sqlite memang tidak dibatasi, tapi asumsi itu salah: CHECK constraint dari ENUM di
+            // SINI tetap kena, cuma tidak pernah ketahuan karena tidak ada test yang coba close
+            // trade dgn result='trailing_stop'/'time_target' sampai sekarang. String polos di
+            // sqlite (produksi tetap ENUM ketat di MySQL) -- lurusin sesuai niat aslinya.
+            if (DB::getDriverName() === 'mysql') {
+                $table->enum('result', ['hit_target_1', 'hit_target_2', 'stop_loss', 'manual_close', 'open'])->default('open');
+            } else {
+                $table->string('result')->default('open');
+            }
             $table->decimal('pnl_per_share', 12, 2)->nullable();
             $table->decimal('pnl_total', 15, 2)->nullable();
             $table->decimal('pnl_percent', 8, 2)->nullable();
