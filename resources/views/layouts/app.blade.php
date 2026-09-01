@@ -31,6 +31,7 @@
                         ['label' => 'Berita Terkini', 'route' => 'news.index', 'href' => route('news.index'), 'icon' => 'M4 6h16M4 10h16M4 14h10m-4 4h4'],
                         ['label' => 'Watchlist', 'route' => 'watchlist.index', 'href' => route('watchlist.index'), 'icon' => 'M5 4h14a1 1 0 011 1v10a1 1 0 01-.553.894l-6.894 3.447a1 1 0 01-.894 0L4.765 15.96A1 1 0 014 15V5a1 1 0 011-1z'],
                         ['label' => 'Prediksi', 'route' => 'analytics.index', 'href' => route('analytics.index'), 'icon' => 'M3 17l6-6 4 4 8-8'],
+                        ['label' => 'Market Alerts', 'route' => 'market-alerts.*', 'href' => route('market-alerts.index'), 'icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'],
                         ['label' => 'Evaluasi Model', 'route' => 'evaluasi.index', 'href' => route('evaluasi.index'), 'icon' => 'M9 17v-6h6v6m-7 4h8a2 2 0 002-2v-8l-5-5H9a2 2 0 00-2 2v11a2 2 0 002 2z'],
                         ['label' => 'Audit Sentimen', 'route' => 'evaluasi.sentimen', 'href' => route('evaluasi.sentimen'), 'icon' => 'M12 8c1.656 0 3-1.567 3-3.5S13.656 1 12 1 9 2.567 9 4.5 10.344 8 12 8zm0 0v6m0 0l-4 9m4-9l4 9'],
                         ['label' => 'Backtest DSS', 'route' => 'backtest.index', 'href' => route('backtest.index'), 'icon' => 'M4 12h16m-8-8v16'],

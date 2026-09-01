@@ -287,3 +287,23 @@ Schedule::command('prediction:retrain-production')
     ->withoutOverlapping()
     ->runInBackground()
     ->appendOutputTo(storage_path('logs/retrain-production.log'));
+
+// MARKET ALERTS -- ingest ringkasan saham EOD IDX (seluruh ~960 emiten) untuk halaman
+// /market-alerts (volume tak wajar, gap harga, arus asing). IDX rilis ~18:05 WIB; jalan 18:35
+// weekday memberi jeda aman. Sumbernya scraper curl_cffi (quant/idx_market/fetch_stock_summary.py)
+// yang menembus Cloudflare -- kalau suatu saat diblok, backfill manual: idx:fetch-daily-summary --file=.
+// DESKRIPTIF saja, tidak masuk pipeline prediksi/DSS.
+Schedule::command('idx:fetch-daily-summary')
+    ->weekdays()
+    ->dailyAt('18:35')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// KSEI OWNERSHIP -- komposisi kepemilikan asing/lokal bulanan. KSEI rilis awal bulan untuk data
+// bulan sebelumnya; coba tiap hari tanggal 1-10 jam 09:00 (command idempotent, skip kalau sudah ada).
+Schedule::command('ksei:fetch-ownership')
+    ->monthlyOn(5, '09:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));

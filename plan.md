@@ -6385,3 +6385,68 @@ gap-nya, tapi tanggal/harga utama yang ditonjolkan tetap yang BENAR (entry_date)
 - Full suite: dijalankan setelah perubahan (lihat hasil di commit).
 
 ### Status: SELESAI, siap commit+push.
+
+---
+
+## Fase DN — Halaman Market Alerts (volume/gap/foreign flow EOD seluruh IDX)
+
+### Konteks / permintaan user
+User menunjukkan screenshot IDXRadar "Whale Alert" dan bertanya apakah aman membangun fitur
+serupa + sumber data gratis. Kesimpulan diskusi: data broker-level & running-trade per-transaksi
+(dasar "Whale Alert") berbayar/berlisensi IDX — TIDAK dibangun. Yang dibangun: pemantau
+DESKRIPTIF akhir hari — volume tak wajar, gap harga, arus dana asing — untuk seluruh universe IDX.
+
+Keputusan user (via AskUserQuestion): keempat tab (Volume, Harga & Gap, Foreign Flow,
+Kepemilikan), satu halaman bertab, universe SELURUH ~960 emiten IDX, sumber = scrape best-effort.
+
+### Sumber data
+Endpoint publik `idx.co.id/primary/TradingSummary/GetStockSummary?date=YYYYMMDD` — 1 request =
+seluruh emiten dengan OHLC, Volume, Value, Frequency, ForeignBuy/Sell (lembar), ListedShares.
+IDX di belakang Cloudflare (403 ke klien HTTP biasa) → ditembus pakai `curl_cffi` impersonate
+Chrome di `quant/idx_market/fetch_stock_summary.py` (venv `quant/.venv-fundamentals`, sudah punya
+curl_cffi 0.13.0). Pola sama `quant/foreign_flow_tracker/collect_snapshot.py`: script tipis,
+semua parsing di sana, command Laravel cuma invoke + upsert.
+
+Data EOD saja — BUKAN real-time, BUKAN per-transaksi, TANPA kode broker. Arus asing dilaporkan
+IDX dalam LEMBAR; nilai rupiah di UI = perkiraan (lembar × harga tutup). Fitur ini deskriptif,
+TIDAK masuk pipeline prediksi/DSS (mematuhi aturan repo: jangan bangun sinyal di atas metrik yang
+belum divalidasi OOS).
+
+### Yang dibuat
+- `quant/idx_market/fetch_stock_summary.py` — scraper 1-hari, output JSON ke stdout.
+- Migrasi `idx_daily_summaries` (1 baris/emiten/hari) + `ksei_ownerships` (bulanan, agregat).
+- Model `IdxDailySummary`, `KseiOwnership`.
+- Command `idx:fetch-daily-summary {--date= --backfill=N --file= --force}` — invoke scraper atau
+  parse file JSON manual (fallback kalau Cloudflare menutup). Idempotent (upsert on
+  trade_date+stock_code), skip tanggal yang sudah ada kecuali --force, lewati weekend saat backfill.
+- Command `ksei:fetch-ownership {--file= --date= --force}` — KSEI tidak punya endpoint terstruktur
+  publik, jadi import manual CSV bulanan; hitung delta MoM foreign %.
+- `config/market_alerts.php` — threshold semua tab (interpolasi numerik ke raw SQL, BUKAN binding
+  — binding float kena aturan afinitas numeric-vs-text SQLite dan diam-diam membuang baris).
+- `App\Services\MarketData\IdxMarketSummaryService` — 4 daftar alert, cache 15 mnt per trade_date.
+- `MarketAlertController` (`/market-alerts` + `/market-alerts/data` JSON) + nav sidebar + view
+  `market-alerts/index.blade.php` (tab Alpine inline, tabel gaya trades/radar, heroicons, kartu
+  disclaimer wajib).
+- Jadwal `routes/console.php`: `idx:fetch-daily-summary` weekday 18:35 WIB; `ksei:fetch-ownership`
+  bulanan tgl 5.
+
+### Verifikasi
+- Scraper live: 963 baris untuk 2026-08-28, tembus Cloudflare (`impersonate=chrome`).
+- Backfill nyata: 33 hari bursa (15 Jul–1 Sep 2026) masuk `idx_daily_summaries` (~31k baris),
+  2 hari libur (17 & 25 Agu) benar-benar 0 baris.
+- Sanity BBRI 1 Sep: foreign buy 314M + sell 63M lembar ≤ volume 393M (konsisten), net +Rp848 M.
+- Test baru (13, semua hijau): `IdxMarketSummaryServiceTest` (5 — threshold volume/gap/foreign +
+  cache), `FetchIdxDailySummaryCommandTest` (5 — scrape upsert, backfill skip weekend/existing,
+  --file, gagal→exit 1), `MarketAlertsPageTest` (4 — guest redirect, halaman+disclaimer, JSON,
+  kosong).
+- Browser (login admin sungguhan, data produksi): keempat tab render, angka & format Rp benar,
+  tab Kepemilikan tampil empty-state instruktif, 0 error.
+- `vendor/bin/pint`: pass. Full suite: dijalankan (lihat commit).
+
+### Catatan untuk sesi berikutnya
+- Endpoint KSEI kepemilikan belum ketemu — tab Kepemilikan jalan lewat `--file=` CSV saja sampai
+  ada yang mengidentifikasi endpoint/format resminya.
+- Kalau `idx:fetch-daily-summary` mulai gagal (Cloudflare berubah): unduh JSON stock summary
+  manual dari browser, `idx:fetch-daily-summary --file=path.json`.
+
+### Status: SELESAI, siap commit+push.

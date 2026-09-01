@@ -1,0 +1,116 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\IdxDailySummary;
+use App\Services\MarketData\IdxMarketSummaryService;
+use Illuminate\Support\Carbon;
+use Tests\TestCase;
+
+class IdxMarketSummaryServiceTest extends TestCase
+{
+    private function row(string $date, string $code, array $overrides = []): void
+    {
+        $close = $overrides['close'] ?? 1000.0;
+        $previous = $overrides['previous'] ?? $close;
+        $change = $close - $previous;
+
+        IdxDailySummary::create(array_merge([
+            'trade_date' => $date,
+            'stock_code' => $code,
+            'stock_name' => "{$code} Tbk",
+            'previous' => $previous,
+            'open' => $overrides['open'] ?? $close,
+            'high' => $close,
+            'low' => $close,
+            'close' => $close,
+            'change' => $change,
+            'pct_change' => $previous > 0 ? round($change / $previous * 100, 4) : 0,
+            'volume' => $overrides['volume'] ?? 1_000_000,
+            'value' => $overrides['value'] ?? 5_000_000_000,
+            'frequency' => 100,
+            'foreign_buy' => $overrides['foreign_buy'] ?? 0,
+            'foreign_sell' => $overrides['foreign_sell'] ?? 0,
+            'foreign_net' => ($overrides['foreign_buy'] ?? 0) - ($overrides['foreign_sell'] ?? 0),
+            'foreign_net_value' => (($overrides['foreign_buy'] ?? 0) - ($overrides['foreign_sell'] ?? 0)) * $close,
+            'source' => 'test',
+        ], array_intersect_key($overrides, array_flip(['listed_shares', 'remarks']))));
+    }
+
+    private function seedHistory(string $code, int $priorDays, array $latest): string
+    {
+        $latestDate = Carbon::parse('2026-08-28');
+        for ($i = $priorDays; $i >= 1; $i--) {
+            $this->row($latestDate->copy()->subDays($i + 2)->toDateString(), $code, ['volume' => 1_000_000]);
+        }
+        $this->row($latestDate->toDateString(), $code, $latest);
+
+        return $latestDate->toDateString();
+    }
+
+    public function test_volume_alert_fires_when_today_exceeds_moving_average_ratio(): void
+    {
+        // Give the whole universe the same prior dates so the join has history.
+        $date = $this->seedHistory('SPIKE', 12, ['volume' => 6_000_000, 'value' => 5_000_000_000]);
+        $this->seedHistory('CALM', 12, ['volume' => 1_050_000, 'value' => 5_000_000_000]);
+
+        $alerts = collect(app(IdxMarketSummaryService::class)->volumeAlerts($date));
+
+        $this->assertTrue($alerts->contains('stock_code', 'SPIKE'));
+        $this->assertFalse($alerts->contains('stock_code', 'CALM'));
+        $this->assertEqualsWithDelta(6.0, $alerts->firstWhere('stock_code', 'SPIKE')['volume_ratio'], 0.1);
+    }
+
+    public function test_volume_alert_skips_illiquid_names_below_min_value(): void
+    {
+        $date = $this->seedHistory('THIN', 12, ['volume' => 9_000_000, 'value' => 100_000_000]);
+
+        $alerts = collect(app(IdxMarketSummaryService::class)->volumeAlerts($date));
+
+        $this->assertFalse($alerts->contains('stock_code', 'THIN'));
+    }
+
+    public function test_gap_alert_flags_large_opening_gap(): void
+    {
+        $this->row('2026-08-28', 'GAPPER', ['previous' => 1000, 'open' => 1080, 'close' => 1050, 'value' => 5_000_000_000]);
+        $this->row('2026-08-28', 'STEADY', ['previous' => 1000, 'open' => 1005, 'close' => 1010, 'value' => 5_000_000_000]);
+
+        $alerts = collect(app(IdxMarketSummaryService::class)->gapAlerts('2026-08-28'));
+
+        $this->assertTrue($alerts->contains('stock_code', 'GAPPER'));
+        $this->assertFalse($alerts->contains('stock_code', 'STEADY'));
+        $this->assertEqualsWithDelta(8.0, $alerts->firstWhere('stock_code', 'GAPPER')['gap_pct'], 0.01);
+    }
+
+    public function test_foreign_flow_alert_ranks_by_absolute_net_value_and_sets_direction(): void
+    {
+        // INFLOW: net +2,000,000 sh * 1000 = Rp 2B -> below the Rp 10B abs floor, but
+        //         2B / 5B turnover = 40% >= 20% ratio -> qualifies.
+        // OUTFLOW: net -15,000,000 sh * 1000 = -Rp 15B -> clears the abs floor, sorts first.
+        // NEUTRAL: net 0 -> never qualifies.
+        $this->row('2026-08-28', 'INFLOW', ['foreign_buy' => 3_000_000, 'foreign_sell' => 1_000_000, 'value' => 5_000_000_000]);
+        $this->row('2026-08-28', 'OUTFLOW', ['foreign_buy' => 0, 'foreign_sell' => 15_000_000, 'value' => 90_000_000_000]);
+        $this->row('2026-08-28', 'NEUTRAL', ['foreign_buy' => 10_000, 'foreign_sell' => 10_000, 'value' => 50_000_000_000]);
+
+        $alerts = collect(app(IdxMarketSummaryService::class)->foreignFlowAlerts('2026-08-28'));
+
+        $this->assertSame('OUTFLOW', $alerts->first()['stock_code']);
+        $this->assertSame('outflow', $alerts->first()['direction']);
+        $this->assertSame('inflow', $alerts->firstWhere('stock_code', 'INFLOW')['direction']);
+        $this->assertFalse($alerts->contains('stock_code', 'NEUTRAL'));
+    }
+
+    public function test_summary_payload_is_cached_per_trade_date(): void
+    {
+        $this->seedHistory('SPIKE', 12, ['volume' => 6_000_000]);
+
+        $service = app(IdxMarketSummaryService::class);
+        $first = $service->summary();
+
+        // Mutating the table should not change the cached payload until fresh=true.
+        IdxDailySummary::query()->update(['volume' => 1]);
+
+        $this->assertEquals($first, $service->summary());
+        $this->assertNotEquals($first['counts'], $service->summary(true)['counts']);
+    }
+}
