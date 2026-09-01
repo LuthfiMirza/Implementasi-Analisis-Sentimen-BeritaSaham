@@ -6527,6 +6527,15 @@ val>=Rp1 M meloloskan saham super-tipis (BKDP 287× tapi cuma Rp1,7 M nilai tran
 Ambang baru: **`>=5×`, val>=Rp5 M, limit 60** → 7–27 baris/hari (2026-09-01: 15 baris — PTBA
 7,4× Rp315 M, SMGR 6,2× Rp230 M, COCO 15× Rp504 M). Konsisten dgn kepadatan tab gap (~12/hari).
 
+### Tuning foreign flow threshold (follow-up)
+Ambang lama (`|net|>=Rp10 M | ratio>=20%`, tanpa lantai turnover) = **139–168 baris/hari** —
+selalu kepotong limit 100. Cabang rasio tanpa lantai turnover = sumber noise (mis. ITMG rasio
+-73,8% tapi turnover cuma Rp53 M). Foreign flow di level pasar itu cerita **rupiah absolut**;
+persentase besar dari saham tipis tidak menggerakkan apa pun. Cabang rasio **dihapus** dari
+filter (tetap ditampilkan di kolom tabel sebagai konteks). Ambang baru: **`|net| >= Rp30 M`
+absolut, limit 60** → 10–27 baris/hari (2026-09-01: 18 baris — BBRI +Rp849 M, BBCA +Rp437 M,
+ISAT -Rp70 M, dasar list ~Rp34 M).
+
 ## Fase DP — Tampilkan jam keluar (closed_at) di Laporan + bereskan kebingungan /trade-journal
 
 ### Konteks
@@ -6565,5 +6574,54 @@ Dua temuan dari user sambil eksplorasi lanjutan Fase DO:
   **"28 Aug 26 → 01 Sep 26 · 15:33"** -- sesuai yang user cari. Teks "Modal Awal..." dikonfirmasi
   hilang dari halaman (`find` 0 match). 0 console error baru.
 - Full suite: dijalankan setelah perubahan (lihat hasil di commit).
+
+### Status: SELESAI, siap commit+push.
+
+## Fase DQ — Chart Total Equity: sumbu kanan (amount singkat) + sumbu bawah (tanggal)
+
+### Konteks
+User kasih 2 screenshot: (1) chart Total Equity sendiri, tanya "kenapa cuma all saja yang ada
+ininya" (maksud: sumbu/info kelihatan cuma pas pilih range All); (2) referensi chart app lain --
+sumbu Y di KANAN nampilin nominal singkat (mis. "33.9M"), sumbu X di BAWAH nampilin tanggal.
+Minta dibikin serupa, ikut range 1W/1M/3M/YTD/1Y/All yang aktif.
+
+**Investigasi**: `equityChart` (Alpine component, `resources/js/app.js`) pakai Chart.js dgn
+`scales: { x: { display: false }, y: { display: false } }` -- sumbu dimatikan TOTAL di SEMUA
+range, bukan cuma selain-All. Tooltip hover (plugin terpisah dari scale display) sebenarnya
+SUDAH jalan di semua range sejak awal -- dicek via `javascript_tool` simulasi `mousemove` di
+titik data tengah range 1M, tooltip muncul benar ("16 Aug" / "Rp150.621.753"). Kesimpulan: bukan
+bug tooltip, cuma chart kelihatan "kosong"/tak informatif tanpa sumbu di range manapun --
+sehingga user cuma sempat coba lihat closely pas "All" (defaultnya).
+
+### Perbaikan
+`resources/js/app.js` (`equityChart.initChart()`):
+- `scales.y`: `display: true`, `position: 'right'`, ticks diformat lewat `formatShortRp()`
+  (fungsi baru: >=1M jadi "X.XM", >=1K jadi "X.XK", >=1B jadi "X.XB" -- notasi ringkas spt
+  referensi, bukan `Rp150.847.253` penuh yang kepanjangan buat sumbu).
+- `scales.x`: `display: true`, `ticks.autoSkip: true, maxTicksLimit: 6` (label 'd M' dari server
+  ada SATU per hari kalender -- All/YTD/1Y bisa 200+ titik, autoSkip+limit mencegah sumbu penuh
+  sesak, Chart.js otomatis spasi merata).
+- Warna: `#64748b` (slate-500) buat label sumbu, grid kanan sangat tipis
+  (`rgba(148,163,184,0.08)`), grid X dimatikan (`grid.display:false`) -- konsisten tema dark yang
+  sudah ada, tidak norak.
+- `npm run build` dijalankan supaya bundle `public/build/assets/app-*.js` ke-update (Vite
+  production build, bukan dev-server HMR).
+
+### Verifikasi
+- Dicek via `javascript_tool` (bukan cuma visual) supaya presisi -- baca langsung config Chart.js
+  instance yang jalan di halaman produksi:
+  - Range **All**: `yTicks = ["0","50.0M","100.0M","150.0M","200.0M"]`,
+    `xTicks = ["08 Dec","22 Jan","08 Mar","22 Apr","06 Jun","21 Jul"]`.
+  - Range **1M** (diklik via browser sungguhan): 33 titik data, `yTicks = ["150.2M",...,
+    "150.8M"]`, `xTicks = ["31 Jul",...,"30 Aug"]` -- range pendek re-render benar dgn skala
+    sendiri (bukan ikut skala All).
+  - Range **YTD**: 245 titik, `yTicks`/`xTicks` scale ulang benar.
+  - Simulasi `mousemove` sungguhan (bukan asumsi) ke titik data di range 1M -- `chart.tooltip`
+    terisi `title: ["16 Aug"], body: [["Rp150.621.753"]]` -- mengonfirmasi tooltip memang SUDAH
+    berfungsi di semua range, bukan cuma All (jadi bukan "fix bug", murni tambah info sumbu yg
+    diminta).
+- Browser real, 0 console error baru.
+- Full suite: dijalankan setelah perubahan (murni JS+build asset, tidak ada PHP yang berubah --
+  lihat hasil di commit).
 
 ### Status: SELESAI, siap commit+push.

@@ -97,12 +97,15 @@ class IdxMarketSummaryServiceTest extends TestCase
 
     public function test_foreign_flow_alert_ranks_by_absolute_net_value_and_sets_direction(): void
     {
-        // INFLOW: net +2,000,000 sh * 1000 = Rp 2B -> below the Rp 10B abs floor, but
-        //         2B / 5B turnover = 40% >= 20% ratio -> qualifies.
-        // OUTFLOW: net -15,000,000 sh * 1000 = -Rp 15B -> clears the abs floor, sorts first.
+        // Filter is absolute rupiah only (>= Rp 30 B), ranked by |net| descending.
+        // OUTFLOW: net -50,000,000 sh * 1000 = -Rp 50B -> largest, sorts first.
+        // INFLOW:  net +35,000,000 sh * 1000 = +Rp 35B -> clears the floor.
+        // THIN_HI_RATIO: net +5,000,000 sh * 1000 = +Rp 5B on Rp 8B turnover (62% ratio) but
+        //                only Rp 5B absolute -> does NOT qualify (ratio is not a condition).
         // NEUTRAL: net 0 -> never qualifies.
-        $this->row('2026-08-28', 'INFLOW', ['foreign_buy' => 3_000_000, 'foreign_sell' => 1_000_000, 'value' => 5_000_000_000]);
-        $this->row('2026-08-28', 'OUTFLOW', ['foreign_buy' => 0, 'foreign_sell' => 15_000_000, 'value' => 90_000_000_000]);
+        $this->row('2026-08-28', 'OUTFLOW', ['foreign_buy' => 0, 'foreign_sell' => 50_000_000, 'value' => 300_000_000_000]);
+        $this->row('2026-08-28', 'INFLOW', ['foreign_buy' => 40_000_000, 'foreign_sell' => 5_000_000, 'value' => 200_000_000_000]);
+        $this->row('2026-08-28', 'THIN_HI_RATIO', ['foreign_buy' => 5_000_000, 'foreign_sell' => 0, 'value' => 8_000_000_000]);
         $this->row('2026-08-28', 'NEUTRAL', ['foreign_buy' => 10_000, 'foreign_sell' => 10_000, 'value' => 50_000_000_000]);
 
         $alerts = collect(app(IdxMarketSummaryService::class)->foreignFlowAlerts('2026-08-28'));
@@ -110,6 +113,7 @@ class IdxMarketSummaryServiceTest extends TestCase
         $this->assertSame('OUTFLOW', $alerts->first()['stock_code']);
         $this->assertSame('outflow', $alerts->first()['direction']);
         $this->assertSame('inflow', $alerts->firstWhere('stock_code', 'INFLOW')['direction']);
+        $this->assertFalse($alerts->contains('stock_code', 'THIN_HI_RATIO'));
         $this->assertFalse($alerts->contains('stock_code', 'NEUTRAL'));
     }
 

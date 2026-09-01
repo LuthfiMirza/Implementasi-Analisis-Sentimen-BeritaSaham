@@ -25,9 +25,10 @@ return [
         'limit' => 60,
     ],
     'foreign' => [
-        'min_net_value_rp' => 10_000_000_000, // |net foreign| >= Rp 10 B (approx: net shares * close)
-        'min_net_ratio' => 0.20,              // OR |net foreign value| / turnover >= 20%
-        'limit' => 100,
+        // |net foreign| >= Rp 30 B (approx: net shares * close). Absolute rupiah only -- a big %
+        // of a thin stock's turnover isn't market-relevant and just adds noise.
+        'min_net_value_rp' => 30_000_000_000,
+        'limit' => 60,
     ],
     'ownership' => [
         'min_foreign_pct_delta' => 1.0, // flag MoM foreign ownership shift >= 1 percentage point

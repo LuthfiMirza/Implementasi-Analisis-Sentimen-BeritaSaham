@@ -177,7 +177,12 @@ class IdxMarketSummaryService
     }
 
     /**
-     * Net foreign position (approx rupiah = net shares * close), by absolute size.
+     * Biggest net foreign positions of the day by absolute rupiah (approx = net shares * close).
+     *
+     * Foreign flow at the market level is an absolute-rupiah story -- a large % of a thin stock's
+     * turnover moves nothing that matters. `net_ratio` is still returned as table context, but it
+     * is deliberately NOT a qualifying condition (that "OR ratio" branch surfaced ~150 rows/day,
+     * mostly illiquid names).
      *
      * @return array<int, array<string, mixed>>
      */
@@ -187,10 +192,7 @@ class IdxMarketSummaryService
 
         return IdxDailySummary::query()
             ->whereDate('trade_date', $date)
-            ->where(function ($q) use ($cfg) {
-                $q->whereRaw('ABS(foreign_net_value) >= '.(float) $cfg['min_net_value_rp'])
-                    ->orWhereRaw('value > 0 AND ABS(foreign_net_value) * 1.0 / value >= '.(float) $cfg['min_net_ratio']);
-            })
+            ->whereRaw('ABS(foreign_net_value) >= '.(float) $cfg['min_net_value_rp'])
             ->orderByRaw('ABS(foreign_net_value) DESC')
             ->limit((int) $cfg['limit'])
             ->get()
