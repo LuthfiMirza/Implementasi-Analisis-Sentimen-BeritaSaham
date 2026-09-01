@@ -14,14 +14,42 @@ cp .env.example .env        # kalau belum ada .env
 php artisan key:generate
 ```
 
-Pastikan MySQL aktif (kalau pakai XAMPP dan servicenya mati: `/Applications/XAMPP/xamppfiles/bin/mysql.server start`), lalu:
+Pastikan MySQL aktif (kalau pakai XAMPP dan servicenya mati: `/Applications/XAMPP/xamppfiles/bin/mysql.server start`), lalu isi database:
 
 ```bash
 php artisan migrate --seed
-php artisan serve
 ```
 
-Buka `http://127.0.0.1:8000` di browser.
+### Menyalakan service
+
+Proyek butuh **4 service**. Cara paling cepat — satu perintah:
+
+```bash
+./dev-start.sh      # cek MySQL, nyalakan 2 API Python di background, lalu jalankan web server
+```
+
+Buka `http://127.0.0.1:8000` di browser. Untuk mematikan API background nanti: `./dev-stop.sh`.
+
+Kalau mau manual satu-satu (tiap baris di jendela terminal sendiri):
+
+| Service | Perintah | Port | Perlu untuk |
+|---|---|---|---|
+| Web Laravel | `php artisan serve` | 8000 | **semua halaman** |
+| Sentiment API | `./start_sentiment_api.sh` | 8002 | analisis sentimen IndoBERT (ada fallback rule-based kalau mati) |
+| Prediction API | `./start_prediction_api.sh` | 8001 | halaman **Prediksi** & **Evaluasi Model** |
+| MySQL | `/Applications/XAMPP/xamppfiles/bin/mysql.server start` | 3306 | **semua** (biasanya sudah auto-nyala saat login) |
+
+Catatan:
+- **Scheduler** (auto-fetch berita, update data Market Alerts tiap sore 18:35 WIB) sudah jalan
+  lewat cron per-menit — tidak perlu dinyalakan. Kalau mau lihat lognya live: `php artisan schedule:work`.
+- **`npm run dev`** cuma perlu kalau sedang mengubah tampilan (CSS/JS). Untuk demo biasa, hasil
+  `npm run build` sudah cukup.
+- Cek semua hidup:
+  ```bash
+  curl -s -o /dev/null -w "web %{http_code}\n"        http://127.0.0.1:8000/login
+  curl -s -o /dev/null -w "sentiment %{http_code}\n"  http://127.0.0.1:8002/docs
+  curl -s -o /dev/null -w "prediction %{http_code}\n" http://127.0.0.1:8001/docs
+  ```
 
 ## 2. Login
 
