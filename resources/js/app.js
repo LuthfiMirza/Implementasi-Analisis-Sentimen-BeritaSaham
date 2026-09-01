@@ -315,6 +315,18 @@ document.addEventListener('alpine:init', () => {
         formatEquity(n) {
             return 'Rp' + Math.round(n).toLocaleString('id-ID');
         },
+        // Fase DQ: user minta sumbu kanan (amount singkat) + sumbu bawah (tanggal) spt referensi
+        // StockBit-style, sebelumnya axis dimatikan total (`display: false`) di semua range --
+        // bukan cuma "All" yg beda, tooltip hover sebenarnya JALAN di semua range (Chart.js
+        // tooltip plugin tidak digate oleh scale display), user kemungkinan cuma belum coba
+        // hover di range lain karena tanpa sumbu chart-nya kelihatan "kosong"/tidak informatif.
+        formatShortRp(n) {
+            const abs = Math.abs(n);
+            if (abs >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
+            if (abs >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+            if (abs >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+            return String(Math.round(n));
+        },
         initChart() {
             const s = this.sliced();
             this.chart = new Chart(this.$refs.canvas, {
@@ -342,8 +354,23 @@ document.addEventListener('alpine:init', () => {
                         },
                     },
                     scales: {
-                        x: { display: false },
-                        y: { display: false },
+                        x: {
+                            display: true,
+                            grid: { display: false },
+                            ticks: {
+                                color: '#64748b', font: { size: 10 },
+                                maxRotation: 0, autoSkip: true, maxTicksLimit: 6,
+                            },
+                        },
+                        y: {
+                            display: true,
+                            position: 'right',
+                            grid: { color: 'rgba(148,163,184,0.08)' },
+                            ticks: {
+                                color: '#64748b', font: { size: 10 },
+                                callback: (val) => this.formatShortRp(val),
+                            },
+                        },
                     },
                 },
             });
