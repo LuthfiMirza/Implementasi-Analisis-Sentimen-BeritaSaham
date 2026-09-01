@@ -147,14 +147,17 @@ class IdxMarketSummaryService
             ->where('previous', '>', 0)
             ->where('value', '>=', (float) $cfg['min_value_rp'])
             ->where(function ($q) use ($cfg) {
-                $q->whereRaw('ABS(`open` - previous) * 100.0 / previous >= '.(float) $cfg['min_gap_pct'])
-                    ->orWhereRaw('ABS(pct_change) >= '.(float) $cfg['min_move_pct']);
+                // A 0 open means no opening auction -- treat as "no gap", only the move branch applies.
+                $q->where(function ($g) use ($cfg) {
+                    $g->where('open', '>', 0)
+                        ->whereRaw('ABS(`open` - previous) * 100.0 / previous >= '.(float) $cfg['min_gap_pct']);
+                })->orWhereRaw('ABS(pct_change) >= '.(float) $cfg['min_move_pct']);
             })
             ->orderByRaw('ABS(pct_change) DESC')
             ->limit((int) $cfg['limit'])
             ->get()
             ->map(function (IdxDailySummary $r): array {
-                $gapPct = ($r->previous > 0 && $r->open !== null)
+                $gapPct = ($r->previous > 0 && $r->open !== null && $r->open > 0)
                     ? round(($r->open - $r->previous) / $r->previous * 100, 2)
                     : null;
 

@@ -72,14 +72,25 @@ class IdxMarketSummaryServiceTest extends TestCase
 
     public function test_gap_alert_flags_large_opening_gap(): void
     {
-        $this->row('2026-08-28', 'GAPPER', ['previous' => 1000, 'open' => 1080, 'close' => 1050, 'value' => 5_000_000_000]);
-        $this->row('2026-08-28', 'STEADY', ['previous' => 1000, 'open' => 1005, 'close' => 1010, 'value' => 5_000_000_000]);
+        // GAPPER: +8% opening gap, liquid -> fires on the gap branch.
+        $this->row('2026-08-28', 'GAPPER', ['previous' => 1000, 'open' => 1080, 'close' => 1050, 'value' => 20_000_000_000]);
+        // STEADY: 0.5% gap, 1% move -> below both thresholds.
+        $this->row('2026-08-28', 'STEADY', ['previous' => 1000, 'open' => 1005, 'close' => 1010, 'value' => 20_000_000_000]);
+        // NOOPEN: no opening auction (open 0) but closed -14% -> fires on the move branch, gap_pct null.
+        $this->row('2026-08-28', 'NOOPEN', ['previous' => 1000, 'open' => 0, 'close' => 860, 'value' => 20_000_000_000]);
+        // THIN: +9% gap but illiquid -> filtered out by min turnover.
+        $this->row('2026-08-28', 'THIN', ['previous' => 1000, 'open' => 1090, 'close' => 1090, 'value' => 500_000_000]);
 
         $alerts = collect(app(IdxMarketSummaryService::class)->gapAlerts('2026-08-28'));
 
         $this->assertTrue($alerts->contains('stock_code', 'GAPPER'));
         $this->assertFalse($alerts->contains('stock_code', 'STEADY'));
+        $this->assertFalse($alerts->contains('stock_code', 'THIN'));
         $this->assertEqualsWithDelta(8.0, $alerts->firstWhere('stock_code', 'GAPPER')['gap_pct'], 0.01);
+
+        $noopen = $alerts->firstWhere('stock_code', 'NOOPEN');
+        $this->assertNotNull($noopen);
+        $this->assertNull($noopen['gap_pct']);
     }
 
     public function test_foreign_flow_alert_ranks_by_absolute_net_value_and_sets_direction(): void

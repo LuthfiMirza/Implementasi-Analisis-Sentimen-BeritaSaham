@@ -6450,3 +6450,73 @@ belum divalidasi OOS).
   manual dari browser, `idx:fetch-daily-summary --file=path.json`.
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DO — Form "Tutup Trade" bisa atur tanggal & jam keluar (retroaktif)
+
+### Konteks
+User nemu kasus: posisi DSSA MOMENTUM (entry 27 Agu @ Rp1.130) sudah lewat trailing stop-nya
+sendiri (harga jatuh dari puncak Rp1.290 ke Rp1.135, sudah -10,22% dari level Rp1.264 -- lihat
+diskusi trailing stop sebelumnya) beberapa hari lalu, tapi baru mau dicatat "Tutup Trade"
+SEKARANG (bukan pas kejadiannya). Form "Tutup Trade" yang ada tidak punya field tanggal/jam --
+begitu disubmit, `exit_date`/`closed_at` otomatis jadi WAKTU SUBMIT (sekarang), bukan waktu
+sebenarnya posisi itu keluar -- catatan jadi tidak akurat (retroaktif tapi tercatat seolah baru
+terjadi hari ini).
+
+### Perbaikan
+- `resources/views/trades/index.blade.php`: modal "Tutup Trade" ditambah 2 field baru --
+  "Tanggal Keluar" (`type=date`) dan "Jam Keluar" (`type=time`). Default di-prefill ke
+  tanggal/jam SEKARANG (kasus paling umum: nutup posisi saat itu juga), tapi keduanya bisa diubah
+  manual sebelum submit -- untuk kasus retroaktif spt DSSA di atas.
+- `app/Http/Controllers/TradeController::close()`: terima `exit_date`/`exit_time` (nullable,
+  fallback ke `now()` kalau tidak dikirim -- backward-compat dgn caller lama/test lama), gabung
+  jadi satu `Carbon` lalu diteruskan ke parameter ke-3 `Trade::close()` yang **SUDAH ADA
+  SEBELUMNYA** tapi tidak pernah dipakai controller (model method-nya sendiri sudah mendukung
+  exit date custom sejak awal, cuma jalur form/controller yang belum mengeksposnya).
+
+### Bug lain ditemukan sambil mengerjakan ini
+Test baru (`result => 'trailing_stop'`) gagal dgn `CHECK constraint failed: result` di SQLite
+(test env). Root cause: migrasi awal `2026_04_12_020000_create_trades_table.php` pakai
+`$table->enum('result', [...])` dgn daftar LAMA (tanpa `trailing_stop`/`time_target`) -- di
+SQLite, `enum()` diam-diam diterjemahkan Laravel jadi CHECK constraint SUNGGUHAN, bukan no-op.
+Migrasi belakangan (`2026_08_24_..._add_trailing_stop_and_time_target...php`, Fase CZ) yg
+menambah 2 result baru itu SENGAJA di-skip di non-mysql (komentarnya sendiri: "sqlite string
+bebas nilai apapun sudah cukup jadi no-op") -- niatnya SQLite memang tidak dibatasi ketat spt
+MySQL, tapi asumsi itu salah: constraint dari migrasi AWAL tetap mengunci daftar lama. Tidak
+pernah ketahuan karena tidak ada test sebelumnya yang coba close trade dgn result='trailing_stop'
+atau 'time_target' sampai test Fase DO ini ditulis -- artinya kedua result type itu (yang justru
+paling sering dipakai exit otomatis live!) sebelumnya TIDAK PERNAH benar-benar diverifikasi lewat
+test end-to-end.
+
+**Fix**: migrasi awal dibuat driver-aware -- `enum()` cuma dipakai kalau `DB::getDriverName() ===
+'mysql'` (produksi, tetap ketat), `string()` polos untuk driver lain (sqlite/test, sesuai niat
+ASLI migrasi Fase CZ). Produksi (MySQL) tidak terdampak sama sekali -- migrasi yang sudah
+ter-apply di sana tidak dieksekusi ulang, cuma logic `up()`-nya yang diperbaiki untuk lingkungan
+baru/test.
+
+### Verifikasi
+- 2 test baru di `TradeJournalTest.php`:
+  - `test_closing_trade_accepts_custom_exit_date_and_time`: kirim `exit_date=2026-08-31`,
+    `exit_time=14:32`, `result=trailing_stop` -- `exit_date`/`closed_at` di DB PERSIS tanggal/jam
+    itu, bukan waktu submit.
+  - `test_closing_trade_without_exit_date_defaults_to_now`: tidak kirim exit_date sama sekali --
+    tetap fallback ke sekarang, tidak error (backward-compat).
+- `TradeJournalTest`: 14/14 passed (36 assertions) -- termasuk fix migration di atas (sebelum
+  fix, test pertama gagal CHECK constraint).
+- Browser real: modal "Tutup Trade" dicek via `read_page` (data produksi asli, DSSA entry 31
+  Agu) -- field "Tanggal Keluar"/"Jam Keluar" muncul, ter-prefill otomatis ke tanggal/jam
+  sekarang, bisa diubah. Modal dibatalkan (BUKAN disubmit) supaya tidak mengubah posisi produksi
+  yang masih genuinely open -- keputusan kapan menutup trade tetap di tangan user.
+- Full suite: dijalankan setelah perubahan (lihat hasil di commit).
+
+### Status: SELESAI, siap commit+push.
+
+### Tuning gap threshold (follow-up, hari yang sama)
+User: "gap alert terlalu noisy". Kalibrasi ulang ke data nyata 10 hari bursa terakhir:
+- Ambang lama (`gap>=3% | move>=5%`, val>=Rp2 M) = 34–101 baris/hari (rata ~55). Terlalu banyak;
+  gerak harian 3–5% di IDX rutin.
+- **Bug ditemukan**: `OpenPrice=0` (saham tak ada opening auction) bikin `(0-prev)/prev = -100%`
+  → puluhan baris "gap -100%" palsu. Diperbaiki: cabang gap wajib `open > 0`; cabang move
+  (pct_change) tetap jalan sendiri untuk saham yang tak buka tapi bergerak.
+- Ambang baru: `gap>=5% | move>=12%`, val>=Rp10 M, limit 60 → **8–22 baris/hari** (rata ~13).
+  Hasil 2026-09-01: 12 baris — near-ARA (SQMI +35%, NZIA +24%) + gap open nyata (RGAS -14,5%,
+  KOTA +6,5%). `gap_pct` tampil `null` ("—") kalau open=0 (hit lewat cabang move).

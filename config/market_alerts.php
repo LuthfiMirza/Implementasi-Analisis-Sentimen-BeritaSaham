@@ -19,10 +19,10 @@ return [
         'limit' => 100,
     ],
     'gap' => [
-        'min_gap_pct' => 3.0,        // |open vs previous close| >= 3%
-        'min_move_pct' => 5.0,       // OR |close vs previous close| >= 5%
-        'min_value_rp' => 2_000_000_000,
-        'limit' => 100,
+        'min_gap_pct' => 5.0,         // |open vs previous close| >= 5%
+        'min_move_pct' => 12.0,       // OR |close vs previous close| >= 12% (near ARA/ARB)
+        'min_value_rp' => 10_000_000_000, // and turnover >= Rp 10 B -- IDX 3-5% daily moves are routine
+        'limit' => 60,
     ],
     'foreign' => [
         'min_net_value_rp' => 10_000_000_000, // |net foreign| >= Rp 10 B (approx: net shares * close)
