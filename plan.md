@@ -6571,9 +6571,13 @@ Ditambah:
   libur yang di-scrape 0 baris tetap "hilang" tapi keluar dari window dalam ~seminggu (tidak
   pakai sentinel). Dijadwalkan weekday 08:30 WIB (setara `news:auto-recover-gap`).
 - Panel **"Jalankan Manual"** di `/admin` (`admin.system.run`, admin-only, allow-list task —
-  web tidak pernah oper input bebas ke Artisan). Tombol: ambil IDX hari ini, tambal hari hilang,
-  backfill 10 hari, ambil berita. Jalan sinkron (`Artisan::call`, `set_time_limit(180)`),
-  hasil 4 baris terakhir output ditampilkan sebagai flash status.
+  web tidak pernah oper input bebas ke Artisan). 3 tombol IDX: ambil hari ini, tambal hari
+  hilang, backfill 10 hari. Jalan sinkron (`Artisan::call`), 4 baris terakhir output jadi
+  flash status. Ketiganya < beberapa detik.
+- **`news:fetch` DICABUT dari tombol** saat uji browser: ternyata 10-30+ menit (nembak banyak
+  feed eksternal lambat/rate-limited) dan `set_time_limit` tidak menolong karena waktunya di
+  I/O wait, bukan CPU — sempat membekukan `php artisan serve` (single-thread). News sudah
+  dijadwalkan 5x/hari; manual pakai terminal saja.
 - Test baru: 2 di `FetchIdxDailySummaryCommandTest` (recover) + `AdminSystemRunTaskTest` (3).
 
 ## Fase DP — Tampilkan jam keluar (closed_at) di Laporan + bereskan kebingungan /trade-journal

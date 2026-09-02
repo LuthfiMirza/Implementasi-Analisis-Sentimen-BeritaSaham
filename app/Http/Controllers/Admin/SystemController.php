@@ -35,12 +35,10 @@ class SystemController extends Controller
             'label' => 'Backfill 10 hari IDX',
             'note' => 'Isi mundur ~10 hari bursa. Perlu beberapa puluh detik.',
         ],
-        'news_fetch' => [
-            'command' => 'news:fetch',
-            'params' => ['--limit' => 30],
-            'label' => 'Ambil berita terbaru',
-            'note' => 'Fetch berita multi-sumber, limit 30 per saham.',
-        ],
+        // NB: news:fetch sengaja TIDAK di sini -- 10-30+ menit menembak banyak feed eksternal
+        // lambat, dan `set_time_limit` tidak menolong (waktunya di I/O wait, bukan CPU) -- sempat
+        // membekukan `php artisan serve`. News sudah dijadwalkan 5x/hari + auto-recover 30 menit;
+        // untuk manual pakai terminal: `php artisan news:fetch`.
     ];
 
     public function index()
