@@ -1,84 +1,75 @@
 [
-  {
-    "ticker": "DEWA",
-    "entry_date": "2026-08-27",
-    "entry_price": 442,
-    "alerted_pullback_pct": 0.02145922746781116,
-    "strategy": "GABUNGAN",
-    "signal_type": "ret2d",
-    "alerted_pullback_at_peak": 466,
-    "milestone_peak": 466
-  },
-  {
-    "ticker": "BRPT",
-    "entry_date": "2026-08-27",
-    "entry_price": 1830,
-    "alerted_pullback_pct": 0.037333333333333336,
-    "strategy": "GABUNGAN",
-    "signal_type": "ret2d",
-    "alerted_pullback_at_peak": 1875
-  },
-  {
-    "ticker": "PTRO",
-    "entry_date": "2026-08-27",
-    "entry_price": 5075,
-    "alerted_pullback_pct": 0.02727272727272727,
-    "strategy": "GABUNGAN",
-    "signal_type": "ret2d",
-    "alerted_pullback_at_peak": 5500,
-    "milestone_peak": 5450
-  },
-  {
-    "ticker": "ENRG",
-    "entry_date": "2026-08-27",
-    "entry_price": 1250,
-    "alerted_pullback_pct": 0.025089605734767026,
-    "strategy": "GABUNGAN",
-    "signal_type": "ret2d",
-    "milestone_peak": 1340,
-    "alerted_pullback_at_peak": 1395
-  },
-  {
-    "ticker": "RAJA",
-    "entry_date": "2026-08-27",
-    "entry_price": 820,
-    "alerted_pullback_pct": 0.023952095808383235,
-    "strategy": "GABUNGAN",
-    "signal_type": "ret2d",
-    "alerted_pullback_at_peak": 835
-  },
-  {
-    "ticker": "DSSA",
-    "entry_date": "2026-08-28",
-    "entry_price": 1145,
-    "alerted_pullback_pct": 0.021367521367521368,
-    "strategy": "MOMENTUM",
-    "alerted_pullback_at_peak": 1170
-  },
-  {
-    "ticker": "DEWA",
-    "entry_date": "2026-08-28",
-    "entry_price": 440,
-    "alerted_pullback_pct": 0.02145922746781116,
-    "strategy": "BOTTOM_REBOUND",
-    "alerted_pullback_at_peak": 466,
-    "milestone_peak": 462
-  },
-  {
-    "ticker": "DSSA",
-    "entry_date": "2026-08-31",
-    "entry_price": 1110,
-    "alerted_pullback_pct": 0.02564102564102564,
-    "strategy": "MOMENTUM",
-    "milestone_peak": 1170,
-    "alerted_pullback_at_peak": 1170
-  },
-  {
-    "ticker": "DSSA",
-    "entry_date": "2026-09-01",
-    "entry_price": 1135,
-    "alerted_pullback_pct": 0.02564102564102564,
-    "strategy": "MOMENTUM",
-    "alerted_pullback_at_peak": 1170
-  }
+    {
+        "ticker": "DEWA",
+        "entry_date": "2026-08-27",
+        "entry_price": 442,
+        "alerted_pullback_pct": 0.02145922746781116,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "alerted_pullback_at_peak": 466,
+        "milestone_peak": 466
+    },
+    {
+        "ticker": "BRPT",
+        "entry_date": "2026-08-27",
+        "entry_price": 1830,
+        "alerted_pullback_pct": 0.037333333333333336,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "alerted_pullback_at_peak": 1875
+    },
+    {
+        "ticker": "PTRO",
+        "entry_date": "2026-08-27",
+        "entry_price": 5075,
+        "alerted_pullback_pct": 0.02727272727272727,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "alerted_pullback_at_peak": 5500,
+        "milestone_peak": 5450
+    },
+    {
+        "ticker": "ENRG",
+        "entry_date": "2026-08-27",
+        "entry_price": 1250,
+        "alerted_pullback_pct": 0.025089605734767026,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "milestone_peak": 1340,
+        "alerted_pullback_at_peak": 1395
+    },
+    {
+        "ticker": "DSSA",
+        "entry_date": "2026-08-28",
+        "entry_price": 1145,
+        "alerted_pullback_pct": 0.021367521367521368,
+        "strategy": "MOMENTUM",
+        "alerted_pullback_at_peak": 1170
+    },
+    {
+        "ticker": "DEWA",
+        "entry_date": "2026-08-28",
+        "entry_price": 440,
+        "alerted_pullback_pct": 0.02145922746781116,
+        "strategy": "BOTTOM_REBOUND",
+        "alerted_pullback_at_peak": 466,
+        "milestone_peak": 462
+    },
+    {
+        "ticker": "DSSA",
+        "entry_date": "2026-08-31",
+        "entry_price": 1110,
+        "alerted_pullback_pct": 0.02564102564102564,
+        "strategy": "MOMENTUM",
+        "milestone_peak": 1170,
+        "alerted_pullback_at_peak": 1170
+    },
+    {
+        "ticker": "DSSA",
+        "entry_date": "2026-09-01",
+        "entry_price": 1135,
+        "alerted_pullback_pct": 0.02564102564102564,
+        "strategy": "MOMENTUM",
+        "alerted_pullback_at_peak": 1170
+    }
 ]
