@@ -6889,3 +6889,49 @@ dikoreksi user setelah kejadian.
 
 ### Status: SELESAI. INET resmi masuk scan sinyal live GABUNGAN (bukan MGLV -- gagal syarat
 likuiditas Fase CH). MGLV TETAP di watchlist saja (Fase DR), tidak dipromosikan ke scan live.
+
+---
+
+## Fase DT — Bot kirim alert untuk posisi yang sudah ditutup (open_positions.json basi)
+
+### Keluhan user (2 Sep 2026)
+Bot Telegram terus kirim "🟠 TARGET WAKTU 10 HARI: BUMI [MOMENTUM]", "🟡 H-1 TARGET WAKTU: ESSA
+[GABUNGAN]", "🟡 H-1 TARGET WAKTU: DSSA [MOMENTUM]" untuk posisi yang user **sudah tutup**.
+
+### Diagnosis
+`open_positions.json` (dibaca semua script alert: check_trailing_stop, detect_signal time-target)
+punya **25 entri**, padahal Trade Journal MySQL cuma **7** yang benar-benar `status=open`. 14 entri
+sudah `closed` di DB, 4 orphan. Sinkron cuma SATU ARAH: Telegram `/close` -> Trade Journal.
+Kalau trade ditutup lewat jalur LAIN (tombol web Trade Journal, closeout batch, auto-eval
+`research:evaluate-drawdown-bounce-signal`), `open_positions.json` tidak pernah diperbarui ->
+script alert masih lihat posisi itu "open" -> alert terus.
+
+Contoh: BUMI momentum entry 19 Agu **closed 24 Agu** di DB, tapi masih di JSON -> alert "target
+waktu" tetap terkirim. DSSA momentum 20 Agu **closed 27 Agu**, sama. ESSA gabungan 20 Agu = orphan
+(Trade row-nya tidak pernah ada) -> alert selamanya.
+
+### Perbaikan
+`CheckTelegramCommandsCommand::reconcileOpenPositions()` -- jalan tiap menit (bareng
+`refreshClosedTradesCache`, sebelum poll Telegram). Buang entri `open_positions.json` kalau:
+1. punya pasangan trade `status=closed` di DB (kunci `ticker|strategy|entry_date`, sama dgn dedup
+   `register_open_position` di detect_signal.py), ATAU
+2. orphan (tidak ada pasangan trade sama sekali) DAN `entry_date` > 7 hari DAN ticker+strategi itu
+   tidak punya satu pun posisi `open` -- ini nyapu sinyal lama yang Trade-row-nya gagal dibuat.
+
+DIBIARKAN: entri yang match trade `open` (state tracking `milestone_peak`/`alerted_pullback_*`
+tetap utuh), orphan muda (<7 hari), dan orphan yang ticker+strateginya masih punya posisi open
+(mis. sinyal kena batas pyramiding Fase DJ -- sengaja dialert tanpa Trade row). DB mati / 0 trade
+-> skip total (open_positions.json memang dirancang tahan MySQL mati).
+
+### Verifikasi
+- Reconcile dijalankan sekali: `open_positions.json` **25 -> 9 entri** (14 closed + 2 orphan basi
+  dibuang; RAJA 27 Agu [orphan 6 hari] & DSSA 1 Sep [pyramid-limited] dibiarkan).
+- 3 test baru di `CheckTelegramCommandsCommandTest` (closed dibuang + state utuh; orphan
+  muda/basi; DB kosong -> tidak disentuh). Full suite hijau (1 flaky lolos di re-run).
+
+### Catatan untuk user
+Alert **"PUNCAK BARU: DEWA [BOTTOM_REBOUND]"** entry 28 Agu **masih valid** -- di Trade Journal
+posisi itu MASIH `open`. Kalau sudah ditutup di broker, tutup juga di Journal (`/close DEWA` atau
+tombol Tutup Trade di web) supaya berhenti dialert.
+
+### Status: SELESAI, siap commit.

@@ -25,6 +25,7 @@ class CheckTelegramCommandsCommand extends Command
     public function handle(): int
     {
         $this->refreshClosedTradesCache();
+        $this->reconcileOpenPositions();
 
         $python = env('PYTHON_BINARY', 'python3');
         $script = base_path('quant/drawdown_bounce_tracker/telegram_commands.py');
@@ -86,6 +87,7 @@ class CheckTelegramCommandsCommand extends Command
 
                 if (! $trade) {
                     $this->warn("Sync Trade Journal: tidak ada posisi OPEN {$ticker} di web -- dilewati (mungkin belum pernah dicatat di sana).");
+
                     continue;
                 }
 
@@ -139,6 +141,7 @@ class CheckTelegramCommandsCommand extends Command
 
                 if (! $trade) {
                     $this->warn("Sync Trade Journal (skip): tidak ada posisi OPEN {$ticker} [{$strategy}] entry {$entryDateStr} di web -- dilewati.");
+
                     continue;
                 }
 
@@ -209,5 +212,98 @@ class CheckTelegramCommandsCommand extends Command
         } catch (Throwable $e) {
             $this->warn('Gagal refresh cache riwayat trade (DB mungkin mati): '.$e->getMessage());
         }
+    }
+
+    /** Orphan open_positions.json entry lebih tua dari ini + ticker tak punya posisi open -> dibuang. */
+    private const RECONCILE_ORPHAN_STALE_DAYS = 7;
+
+    /**
+     * Fase DT: sinkron open_positions.json balik ke Trade Journal MySQL (sumber kebenaran).
+     *
+     * Ditemukan live (user 2 Sep 2026): bot terus kirim alert "TARGET WAKTU"/"PUNCAK BARU" untuk
+     * BUMI/DSSA/ESSA yang user sudah tutup, karena open_positions.json tidak pernah disinkron balik
+     * ketika trade ditutup lewat jalur SELAIN Telegram /close (tombol web Trade Journal, closeout
+     * batch, dll). Snapshot 2 Sep: 25 entri di JSON, cuma 7 yang benar-benar `open` di DB.
+     *
+     * Kunci cocok: (ticker, strategy, entry_date) -- sama seperti dedup register_open_position()
+     * di detect_signal.py. Buang entri kalau:
+     *   1. punya pasangan trade `closed` (bukti positif sudah ditutup), ATAU
+     *   2. TIDAK punya pasangan trade sama sekali (orphan) DAN entry_date > 7 hari DAN ticker+
+     *      strategi itu tidak punya satu pun posisi `open` di DB -- ini nyapu sinyal lama yang
+     *      Trade-row-nya gagal dibuat. Orphan yang MASIH muda atau ticker+strateginya masih punya
+     *      posisi open (mis. sinyal kena batas pyramiding Fase DJ -- sengaja dialert tanpa row DB)
+     *      DIBIARKAN.
+     * Kalau DB mati / 0 trade, skip total (open_positions.json memang dirancang tahan MySQL mati).
+     */
+    private function reconcileOpenPositions(): void
+    {
+        $path = base_path('quant/drawdown_bounce_tracker/open_positions.json');
+        if (! is_file($path)) {
+            return;
+        }
+
+        try {
+            $tracked = Trade::query()
+                ->whereIn('status', ['open', 'closed'])
+                ->get(['ticker', 'strategy_label', 'entry_date', 'status']);
+
+            if ($tracked->isEmpty()) {
+                return; // DB kosong/aneh -- jangan sentuh
+            }
+
+            $keyFor = fn (Trade $t): string => $this->positionKey($t->ticker, $t->strategy_label, $t->entry_date?->toDateString());
+            $closedKeys = $tracked->where('status', 'closed')->mapWithKeys(fn (Trade $t) => [$keyFor($t) => true])->all();
+            $openKeys = $tracked->where('status', 'open')->mapWithKeys(fn (Trade $t) => [$keyFor($t) => true])->all();
+            $openTickerStrategy = $tracked->where('status', 'open')
+                ->mapWithKeys(fn (Trade $t) => [strtolower($t->ticker).'|'.strtolower((string) ($t->strategy_label ?: 'gabungan')) => true])
+                ->all();
+
+            $positions = json_decode((string) file_get_contents($path), true);
+            if (! is_array($positions)) {
+                return;
+            }
+
+            $staleBefore = Carbon::now()->subDays(self::RECONCILE_ORPHAN_STALE_DAYS);
+            $removed = [];
+
+            $kept = array_values(array_filter($positions, function (array $p) use ($closedKeys, $openKeys, $openTickerStrategy, $staleBefore, &$removed): bool {
+                $key = $this->positionKey($p['ticker'] ?? '', $p['strategy'] ?? 'GABUNGAN', $p['entry_date'] ?? null);
+
+                // (1) trade-nya sudah closed
+                if (isset($closedKeys[$key]) && ! isset($openKeys[$key])) {
+                    $removed[] = "{$key} (closed)";
+
+                    return false;
+                }
+
+                // (2) orphan lama tanpa posisi open utk ticker+strategi itu
+                $hasAnyTrade = isset($closedKeys[$key]) || isset($openKeys[$key]);
+                if (! $hasAnyTrade) {
+                    $tickerStrategy = strtolower((string) ($p['ticker'] ?? '')).'|'.strtolower((string) ($p['strategy'] ?? 'gabungan'));
+                    $entry = isset($p['entry_date']) ? Carbon::parse($p['entry_date']) : null;
+                    if ($entry !== null && $entry->lt($staleBefore) && ! isset($openTickerStrategy[$tickerStrategy])) {
+                        $removed[] = "{$key} (orphan basi)";
+
+                        return false;
+                    }
+                }
+
+                return true;
+            }));
+
+            if ($removed !== []) {
+                file_put_contents($path, json_encode($kept, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                $this->info('reconcile open_positions.json: '.count($removed).' entri dibuang -> '.implode(', ', $removed));
+            }
+        } catch (Throwable $e) {
+            $this->warn('Gagal reconcile open_positions.json (DB mungkin mati): '.$e->getMessage());
+        }
+    }
+
+    private function positionKey(?string $ticker, ?string $strategy, ?string $entryDate): string
+    {
+        return strtolower(trim((string) $ticker))
+            .'|'.strtolower(trim((string) ($strategy ?: 'gabungan')))
+            .'|'.(string) $entryDate;
     }
 }

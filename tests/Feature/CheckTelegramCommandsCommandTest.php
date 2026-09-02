@@ -10,11 +10,17 @@ class CheckTelegramCommandsCommandTest extends TestCase
 {
     private string $cachePath;
 
+    private string $positionsPath;
+
+    private ?string $positionsBackup = null;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->cachePath = base_path('quant/drawdown_bounce_tracker/closed_trades_cache.json');
+        $this->positionsPath = base_path('quant/drawdown_bounce_tracker/open_positions.json');
+        $this->positionsBackup = is_file($this->positionsPath) ? file_get_contents($this->positionsPath) : null;
     }
 
     protected function tearDown(): void
@@ -23,7 +29,23 @@ class CheckTelegramCommandsCommandTest extends TestCase
             unlink($this->cachePath);
         }
 
+        if ($this->positionsBackup !== null) {
+            file_put_contents($this->positionsPath, $this->positionsBackup);
+        }
+
         parent::tearDown();
+    }
+
+    /** @param  array<int, array<string, mixed>>  $positions */
+    private function writePositions(array $positions): void
+    {
+        file_put_contents($this->positionsPath, json_encode($positions, JSON_PRETTY_PRINT));
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function readPositions(): array
+    {
+        return json_decode((string) file_get_contents($this->positionsPath), true) ?: [];
     }
 
     public function test_successful_run_surfaces_script_output(): void
@@ -146,5 +168,60 @@ class CheckTelegramCommandsCommandTest extends TestCase
         $this->artisan('research:check-telegram-commands')
             ->expectsOutputToContain('Gagal cek perintah Telegram')
             ->assertExitCode(1);
+    }
+
+    public function test_reconcile_drops_positions_that_are_closed_in_the_journal(): void
+    {
+        Process::fake(['*' => Process::result(output: "Tidak ada perintah baru.\n")]);
+
+        Trade::factory()->closeState()->create([
+            'ticker' => 'BUMI', 'strategy_label' => 'momentum', 'entry_date' => '2026-08-19',
+        ]);
+        Trade::factory()->create([
+            'ticker' => 'DEWA', 'strategy_label' => 'bottom_rebound', 'entry_date' => '2026-08-28', 'status' => 'open',
+        ]);
+
+        $this->writePositions([
+            ['ticker' => 'BUMI', 'entry_date' => '2026-08-19', 'entry_price' => 183, 'strategy' => 'MOMENTUM'],
+            ['ticker' => 'DEWA', 'entry_date' => '2026-08-28', 'entry_price' => 440, 'strategy' => 'BOTTOM_REBOUND', 'milestone_peak' => 462],
+        ]);
+
+        $this->artisan('research:check-telegram-commands')->assertExitCode(0);
+
+        $kept = collect($this->readPositions());
+        $this->assertFalse($kept->contains(fn ($p) => $p['ticker'] === 'BUMI'), 'BUMI (closed) harus dibuang');
+        $dewa = $kept->firstWhere('ticker', 'DEWA');
+        $this->assertNotNull($dewa, 'DEWA (open) harus tetap ada');
+        $this->assertSame(462, $dewa['milestone_peak'], 'state tracking DEWA harus utuh');
+    }
+
+    public function test_reconcile_keeps_recent_orphans_but_drops_stale_ones(): void
+    {
+        Process::fake(['*' => Process::result(output: "Tidak ada perintah baru.\n")]);
+        Trade::factory()->create(['ticker' => 'BBCA', 'status' => 'open']); // supaya tabel tidak kosong
+
+        $this->writePositions([
+            ['ticker' => 'ESSA', 'entry_date' => now()->subDays(20)->toDateString(), 'entry_price' => 635, 'strategy' => 'GABUNGAN'],
+            ['ticker' => 'RAJA', 'entry_date' => now()->subDays(2)->toDateString(), 'entry_price' => 820, 'strategy' => 'GABUNGAN'],
+        ]);
+
+        $this->artisan('research:check-telegram-commands')->assertExitCode(0);
+
+        $kept = collect($this->readPositions())->pluck('ticker');
+        $this->assertNotContains('ESSA', $kept, 'orphan basi (20 hari) harus dibuang');
+        $this->assertContains('RAJA', $kept, 'orphan muda (2 hari) harus dibiarkan');
+    }
+
+    public function test_reconcile_leaves_positions_untouched_when_db_has_no_trades(): void
+    {
+        Process::fake(['*' => Process::result(output: "Tidak ada perintah baru.\n")]);
+
+        $this->writePositions([
+            ['ticker' => 'BUMI', 'entry_date' => '2026-01-01', 'entry_price' => 183, 'strategy' => 'MOMENTUM'],
+        ]);
+
+        $this->artisan('research:check-telegram-commands')->assertExitCode(0);
+
+        $this->assertCount(1, $this->readPositions(), 'tanpa trade di DB, JSON tidak boleh disentuh');
     }
 }
