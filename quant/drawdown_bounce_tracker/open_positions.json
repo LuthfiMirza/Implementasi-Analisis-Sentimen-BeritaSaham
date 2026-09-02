@@ -71,5 +71,26 @@
         "alerted_pullback_pct": 0.02564102564102564,
         "strategy": "MOMENTUM",
         "alerted_pullback_at_peak": 1170
+    },
+    {
+        "ticker": "BUMI",
+        "entry_date": "2026-09-02",
+        "entry_price": 206,
+        "alerted_pullback_pct": null,
+        "strategy": "MOMENTUM"
+    },
+    {
+        "ticker": "DSSA",
+        "entry_date": "2026-09-02",
+        "entry_price": 1140,
+        "alerted_pullback_pct": null,
+        "strategy": "MOMENTUM"
+    },
+    {
+        "ticker": "DEWA",
+        "entry_date": "2026-09-02",
+        "entry_price": 452,
+        "alerted_pullback_pct": null,
+        "strategy": "BOTTOM_REBOUND"
     }
 ]
