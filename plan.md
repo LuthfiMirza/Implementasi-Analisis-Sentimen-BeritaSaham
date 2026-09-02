@@ -6591,6 +6591,13 @@ Ditambah:
   sebelumnya `/admin` cuma bisa lewat link "Admin" kecil di footer sidebar.
 - Test: `test_every_allowlisted_task_points_at_a_registered_command` — jaga kalau ada typo nama command.
 
+### Riwayat manual run tercatat (follow-up)
+User: "Log Fetching ga update" setelah klik tombol. Ternyata `fetch_logs` isinya 10 baris seed
+dummy dari April (lorem ipsum) dan **tidak ada yang menulis** ke situ lagi. `runTask()` sekarang
+`FetchLog::create()` tiap selesai (`source_name = "manual: {label}"`, status success/warning/failed,
+`records_count` di-parse best-effort dari output). Panel di-rename "Riwayat Fetch & Jalankan Manual",
+badge status berwarna, limit 20→30. Test: run sukses & gagal sama-sama tercatat.
+
 ## Fase DP — Tampilkan jam keluar (closed_at) di Laporan + bereskan kebingungan /trade-journal
 
 ### Konteks
@@ -6680,3 +6687,93 @@ sehingga user cuma sempat coba lihat closely pas "All" (defaultnya).
   lihat hasil di commit).
 
 ### Status: SELESAI, siap commit+push.
+
+## Fase DR — Backtest strategi kita ke 97 ticker "Paper To Billion" (screening eksternal)
+
+### Konteks
+User tempel dump pesan Discord grup eksternal "Paper To Billion" (jasa stock-tip BERBAYAR --
+ada iklan promo di dalam pesannya sendiri) berisi daftar "Stock Picks" harian Jul-Sep 2026, minta
+dicek ticker mana yang belum kita pantau lalu "masukkan ke signal kita". Dari 108 ticker unik yang
+dipick PTB, cuma 11 yang overlap dengan universe sinyal kita (BUMI/DEWA/BRPT/SMGR/ESSA/UNVR/TINS/
+PTRO/ENRG/RAJA/DSSA) -- **97 ticker belum pernah kita pantau sama sekali**.
+
+Prinsip proyek ini sejak awal: **jangan bangun sinyal trading di atas sesuatu yang belum
+divalidasi OOS** (lihat CLAUDE.md). Pick PTB itu diskresioner (keputusan manual tim mereka),
+bukan hasil strategi yang kita tahu track record-nya -- langsung "masukkan ke signal" (artinya:
+tambah ke `GABUNGAN_SCAN_TICKERS`/`MOMENTUM_TICKERS`, yang berarti sistem AUTO buka posisi +
+kirim alert Telegram begitu threshold kesentuh) TANPA validasi apapun untuk 97 ticker ini
+bertentangan langsung dengan prinsip itu.
+
+Ditawarkan 3 opsi (AskUserQuestion): (a) watchlist saja, (b) langsung masuk scan sinyal live
+tanpa validasi, (c) cuma laporan. User pilih respons custom: **"kalo masukin kesini berat ga?
+test dulu yang paling bagus dan profit apa saja test dulu coba"** -- artinya: backtest dulu
+strategi KITA SENDIRI (bukan validasi "apakah pick PTB akurat") ke 97 ticker itu, baru putuskan.
+Ini justru selaras dgn prinsip proyek, bukan penyimpangan.
+
+### Persiapan data
+- 91 dari 97 ticker belum punya `Stock` record sama sekali (cuma 6 yang sudah ada). Dibuatkan
+  via `php artisan tinker`, nama perusahaan diambil dari `IdxDailySummary` (data scrape "seluruh
+  IDX" dari fitur Market Alerts Fase DN, sumber nama yang SUDAH ada, tidak perlu tebak-tebak).
+  2 ticker (**BMRT, ELITT**) tidak ketemu namanya di `IdxDailySummary` DAN gagal fetch harga
+  (HTTP 404 dari Yahoo Finance) -- kemungkinan salah ketik di pesan Discord asli atau memang bukan
+  kode saham valid, dilewati dari backtest.
+- `php artisan stocks:fetch-history --days=365` (semua 111 saham aktif skalian) -- ~243 hari
+  bursa per ticker (1 tahun), `source='yahoo_history_incremental'`.
+- Python TIDAK query MySQL langsung (konvensi proyek ini, lihat komentar di
+  `refreshNewsContextCache()`/`detect_signal.py`) -- harga di-export PHP ke
+  `quant/drawdown_bounce_tracker/ptb_backtest_prices.json` (regenerable, TIDAK di-commit) sebagai
+  jembatan, baru dibaca script Python.
+
+### Script backtest (`quant/drawdown_bounce_tracker/backtest_ptb_picks.py`, baru)
+Entry rule DIREPLIKASI PERSIS dari `detect_signal.py` (bukan didesain ulang):
+- **GABUNGAN**: `ret_2d(trigger) <= -5%`, entry closing T+1. Leg `drawdown_20d<=-20%` SENGAJA
+  TIDAK dites -- leg itu cuma divalidasi utk `COMBINED_RULE_TICKERS` yang sudah ada, menerapkan
+  ke 97 saham baru tanpa riset terpisah = klaim tak berdasar.
+- **MOMENTUM**: `RSI14(trigger) > 60`, entry closing T+1.
+- **BOTTOM_REBOUND SENGAJA TIDAK dites** -- didesain/dikalibrasi khusus volatilitas BUMI/DEWA,
+  bukan aturan generik.
+
+Exit rule DIREPLIKASI dari perilaku live (`TradeController`/`check_trailing_stop.py`): trailing
+stop 2% dari puncak sejak entry ATAU 10 hari bursa, mana lebih dulu -- BUKAN exit waktu tetap spt
+`backtest_ab_ac_vs_gabungan.py` lama (itu utk pertanyaan riset beda). Episode-independence
+(gap>=15 hari = 1 episode) dipakai spt semua validasi proyek ini sebelumnya, supaya sinyal
+berdekatan tidak menggelembungkan angka win rate.
+
+### Hasil (95/97 ticker berhasil dites, 2 gagal data -- BMRT/ELITT)
+Kandidat GABUNGAN terkuat (episode>=5, win rate>=50%, avg return>0) -- 25 ticker, top 7:
+SINI (85,7% WR, +146,55% total, 7 ep), MGLV (57,1%, +89,1%, 7ep), PACK (62,5%, +88,12%, 8ep),
+JGLE (62,5%, +75,34%, 8ep), BAJA (75%, +60,04%, 8ep), NCKL (50%, +35,05%, 8ep), **BBRI** (66,7%,
++17,15%, 6ep -- satu-satunya blue-chip likuid tinggi di daftar ini).
+
+Kandidat MOMENTUM terkuat (episode>=3, win rate>=50%, avg return>0) -- 18 ticker, top 6: FPNI
+(50%, +33,71%, 4ep), NTBK (66,7%, +24,1%, 3ep), MDIA (80%, +27,97%, 5ep), NSSS (75%, +27,65%,
+4ep), JARR (50%, +27,75%, 4ep), ARKO (75%, +13,86%, 4ep).
+
+**Caveat eksplisit ke user**: sampel kecil (5-9 episode/ticker, jauh di bawah standar BUMI 27
+episode), banyak nama di top-list itu saham kapitalisasi kecil-menengah/"gorengan" -- return
+besar bisa dari volatilitas ekstrem, bukan edge robust. Bukan keputusan final, murni penyaring
+awal.
+
+### Keputusan user (AskUserQuestion kedua)
+Dari 3 opsi (watchlist saja / masuk scan sinyal live / belum apa-apa), user pilih: **"Tambah ke
+Watchlist saja dulu (Rekomendasi)"**. Union kandidat GABUNGAN+MOMENTUM positif (36 ticker unik)
+ditambahkan ke `user_watchlists` (user_id=2) via tinker -- **TIDAK ADA** yang ditambahkan ke
+`GABUNGAN_SCAN_TICKERS`/`MOMENTUM_TICKERS` (scan sinyal live tetap 11 ticker seperti sebelumnya,
+tidak berubah). 35 baru masuk (1 duplikat sudah ada), total watchlist user jadi 41.
+
+### Insiden operasional (ditemukan & diselesaikan saat verifikasi)
+Verifikasi via browser gagal login -- ternyata akun `user@sentimena.test` (email demo yang
+dipakai sepanjang sesi ini) SUDAH TIDAK ADA. User_id=2 sekarang emailnya email asli user
+(`luthfimirza2004@gmail.com`) -- kemungkinan diubah lewat `/profile` di suatu titik (di luar
+sesi ini, tidak terdokumentasi). Data (400 Trade, 111 Stock) tetap utuh dan konsisten dgn kerjaan
+sesi ini -- BUKAN data hilang/corrupt, cuma email akun berubah. **Tidak dicoba tebak password
+akun asli user** (di luar wewenang) -- verifikasi watchlist dilakukan lewat query database
+langsung sbg gantinya, hasilnya cocok persis (41 ticker, termasuk 35 baru).
+
+### Yang TIDAK dilakukan (di luar cakupan yang diminta)
+- Tidak ada ticker yang ditambahkan ke scan sinyal live (GABUNGAN_SCAN_TICKERS/MOMENTUM_TICKERS).
+- `ptb_backtest_prices.json` tidak di-commit (regenerable, murni cache sementara utk backtest ini).
+- 2 ticker gagal (BMRT, ELITT) tidak diinvestigasi lebih lanjut (kemungkinan salah ketik di
+  sumber asli Discord).
+
+### Status: SELESAI (backtest + watchlist), TIDAK menyentuh scan sinyal live.
