@@ -332,8 +332,10 @@ function marketAlerts(payload, dataUrl, foreignHistoryUrl) {
       }
     },
     foreignBarHeight(v, hist) {
+      if (!v) return 2;
       const max = Math.max(...hist.days.map(d => Math.abs(d.net_value)), 1);
-      return Math.max(2, Math.round(Math.abs(v) / max * 44));
+      // sqrt scale -- one huge day shouldn't flatten every other bar to a sliver
+      return Math.max(5, Math.round(Math.sqrt(Math.abs(v) / max) * 44));
     },
     foreignHistorySummary(hist) {
       const s = hist.summary;
