@@ -28,6 +28,27 @@ class AdminSystemRunTaskTest extends TestCase
 
         $this->assertStringContainsString('sudah lengkap', session('status'));
         $this->assertStringContainsString('✅', session('status'));
+
+        // The run is recorded so the "Riwayat" panel shows it.
+        $this->assertDatabaseHas('fetch_logs', [
+            'source_name' => 'manual: Tambal hari bursa IDX yang hilang',
+            'status' => 'success',
+        ]);
+    }
+
+    public function test_a_failing_task_is_logged_as_failed(): void
+    {
+        Artisan::shouldReceive('call')->once()->andThrow(new \RuntimeException('boom'));
+
+        $this->actingAsAdmin()
+            ->post('/admin/system/run', ['task' => 'sync_live'])
+            ->assertRedirect();
+
+        $this->assertStringContainsString('error', session('status'));
+        $this->assertDatabaseHas('fetch_logs', [
+            'source_name' => 'manual: Sync harga live',
+            'status' => 'failed',
+        ]);
     }
 
     public function test_unknown_task_is_rejected_without_calling_artisan(): void

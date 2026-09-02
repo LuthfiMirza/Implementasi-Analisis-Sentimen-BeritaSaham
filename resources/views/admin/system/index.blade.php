@@ -70,19 +70,30 @@
 
         <x-panel padding="p-6">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="font-semibold">Log Fetching</h3>
+                <h3 class="font-semibold">Riwayat Fetch &amp; Jalankan Manual</h3>
+                <span class="text-[11px] text-slate-500">{{ $fetchLogs->count() }} terakhir</span>
             </div>
-            <div class="space-y-2 max-h-80 overflow-auto">
-                @foreach($fetchLogs as $log)
+            <div class="space-y-2 max-h-96 overflow-auto">
+                @forelse($fetchLogs as $log)
+                    @php
+                        $badge = match($log->status) {
+                            'success' => 'text-emerald-400',
+                            'failed'  => 'text-rose-400',
+                            'warning' => 'text-amber-400',
+                            default   => 'text-slate-400',
+                        };
+                    @endphp
                     <div class="border border-slate-800 rounded-lg px-3 py-2">
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="font-semibold">{{ $log->source_name }}</span>
-                            <span class="text-xs text-slate-400">{{ $log->ran_at?->format('d M Y H:i') }}</span>
+                        <div class="flex items-center justify-between gap-2 text-sm">
+                            <span class="font-semibold truncate">{{ $log->source_name }}</span>
+                            <span class="text-xs text-slate-400 shrink-0">{{ $log->ran_at?->format('d M H:i') }}</span>
                         </div>
-                        <div class="text-xs text-slate-400">{{ $log->status }} • {{ $log->records_count }} records</div>
-                        <div class="text-xs text-slate-500">{{ $log->message }}</div>
+                        <div class="text-xs {{ $badge }}">{{ $log->status }}@if($log->records_count) • {{ number_format($log->records_count) }} records @endif</div>
+                        <div class="text-xs text-slate-500 break-words">{{ \Illuminate\Support\Str::limit($log->message, 180) }}</div>
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-xs text-slate-500">Belum ada riwayat.</p>
+                @endforelse
             </div>
         </x-panel>
     </div>

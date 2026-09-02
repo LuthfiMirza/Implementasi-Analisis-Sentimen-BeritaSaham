@@ -81,7 +81,7 @@ class SystemController extends Controller
     public function index()
     {
         $settings = SystemSetting::all()->keyBy('key');
-        $fetchLogs = FetchLog::latest('ran_at')->limit(20)->get();
+        $fetchLogs = FetchLog::latest('ran_at')->latest('id')->limit(30)->get();
 
         return view('admin.system.index', [
             'settings' => $settings,
@@ -103,17 +103,46 @@ class SystemController extends Controller
 
         @set_time_limit(180);
 
+        $startedAt = now();
+
         try {
             $exit = Artisan::call($task['command'], $task['params']);
             $output = trim(Artisan::output());
         } catch (\Throwable $e) {
+            FetchLog::create([
+                'source_name' => "manual: {$task['label']}",
+                'status' => 'failed',
+                'message' => $e->getMessage(),
+                'records_count' => 0,
+                'ran_at' => $startedAt,
+            ]);
+
             return back()->with('status', "❌ {$task['label']} error: ".$e->getMessage());
         }
 
         $tail = collect(explode("\n", $output))->filter()->slice(-4)->implode(' | ');
         $status = ($exit === 0 ? '✅' : '⚠️')." {$task['label']}".($tail !== '' ? " — {$tail}" : '');
 
+        FetchLog::create([
+            'source_name' => "manual: {$task['label']}",
+            'status' => $exit === 0 ? 'success' : 'warning',
+            'message' => mb_substr($tail !== '' ? $tail : 'selesai', 0, 500),
+            'records_count' => $this->guessRecordCount($output),
+            'ran_at' => $startedAt,
+        ]);
+
         return back()->with('status', $status);
+    }
+
+    /** Best-effort: pull a "sukses N" / "N saham disimpan" / "N diperbarui" style number from output. */
+    private function guessRecordCount(string $output): int
+    {
+        if (preg_match('/\b(?:sukses|berhasil|saham disimpan|diperbarui|rows?|baris)\D{0,12}?(\d[\d.,]*)/iu', $output, $m)
+            || preg_match('/(\d[\d.,]*)\s*(?:saham|baris|rows?|records?|diperbarui)/iu', $output, $m)) {
+            return (int) str_replace(['.', ','], '', $m[1]);
+        }
+
+        return 0;
     }
 
     public function update(Request $request)
