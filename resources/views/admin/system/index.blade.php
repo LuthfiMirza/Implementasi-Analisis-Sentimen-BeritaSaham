@@ -16,26 +16,32 @@
         </div>
         <p class="text-xs text-slate-500 mb-4">
             Normalnya semua ini otomatis lewat scheduler. Tombol di sini buat memancing manual
-            kalau scheduler kelewat (mis. Mac sempat tidur).
+            kalau scheduler kelewat (mis. Mac sempat tidur). Yang berat (retrain model, rebuild
+            harga, fetch berita) sengaja tidak di sini &mdash; pakai terminal.
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            @foreach($tasks as $key => $task)
-                <form action="{{ route('admin.system.run') }}" method="POST"
-                      class="border border-slate-800 rounded-lg p-3 flex flex-col gap-2"
-                      onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerHTML='Menjalankan…';">
-                    @csrf
-                    <input type="hidden" name="task" value="{{ $key }}">
-                    <div class="text-sm font-medium text-slate-200">{{ $task['label'] }}</div>
-                    <div class="text-[11px] text-slate-500 flex-1">{{ $task['note'] }}</div>
-                    <button type="submit"
-                            class="self-start px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-sky-600 hover:text-white
-                                   text-slate-200 text-xs font-semibold transition inline-flex items-center gap-1.5
-                                   disabled:opacity-60 disabled:cursor-wait">
-                        <x-heroicon-o-play class="w-3.5 h-3.5" /> Jalankan
-                    </button>
-                </form>
-            @endforeach
-        </div>
+        @foreach($taskGroups as $groupName => $tasks)
+            <div class="mb-4 last:mb-0">
+                <div class="text-[11px] uppercase tracking-wider text-slate-500 mb-2">{{ $groupName }}</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach($tasks as $task)
+                        <form action="{{ route('admin.system.run') }}" method="POST"
+                              class="border border-slate-800 rounded-lg p-3 flex flex-col gap-2"
+                              onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerHTML='Menjalankan…';">
+                            @csrf
+                            <input type="hidden" name="task" value="{{ $task['key'] }}">
+                            <div class="text-sm font-medium text-slate-200">{{ $task['label'] }}</div>
+                            <div class="text-[11px] text-slate-500 flex-1">{{ $task['note'] }}</div>
+                            <button type="submit"
+                                    class="self-start px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-sky-600 hover:text-white
+                                           text-slate-200 text-xs font-semibold transition inline-flex items-center gap-1.5
+                                           disabled:opacity-60 disabled:cursor-wait">
+                                <x-heroicon-o-play class="w-3.5 h-3.5" /> Jalankan
+                            </button>
+                        </form>
+                    @endforeach
+                </div>
+            </div>
+        @endforeach
     </x-panel>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">

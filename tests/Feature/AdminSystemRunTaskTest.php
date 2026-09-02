@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Admin\SystemController;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
@@ -38,5 +39,21 @@ class AdminSystemRunTaskTest extends TestCase
             ->assertRedirect();
 
         $this->assertStringContainsString('tidak dikenal', session('status'));
+    }
+
+    public function test_every_allowlisted_task_points_at_a_registered_command(): void
+    {
+        $registered = array_keys(Artisan::all());
+
+        foreach (SystemController::TASKS as $key => $task) {
+            $this->assertContains(
+                $task['command'],
+                $registered,
+                "Task '{$key}' menunjuk ke command yang tidak terdaftar: {$task['command']}"
+            );
+            $this->assertArrayHasKey('label', $task);
+            $this->assertArrayHasKey('note', $task);
+            $this->assertArrayHasKey('group', $task);
+        }
     }
 }

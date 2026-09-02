@@ -6580,6 +6580,17 @@ Ditambah:
   dijadwalkan 5x/hari; manual pakai terminal saja.
 - Test baru: 2 di `FetchIdxDailySummaryCommandTest` (recover) + `AdminSystemRunTaskTest` (3).
 
+### Perluasan panel + link dropdown (follow-up)
+- Panel "Jalankan Manual" dikelompokkan 2 grup: **Market Alerts / IDX** (idx fetch/recover/backfill
+  + `research:collect-foreign-flow`) dan **Harga & fundamental** (`stocks:sync-live --all-active`,
+  `stocks:fetch-history --days=1`, `stocks:sync-fundamentals`). Semua < ~15 detik, diverifikasi
+  waktunya sebelum dimasukkan.
+- Yang SENGAJA tidak dimasukkan (pakai terminal): `news:fetch*` (10-30 mnt), `prediction:refresh-price-history`
+  & `retrain-*` (menit-an ML), `research:detect-drawdown-bounce-signal` dkk (kirim alert Telegram).
+- Link **"Admin & Jalankan Manual"** ditambah ke dropdown avatar kanan-atas (admin-only) —
+  sebelumnya `/admin` cuma bisa lewat link "Admin" kecil di footer sidebar.
+- Test: `test_every_allowlisted_task_points_at_a_registered_command` — jaga kalau ada typo nama command.
+
 ## Fase DP — Tampilkan jam keluar (closed_at) di Laporan + bereskan kebingungan /trade-journal
 
 ### Konteks
