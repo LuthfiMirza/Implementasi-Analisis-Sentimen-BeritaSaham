@@ -6890,6 +6890,34 @@ dikoreksi user setelah kejadian.
 ### Status: SELESAI. INET resmi masuk scan sinyal live GABUNGAN (bukan MGLV -- gagal syarat
 likuiditas Fase CH). MGLV TETAP di watchlist saja (Fase DR), tidak dipromosikan ke scan live.
 
+### Addendum -- user tanya "ada lagi ga saham yang bisa masuk radar?" (temuan negatif, dicatat)
+Dua arah dicoba, keduanya nihil:
+1. **35 ticker watchlist PTB (non-INET) di-ranking ulang** pakai backtest ketat yang sama --
+   cuma MGLV yang lolos statistik (avg +7,51%/episode, n=33, ungguli beli-diamkan+IHSG), tapi
+   TETAP gagal likuiditas (Rp13,68M/hari). Runner-up (SINI, COCO, MINA, PACK, RMKE, NCKL, SGER)
+   dicek likuiditasnya juga -- semua Rp12-55M/hari, jauh di bawah syarat Rp100M. Tidak ada yang
+   layak dipromosikan.
+2. **Blue-chip likuid yang belum pernah dites** -- scan `IdxDailySummary` (turnover 30 hari
+   terakhir) cari saham likuid TAPI belum ada di `Stock` table (111 saham existing): cuma **BBNI**
+   (Rp147M/hari) dan **UNTR** (Rp108,75M/hari) yang lolos syarat likuiditas dari 12 kandidat.
+   Data 5-tahun ditarik (`stocks:fetch-history --stock=BBNI/UNTR --days=1825`), backtest ketat
+   dijalankan (`blue_chip_prices_5y.json`, sekali pakai, TIDAK di-commit) -- **keduanya GAGAL**:
+   - BBNI GABUNGAN: n=18 (kurang dari 20), discovery vs holdout malah TERBALIK arah (tidak
+     konsisten). BBNI MOMENTUM: konklusif (n=20) tapi avg **-1,65%/episode**, win rate cuma 15%.
+   - UNTR GABUNGAN: konklusif & konsisten (n=25), tapi avg **-0,15%/episode**, kalah dari
+     beli-diamkan (-0,38pp) DAN IHSG (-0,31pp). UNTR MOMENTUM: tidak konklusif (n=18), avg
+     -2,21%, win rate 5,6%.
+
+**Insight**: aturan GABUNGAN (`ret_2d<=-5%`)/MOMENTUM (`RSI14>60`) dirancang nangkep pantulan
+saham volatile -- di blue-chip besar yang pergerakannya tenang, sinyal itu jarang muncul dan
+kurang informatif (bahkan cenderung negatif kalau dipaksakan, spt MOMENTUM di BBNI/UNTR).
+Bukan berarti blue-chip "buruk" buat investasi -- cuma aturan sinyal KITA memang tidak cocok
+dipakai di situ. Stock record BBNI/UNTR (id 128, 129) dibiarkan ada di DB (harmless, tidak masuk
+scan/watchlist manapun) sebagai jejak riset kalau mau dites ulang nanti dgn aturan lain.
+
+**Kesimpulan ke user**: tidak ada tambahan lain ke scan live selain INET, dari dua arah yang
+sudah dicoba. Radar tetap 11 ticker.
+
 ---
 
 ## Fase DT — Bot kirim alert untuk posisi yang sudah ditutup (open_positions.json basi)
