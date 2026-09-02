@@ -87,6 +87,7 @@ Route::prefix('admin')
         Route::resource('news-sources', AdminNewsSourceController::class);
         Route::resource('news-articles', AdminNewsArticleController::class);
         Route::post('system', [AdminSystemController::class, 'update'])->name('system.update');
+        Route::post('system/run', [AdminSystemController::class, 'runTask'])->name('system.run');
     });
 
 require __DIR__.'/auth.php';

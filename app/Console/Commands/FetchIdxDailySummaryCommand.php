@@ -21,6 +21,8 @@ class FetchIdxDailySummaryCommand extends Command
     protected $signature = 'idx:fetch-daily-summary
         {--date= : Trade date (YYYY-MM-DD or YYYYMMDD). Default: today (Asia/Jakarta).}
         {--backfill=0 : Also fetch this many calendar days before --date (weekends skipped).}
+        {--recover : Self-heal: fetch any of the last few trading days (before today) missing from the table.}
+        {--recover-days=5 : How many trading days back --recover looks.}
         {--file= : Parse a locally saved JSON file instead of scraping (manual fallback).}
         {--force : Re-fetch dates already present in the table.}';
 
@@ -31,6 +33,10 @@ class FetchIdxDailySummaryCommand extends Command
         $file = $this->option('file');
         $baseDate = $this->resolveDate($this->option('date'));
         $backfill = max(0, (int) $this->option('backfill'));
+
+        if ($this->option('recover')) {
+            return $this->recover();
+        }
 
         if ($file !== null) {
             if ($backfill > 0) {
@@ -76,6 +82,64 @@ class FetchIdxDailySummaryCommand extends Command
         }
 
         $this->info("Selesai: {$totalRows} baris, {$failures} tanggal gagal.");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Self-healing morning run: if the Mac was asleep at 18:35 and the evening fetch never
+     * happened, this fills the gap. Only looks at trading days strictly BEFORE today -- today's
+     * data is the scheduled evening job's responsibility. A missing day that scrapes to 0 rows
+     * (public holiday) is simply skipped; it stays "missing" but rolls out of the window in a week.
+     */
+    private function recover(): int
+    {
+        $window = max(1, (int) $this->option('recover-days'));
+        $today = CarbonImmutable::now('Asia/Jakarta')->startOfDay();
+
+        $expected = collect();
+        $cursor = $today->subDay();
+        while ($expected->count() < $window) {
+            if (! $cursor->isWeekend()) {
+                $expected->push($cursor);
+            }
+            $cursor = $cursor->subDay();
+        }
+
+        $missing = $expected
+            ->reject(fn (CarbonImmutable $d): bool => IdxDailySummary::whereDate('trade_date', $d->toDateString())->exists())
+            ->sortBy(fn (CarbonImmutable $d): int => $d->getTimestamp())
+            ->values();
+
+        if ($missing->isEmpty()) {
+            $this->info("Semua {$window} hari bursa terakhir sudah lengkap, tidak perlu recover.");
+
+            return self::SUCCESS;
+        }
+
+        $this->warn($missing->count().' hari bursa hilang: '.$missing->map->toDateString()->implode(', ').' -- mengambil.');
+
+        $rows = 0;
+        $failures = 0;
+        foreach ($missing as $date) {
+            $scraped = $this->scrape($date);
+            if ($scraped === null) {
+                $failures++;
+
+                continue;
+            }
+            $count = $this->upsert($date->toDateString(), $scraped);
+            $rows += $count;
+            $this->info("✓ {$date->toDateString()}: {$count} saham disimpan".($count === 0 ? ' (kemungkinan libur bursa)' : '').'.');
+        }
+
+        if ($failures > 0 && $rows === 0) {
+            $this->error("Recover gagal: {$failures} tanggal tidak bisa diambil. Coba lagi nanti atau pakai --file=.");
+
+            return self::FAILURE;
+        }
+
+        $this->info("Recover selesai: {$rows} baris, {$failures} tanggal gagal.");
 
         return self::SUCCESS;
     }

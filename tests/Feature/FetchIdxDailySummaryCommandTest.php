@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\IdxDailySummary;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Process;
 use Tests\TestCase;
 
@@ -93,5 +94,45 @@ class FetchIdxDailySummaryCommandTest extends TestCase
 
         $this->artisan('idx:fetch-daily-summary', ['--date' => '2026-08-28'])
             ->assertExitCode(1);
+    }
+
+    public function test_recover_fetches_only_missing_recent_trading_days(): void
+    {
+        // "Yesterday" relative to a frozen Wednesday: Tue present, Mon missing.
+        $this->travelTo(Carbon::parse('2026-09-02 08:30', 'Asia/Jakarta'));
+
+        IdxDailySummary::create([
+            'trade_date' => '2026-09-01', 'stock_code' => 'BBCA', 'close' => 1,
+            'previous' => 1, 'volume' => 1, 'value' => 1, 'source' => 'existing',
+        ]);
+
+        Process::fake(['*' => Process::result(output: $this->wrapperJson('x', [$this->idxRow('BBCA', ['__date' => '2026-08-31'])]))]);
+
+        $this->artisan('idx:fetch-daily-summary', ['--recover' => true, '--recover-days' => 2])
+            ->expectsOutputToContain('2026-08-31')
+            ->assertExitCode(0);
+
+        // Only the missing day was scraped; the present one was left alone.
+        Process::assertRanTimes(fn ($p) => true, 1);
+        $this->assertSame('existing', IdxDailySummary::whereDate('trade_date', '2026-09-01')->value('source'));
+        $this->assertTrue(IdxDailySummary::whereDate('trade_date', '2026-08-31')->exists());
+    }
+
+    public function test_recover_is_a_no_op_when_all_recent_days_present(): void
+    {
+        $this->travelTo(Carbon::parse('2026-09-02 08:30', 'Asia/Jakarta'));
+        foreach (['2026-09-01', '2026-08-31'] as $d) {
+            IdxDailySummary::create([
+                'trade_date' => $d, 'stock_code' => 'BBCA', 'close' => 1,
+                'previous' => 1, 'volume' => 1, 'value' => 1, 'source' => 'existing',
+            ]);
+        }
+        Process::fake();
+
+        $this->artisan('idx:fetch-daily-summary', ['--recover' => true, '--recover-days' => 2])
+            ->expectsOutputToContain('sudah lengkap')
+            ->assertExitCode(0);
+
+        Process::assertNothingRan();
     }
 }

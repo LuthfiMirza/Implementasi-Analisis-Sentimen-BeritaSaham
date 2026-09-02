@@ -300,6 +300,16 @@ Schedule::command('idx:fetch-daily-summary')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// AUTO-RECOVER: kalau Mac tidur pas 18:35 dan fetch malam kelewat, run pagi ini menambal
+// hari bursa yang hilang (5 hari bursa terakhir sebelum hari ini). Idempotent -- kalau semua
+// sudah lengkap, tidak ada request ke IDX. Setara news:auto-recover-gap untuk berita.
+Schedule::command('idx:fetch-daily-summary --recover')
+    ->weekdays()
+    ->dailyAt('08:30')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // KSEI OWNERSHIP -- komposisi kepemilikan asing/lokal bulanan. KSEI rilis awal bulan untuk data
 // bulan sebelumnya; coba tiap hari tanggal 1-10 jam 09:00 (command idempotent, skip kalau sudah ada).
 Schedule::command('ksei:fetch-ownership')

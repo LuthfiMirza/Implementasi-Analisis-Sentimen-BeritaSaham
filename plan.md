@@ -6562,6 +6562,19 @@ Ditambah:
 - `<template x-for>` di tbody dibungkus jadi `<tbody>` per iterasi (multi-tbody valid HTML) supaya
   bisa ada baris ekspansi kedua.
 - Test baru: 2 di service test + 2 di page test (endpoint + validasi).
+- Strip bar pakai skala **sqrt** (bukan linear) supaya 1 hari besar tidak bikin batang lain jadi
+  sliver 2px.
+
+### Auto-recover + tombol "Jalankan Manual" (follow-up)
+- `idx:fetch-daily-summary --recover [--recover-days=5]` — cek N hari bursa terakhir SEBELUM hari
+  ini, ambil yang belum ada di `idx_daily_summaries`. Idempotent (0 request kalau lengkap). Hari
+  libur yang di-scrape 0 baris tetap "hilang" tapi keluar dari window dalam ~seminggu (tidak
+  pakai sentinel). Dijadwalkan weekday 08:30 WIB (setara `news:auto-recover-gap`).
+- Panel **"Jalankan Manual"** di `/admin` (`admin.system.run`, admin-only, allow-list task —
+  web tidak pernah oper input bebas ke Artisan). Tombol: ambil IDX hari ini, tambal hari hilang,
+  backfill 10 hari, ambil berita. Jalan sinkron (`Artisan::call`, `set_time_limit(180)`),
+  hasil 4 baris terakhir output ditampilkan sebagai flash status.
+- Test baru: 2 di `FetchIdxDailySummaryCommandTest` (recover) + `AdminSystemRunTaskTest` (3).
 
 ## Fase DP — Tampilkan jam keluar (closed_at) di Laporan + bereskan kebingungan /trade-journal
 
