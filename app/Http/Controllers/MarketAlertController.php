@@ -28,4 +28,21 @@ class MarketAlertController extends Controller
 
         return response()->json($this->summaries->summary($fresh));
     }
+
+    /**
+     * Per-day net foreign flow history for one stock -- lazy-loaded when a Foreign Flow row is
+     * expanded, so the user can see exactly which days money came in / went out.
+     */
+    public function foreignHistory(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'code' => ['required', 'string', 'max:12', 'regex:/^[A-Za-z][A-Za-z0-9]{1,5}$/'],
+            'days' => ['nullable', 'integer', 'min:5', 'max:60'],
+        ]);
+
+        return response()->json($this->summaries->foreignFlowHistory(
+            $validated['code'],
+            $validated['days'] ?? 20,
+        ));
+    }
 }

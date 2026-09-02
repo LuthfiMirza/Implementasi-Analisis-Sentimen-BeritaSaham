@@ -212,6 +212,77 @@ class IdxMarketSummaryService
     }
 
     /**
+     * Per-day net foreign flow for one stock over the last N trading days, plus a small
+     * consistency summary -- this is what answers "which days did foreign money actually come
+     * in", instead of the one-day snapshot the alert list shows.
+     *
+     * @return array<string, mixed>
+     */
+    public function foreignFlowHistory(string $code, int $days = 20): array
+    {
+        $code = strtoupper(trim($code));
+        $days = max(5, min(60, $days));
+
+        $rows = IdxDailySummary::query()
+            ->where('stock_code', $code)
+            ->orderByDesc('trade_date')
+            ->limit($days)
+            ->get([
+                'trade_date', 'close', 'pct_change', 'value',
+                'foreign_net', 'foreign_net_value',
+            ])
+            ->map(fn (IdxDailySummary $r): array => [
+                'date' => Carbon::parse($r->trade_date)->toDateString(),
+                'close' => $r->close,
+                'pct_change' => $r->pct_change,
+                'net_shares' => $r->foreign_net,
+                'net_value' => $r->foreign_net_value,
+                'net_ratio' => $r->value > 0 ? round($r->foreign_net_value / $r->value * 100, 1) : null,
+            ])
+            // oldest -> newest for reading left to right
+            ->sortBy('date')
+            ->values();
+
+        if ($rows->isEmpty()) {
+            return ['stock_code' => $code, 'days' => [], 'summary' => null];
+        }
+
+        $buyDays = $rows->where('net_value', '>', 0)->count();
+        $sellDays = $rows->where('net_value', '<', 0)->count();
+        $netTotal = round((float) $rows->sum('net_value'), 2);
+
+        // Current run length of same-sign days, counting back from the latest.
+        $streak = 0;
+        $streakDir = null;
+        foreach ($rows->reverse()->values() as $r) {
+            $dir = $r['net_value'] > 0 ? 'buy' : ($r['net_value'] < 0 ? 'sell' : 'flat');
+            if ($dir === 'flat') {
+                break;
+            }
+            if ($streakDir === null) {
+                $streakDir = $dir;
+            }
+            if ($dir !== $streakDir) {
+                break;
+            }
+            $streak++;
+        }
+
+        return [
+            'stock_code' => $code,
+            'days' => $rows->all(),
+            'summary' => [
+                'window' => $rows->count(),
+                'buy_days' => $buyDays,
+                'sell_days' => $sellDays,
+                'net_total_value' => $netTotal,
+                'streak' => $streak,
+                'streak_dir' => $streak > 0 ? $streakDir : null,
+            ],
+        ];
+    }
+
+    /**
      * Month-over-month foreign ownership shift from the latest KSEI snapshot (may be empty
      * until `ksei:fetch-ownership` has run).
      *

@@ -1,6 +1,6 @@
 <x-app-layout>
 <div class="space-y-6"
-     x-data="marketAlerts(@js($payload), @js(route('market-alerts.data')))"
+     x-data="marketAlerts(@js($payload), @js(route('market-alerts.data')), @js(route('market-alerts.foreign-history')))"
      x-init="init()">
 
   {{-- ── HEADER ── --}}
@@ -142,11 +142,23 @@
             </template>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-800/70">
-          <template x-for="row in rows()" :key="row.stock_code">
-            <tr class="hover:bg-slate-800/40 transition">
+        <template x-for="row in rows()" :key="row.stock_code">
+          <tbody class="border-t border-slate-800/70">
+            <tr class="hover:bg-slate-800/40 transition"
+                :class="active === 'foreign' ? 'cursor-pointer' : ''"
+                @click="active === 'foreign' && toggleForeignHistory(row.stock_code)">
               <td class="px-4 py-3">
-                <a :href="`/stocks/${row.stock_code}`" class="font-semibold text-slate-100 hover:text-sky-300" x-text="row.stock_code"></a>
+                <div class="flex items-center gap-1.5">
+                  <template x-if="active === 'foreign'">
+                    <svg class="w-3 h-3 text-slate-500 transition-transform shrink-0"
+                         :class="expandedForeign === row.stock_code ? 'rotate-90' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </template>
+                  <a :href="`/stocks/${row.stock_code}`" @click.stop
+                     class="font-semibold text-slate-100 hover:text-sky-300" x-text="row.stock_code"></a>
+                </div>
                 <div class="text-[11px] text-slate-500 truncate max-w-[220px]" x-text="row.stock_name"></div>
               </td>
 
@@ -204,8 +216,66 @@
                 <td class="px-4 py-3 text-right font-mono text-slate-400" x-text="fmtRp(row.value)"></td>
               </template>
             </tr>
-          </template>
-        </tbody>
+
+            {{-- ── EKSPANSI: riwayat arus asing per hari ── --}}
+            <tr x-show="active === 'foreign' && expandedForeign === row.stock_code" x-cloak>
+              <td colspan="7" class="px-4 pb-4 pt-1 bg-slate-900/50">
+                <template x-if="foreignHistoryLoading === row.stock_code">
+                  <div class="text-xs text-slate-500 py-3">Memuat riwayat…</div>
+                </template>
+                <template x-if="foreignHistoryLoading !== row.stock_code && foreignHistory[row.stock_code]">
+                  <div class="space-y-2 py-2">
+                    {{-- ringkasan konsistensi --}}
+                    <p class="text-xs text-slate-300"
+                       x-html="foreignHistorySummary(foreignHistory[row.stock_code])"></p>
+
+                    {{-- strip bar per hari (kiri = lama, kanan = terbaru) --}}
+                    <div class="flex items-end gap-[3px] h-14 overflow-x-auto">
+                      <template x-for="d in foreignHistory[row.stock_code].days" :key="d.date">
+                        <div class="flex flex-col items-center shrink-0" style="width: 22px"
+                             :title="`${d.date}  ${fmtRp(d.net_value)}  (${fmtPct(d.pct_change)})`">
+                          <div class="w-full rounded-sm"
+                               :class="d.net_value > 0 ? 'bg-emerald-500/70' : (d.net_value < 0 ? 'bg-rose-500/70' : 'bg-slate-600')"
+                               :style="`height: ${foreignBarHeight(d.net_value, foreignHistory[row.stock_code])}px`"></div>
+                          <span class="text-[8px] text-slate-600 mt-0.5" x-text="d.date.slice(8,10)"></span>
+                        </div>
+                      </template>
+                    </div>
+
+                    {{-- tabel harian ringkas --}}
+                    <div class="overflow-x-auto">
+                      <table class="text-[11px] font-mono">
+                        <thead class="text-slate-500">
+                          <tr>
+                            <th class="text-left pr-4 pb-1 font-medium">Tanggal</th>
+                            <th class="text-right px-3 pb-1 font-medium">Net asing (~Rp)</th>
+                            <th class="text-right px-3 pb-1 font-medium">% nilai</th>
+                            <th class="text-right px-3 pb-1 font-medium">Harga</th>
+                            <th class="text-right pl-3 pb-1 font-medium">Δ Harga</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <template x-for="d in [...foreignHistory[row.stock_code].days].reverse()" :key="'r'+d.date">
+                            <tr>
+                              <td class="text-left pr-4 py-0.5 text-slate-400" x-text="d.date"></td>
+                              <td class="text-right px-3 py-0.5 font-semibold" :class="signClass(d.net_value)" x-text="fmtRp(d.net_value)"></td>
+                              <td class="text-right px-3 py-0.5 text-slate-500" x-text="d.net_ratio !== null ? fmtNum(d.net_ratio) + '%' : '—'"></td>
+                              <td class="text-right px-3 py-0.5 text-slate-300" x-text="`Rp${fmtInt(d.close)}`"></td>
+                              <td class="text-right pl-3 py-0.5" :class="signClass(d.pct_change)" x-text="fmtPct(d.pct_change)"></td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p class="text-[10px] text-slate-600">
+                      Hijau = asing net beli hari itu, merah = net jual. Ini fakta harian, bukan sinyal.
+                    </p>
+                  </div>
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </template>
       </table>
     </div>
 
@@ -229,13 +299,17 @@
 </div>
 
 <script>
-function marketAlerts(payload, dataUrl) {
+function marketAlerts(payload, dataUrl, foreignHistoryUrl) {
   return {
     payload,
     dataUrl,
+    foreignHistoryUrl,
     loading: false,
     active: 'volume',
     query: '',
+    expandedForeign: null,
+    foreignHistory: {},
+    foreignHistoryLoading: null,
     tabs: [
       { key: 'volume', label: 'Volume' },
       { key: 'gap', label: 'Harga & Gap' },
@@ -243,6 +317,39 @@ function marketAlerts(payload, dataUrl) {
       { key: 'ownership', label: 'Kepemilikan' },
     ],
     init() {},
+
+    async toggleForeignHistory(code) {
+      if (this.expandedForeign === code) { this.expandedForeign = null; return; }
+      this.expandedForeign = code;
+      if (this.foreignHistory[code]) return;
+      this.foreignHistoryLoading = code;
+      try {
+        const res = await fetch(`${this.foreignHistoryUrl}?code=${encodeURIComponent(code)}&days=20`,
+          { headers: { 'Accept': 'application/json' } });
+        if (res.ok) this.foreignHistory[code] = await res.json();
+      } finally {
+        this.foreignHistoryLoading = null;
+      }
+    },
+    foreignBarHeight(v, hist) {
+      const max = Math.max(...hist.days.map(d => Math.abs(d.net_value)), 1);
+      return Math.max(2, Math.round(Math.abs(v) / max * 44));
+    },
+    foreignHistorySummary(hist) {
+      const s = hist.summary;
+      if (!s) return 'Belum ada riwayat.';
+      const net = this.fmtRp(s.net_total_value);
+      const netCls = s.net_total_value > 0 ? 'text-emerald-400' : (s.net_total_value < 0 ? 'text-rose-400' : 'text-slate-400');
+      let streak = '';
+      if (s.streak >= 2) {
+        const word = s.streak_dir === 'buy' ? 'net beli' : 'net jual';
+        const cls = s.streak_dir === 'buy' ? 'text-emerald-400' : 'text-rose-400';
+        streak = ` &middot; <span class="${cls}">${s.streak} hari beruntun ${word}</span>`;
+      }
+      return `${s.window} hari terakhir: <span class="text-emerald-400">${s.buy_days} hari</span> asing net beli, `
+        + `<span class="text-rose-400">${s.sell_days} hari</span> net jual &middot; `
+        + `total <span class="${netCls} font-semibold">${net}</span>${streak}`;
+    },
     rows() {
       const list = this.payload[this.active] || [];
       const q = this.query.trim().toLowerCase();

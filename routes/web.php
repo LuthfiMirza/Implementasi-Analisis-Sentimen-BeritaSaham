@@ -7,17 +7,17 @@ use App\Http\Controllers\Admin\StockController as AdminStockController;
 use App\Http\Controllers\Admin\SystemController as AdminSystemController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\BacktestController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluasiController;
-use App\Http\Controllers\TradeController;
-use App\Http\Controllers\TradeJournalController;
-use App\Http\Controllers\BacktestController;
 use App\Http\Controllers\MarketAlertController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SentimentValidationController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\TradeController;
+use App\Http\Controllers\TradeJournalController;
 use App\Http\Controllers\WatchlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/market-alerts', [MarketAlertController::class, 'index'])->name('market-alerts.index');
     Route::get('/market-alerts/data', [MarketAlertController::class, 'data'])->name('market-alerts.data');
+    Route::get('/market-alerts/foreign-history', [MarketAlertController::class, 'foreignHistory'])->name('market-alerts.foreign-history');
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');
     Route::get('/sentiment-validation', [SentimentValidationController::class, 'index'])->name('sentiment-validation.index');
     Route::get('/sentiment-validation/next', [SentimentValidationController::class, 'next'])->name('sentiment-validation.next');

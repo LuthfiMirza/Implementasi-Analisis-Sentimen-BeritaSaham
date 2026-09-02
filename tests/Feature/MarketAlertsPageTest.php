@@ -58,4 +58,31 @@ class MarketAlertsPageTest extends TestCase
     {
         $this->actingAsUser()->get('/market-alerts')->assertOk();
     }
+
+    public function test_foreign_history_endpoint_returns_per_day_rows(): void
+    {
+        foreach (['2026-08-27' => -2_000_000, '2026-08-28' => 3_000_000, '2026-08-31' => 5_000_000] as $d => $net) {
+            IdxDailySummary::create([
+                'trade_date' => $d, 'stock_code' => 'BBRI', 'stock_name' => 'Bank Rakyat Indonesia',
+                'previous' => 3000, 'open' => 3000, 'high' => 3000, 'low' => 3000, 'close' => 3000,
+                'change' => 0, 'pct_change' => 0, 'volume' => 1_000_000, 'value' => 50_000_000_000, 'frequency' => 100,
+                'foreign_buy' => max(0, $net), 'foreign_sell' => max(0, -$net),
+                'foreign_net' => $net, 'foreign_net_value' => $net * 3000, 'source' => 'test',
+            ]);
+        }
+
+        $this->actingAsUser()->getJson('/market-alerts/foreign-history?code=BBRI&days=20')
+            ->assertOk()
+            ->assertJsonPath('stock_code', 'BBRI')
+            ->assertJsonPath('summary.buy_days', 2)
+            ->assertJsonPath('summary.streak', 2)
+            ->assertJsonPath('summary.streak_dir', 'buy')
+            ->assertJsonCount(3, 'days');
+    }
+
+    public function test_foreign_history_endpoint_rejects_bad_code(): void
+    {
+        $this->actingAsUser()->getJson('/market-alerts/foreign-history?code=not-a-ticker!')
+            ->assertStatus(422);
+    }
 }

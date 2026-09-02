@@ -6550,6 +6550,19 @@ ISAT -Rp70 M, dasar list ~Rp34 M).
   `latestTradeDate()`). Prod MySQL tidak kena (kolom DATE asli).
 - Test baru: `FetchKseiOwnershipCommandTest` (5) + `ownershipAlerts` (1 di service test).
 
+### Foreign Flow — riwayat per hari (expand row) (follow-up)
+User bingung: tab Foreign Flow cuma snapshot 1 hari, tidak kelihatan "asing masuk hari apa saja".
+Ditambah:
+- `IdxMarketSummaryService::foreignFlowHistory($code, $days=20)` — baris net asing per hari +
+  ringkasan konsistensi (jumlah hari net beli/jual, total net, panjang streak beruntun terakhir).
+- Endpoint `GET /market-alerts/foreign-history?code=&days=` (lazy-load, validasi regex ticker).
+- Blade: baris tab Foreign Flow jadi bisa di-klik → expand → strip bar hijau/merah per hari +
+  tabel harian + kalimat ringkasan ("20 hari terakhir: 12 hari net beli, 8 hari net jual · total
+  Rp2,37 T · 3 hari beruntun net beli"). Tetap deskriptif, bukan sinyal.
+- `<template x-for>` di tbody dibungkus jadi `<tbody>` per iterasi (multi-tbody valid HTML) supaya
+  bisa ada baris ekspansi kedua.
+- Test baru: 2 di service test + 2 di page test (endpoint + validasi).
+
 ## Fase DP — Tampilkan jam keluar (closed_at) di Laporan + bereskan kebingungan /trade-journal
 
 ### Konteks

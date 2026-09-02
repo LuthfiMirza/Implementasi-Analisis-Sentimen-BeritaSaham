@@ -143,6 +143,46 @@ class IdxMarketSummaryServiceTest extends TestCase
         $this->assertSame('ksei_sample', $alerts->firstWhere('stock_code', 'BIGUP')['source']);
     }
 
+    public function test_foreign_flow_history_reports_per_day_rows_and_consistency_summary(): void
+    {
+        // 6 trading days: sell, sell, buy, buy, buy, buy -> latest streak = 4 buy days.
+        $daily = [
+            ['2026-08-24', -3_000_000],
+            ['2026-08-25', -1_000_000],
+            ['2026-08-26', 2_000_000],
+            ['2026-08-27', 5_000_000],
+            ['2026-08-28', 4_000_000],
+            ['2026-08-31', 8_000_000],
+        ];
+        foreach ($daily as [$d, $netShares]) {
+            $this->row($d, 'FGN', [
+                'close' => 1000,
+                'foreign_buy' => max(0, $netShares),
+                'foreign_sell' => max(0, -$netShares),
+                'value' => 50_000_000_000,
+            ]);
+        }
+
+        $hist = app(IdxMarketSummaryService::class)->foreignFlowHistory('fgn', 20);
+
+        $this->assertSame('FGN', $hist['stock_code']);
+        $this->assertCount(6, $hist['days']);
+        $this->assertSame('2026-08-24', $hist['days'][0]['date']);       // oldest first
+        $this->assertSame('2026-08-31', $hist['days'][5]['date']);       // newest last
+        $this->assertSame(4, $hist['summary']['buy_days']);
+        $this->assertSame(2, $hist['summary']['sell_days']);
+        $this->assertSame(4, $hist['summary']['streak']);
+        $this->assertSame('buy', $hist['summary']['streak_dir']);
+    }
+
+    public function test_foreign_flow_history_is_empty_for_unknown_code(): void
+    {
+        $hist = app(IdxMarketSummaryService::class)->foreignFlowHistory('NOPE');
+
+        $this->assertSame([], $hist['days']);
+        $this->assertNull($hist['summary']);
+    }
+
     public function test_summary_payload_is_cached_per_trade_date(): void
     {
         $this->seedHistory('SPIKE', 12, ['volume' => 6_000_000]);
