@@ -61,6 +61,7 @@ TRACKING_START_DATE = date(2026, 7, 31)  # PROTOCOL.md lock date -- do not backd
 GABUNGAN_START_DATE_BY_TICKER = {
     "TINS": date(2026, 8, 26), "PTRO": date(2026, 8, 26),
     "ENRG": date(2026, 8, 26), "RAJA": date(2026, 8, 26),
+    "INET": date(2026, 9, 2),
 }
 DROP_THRESHOLD = -0.05
 DRAWDOWN_THRESHOLD = -0.20  # Fase BK: leg kedua aturan gabungan, lihat COMBINED_RULE_TICKERS
@@ -94,10 +95,10 @@ COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR", "TINS", "PTRO",
 # walau SMGR TIDAK ada di COMBINED_RULE_TICKERS. TINS/PTRO/ENRG/RAJA sekarang ditambahkan supaya
 # scan yang jalan SAMA PERSIS dengan yang sudah divalidasi P1-P4 (bukan cuma "terdaftar" tapi tidak
 # pernah dipakai).
-GABUNGAN_SCAN_TICKERS = ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA"]
+GABUNGAN_SCAN_TICKERS = ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA", "INET"]
 LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "tracked",
           "ESSA": "tracked", "UNVR": "tracked", "TINS": "tracked", "PTRO": "tracked",
-          "ENRG": "tracked", "RAJA": "tracked", "DSSA": "tracked"}  # DEWA dinaikkan dari
+          "ENRG": "tracked", "RAJA": "tracked", "DSSA": "tracked", "INET": "tracked"}  # DEWA dinaikkan dari
 # "exploratory" ke "tracked" di Fase AX -- backtest BUMI-only -5% khusus DEWA (2024-sekarang)
 # menunjukkan win rate 86% discovery / 88% holdout, median return tetap positif & MENINGKAT di
 # holdout (tidak overfit), bahkan lebih kuat dari hasil BUMI sendiri. Lihat plan.md Fase AX.
@@ -120,6 +121,17 @@ LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "trac
 # cuma dipantau lewat script ini). Backtest Des 2025-Agu 2026: n=12, win rate 83%, total return net
 # +39.7% -- konsisten dengan screening awal sejak 2024 (win rate 68%, total +65.2%). Lihat plan.md
 # Fase BB.
+#
+# INET ditambahkan Fase DU -- screening LANJUTAN dari daftar pick "Paper To Billion" (97 ticker,
+# lihat Fase DR/DS) pakai protokol yang SAMA (5 tahun histori, n>=20 episode, split discovery/
+# holdout, WAJIB kalahkan beli-diamkan DAN IHSG) plus filter likuiditas Rp100 miliar/hari yang
+# sudah ditetapkan Fase CH. Hasil INET: n=21 episode (pas di ambang), win rate 47.6%, avg +1.89%,
+# konsisten discovery/holdout, unggul +0.76pp vs beli-diamkan & +0.23pp vs IHSG, turnover rata-rata
+# 30 hari Rp145M (lolos filter likuiditas). Kandidat lain yang lebih kuat secara statistik (MGLV:
+# n=33, win rate 51.5%, avg +7.51%) DITOLAK murni krn likuiditas -- turnover cuma Rp13.7M/hari,
+# jauh di bawah Rp100M, persis alasan BAJA ditolak di Fase CH walau "kandidat terkuat secara
+# statistik" saat itu. Leg drawdown_20d TIDAK diaktifkan utk INET (tidak masuk
+# COMBINED_RULE_TICKERS) -- cuma leg ret_2d yang divalidasi, sama pola SMGR. Lihat plan.md Fase DU.
 
 # Fase BL: sinyal MOMENTUM (RSI14 > 60) -- strategi KEDUA yang berjalan paralel dengan
 # drawdown-bounce di atas, hasil riset "Klaster B" (pola breakout/momentum, beda struktural dari
@@ -237,6 +249,7 @@ BUTTON_CLOSE_PTRO = "\U0001F534 Tutup PTRO"
 BUTTON_CLOSE_ENRG = "\U0001F534 Tutup ENRG"
 BUTTON_CLOSE_RAJA = "\U0001F534 Tutup RAJA"
 BUTTON_CLOSE_DSSA = "\U0001F534 Tutup DSSA"
+BUTTON_CLOSE_INET = "\U0001F534 Tutup INET"  # Fase DU -- screening lanjutan pick PTB
 BUTTON_HELP = "❓ Bantuan"
 
 
@@ -254,7 +267,7 @@ def default_keyboard() -> dict:
             [BUTTON_CLOSE_ESSA, BUTTON_CLOSE_UNVR],
             [BUTTON_CLOSE_TINS, BUTTON_CLOSE_PTRO],
             [BUTTON_CLOSE_ENRG, BUTTON_CLOSE_RAJA],
-            [BUTTON_CLOSE_DSSA],
+            [BUTTON_CLOSE_DSSA, BUTTON_CLOSE_INET],
             [BUTTON_HELP],
         ],
         "resize_keyboard": True,

@@ -10,12 +10,13 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
-// Fase DB (+ Fase DC nambah TINS/PTRO/ENRG/RAJA): Signal Radar -- /trades/radar (halaman) +
-// /trades/radar-data (polling JSON). SignalRadarService::GABUNGAN/MOMENTUM/BOTTOM_REBOUND_TICKERS
-// dipakai penuh di build() (BUMI, DEWA, BRPT, SMGR, ESSA, UNVR, DSSA, TINS, PTRO, ENRG, RAJA -- 11
-// ticker unik) -- ticker yg TIDAK sengaja diuji di test tertentu diberi seri historis PENDEK
-// (<25 titik) supaya di-skip diam-diam (guard `count($series) < 25`), tanpa perlu craft data
-// realistis utk semua 11 ticker di tiap test.
+// Fase DB (+ Fase DC nambah TINS/PTRO/ENRG/RAJA, Fase DU nambah INET): Signal Radar --
+// /trades/radar (halaman) + /trades/radar-data (polling JSON).
+// SignalRadarService::GABUNGAN/MOMENTUM/BOTTOM_REBOUND_TICKERS dipakai penuh di build() (BUMI,
+// DEWA, BRPT, SMGR, ESSA, UNVR, DSSA, TINS, PTRO, ENRG, RAJA, INET -- 12 ticker unik) -- ticker yg
+// TIDAK sengaja diuji di test tertentu diberi seri historis PENDEK (<25 titik) supaya di-skip
+// diam-diam (guard `count($series) < 25`), tanpa perlu craft data realistis utk semua 12 ticker
+// di tiap test.
 class SignalRadarTest extends TestCase
 {
     protected function setUp(): void
@@ -42,7 +43,7 @@ class SignalRadarTest extends TestCase
     private function seedAllTickers(): array
     {
         $stocks = [];
-        foreach (['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'DSSA', 'TINS', 'PTRO', 'ENRG', 'RAJA'] as $code) {
+        foreach (['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'DSSA', 'TINS', 'PTRO', 'ENRG', 'RAJA', 'INET'] as $code) {
             $stocks[$code] = $this->seedStock($code);
         }
 
@@ -109,7 +110,7 @@ class SignalRadarTest extends TestCase
     {
         $shortSeries = array_fill(0, 5, 100.0); // < 25 -> di-skip guard
         $fakes = [];
-        foreach (['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'DSSA', 'TINS', 'PTRO', 'ENRG', 'RAJA'] as $code) {
+        foreach (['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'DSSA', 'TINS', 'PTRO', 'ENRG', 'RAJA', 'INET'] as $code) {
             $closes = $overrides[$code] ?? $shortSeries;
             $fakes["query2.finance.yahoo.com/v8/finance/chart/{$code}.JK*"] = Http::response($this->fakeChartJson($closes));
         }
@@ -177,6 +178,32 @@ class SignalRadarTest extends TestCase
         $this->assertLessThanOrEqual(-5.0, $smgrRows['ret_2d_pct']);
         // SMGR TIDAK termasuk DRAWDOWN_LEG_TICKERS -- dd_20d_distance_pp harus null.
         $this->assertNull($smgrRows['dd_20d_distance_pp']);
+    }
+
+    // Fase DU: INET ditambahkan ke GABUNGAN_TICKERS (screening lanjutan pick "Paper To Billion",
+    // lolos n>=20 episode + filter likuiditas Rp100M/hari -- lihat detect_signal.py). Sama pola
+    // SMGR: cuma leg ret_2d yang divalidasi, TIDAK masuk DRAWDOWN_LEG_TICKERS.
+    public function test_inet_gabungan_trigger_detected_and_has_no_drawdown_leg(): void
+    {
+        $user = $this->user();
+        $this->seedAllTickers();
+
+        $series = array_fill(0, 28, 500.0);
+        $series[] = 500.0; // H-2
+        $series[] = 490.0; // H-1 (kemarin)
+
+        $this->fakeHttpForAllTickers(['INET' => $series]);
+        $this->fakeLivePrices(['INET' => 420.0]); // ret_2d = (420-500)/500 = -16%
+
+        $response = $this->actingAs($user)->getJson('/trades/radar-data');
+        $response->assertOk();
+
+        $inetRow = collect($response->json('gabungan'))->firstWhere('ticker', 'INET');
+        $this->assertNotNull($inetRow, 'INET harus muncul di seksi GABUNGAN');
+        $this->assertTrue($inetRow['triggered'], 'INET harus triggered=true saat ret_2d jauh melewati -5%');
+        $this->assertLessThanOrEqual(-5.0, $inetRow['ret_2d_pct']);
+        // INET TIDAK termasuk DRAWDOWN_LEG_TICKERS -- dd_20d_distance_pp harus null, sama spt SMGR.
+        $this->assertNull($inetRow['dd_20d_distance_pp']);
     }
 
     public function test_momentum_rsi_trigger_detected_on_strong_uptrend(): void

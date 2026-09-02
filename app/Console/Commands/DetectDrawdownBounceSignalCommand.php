@@ -53,7 +53,7 @@ class DetectDrawdownBounceSignalCommand extends Command
     // tanpa dependency ke App\Services\Trading -- kalau daftar ticker berubah di sana, WAJIB
     // diubah juga di sini (dicek manual, tidak ada single-source-of-truth constant bersama --
     // trade-off kesederhanaan vs duplikasi kecil, 11 ticker jarang berubah).
-    private const NEWS_CONTEXT_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA', 'DSSA'];
+    private const NEWS_CONTEXT_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA', 'DSSA', 'INET'];
 
     public function handle(): int
     {

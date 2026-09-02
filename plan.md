@@ -6777,3 +6777,115 @@ langsung sbg gantinya, hasilnya cocok persis (41 ticker, termasuk 35 baru).
   sumber asli Discord).
 
 ### Status: SELESAI (backtest + watchlist), TIDAK menyentuh scan sinyal live.
+
+## Fase DS — Riset lebih matang: backtest ketat 5-tahun kandidat PTB (sebelum masuk scan live)
+
+### Konteks
+User: "tunggu riset lebih matang dulu dan laporkan ya ke saya" -- Fase DR sengaja cuma penyaring
+awal (1 tahun data, sampel kecil 5-9 episode/ticker, jauh di bawah standar proyek sendiri).
+Sebelum ada ticker PTB yang masuk scan sinyal LIVE, wajib lolos standar validasi yang SAMA yang
+dipakai proyek ini utk BUMI/DEWA (`quant/drawdown_bounce_tracker/PROTOCOL.md`): episode >=20,
+harus ungguli BUKAN CUMA beli-diamkan tapi JUGA IHSG, dan konsisten antara periode discovery vs
+holdout (bukan cuma "kebetulan cocok" di satu potongan data).
+
+### Perbaikan
+Script baru `quant/drawdown_bounce_tracker/backtest_ptb_picks_rigorous.py` (extend dari Fase DR):
+- Data diperpanjang ke 5 tahun (`stocks:fetch-history --days=1825` utk 111 saham aktif -> export
+  `ptb_backtest_prices_5y.json`, lewat jembatan PHP->JSON yang sama, Python tetap tidak query
+  MySQL langsung).
+- **Discovery/holdout split**: 70% awal (by tanggal, bukan by baris) = discovery, 30% akhir =
+  holdout. Kandidat "konsisten" HANYA kalau kedua belah >=2 episode DAN searah (sama-sama
+  positif/negatif).
+- **Benchmark ganda**: tiap episode dibandingkan ke beli-diamkan (buy&hold ticker itu sendiri)
+  DAN ke IHSG (`^JKSE` via yfinance langsung) di window yang sama -- bukan cuma salah satu.
+- Ambang `MIN_EPISODES_CONCLUSIVE = 20` -- di bawah itu, hasil ditandai TIDAK CUKUP DATA, sekuat
+  apapun angka mentahnya.
+
+### Hasil
+Dari 36 kandidat watchlist (25 GABUNGAN + 18 MOMENTUM, sebagian overlap), yang lolos SEMUA syarat
+(n>=20, konsisten discovery/holdout, ungguli beli-diamkan DAN IHSG):
+- **GABUNGAN**: cuma 2 lolos -- **MGLV** (n=33, WR 51,5%, avg +7,51%) dan **INET** (n=21, WR
+  47,6%, avg +1,89%). 34 kandidat lain gugur (kebanyakan karena n<20 -- termasuk yang tadinya
+  kelihatan menjanjikan spt SINI/PACK/JGLE/BAJA/NCKL di Fase DR, sampel 1-tahunnya cuma kebetulan
+  beruntung).
+- **MOMENTUM**: **NOL** yang lolos semua syarat.
+- **Koreksi ke user**: rekomendasi BBRI sebelumnya ("blue-chip paling aman") ternyata kurang
+  teliti -- di data 5-tahun BBRI cuma 16 episode GABUNGAN (di bawah ambang n>=20) dengan statistik
+  lemah (WR 43,8%, avg +0,22%). Disampaikan eksplisit ke user sbg koreksi, bukan didiamkan.
+
+### Status: SELESAI. Hasil dilaporkan ke user -- user jawab "lanjut aja, tunggu sampai selesai"
+(lanjutkan penambahan kandidat pemenang ke scan sinyal live GABUNGAN, tunggu sampai tuntas
+sebelum lapor balik). Lanjut ke [[Fase DU]].
+
+## Fase DU — Tambah INET ke scan sinyal live GABUNGAN (substitusi dari MGLV karena likuiditas)
+
+### Konteks
+Instruksi user: "lanjut aja, tunggu sampai selesai" -- eksekusi penambahan kandidat pemenang
+[[Fase DS]] (MGLV, INET) ke `GABUNGAN_SCAN_TICKERS` scan sinyal live. Sebelum eksekusi, ditemukan
+preseden sesi SEBELUMNYA (**Fase CH**) yang menetapkan syarat keras: turnover minimum
+**Rp100 miliar/hari** utk ticker manapun sebelum masuk scan live -- BAJA (kandidat TERKUAT secara
+statistik di riset itu, lolos GABUNGAN+MOMENTUM) sengaja DITOLAK murni krn turnovernya cuma
+Rp2 miliar/hari. Aturan ini berlaku sama ke MGLV/INET, jadi dicek dulu sebelum eksekusi buta.
+
+**Cek likuiditas** (`IdxDailySummary`, rata-rata turnover 30 hari terakhir):
+- **MGLV**: Rp13,68 miliar/hari -- **GAGAL** (jauh di bawah Rp100 miliar).
+- **INET**: Rp145,12 miliar/hari -- **LOLOS**.
+
+**Keputusan**: substitusi -- yang benar-benar ditambahkan ke scan live cuma **INET**, MGLV
+TIDAK (gagal syarat likuiditas meski statistiknya sedikit lebih kuat). Ini murni penerapan aturan
+yang SUDAH ADA (Fase CH), bukan aturan baru -- ditemukan & diputuskan sebelum kode ditulis, bukan
+dikoreksi user setelah kejadian.
+
+### Perbaikan (kode)
+- `quant/drawdown_bounce_tracker/detect_signal.py`:
+  - `GABUNGAN_START_DATE_BY_TICKER["INET"] = date(2026, 9, 2)` -- guard tanggal aktivasi (pola
+    Fase DC utk TINS/PTRO/ENRG/RAJA), cegah sinyal historis INET "ditemukan" mundur jadi alert
+    Telegram/trade palsu.
+  - `GABUNGAN_SCAN_TICKERS`: `[BUMI, DEWA, BRPT, SMGR, ESSA, UNVR, TINS, PTRO, ENRG, RAJA, INET]`
+    -- 11 ticker (tambah INET).
+  - `LABELS["INET"] = "tracked"`.
+  - `COMBINED_RULE_TICKERS` **SENGAJA TIDAK disentuh** -- INET cuma divalidasi leg `ret_2d<=-5%`
+    (bukan `drawdown_20d<=-20%`), pola sama spt SMGR ("gagal gate P4 validasi ketat, tetap ret_2d
+    saja").
+  - Komentar penjelasan baru (di antara blok komentar UNVR/Fase BB dan MOMENTUM/Fase BL) yang
+    mendokumentasikan alasan INET & penolakan MGLV, rujuk Fase DR/DS/DU.
+  - `BUTTON_CLOSE_INET = "\U0001F534 Tutup INET"`, ditambahkan ke `default_keyboard()`.
+  - `quant/drawdown_bounce_tracker/telegram_commands.py`: import `BUTTON_CLOSE_INET` +
+    `BUTTON_LABELS[BUTTON_CLOSE_INET] = "/close INET"`.
+- `app/Services/Trading/SignalRadarService.php`: `GABUNGAN_TICKERS` const tambah `'INET'`.
+  `DRAWDOWN_LEG_TICKERS` const SENGAJA TIDAK disentuh (sama spt di atas).
+- `app/Console/Commands/DetectDrawdownBounceSignalCommand.php`: `NEWS_CONTEXT_TICKERS` const
+  tambah `'INET'` (supaya konteks berita ikut dicek utk sinyal INET juga).
+- `quant/drawdown_bounce_tracker/check_trailing_stop.py`: dicek, TIDAK perlu ubah -- sudah generik
+  lewat `open_positions.json`, tidak ada daftar ticker hardcoded.
+
+### Verifikasi
+- `php artisan test --filter=SignalRadarTest` -- **7 passed (35 assertions)**, termasuk test baru
+  `test_inet_gabungan_trigger_detected_and_has_no_drawdown_leg` (pastikan INET triggered saat
+  ret_2d tembus -5%, dan `dd_20d_distance_pp` null -- konfirmasi leg drawdown memang tidak aktif
+  utk INET).
+- `php artisan test --filter=DetectDrawdownBounceSignalCommandTest` -- **14 passed (48
+  assertions)**.
+- Full suite (`php artisan test`) -- **562 passed (2333 assertions), 0 gagal**.
+- `SignalRadarService::build()` dipanggil langsung via tinker di data produksi sungguhan --
+  INET muncul benar di array `gabungan`: `ret_2d_pct: -0.57`, `dd_20d_distance_pp: null`
+  (drawdown leg memang tidak aktif, sesuai desain), `triggered: false` (belum sampai ambang -5%
+  hari ini -- wajar, bukan bug).
+  Program juga sudah dicek lewat inspeksi langsung modul Python (`detect_signal`): semua konstanta
+  konsisten (`GABUNGAN_SCAN_TICKERS` 11 ticker termasuk INET, INET TIDAK di
+  `COMBINED_RULE_TICKERS`, `GABUNGAN_START_DATE_BY_TICKER['INET']` = 2026-09-02,
+  `LABELS['INET']` = "tracked", `BUTTON_CLOSE_INET` terdefinisi & masuk `default_keyboard()`) --
+  dan `telegram_commands.py` (mapping `BUTTON_CLOSE_INET` -> `/close INET` benar).
+- `quant/drawdown_bounce_tracker/news_context_cache.json` diregenerasi via tinker (Reflection ke
+  `refreshNewsContextCache()`) setelah terhapus oleh `tearDown()` full-suite -- pola berulang yang
+  sudah dikenal -- dan dicek berisi entry INET.
+- `resources/views/trades/radar.blade.php` dicek: render generik (`x-for="row in
+  radar.gabungan"`), TIDAK ada daftar ticker hardcoded di sisi Blade -- jadi begitu data
+  `/trades/radar-data` benar (sudah dibuktikan test+tinker di atas), tampilan otomatis ikut benar.
+  Login browser sungguhan utk screenshot **tidak dilakukan** -- akun demo lama (`user@
+  sentimena.test`) sudah tidak ada (lihat insiden Fase DR), dan mengetik password ke akun mana pun
+  (termasuk akun seed lain) diblokir aturan keamanan sesi ini soal kredensial; verifikasi cukup
+  lewat data layer + template generik di atas.
+
+### Status: SELESAI. INET resmi masuk scan sinyal live GABUNGAN (bukan MGLV -- gagal syarat
+likuiditas Fase CH). MGLV TETAP di watchlist saja (Fase DR), tidak dipromosikan ke scan live.

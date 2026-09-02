@@ -30,7 +30,12 @@ class SignalRadarService
     // start-date guard spt DSSA MOMENTUM -- supaya sinyal historis yg kelewat, mis. ENRG/RAJA
     // 11-18 Agu, TIDAK backdate jadi alert Telegram + trade palsu). Radar ikut nambah 4 ticker
     // ini SEKARANG karena scan resminya SUDAH benar-benar mencakup mereka mulai hari ini.
-    private const GABUNGAN_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA'];
+    //
+    // Fase DU: INET ditambahkan -- screening lanjutan pick "Paper To Billion" (Fase DR/DS/DU),
+    // n=21 episode, win rate 47.6%, avg +1.89%, konsisten discovery/holdout, lolos filter
+    // likuiditas Rp100M/hari (rata-rata Rp145M). Lihat detect_signal.py utk detail lengkap +
+    // kandidat lain (MGLV) yg ditolak murni krn likuiditas walau statistiknya lebih kuat.
+    private const GABUNGAN_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA', 'INET'];
 
     private const MOMENTUM_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'DSSA'];
 
