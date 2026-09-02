@@ -19,26 +19,6 @@
         "alerted_pullback_at_peak": 1875
     },
     {
-        "ticker": "PTRO",
-        "entry_date": "2026-08-27",
-        "entry_price": 5075,
-        "alerted_pullback_pct": 0.02727272727272727,
-        "strategy": "GABUNGAN",
-        "signal_type": "ret2d",
-        "alerted_pullback_at_peak": 5500,
-        "milestone_peak": 5450
-    },
-    {
-        "ticker": "ENRG",
-        "entry_date": "2026-08-27",
-        "entry_price": 1250,
-        "alerted_pullback_pct": 0.025089605734767026,
-        "strategy": "GABUNGAN",
-        "signal_type": "ret2d",
-        "milestone_peak": 1340,
-        "alerted_pullback_at_peak": 1395
-    },
-    {
         "ticker": "DSSA",
         "entry_date": "2026-08-28",
         "entry_price": 1145,
