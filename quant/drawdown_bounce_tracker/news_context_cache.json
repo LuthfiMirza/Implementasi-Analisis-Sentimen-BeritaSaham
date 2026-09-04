@@ -88,12 +88,12 @@
         {
             "title": "Prinsip Penggunaan dan Pengelolaan Plastik ala Unilever Indonesia",
             "sentiment": "neutral",
-            "published_at": "2026-09-02T10:24:16+07:00"
+            "published_at": "2026-09-02T14:53:08+07:00"
         },
         {
             "title": "Menengok Aksi Unilever Indonesia dan OCBC Kikis Bias Gender di Tempat Kerja",
             "sentiment": "neutral",
-            "published_at": "2026-09-02T10:24:16+07:00"
+            "published_at": "2026-09-02T14:53:08+07:00"
         },
         {
             "title": "IHSG Diramal Naik Meski Ada Kabar Buruk dari MSCI, Ini Pilihan Sahamnya",
@@ -186,5 +186,21 @@
             "published_at": "2026-09-01T15:35:03+07:00"
         }
     ],
-    "INET": []
+    "INET": [
+        {
+            "title": "INET Patok Harga IPO di Batas Atas Rp 101, MAHA di Batas Bawah Rp 118",
+            "sentiment": "neutral",
+            "published_at": "2026-09-02T19:24:36+07:00"
+        },
+        {
+            "title": "Pemerintah Dorong Infrastruktur Ekonomi Digital, Ini Imbasnya untuk DCII dan INET",
+            "sentiment": "neutral",
+            "published_at": "2026-08-14T00:00:00+07:00"
+        },
+        {
+            "title": "Sinergi Inti Andalan Prima (INET) Menuntaskan Akuisisi Saham PADA",
+            "sentiment": "neutral",
+            "published_at": "2026-02-04T00:00:00+07:00"
+        }
+    ]
 }
