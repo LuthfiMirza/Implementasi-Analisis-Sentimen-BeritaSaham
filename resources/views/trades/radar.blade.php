@@ -127,6 +127,35 @@
   </div>
 
   {{-- ── SEKSI BOTTOM_REBOUND ── --}}
+  {{-- ── SEKSI SELF_RADAR_V1 ── --}}
+  <div>
+    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-2">
+      <x-heroicon-o-bolt class="w-4 h-4 text-emerald-400" /> SELF_RADAR_V1 <span class="text-[10px] text-emerald-400 font-normal normal-case">(experimental fallback: RSI14 ≥ 60, ret_5d ≥ 5%, dd_20d ≥ -5%)</span>
+    </h2>
+    <p class="text-[11px] text-slate-500 mb-3">Overnight continuation: tanggal entry dan mulai trailing stop ditulis di tiap kartu. Bukan sinyal resmi.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+      <template x-for="row in radar.self_radar || []" :key="row.ticker + '-selfradar'">
+        <div class="glass-card rounded-2xl p-4 border-2 transition-colors"
+             :class="row.triggered ? 'border-emerald-500/50 bg-emerald-500/[0.05]' : 'border-slate-800/80'">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-slate-100" x-text="row.ticker"></span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                  :class="row.triggered ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-400 border border-slate-600'"
+                  x-text="row.status"></span>
+          </div>
+          <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
+          <div class="space-y-1.5 text-[11px]">
+            <div class="flex justify-between"><span class="text-slate-500">RSI14</span><span class="font-mono" :class="row.rsi14_now >= 60 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.rsi14_now)"></span></div>
+            <div class="flex justify-between"><span class="text-slate-500">ret_5d</span><span class="font-mono" :class="row.ret_5d_pct >= 5 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.ret_5d_pct) + '%'"></span></div>
+            <div class="flex justify-between"><span class="text-slate-500">dd_20d</span><span class="font-mono" :class="row.dd_20d_pct >= -5 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.dd_20d_pct) + '%'"></span></div>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-3" x-text="row.entry_plan"></p>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  {{-- ── SEKSI BOTTOM_REBOUND ── --}}
   <div>
     <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-2">
       <x-heroicon-o-arrow-uturn-up class="w-4 h-4 text-sky-400" /> BOTTOM_REBOUND <span class="text-[10px] text-slate-500 font-normal normal-case">(cross pertama &gt; bottom_10d &times; 1,05)</span>

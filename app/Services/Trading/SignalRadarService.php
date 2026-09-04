@@ -3,6 +3,8 @@
 namespace App\Services\Trading;
 
 use App\Models\Stock;
+use App\Models\StockPrice;
+use App\Models\SelfRadarSignalLog;
 use App\Services\MarketData\LiveMarketDataService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -41,6 +43,8 @@ class SignalRadarService
 
     private const BOTTOM_REBOUND_TICKERS = ['BUMI', 'DEWA'];
 
+    private const SELF_RADAR_TICKERS = ['BAJA', 'MCAS', 'GDST', 'MDIA', 'BYAN', 'PACK', 'KOTA', 'MGLV', 'SLIS', 'FAST', 'TEBE', 'IATA', 'JGLE', 'KIJA', 'SINI', 'GULA', 'JKON', 'JARR', 'INET', 'NSSS', 'DEWA', 'ISAT', 'CUAN', 'PADA', 'WIFI', 'SSIA', 'HATM', 'ESSA', 'BRMS', 'FPNI'];
+
     // Ticker yg leg drawdown_20d berlaku -- SAMA PERSIS COMBINED_RULE_TICKERS python (9 ticker,
     // SMGR sengaja TIDAK termasuk -- gagal gate P4 validasi ketat, tetap ret_2d saja).
     private const DRAWDOWN_LEG_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA'];
@@ -53,29 +57,39 @@ class SignalRadarService
 
     private const BOTTOM_REBOUND_THRESHOLD = 0.05; // sama persis BOTTOM_REBOUND_THRESHOLD python
 
+    private const SELF_RADAR_RSI_MIN = 60.0;
+
+    private const SELF_RADAR_RET_5D_MIN = 0.05;
+
+    private const SELF_RADAR_DD_20D_MIN = -0.05;
+
     public function __construct(private LiveMarketDataService $liveMarketData) {}
 
     /**
-     * @return array{gabungan: array, momentum: array, bottom_rebound: array}
+     * @return array{gabungan: array, momentum: array, bottom_rebound: array, self_radar: array, generated_at: string}
      */
     public function build(): array
     {
         $allTickers = collect(self::GABUNGAN_TICKERS)
             ->merge(self::MOMENTUM_TICKERS)
             ->merge(self::BOTTOM_REBOUND_TICKERS)
+            ->merge(self::SELF_RADAR_TICKERS)
             ->unique()->sort()->values();
 
         $gabungan = [];
         $momentum = [];
         $bottomRebound = [];
+        $selfRadar = [];
+
+        $stocks = Stock::whereIn('code', $allTickers)->get()->keyBy('code');
 
         foreach ($allTickers as $ticker) {
-            $series = $this->historicalSeries($ticker); // closes ending KEMARIN (hari ini di-exclude eksplisit)
+            $stock = $stocks->get($ticker);
+            $series = $this->historicalSeries($ticker, $stock); // closes ending KEMARIN (hari ini di-exclude eksplisit)
             if (count($series) < 25) {
                 continue; // data historis belum cukup utk RSI/dd_20d/bottom_10d
             }
 
-            $stock = Stock::where('code', $ticker)->first();
             $livePrice = $stock ? $this->livePrice($stock) : null;
             if ($livePrice === null) {
                 continue; // tanpa harga live, tidak bisa hitung estimasi -- skip diam-diam, bukan tampilkan angka palsu
@@ -92,6 +106,9 @@ class SignalRadarService
             if (in_array($ticker, self::BOTTOM_REBOUND_TICKERS, true)) {
                 $bottomRebound[] = $this->buildBottomReboundRow($ticker, $livePrice, $series);
             }
+            if (in_array($ticker, self::SELF_RADAR_TICKERS, true)) {
+                $selfRadar[] = $this->buildSelfRadarRow($ticker, $livePrice, $combined);
+            }
         }
 
         // Tiap seksi diurutkan sendiri (closest-first) -- TIDAK dibandingkan lintas strategi
@@ -100,12 +117,94 @@ class SignalRadarService
         usort($gabungan, fn ($a, $b) => ($b['triggered'] <=> $a['triggered']) ?: ($a['distance_pp'] <=> $b['distance_pp']));
         usort($momentum, fn ($a, $b) => ($b['triggered'] <=> $a['triggered']) ?: ($a['distance_pp'] <=> $b['distance_pp']));
         usort($bottomRebound, fn ($a, $b) => ($b['triggered_today'] <=> $a['triggered_today']) ?: ($a['distance_pct'] <=> $b['distance_pct']));
+        usort($selfRadar, fn ($a, $b) => ($b['triggered'] <=> $a['triggered']) ?: ($b['score'] <=> $a['score']));
+
+        $selfRadarTop5 = array_values(array_slice(array_values(array_filter($selfRadar, fn ($row) => $row['triggered'])), 0, 5));
+        $this->logSelfRadarTop5($selfRadarTop5);
 
         return [
             'gabungan' => array_values($gabungan),
             'momentum' => array_values($momentum),
             'bottom_rebound' => array_values($bottomRebound),
+            'self_radar' => array_values(array_slice($selfRadar, 0, 10)),
+            'self_radar_top5' => $selfRadarTop5,
             'generated_at' => now()->timezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    private function logSelfRadarTop5(array $rows): void
+    {
+        if ($rows === []) {
+            return;
+        }
+
+        try {
+            $now = now()->timezone('Asia/Jakarta');
+            $signalDate = $now->toDateString();
+            $entryStart = $now->copy()->setTime(15, 40);
+            $entryEnd = $now->copy()->setTime(15, 45);
+            $trailingStart = $now->copy()->addWeekday()->setTime(9, 30);
+
+            foreach ($rows as $rank => $row) {
+                $existing = SelfRadarSignalLog::query()
+                    ->where('ticker', $row['ticker'])
+                    ->whereDate('signal_date', $signalDate)
+                    ->first();
+
+                SelfRadarSignalLog::query()->updateOrCreate(
+                    ['ticker' => $row['ticker'], 'signal_date' => $signalDate],
+                    [
+                        'rank' => $rank + 1,
+                        'price_at_first_seen' => $existing?->price_at_first_seen ?? $row['price_now'],
+                        'latest_price' => $row['price_now'],
+                        'rsi14' => $row['rsi14_now'],
+                        'ret_5d_pct' => $row['ret_5d_pct'],
+                        'dd_20d_pct' => $row['dd_20d_pct'],
+                        'score' => $row['score'],
+                        'first_seen_at' => $existing?->first_seen_at ?? $now,
+                        'last_seen_at' => $now,
+                        'entry_window_start_at' => $entryStart,
+                        'entry_window_end_at' => $entryEnd,
+                        'trailing_start_at' => $trailingStart,
+                    ]
+                );
+            }
+        } catch (Throwable) {
+            return;
+        }
+    }
+
+    private function buildSelfRadarRow(string $ticker, float $livePrice, array $combined): array
+    {
+        $scanDate = now()->timezone('Asia/Jakarta');
+        $trailingStartDate = $scanDate->copy()->addWeekday();
+        $rsiNow = $this->rsiWilder($combined, 14);
+        $ret5d = $this->pctChange($combined, 5);
+        $dd20 = $this->drawdown20($combined);
+        $triggered = $rsiNow !== null && $ret5d !== null && $dd20 !== null
+            && $rsiNow >= self::SELF_RADAR_RSI_MIN
+            && $ret5d >= self::SELF_RADAR_RET_5D_MIN
+            && $dd20 >= self::SELF_RADAR_DD_20D_MIN;
+
+        return [
+            'ticker' => $ticker,
+            'strategy' => 'SELF_RADAR_V1',
+            'price_now' => round($livePrice, 2),
+            'rsi14_now' => $rsiNow !== null ? round($rsiNow, 2) : null,
+            'ret_5d_pct' => $ret5d !== null ? round($ret5d * 100, 2) : null,
+            'dd_20d_pct' => $dd20 !== null ? round($dd20 * 100, 2) : null,
+            'triggered' => $triggered,
+            'score' => round(($ret5d ?? -9) * 100 + (($rsiNow ?? 0) - 60) / 10 + (($dd20 ?? -9) * 10), 2),
+            'scan_date' => $scanDate->toDateString(),
+            'entry_date' => $scanDate->toDateString(),
+            'trailing_start_at' => $trailingStartDate->format('Y-m-d 09:30'),
+            'entry_plan' => sprintf(
+                'Sinyal masuk %s; entry %s dekat close; trailing stop 1%% aktif %s WIB',
+                $scanDate->toDateString(),
+                $scanDate->toDateString(),
+                $trailingStartDate->format('Y-m-d 09:30'),
+            ),
+            'status' => $triggered ? 'BUY SORE INI (EXPERIMENTAL)' : 'WAIT',
         ];
     }
 
@@ -253,6 +352,20 @@ class SignalRadarService
         return ($closes[$n - 1] - $prev2) / $prev2;
     }
 
+    private function pctChange(array $closes, int $period): ?float
+    {
+        $n = count($closes);
+        if ($n <= $period) {
+            return null;
+        }
+        $prev = $closes[$n - 1 - $period];
+        if ($prev == 0.0) {
+            return null;
+        }
+
+        return ($closes[$n - 1] - $prev) / $prev;
+    }
+
     /** dd_20d = close / rolling(20).max() - 1, dihitung di baris TERAKHIR. */
     private function drawdown20(array $closes): ?float
     {
@@ -304,11 +417,11 @@ class SignalRadarService
      *
      * @return list<float> closes terurut tanggal naik, TIDAK termasuk hari ini
      */
-    private function historicalSeries(string $ticker): array
+    private function historicalSeries(string $ticker, ?Stock $stock): array
     {
         $today = now()->timezone('Asia/Jakarta')->format('Y-m-d');
 
-        return Cache::store('file')->remember("trades:radar-series:{$ticker}:v1", now()->addMinutes(15), function () use ($ticker, $today) {
+        $series = Cache::store('file')->remember("trades:radar-series:{$ticker}:v1", now()->addMinutes(15), function () use ($ticker, $today) {
             try {
                 $resp = Http::withHeaders(['User-Agent' => 'Mozilla/5.0'])
                     ->timeout(15)
@@ -347,5 +460,31 @@ class SignalRadarService
                 return [];
             }
         });
+
+        if (count($series) >= 25 || ! $stock) {
+            return $series;
+        }
+
+        return $this->databaseHistoricalSeries($stock, $today);
+    }
+
+    /** @return list<float> */
+    private function databaseHistoricalSeries(Stock $stock, string $today): array
+    {
+        $rows = StockPrice::query()
+            ->where('stock_id', $stock->id)
+            ->whereDate('price_date', '<', $today)
+            ->whereNotNull('close')
+            ->orderByDesc('price_date')
+            ->limit(260)
+            ->get()
+            ->sortBy('price_date')
+            ->values();
+
+        return StockPrice::canonicalize($rows)
+            ->pluck('close')
+            ->map(fn ($close) => (float) $close)
+            ->values()
+            ->all();
     }
 }
