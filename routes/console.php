@@ -188,6 +188,15 @@ Schedule::command('research:check-telegram-commands')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// SELF_RADAR_V1 experimental fallback -- alert-only, bukan sinyal resmi. Dipakai buat pantau
+// kandidat overnight continuation dekat close; hasilnya harus dicatat terpisah dari strategi resmi.
+Schedule::command('research:send-self-radar-alert --send')
+    ->weekdays()
+    ->dailyAt('15:35')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // END-OF-DAY ML REANALYSIS: 15.20 WIB
 // Catatan: 'news:rescore-sentiment' (full-corpus, tanpa filter) sengaja TIDAK
 // dijadwalkan lagi -- dulu jalan 2x/hari (12:00 & 15:15) tapi redundan dan makin
