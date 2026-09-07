@@ -1137,7 +1137,7 @@ class TradeController extends Controller
 
         $validated = $request->validate([
             'exit_price' => 'required|numeric|min:0',
-            'result' => 'required|in:hit_target_1,hit_target_2,stop_loss,trailing_stop,time_target,manual_close',
+            'result' => 'required|in:hit_target_1,hit_target_2,stop_loss,trailing_stop_1pct,trailing_stop_1_5pct,trailing_stop,time_target,manual_close',
             'notes' => 'nullable|string|max:500',
             // Fase DO: dulu tanggal/jam keluar SELALU "sekarang" (waktu klik tombol) -- tidak
             // bisa mencatat retroaktif kalau posisi sebenarnya sudah ditutup di sekuritas

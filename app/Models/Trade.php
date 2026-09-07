@@ -85,7 +85,7 @@ class Trade extends Model
         return match ($this->result) {
             'hit_target_1', 'hit_target_2' => 'green',
             'stop_loss' => 'red',
-            'trailing_stop' => 'orange',
+            'trailing_stop', 'trailing_stop_1pct', 'trailing_stop_1_5pct' => 'orange',
             'time_target' => 'sky',
             'manual_close' => 'yellow',
             default => 'blue',
