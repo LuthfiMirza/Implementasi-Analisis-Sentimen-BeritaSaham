@@ -141,6 +141,26 @@
           <p class="text-[10px] text-slate-600 mt-1">Puncak sejak entry: Rp<span x-text="fmtNum(p.peak_since_entry)"></span></p>
         </div>
 
+        {{-- Panduan trailing khusus MOMENTUM: default tertutup supaya card tetap ringkas. --}}
+        <div x-show="isMomentum(p)" x-cloak class="mb-3 rounded-xl border border-sky-500/20 bg-sky-500/[0.04]">
+          <button type="button"
+                  class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-[11px] font-semibold text-sky-300 hover:text-sky-200"
+                  @click="openGuides[p.id] = !openGuides[p.id]">
+            <span>Panduan Trailing MOMENTUM</span>
+            <span class="font-mono text-sky-400" x-text="openGuides[p.id] ? '−' : '+'"></span>
+          </button>
+          <div x-show="openGuides[p.id]" x-cloak class="px-3 pb-3 text-[11px] leading-relaxed text-slate-300 space-y-2">
+            <p><span class="font-semibold text-slate-100">Rule cepat:</span> jangan pasang trailing <span class="font-mono">1%</span> sebelum <span class="font-mono">09:30</span> kalau RSI30m sudah panas.</p>
+            <ul class="list-disc pl-4 space-y-1 text-slate-400">
+              <li><span class="font-mono text-slate-200">&lt;09:30</span>: pakai mental stop; opening spike rawan whipsaw.</li>
+              <li><span class="font-mono text-slate-200">09:30-10:00</span>: mulai trailing <span class="font-mono">1.5%-2%</span>.</li>
+              <li>Profit <span class="font-mono text-slate-200">&gt;7%</span>: boleh ketatkan ke trailing <span class="font-mono">1%</span>.</li>
+              <li>RSI30m <span class="font-mono text-slate-200">60-70</span>: sehat; <span class="font-mono text-slate-200">70-80</span>: panas; <span class="font-mono text-slate-200">80+</span>: ekstrem panas, kunci profit bertahap.</li>
+            </ul>
+            <p class="text-slate-500">Kalau stop kena, jangan kejar balik tanpa sinyal baru.</p>
+          </div>
+        </div>
+
         {{-- Sisa hari ke target waktu --}}
         <div class="flex items-center justify-between text-[11px] pt-2 border-t border-slate-800/60">
           <span class="text-slate-500">

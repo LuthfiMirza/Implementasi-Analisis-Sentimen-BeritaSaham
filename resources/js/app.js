@@ -431,6 +431,7 @@ document.addEventListener('alpine:init', () => {
     // cepat tanpa buka Telegram terus.
     Alpine.data('livePositionMonitor', (initialPositions) => ({
         positions: initialPositions || [],
+        openGuides: {},
         loading: false,
         lastUpdate: new Date(),
         pollHandle: null,
@@ -460,6 +461,9 @@ document.addEventListener('alpine:init', () => {
         },
         totalFloatingPnl() {
             return this.positions.reduce((sum, p) => sum + (p.pnl || 0), 0);
+        },
+        isMomentum(p) {
+            return String(p.strategy_label || '').toLowerCase().includes('momentum');
         },
         // Lebar bar visual (0-100%) dari jarak-ke-SL -- di-clamp supaya bar tetap kebaca di kedua
         // ekstrem (posisi jauh di atas SL = bar penuh, posisi di bawah SL/negatif = bar kosong).
