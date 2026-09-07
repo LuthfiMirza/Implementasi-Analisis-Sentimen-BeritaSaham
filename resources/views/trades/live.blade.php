@@ -78,6 +78,10 @@
               <h3 class="text-lg font-bold text-slate-100" x-text="p.ticker"></h3>
               <span class="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase bg-slate-800 text-slate-400 border border-slate-700"
                     x-text="p.strategy_label"></span>
+              <span x-show="p.rsi30m !== null" x-cloak
+                    class="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border"
+                    :class="p.rsi30m_extreme ? 'bg-green-500/20 text-green-300 border-green-500/30' : (p.rsi30m_hot ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-slate-800 text-slate-400 border-slate-700')"
+                    x-text="'RSI30m ' + Number(p.rsi30m).toFixed(2)"></span>
             </div>
             <p class="text-[11px] text-slate-500 mt-0.5" x-text="p.stock_name"></p>
           </div>

@@ -471,6 +471,7 @@ document.addEventListener('alpine:init', () => {
             const minute = this.lastUpdate.getMinutes();
             const minutes = hour * 60 + minute;
             const pnlPercent = Number(p.pnl_percent || 0);
+            const rsi30m = Number(p.rsi30m || 0);
 
             if (p.status === 'danger') {
                 return { tone: 'danger', label: 'Cek broker', text: 'Dekat/kena trailing. Jangan masuk ulang tanpa sinyal baru.' };
@@ -478,11 +479,19 @@ document.addEventListener('alpine:init', () => {
             if (pnlPercent > 7) {
                 return { tone: 'strong', label: 'Kunci profit', text: 'Profit >7%. Boleh ketatkan trailing ke 1%.' };
             }
+            if (rsi30m >= 80) {
+                return { tone: 'strong', label: 'RSI ekstrem', text: `RSI30m ${rsi30m.toFixed(2)}. Siap kunci profit bertahap.` };
+            }
             if (minutes < 9 * 60 + 30) {
-                return { tone: 'warning', label: 'Tunggu dulu', text: 'Sebelum 09:30, jangan pasang trailing 1%.' };
+                const rsiText = rsi30m >= 70 ? ` RSI30m ${rsi30m.toFixed(2)} sudah panas.` : '';
+                return { tone: 'warning', label: 'Tunggu dulu', text: `Sebelum 09:30, jangan pasang trailing 1%.${rsiText}` };
             }
             if (minutes <= 10 * 60) {
-                return { tone: 'info', label: 'Mulai trailing', text: '09:30-10:00, pakai trailing 1.5%-2%.' };
+                const rsiText = rsi30m >= 70 ? ` RSI30m ${rsi30m.toFixed(2)} panas.` : '';
+                return { tone: 'info', label: 'Mulai trailing', text: `09:30-10:00, pakai trailing 1.5%-2%.${rsiText}` };
+            }
+            if (rsi30m >= 70) {
+                return { tone: 'warning', label: 'RSI panas', text: `RSI30m ${rsi30m.toFixed(2)}. Jangan terlalu ketat kecuali profit sudah jauh.` };
             }
             return { tone: 'neutral', label: 'Pantau', text: 'Ikuti puncak baru. Ketatkan hanya kalau profit sudah jauh.' };
         },

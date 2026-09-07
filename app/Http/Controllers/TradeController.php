@@ -238,6 +238,10 @@ class TradeController extends Controller
 
     // di check_trailing_stop.py (Fase AU) -- ini cuma DISPLAY status yg sama, bukan logic ganti.
 
+    private const MOMENTUM_RSI30_HOT = 70.0;
+
+    private const MOMENTUM_RSI30_EXTREME = 80.0;
+
     private const TIME_TARGET_DAYS = 10; // hari bursa -- sama dgn TARGET_HOLD_DAYS python.
 
     /**
@@ -260,8 +264,9 @@ class TradeController extends Controller
 
         $live = $this->livePnlFor($open);
         $peaks = $this->readTrackerPeaks();
+        $rsi30m = $this->momentumRsi30mFor($open);
 
-        $rows = $open->map(function (Trade $trade) use ($live, $peaks) {
+        $rows = $open->map(function (Trade $trade) use ($live, $peaks, $rsi30m) {
             $quote = $live[$trade->id] ?? null;
             $entry = (float) $trade->entry_price;
             $current = $quote['last'] ?? null;
@@ -304,6 +309,13 @@ class TradeController extends Controller
                 'is_live' => $quote['is_live'] ?? false,
                 'pnl' => $quote['pnl'] ?? null,
                 'pnl_percent' => $quote['pnl_percent'] ?? null,
+                'rsi30m' => $rsi30m[strtoupper($trade->ticker)] ?? null,
+                'rsi30m_hot' => ($rsi30m[strtoupper($trade->ticker)] ?? null) !== null
+                    ? $rsi30m[strtoupper($trade->ticker)] >= self::MOMENTUM_RSI30_HOT
+                    : false,
+                'rsi30m_extreme' => ($rsi30m[strtoupper($trade->ticker)] ?? null) !== null
+                    ? $rsi30m[strtoupper($trade->ticker)] >= self::MOMENTUM_RSI30_EXTREME
+                    : false,
                 'peak_since_entry' => $peakForSl,
                 'trailing_sl' => $trailingSl,
                 'distance_to_sl_pct' => $distanceToSlPct,
@@ -315,6 +327,79 @@ class TradeController extends Controller
         });
 
         return $rows->sortBy(fn ($r) => $r['distance_to_sl_pct'] ?? 999)->values()->all();
+    }
+
+    /** @return array<string, float|null> */
+    private function momentumRsi30mFor($trades): array
+    {
+        return $trades
+            ->filter(fn (Trade $trade) => str_contains(strtolower((string) $trade->strategy_label), 'momentum'))
+            ->pluck('ticker')
+            ->filter()
+            ->mapWithKeys(fn ($ticker) => [strtoupper($ticker) => $this->fetchRsi30m(strtoupper($ticker))])
+            ->all();
+    }
+
+    private function fetchRsi30m(string $ticker): ?float
+    {
+        return Cache::store('file')->remember("trades:live-rsi30m:{$ticker}:v1", now()->addMinutes(5), function () use ($ticker) {
+            try {
+                $resp = Http::withHeaders(['User-Agent' => 'Mozilla/5.0'])
+                    ->timeout(10)
+                    ->get("https://query2.finance.yahoo.com/v8/finance/chart/{$ticker}.JK", [
+                        'range' => '5d',
+                        'interval' => '30m',
+                    ]);
+
+                if (! $resp->ok()) {
+                    return null;
+                }
+
+                $closes = array_values(array_filter(
+                    $resp->json('chart.result.0.indicators.quote.0.close') ?? [],
+                    fn ($close) => $close !== null
+                ));
+
+                return $this->rsiWilder($closes, 14);
+            } catch (Throwable) {
+                return null;
+            }
+        });
+    }
+
+    private function rsiWilder(array $closes, int $period): ?float
+    {
+        if (count($closes) < $period + 2) {
+            return null;
+        }
+
+        $avgGain = null;
+        $avgLoss = null;
+        $alpha = 1 / $period;
+
+        for ($i = 1; $i < count($closes); $i++) {
+            $delta = (float) $closes[$i] - (float) $closes[$i - 1];
+            $gain = max($delta, 0.0);
+            $loss = max(-$delta, 0.0);
+
+            if ($avgGain === null) {
+                $avgGain = $gain;
+                $avgLoss = $loss;
+                continue;
+            }
+
+            $avgGain = (1 - $alpha) * $avgGain + $alpha * $gain;
+            $avgLoss = (1 - $alpha) * $avgLoss + $alpha * $loss;
+        }
+
+        if ($avgLoss === null) {
+            return null;
+        }
+        if ($avgLoss == 0.0) {
+            return 100.0;
+        }
+
+        return round(100 - (100 / (1 + ($avgGain / $avgLoss))), 2);
     }
 
     /**
