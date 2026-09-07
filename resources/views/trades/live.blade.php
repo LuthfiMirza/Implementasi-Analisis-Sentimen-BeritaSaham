@@ -82,6 +82,10 @@
                     class="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border"
                     :class="p.rsi30m_extreme ? 'bg-green-500/20 text-green-300 border-green-500/30' : (p.rsi30m_hot ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-slate-800 text-slate-400 border-slate-700')"
                     x-text="'RSI30m ' + Number(p.rsi30m).toFixed(2)"></span>
+              <span x-show="p.stoch_rsi30m_k !== null && p.stoch_rsi30m_d !== null" x-cloak
+                    class="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border"
+                    :class="p.stoch_rsi30m_k >= p.stoch_rsi30m_d ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-rose-500/20 text-rose-300 border-rose-500/30'"
+                    x-text="'Stoch K/D ' + Number(p.stoch_rsi30m_k).toFixed(0) + '/' + Number(p.stoch_rsi30m_d).toFixed(0)"></span>
             </div>
             <p class="text-[11px] text-slate-500 mt-0.5" x-text="p.stock_name"></p>
           </div>

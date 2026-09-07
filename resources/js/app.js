@@ -472,6 +472,8 @@ document.addEventListener('alpine:init', () => {
             const minutes = hour * 60 + minute;
             const pnlPercent = Number(p.pnl_percent || 0);
             const rsi30m = Number(p.rsi30m || 0);
+            const stochK = Number(p.stoch_rsi30m_k || 0);
+            const stochD = Number(p.stoch_rsi30m_d || 0);
 
             if (p.status === 'danger') {
                 return { tone: 'danger', label: 'Cek broker', text: 'Dekat/kena trailing. Jangan masuk ulang tanpa sinyal baru.' };
@@ -481,6 +483,12 @@ document.addEventListener('alpine:init', () => {
             }
             if (rsi30m >= 80) {
                 return { tone: 'strong', label: 'RSI ekstrem', text: `RSI30m ${rsi30m.toFixed(2)}. Siap kunci profit bertahap.` };
+            }
+            if (rsi30m >= 70 && stochK > 0 && stochD > 0 && stochK < stochD) {
+                return { tone: 'warning', label: 'Momentum melemah', text: `Stoch RSI K ${stochK.toFixed(2)} < D ${stochD.toFixed(2)}. Mulai ketatkan trailing.` };
+            }
+            if (stochK >= 80 && stochD >= 80) {
+                return { tone: 'strong', label: 'Stoch panas', text: `K/D >80. Siap partial profit atau ketatkan stop.` };
             }
             if (minutes < 9 * 60 + 30) {
                 const rsiText = rsi30m >= 70 ? ` RSI30m ${rsi30m.toFixed(2)} sudah panas.` : '';
@@ -492,6 +500,9 @@ document.addEventListener('alpine:init', () => {
             }
             if (rsi30m >= 70) {
                 return { tone: 'warning', label: 'RSI panas', text: `RSI30m ${rsi30m.toFixed(2)}. Jangan terlalu ketat kecuali profit sudah jauh.` };
+            }
+            if (stochK > stochD && stochK > 0 && stochD > 0) {
+                return { tone: 'neutral', label: 'Momentum lanjut', text: `Stoch RSI K ${stochK.toFixed(2)} > D ${stochD.toFixed(2)}. Pantau puncak baru.` };
             }
             return { tone: 'neutral', label: 'Pantau', text: 'Ikuti puncak baru. Ketatkan hanya kalau profit sudah jauh.' };
         },

@@ -309,12 +309,14 @@ class TradeController extends Controller
                 'is_live' => $quote['is_live'] ?? false,
                 'pnl' => $quote['pnl'] ?? null,
                 'pnl_percent' => $quote['pnl_percent'] ?? null,
-                'rsi30m' => $rsi30m[strtoupper($trade->ticker)] ?? null,
+                'rsi30m' => $rsi30m[strtoupper($trade->ticker)]['rsi'] ?? null,
+                'stoch_rsi30m_k' => $rsi30m[strtoupper($trade->ticker)]['stoch_k'] ?? null,
+                'stoch_rsi30m_d' => $rsi30m[strtoupper($trade->ticker)]['stoch_d'] ?? null,
                 'rsi30m_hot' => ($rsi30m[strtoupper($trade->ticker)] ?? null) !== null
-                    ? $rsi30m[strtoupper($trade->ticker)] >= self::MOMENTUM_RSI30_HOT
+                    ? ($rsi30m[strtoupper($trade->ticker)]['rsi'] ?? null) >= self::MOMENTUM_RSI30_HOT
                     : false,
                 'rsi30m_extreme' => ($rsi30m[strtoupper($trade->ticker)] ?? null) !== null
-                    ? $rsi30m[strtoupper($trade->ticker)] >= self::MOMENTUM_RSI30_EXTREME
+                    ? ($rsi30m[strtoupper($trade->ticker)]['rsi'] ?? null) >= self::MOMENTUM_RSI30_EXTREME
                     : false,
                 'peak_since_entry' => $peakForSl,
                 'trailing_sl' => $trailingSl,
@@ -329,7 +331,7 @@ class TradeController extends Controller
         return $rows->sortBy(fn ($r) => $r['distance_to_sl_pct'] ?? 999)->values()->all();
     }
 
-    /** @return array<string, float|null> */
+    /** @return array<string, array{rsi: float|null, stoch_k: float|null, stoch_d: float|null}|null> */
     private function momentumRsi30mFor($trades): array
     {
         return $trades
@@ -340,7 +342,8 @@ class TradeController extends Controller
             ->all();
     }
 
-    private function fetchRsi30m(string $ticker): ?float
+    /** @return array{rsi: float|null, stoch_k: float|null, stoch_d: float|null}|null */
+    private function fetchRsi30m(string $ticker): ?array
     {
         return Cache::store('file')->remember("trades:live-rsi30m:{$ticker}:v1", now()->addMinutes(5), function () use ($ticker) {
             try {
@@ -360,7 +363,13 @@ class TradeController extends Controller
                     fn ($close) => $close !== null
                 ));
 
-                return $this->rsiWilder($closes, 14);
+                $rsiSeries = $this->rsiWilderSeries($closes, 14);
+
+                return [
+                    'rsi' => $this->lastNumber($rsiSeries),
+                    'stoch_k' => $this->lastNumber($this->sma($this->stochRsi($rsiSeries, 14), 3)),
+                    'stoch_d' => $this->lastNumber($this->sma($this->sma($this->stochRsi($rsiSeries, 14), 3), 3)),
+                ];
             } catch (Throwable) {
                 return null;
             }
@@ -400,6 +409,79 @@ class TradeController extends Controller
         }
 
         return round(100 - (100 / (1 + ($avgGain / $avgLoss))), 2);
+    }
+
+    /** @return list<float|null> */
+    private function rsiWilderSeries(array $closes, int $period): array
+    {
+        $avgGain = null;
+        $avgLoss = null;
+        $alpha = 1 / $period;
+        $values = [null];
+
+        for ($i = 1; $i < count($closes); $i++) {
+            $delta = (float) $closes[$i] - (float) $closes[$i - 1];
+            $gain = max($delta, 0.0);
+            $loss = max(-$delta, 0.0);
+
+            if ($avgGain === null) {
+                $avgGain = $gain;
+                $avgLoss = $loss;
+            } else {
+                $avgGain = (1 - $alpha) * $avgGain + $alpha * $gain;
+                $avgLoss = (1 - $alpha) * $avgLoss + $alpha * $loss;
+            }
+
+            $values[] = $avgLoss == 0.0 ? 100.0 : 100 - (100 / (1 + ($avgGain / $avgLoss)));
+        }
+
+        return $values;
+    }
+
+    /** @return list<float|null> */
+    private function stochRsi(array $rsiValues, int $period): array
+    {
+        return array_map(function ($index) use ($rsiValues, $period) {
+            $rsi = $rsiValues[$index];
+            if ($rsi === null || $index + 1 < $period) {
+                return null;
+            }
+
+            $window = array_values(array_filter(array_slice($rsiValues, $index + 1 - $period, $period), fn ($value) => $value !== null));
+            if (count($window) < $period) {
+                return null;
+            }
+
+            $min = min($window);
+            $max = max($window);
+
+            return $max == $min ? 0.0 : (($rsi - $min) / ($max - $min)) * 100;
+        }, array_keys($rsiValues));
+    }
+
+    /** @return list<float|null> */
+    private function sma(array $values, int $period): array
+    {
+        return array_map(function ($index) use ($values, $period) {
+            if ($index + 1 < $period) {
+                return null;
+            }
+
+            $window = array_values(array_filter(array_slice($values, $index + 1 - $period, $period), fn ($value) => $value !== null));
+
+            return count($window) === $period ? array_sum($window) / $period : null;
+        }, array_keys($values));
+    }
+
+    private function lastNumber(array $values): ?float
+    {
+        foreach (array_reverse($values) as $last) {
+            if ($last !== null) {
+                return round((float) $last, 2);
+            }
+        }
+
+        return null;
     }
 
     /**
