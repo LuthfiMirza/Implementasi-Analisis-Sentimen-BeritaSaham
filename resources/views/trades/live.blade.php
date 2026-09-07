@@ -116,6 +116,22 @@
           </div>
         </div>
 
+        <template x-if="momentumTrailingAdvice(p)">
+          <div class="mb-3 rounded-xl border px-3 py-2 text-[11px]"
+               :class="{
+                 'border-rose-500/30 bg-rose-500/[0.06] text-rose-200': momentumTrailingAdvice(p).tone === 'danger',
+                 'border-green-500/30 bg-green-500/[0.06] text-green-200': momentumTrailingAdvice(p).tone === 'strong',
+                 'border-amber-500/30 bg-amber-500/[0.06] text-amber-200': momentumTrailingAdvice(p).tone === 'warning',
+                 'border-sky-500/30 bg-sky-500/[0.06] text-sky-200': momentumTrailingAdvice(p).tone === 'info',
+                 'border-slate-700 bg-slate-800/40 text-slate-300': momentumTrailingAdvice(p).tone === 'neutral',
+               }">
+            <div class="flex items-start gap-2">
+              <span class="shrink-0 rounded-full bg-slate-950/40 px-2 py-0.5 font-semibold" x-text="momentumTrailingAdvice(p).label"></span>
+              <span x-text="momentumTrailingAdvice(p).text"></span>
+            </div>
+          </div>
+        </template>
+
         {{-- Bar jarak ke trailing stop --}}
         <div class="mb-3">
           <div class="flex items-center justify-between text-[11px] text-slate-500 mb-1">

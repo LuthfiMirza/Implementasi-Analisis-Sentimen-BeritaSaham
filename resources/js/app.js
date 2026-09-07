@@ -465,6 +465,27 @@ document.addEventListener('alpine:init', () => {
         isMomentum(p) {
             return String(p.strategy_label || '').toLowerCase().includes('momentum');
         },
+        momentumTrailingAdvice(p) {
+            if (!this.isMomentum(p)) return null;
+            const hour = this.lastUpdate.getHours();
+            const minute = this.lastUpdate.getMinutes();
+            const minutes = hour * 60 + minute;
+            const pnlPercent = Number(p.pnl_percent || 0);
+
+            if (p.status === 'danger') {
+                return { tone: 'danger', label: 'Cek broker', text: 'Dekat/kena trailing. Jangan masuk ulang tanpa sinyal baru.' };
+            }
+            if (pnlPercent > 7) {
+                return { tone: 'strong', label: 'Kunci profit', text: 'Profit >7%. Boleh ketatkan trailing ke 1%.' };
+            }
+            if (minutes < 9 * 60 + 30) {
+                return { tone: 'warning', label: 'Tunggu dulu', text: 'Sebelum 09:30, jangan pasang trailing 1%.' };
+            }
+            if (minutes <= 10 * 60) {
+                return { tone: 'info', label: 'Mulai trailing', text: '09:30-10:00, pakai trailing 1.5%-2%.' };
+            }
+            return { tone: 'neutral', label: 'Pantau', text: 'Ikuti puncak baru. Ketatkan hanya kalau profit sudah jauh.' };
+        },
         // Lebar bar visual (0-100%) dari jarak-ke-SL -- di-clamp supaya bar tetap kebaca di kedua
         // ekstrem (posisi jauh di atas SL = bar penuh, posisi di bawah SL/negatif = bar kosong).
         // Skala referensi 10% jarak = bar penuh (kasar tapi cukup buat sinyal visual cepat).
