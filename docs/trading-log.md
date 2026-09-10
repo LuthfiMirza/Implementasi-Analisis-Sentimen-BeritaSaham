@@ -15,3 +15,7 @@
 - Foreign flow: net sell Rp-142M pada BUMI, net buy Rp+87M pada DSSA
 - Session 1 warning state diperbarui
 - Snapshot foreign flow disimpan
+
+### Penutupan
+- BUMI close 212, DSSA close 1220, DEWA close 430
+- Semua trailing stop masih aktif, tidak ada yang kena
