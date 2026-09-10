@@ -5,3 +5,8 @@
 - Cek trailing stop BUMI/DSSA/DEWA: semua masih dalam threshold
 - BUMI puncak baru di 232 jam 09:00 — trailing stop diperbarui
 - DSSA puncak baru di 1220 jam 11:00 — trailing stop diperbarui
+
+### Sinyal Baru Terdeteksi
+- BUMI MOMENTUM sinyal baru @ Rp212 (RSI14=63) — batas 3 posisi tercapai, skip Trade Journal
+- DSSA MOMENTUM sinyal baru @ Rp1110 — batas 3 posisi tercapai, skip Trade Journal
+- Tetap dicatat di open_positions.json untuk alert Telegram
