@@ -36,3 +36,8 @@
 - Entry BUMI GABUNGAN @ Rp212, lot 47.100 (id=696 Trade Journal)
 - Stop loss dipasang di 208 (SL 2%)
 - Position value: Rp9.997.200
+
+### Penutupan
+- BUMI close 212 — posisi GABUNGAN baru masuk, di entry price
+- DSSA close 1180 — mundur dari puncak tapi masih di atas trailing stop
+- Rencana: pantau BUMI besok, jika rebound konfirmasi momentum
