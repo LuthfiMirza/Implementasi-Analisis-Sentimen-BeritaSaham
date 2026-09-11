@@ -31,3 +31,8 @@
 - RSI14 BUMI = 62 (>60) — syarat sinyal MOMENTUM terpenuhi
 - Signal tercatat: trigger 11 Sep, rencana entry 14 Sep dekat close
 - Batas 3 posisi tercapai → catat di tracker saja, belum buka Trade Journal
+
+### BUMI GABUNGAN — Entry
+- Entry BUMI GABUNGAN @ Rp212, lot 47.100 (id=696 Trade Journal)
+- Stop loss dipasang di 208 (SL 2%)
+- Position value: Rp9.997.200
