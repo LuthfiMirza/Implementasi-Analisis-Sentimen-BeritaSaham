@@ -19,3 +19,10 @@
 ### Penutupan
 - BUMI close 212, DSSA close 1220, DEWA close 430
 - Semua trailing stop masih aktif, tidak ada yang kena
+
+## 2026-09-11
+
+### Monitoring Pagi
+- BUMI open 212, trailing stop 2% dari puncak 232 = 227.4 — masih aman
+- DSSA open 1170, trailing stop 2% dari puncak 1220 = 1195.6 — masih aman
+- DEWA open 440 — mantau momentum
