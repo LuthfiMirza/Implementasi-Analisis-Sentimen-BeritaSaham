@@ -26,3 +26,8 @@
 - BUMI open 212, trailing stop 2% dari puncak 232 = 227.4 — masih aman
 - DSSA open 1170, trailing stop 2% dari puncak 1220 = 1195.6 — masih aman
 - DEWA open 440 — mantau momentum
+
+### Sinyal BUMI Momentum Trigger
+- RSI14 BUMI = 62 (>60) — syarat sinyal MOMENTUM terpenuhi
+- Signal tercatat: trigger 11 Sep, rencana entry 14 Sep dekat close
+- Batas 3 posisi tercapai → catat di tracker saja, belum buka Trade Journal
