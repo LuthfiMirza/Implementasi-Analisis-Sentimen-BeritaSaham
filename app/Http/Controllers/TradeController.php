@@ -227,6 +227,99 @@ class TradeController extends Controller
         return response()->json($radarService->build());
     }
 
+    /**
+     * Halaman Radar Log -- riwayat semua sinyal SELF_RADAR_V1 + form catat fill/skip/exit.
+     * Data dari tabel self_radar_signal_logs, diurutkan terbaru dulu.
+     */
+    public function radarLog(Request $request)
+    {
+        $logs = \App\Models\SelfRadarSignalLog::orderByDesc('signal_date')
+            ->orderBy('rank')
+            ->get();
+
+        // Ringkasan statistik
+        $filled  = $logs->whereNotNull('fill_price');
+        $closed  = $filled->whereNotNull('exit_price');
+        $wins    = $closed->where('result', 'WIN');
+        $losses  = $closed->where('result', 'LOSS');
+
+        $stats = [
+            'total'    => $logs->count(),
+            'filled'   => $filled->count(),
+            'open'     => $filled->whereNull('exit_price')->count(),
+            'closed'   => $closed->count(),
+            'skipped'  => $logs->where('result', 'SKIP')->count(),
+            'win'      => $wins->count(),
+            'loss'     => $losses->count(),
+            'win_rate' => $closed->count() > 0
+                ? round($wins->count() / $closed->count() * 100, 1)
+                : null,
+            'avg_pnl'  => $closed->count() > 0
+                ? round($closed->avg('pnl_pct'), 2)
+                : null,
+        ];
+
+        return view('trades.radar_log', compact('logs', 'stats'));
+    }
+
+    /** Catat fill (entry aktual) untuk sinyal tertentu. */
+    public function radarLogFill(Request $request, \App\Models\SelfRadarSignalLog $log)
+    {
+        $data = $request->validate([
+            'fill_price' => ['required', 'numeric', 'min:1'],
+            'filled_at'  => ['nullable', 'date'],
+        ]);
+
+        $log->update([
+            'fill_price' => $data['fill_price'],
+            'filled_at'  => $data['filled_at'] ?? now(),
+            'result'     => null, // reset result kalau pernah di-skip lalu berubah pikiran
+        ]);
+
+        return back()->with('status', "✅ Fill {$log->ticker} @ Rp" . number_format($data['fill_price'], 0, ',', '.') . " dicatat.");
+    }
+
+    /** Tandai skip -- tidak jadi beli sinyal ini. */
+    public function radarLogSkip(Request $request, \App\Models\SelfRadarSignalLog $log)
+    {
+        $log->update([
+            'result'     => 'SKIP',
+            'fill_price' => null,
+            'filled_at'  => null,
+        ]);
+
+        return back()->with('status', "⏭️ {$log->ticker} ({$log->signal_date->format('d M')}) ditandai SKIP.");
+    }
+
+    /** Catat exit (close posisi) -- hitung PnL otomatis dari fill_price. */
+    public function radarLogExit(Request $request, \App\Models\SelfRadarSignalLog $log)
+    {
+        $data = $request->validate([
+            'exit_price'  => ['required', 'numeric', 'min:1'],
+            'exited_at'   => ['nullable', 'date'],
+            'exit_reason' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $pnlPct = null;
+        $result = null;
+        if ($log->fill_price && $log->fill_price > 0) {
+            $pnlPct = round(($data['exit_price'] - $log->fill_price) / $log->fill_price * 100, 2);
+            $result = $pnlPct > 0 ? 'WIN' : ($pnlPct < 0 ? 'LOSS' : 'DRAW');
+        }
+
+        $log->update([
+            'exit_price' => $data['exit_price'],
+            'exited_at'  => $data['exited_at'] ?? now(),
+            'pnl_pct'    => $pnlPct,
+            'result'     => $result,
+        ]);
+
+        $label = $result === 'WIN' ? '🟢 WIN' : ($result === 'LOSS' ? '🔴 LOSS' : '⚪ DRAW');
+        $pnlStr = $pnlPct !== null ? " ({$pnlPct}%)" : '';
+
+        return back()->with('status', "{$label} {$log->ticker} exit @ Rp" . number_format($data['exit_price'], 0, ',', '.') . $pnlStr . " dicatat.");
+    }
+
     // Ambang jarak-ke-SL buat pewarnaan status ("danger" kalau sisa <1%, matching threshold yg
     // sudah dipakai user secara implisit -- posisi paling mepet BUMI 21 Agu ~1,01% dianggap
     // "waspada" di percakapan sebelumnya). "warning" <3% kasih ruang napas sebelum ke "danger".
