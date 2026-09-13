@@ -52,6 +52,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/trades/live-data', [TradeController::class, 'liveData'])->name('trades.live-data');
     Route::get('/trades/radar', [TradeController::class, 'radar'])->name('trades.radar');
     Route::get('/trades/radar-data', [TradeController::class, 'radarData'])->name('trades.radar-data');
+    Route::get('/trades/radar-log', [TradeController::class, 'radarLog'])->name('trades.radar-log');
+    Route::post('/trades/radar-log/{log}/fill', [TradeController::class, 'radarLogFill'])->name('trades.radar-log.fill');
+    Route::post('/trades/radar-log/{log}/skip', [TradeController::class, 'radarLogSkip'])->name('trades.radar-log.skip');
+    Route::post('/trades/radar-log/{log}/exit', [TradeController::class, 'radarLogExit'])->name('trades.radar-log.exit');
     Route::get('/trades/laporan', [TradeController::class, 'laporan'])->name('trades.laporan');
     Route::post('/trades', [TradeController::class, 'store'])->name('trades.store');
     Route::post('/trades/position-sizing', [TradeController::class, 'updatePositionSizing'])->name('trades.position-sizing');
