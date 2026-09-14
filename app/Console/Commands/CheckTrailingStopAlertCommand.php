@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Process;
 
 /**
@@ -20,6 +21,8 @@ class CheckTrailingStopAlertCommand extends Command
 
     public function handle(): int
     {
+        Artisan::call('research:check-telegram-commands', ['--reconcile-only' => true]);
+
         $python = env('PYTHON_BINARY', 'python3');
         $script = base_path('quant/drawdown_bounce_tracker/check_trailing_stop.py');
 
