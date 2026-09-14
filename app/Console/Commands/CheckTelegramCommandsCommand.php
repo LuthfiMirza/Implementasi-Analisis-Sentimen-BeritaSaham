@@ -18,12 +18,18 @@ use Throwable;
  */
 class CheckTelegramCommandsCommand extends Command
 {
-    protected $signature = 'research:check-telegram-commands';
+    protected $signature = 'research:check-telegram-commands {--reconcile-only : Sync open_positions.json from Trade Journal without polling Telegram}';
 
     protected $description = 'Poll Telegram for /open, /close, /status, /history commands and update open_positions.json';
 
     public function handle(): int
     {
+        if ($this->option('reconcile-only')) {
+            $this->reconcileOpenPositions();
+
+            return self::SUCCESS;
+        }
+
         $this->refreshClosedTradesCache();
         $this->reconcileOpenPositions();
 
