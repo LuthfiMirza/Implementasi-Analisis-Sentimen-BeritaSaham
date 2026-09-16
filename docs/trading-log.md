@@ -41,3 +41,16 @@
 - BUMI close 212 — posisi GABUNGAN baru masuk, di entry price
 - DSSA close 1180 — mundur dari puncak tapi masih di atas trailing stop
 - Rencana: pantau BUMI besok, jika rebound konfirmasi momentum
+
+## 2026-09-16
+
+### Monitoring Posisi (Hari ke-3 DEWA/ESSA/INET, Hari ke-2 BUMI Momentum)
+- BUMI momentum 202 → live 208 (+3.0%) | puncak 212 (15 Sep) | trailing stop 2% aktif
+- DEWA gabungan 392 → live 386 | puncak 410 | mundur 5.9% dari puncak
+- ESSA gabungan 630 → live 618 | puncak 655 | mundur 5.6% dari puncak
+- INET gabungan 322 → live 338 | puncak 338 | masih naik, trailing aktif
+
+### Catatan Screening
+- BUMI: RSI mulai drop dari 62 ke 55 → momentum melemah
+- IHSG terkoreksi 0.4% hari ini → tekanan jual mild
+- DSSA di tracker masih open (orphan) — tidak ada posisi baru
