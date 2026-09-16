@@ -54,3 +54,24 @@
 - BUMI: RSI mulai drop dari 62 ke 55 → momentum melemah
 - IHSG terkoreksi 0.4% hari ini → tekanan jual mild
 - DSSA di tracker masih open (orphan) — tidak ada posisi baru
+
+### Pola 1 Bulan Terakhir — Analisis
+Berdasarkan 25 closed trades Aug-Sep:
+
+**BUMI Momentum (15 trades):**
+- Rata-rata return: +6.5% per trade
+- Win rate: 87% (13/15)
+- Best: +10.9% (26 Agu, entry 184)
+- Worst: -1.9% (SL 11 Sep, entry 212)
+- Pola: entry saat ret_2d <= -5% + RSI > 55, exit trailing 1-2%
+
+**DSSA Momentum (8 trades):**
+- Rata-rata return: +5.8%
+- Win rate: 75% (6/8)
+- Outlier loss: -10.6% (04 Sep, DSSA 1180 → 1055, stop_loss)
+- Pola: momentum kuat tapi volatile, pyramiding 3 posisi terlalu agresif
+
+**DEWA/ENRG/PTRO Gabungan:**
+- Win rate: 83% (5/6 trades)
+- Avg return: +3.2%
+- Lebih stabil, drawdown lebih kecil
