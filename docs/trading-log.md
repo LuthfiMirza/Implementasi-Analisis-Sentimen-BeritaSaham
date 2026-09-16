@@ -75,3 +75,9 @@ Berdasarkan 25 closed trades Aug-Sep:
 - Win rate: 83% (5/6 trades)
 - Avg return: +3.2%
 - Lebih stabil, drawdown lebih kecil
+
+### Penutupan 16 Sep
+- BUMI close 208 (+3.0% dari entry 202) — masih hold, trailing stop di 207.76
+- DEWA close 380 (-3.1% dari entry 392) — alert belum kena
+- ESSA close 612 (-2.9% dari entry 630) — alert belum kena
+- INET close 336 (+4.3% dari entry 322) — puncak baru → trailing naik
