@@ -113,3 +113,15 @@ Berdasarkan 25 closed trades Aug-Sep:
 ### JARR Alert (Self Radar 15 Sep)
 - JARR tidak dieksekusi karena sudah punya 4 posisi open
 - Monitor: JARR close 4.050 hari ini (naik dari 3.890)
+
+### Penutupan 17 Sep + Plan Besok
+- BUMI close 196 (-2.97% dari puncak 212 → sudah trigger TS 2%) ⚠️
+- ESSA close 605 (mundur 7.6% dari puncak 655) ⚠️
+- INET close 330 (mundur 2.4% dari puncak 338)
+- DEWA baru close 382 (+3.2% dari entry 370)
+
+**Plan besok (18 Sep):**
+- Cek apakah BUMI kena TS saat open → kalau open < 207, siap cut
+- ESSA: sudah melewati TS 2% dari puncak, pertimbangkan cut
+- INET: masih profit, pantau ketat
+- Radar sore: cek Self Radar sinyal baru
