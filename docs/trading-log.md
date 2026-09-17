@@ -81,3 +81,25 @@ Berdasarkan 25 closed trades Aug-Sep:
 - DEWA close 380 (-3.1% dari entry 392) — alert belum kena
 - ESSA close 612 (-2.9% dari entry 630) — alert belum kena
 - INET close 336 (+4.3% dari entry 322) — puncak baru → trailing naik
+
+## 2026-09-17
+
+### Morning Monitor (Hari ke-4 DEWA/ESSA/INET, Hari ke-3 BUMI)
+- BUMI 208 → puncak 212 | mundur 1.9% | masih di bawah TS 2% → HOLD
+- DEWA 376 → puncak 410 | mundur 8.3% → ⚠️ sudah lewati TS
+- ESSA 608 → puncak 655 | mundur 7.2% → ⚠️ mendekati SL
+- INET 330 → puncak 338 | mundur 2.4% → masih dalam TS
+
+### Analisis Pola vs Situasi Sekarang
+**Persamaan dengan periode bearish 4 Sep (DSSA -10.6%):**
+- IHSG tekanan dari faktor makro (rupiah Rp17.670, Fed rate)
+- Komoditas batubara/energi melemah → tekan BUMI/DSSA/DEWA
+
+**Perbedaan:**
+- BUMI entry 202 jauh lebih rendah dari 212 → buffer lebih aman
+- INET entry 322 masih profit +2.5%
+
+**Strategi cut loss:**
+1. Jika harga mundur > 2% dari puncak → cut sesuai trailing stop
+2. Jika IHSG -1% dalam sehari → pertimbangkan cut semua posisi
+3. Tunggu koreksi selesai (biasanya 3-5 hari) → entry ulang
