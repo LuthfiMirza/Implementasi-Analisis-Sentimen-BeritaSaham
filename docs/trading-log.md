@@ -103,3 +103,13 @@ Berdasarkan 25 closed trades Aug-Sep:
 1. Jika harga mundur > 2% dari puncak → cut sesuai trailing stop
 2. Jika IHSG -1% dalam sehari → pertimbangkan cut semua posisi
 3. Tunggu koreksi selesai (biasanya 3-5 hari) → entry ulang
+
+### Sesi Siang — DEWA Entry Baru
+- DEWA ditutup di broker (kena TS sekitar 380) → loss -3.1%
+- DEWA dibuka posisi baru GABUNGAN @ 370 (rebound attempt)
+  Entry: 370, SL: 362, Target: 392, lot: 270 (Rp9.990.000)
+- Tunggu konfirmasi rebound: RSI naik dari 35, volume > rata-rata
+
+### JARR Alert (Self Radar 15 Sep)
+- JARR tidak dieksekusi karena sudah punya 4 posisi open
+- Monitor: JARR close 4.050 hari ini (naik dari 3.890)
