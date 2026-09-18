@@ -4,9 +4,11 @@ namespace App\Services\MarketData;
 
 use App\Models\IdxDailySummary;
 use App\Models\KseiOwnership;
+use App\Models\NewsArticle;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Turns the raw idx_daily_summaries table into the four descriptive alert lists shown on the
@@ -20,7 +22,18 @@ class IdxMarketSummaryService
 {
     public function latestTradeDate(): ?string
     {
+        if (! Schema::hasTable('idx_daily_summaries')) {
+            return null;
+        }
+
         $value = IdxDailySummary::max('trade_date');
+
+        return $value ? Carbon::parse($value)->toDateString() : null;
+    }
+
+    public function latestNewsDate(): ?string
+    {
+        $value = NewsArticle::max('published_at');
 
         return $value ? Carbon::parse($value)->toDateString() : null;
     }
@@ -32,7 +45,8 @@ class IdxMarketSummaryService
      */
     public function summary(bool $fresh = false): array
     {
-        $date = $this->latestTradeDate();
+        $tradeDate = $this->latestTradeDate();
+        $date = $tradeDate ?? $this->latestNewsDate();
         if ($date === null) {
             return $this->emptyPayload();
         }
@@ -44,29 +58,132 @@ class IdxMarketSummaryService
 
         $minutes = (int) config('market_alerts.cache_minutes', 15);
 
-        return Cache::remember($key, now()->addMinutes($minutes), function () use ($date): array {
-            $volume = $this->volumeAlerts($date);
-            $gap = $this->gapAlerts($date);
-            $foreign = $this->foreignFlowAlerts($date);
+        return Cache::remember($key, now()->addMinutes($minutes), function () use ($date, $tradeDate): array {
+            $volume = $tradeDate ? $this->volumeAlerts($tradeDate) : [];
+            $gap = $tradeDate ? $this->gapAlerts($tradeDate) : [];
+            $foreign = $tradeDate ? $this->foreignFlowAlerts($tradeDate) : [];
             $ownership = $this->ownershipAlerts();
+            $macro = $this->macroNewsAlerts($date);
 
             return [
-                'trade_date' => $date,
+                'trade_date' => $tradeDate,
+                'news_date' => $date,
                 'generated_at' => now()->toIso8601String(),
-                'universe' => IdxDailySummary::whereDate('trade_date', $date)->count(),
-                'source' => IdxDailySummary::whereDate('trade_date', $date)->value('source') ?? 'idx_scrape',
+                'universe' => $tradeDate ? IdxDailySummary::whereDate('trade_date', $tradeDate)->count() : 0,
+                'source' => $tradeDate ? (IdxDailySummary::whereDate('trade_date', $tradeDate)->value('source') ?? 'idx_scrape') : 'news_articles',
                 'counts' => [
                     'volume' => count($volume),
                     'gap' => count($gap),
                     'foreign' => count($foreign),
                     'ownership' => count($ownership),
+                    'macro' => count($macro),
                 ],
                 'volume' => $volume,
                 'gap' => $gap,
                 'foreign' => $foreign,
                 'ownership' => $ownership,
+                'macro' => $macro,
             ];
         });
+    }
+
+    /**
+     * Warning awal dari headline makro yang biasa menekan IHSG: Fed/suku bunga, USD/rupiah,
+     * risk-off asing, bank besar, IHSG teknikal, dan komoditas. Ini filter berita, bukan sinyal.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function macroNewsAlerts(string $date): array
+    {
+        $patterns = [
+            'Suku bunga AS / The Fed' => [
+                'fed', 'fomc', 'the fed', 'federal reserve',
+                'suku bunga as', 'bunga acuan as', 'bunga acuan',
+                'yield us', 'treasury yield', 'suku bunga',
+                'bank sentral as', 'rate hike', 'rate cut',
+            ],
+            'Dolar kuat / rupiah lemah' => [
+                'dolar menguat', 'dollar menguat', 'dolar as menguat',
+                'rupiah melemah', 'rupiah tertekan', 'rupiah jatuh',
+                'rupiah turun', 'kurs rupiah', 'usd/idr', 'tekan rupiah',
+                'nilai tukar rupiah', 'pelemahan rupiah',
+            ],
+            'Asing jual / risk-off' => [
+                'asing jual', 'net sell asing', 'jual bersih asing',
+                'foreign outflow', 'foreign sell', 'investor asing keluar',
+                'risk-off', 'emerging market tertekan', 'dana asing keluar',
+                'capital outflow',
+            ],
+            'Bursa Asia / regional lemah' => [
+                'bursa asia melemah', 'bursa asia turun', 'asia melemah',
+                'regional melemah', 'nikkei turun', 'hang seng turun',
+                'bursa global melemah', 'wall street turun', 'dow jones turun',
+                'nasdaq turun', 's&p 500 turun', 'bursa saham asia',
+                'pasar global tertekan', 'saham global turun',
+            ],
+            'IHSG melemah' => [
+                'ihsg turun', 'ihsg melemah', 'ihsg terkoreksi',
+                'ihsg anjlok', 'ihsg merosot', 'ihsg tertekan',
+                'ihsg memerah', 'koreksi ihsg', 'ihsg ditutup melemah',
+                'bursa indonesia melemah',
+            ],
+            'Komoditas turun' => [
+                'harga minyak turun', 'batu bara turun', 'coal turun',
+                'komoditas melemah', 'harga emas turun', 'minyak mentah turun',
+                'nikel turun', 'cpo turun', 'brent turun', 'wti turun',
+                'harga komoditas', 'komoditas terkoreksi',
+            ],
+            'Inflasi / ekonomi global' => [
+                'inflasi tinggi', 'inflasi as', 'cpi as', 'pce',
+                'resesi', 'slowdown', 'perlambatan ekonomi',
+                'gdp turun', 'pertumbuhan melambat', 'stagflasi',
+            ],
+        ];
+
+        return NewsArticle::query()
+            ->with('stock:id,code,company_name')
+            ->whereDate('published_at', '<=', $date)
+            ->whereDate('published_at', '>=', Carbon::parse($date)->subDays(7)->toDateString())
+            ->latest('published_at')
+            ->limit(200)
+            ->get()
+            ->map(function (NewsArticle $article) use ($patterns): ?array {
+                $text = strtolower(implode(' ', array_filter([
+                    $article->title,
+                    $article->summary,
+                    $article->content_snippet,
+                ])));
+
+                $reasons = [];
+                foreach ($patterns as $reason => $needles) {
+                    foreach ($needles as $needle) {
+                        if (str_contains($text, $needle)) {
+                            $reasons[] = $reason;
+                            break;
+                        }
+                    }
+                }
+
+                if ($reasons === []) {
+                    return null;
+                }
+
+                return [
+                    'stock_code' => $article->stock?->code ?? 'MARKET',
+                    'stock_name' => $article->stock?->company_name ?? 'Makro / IHSG',
+                    'published_at' => $article->published_at?->toDateTimeString(),
+                    'title' => $article->title,
+                    'source_url' => $article->source_url,
+                    'sentiment_label' => $article->sentiment_label,
+                    'sentiment_score' => $article->sentiment_score,
+                    'reasons' => $reasons,
+                    'severity' => count($reasons) >= 2 || $article->sentiment_label === 'negative' ? 'high' : 'medium',
+                ];
+            })
+            ->filter()
+            ->take(30)
+            ->values()
+            ->all();
     }
 
     /**
@@ -290,6 +407,10 @@ class IdxMarketSummaryService
      */
     public function ownershipAlerts(): array
     {
+        if (! Schema::hasTable('ksei_ownerships')) {
+            return [];
+        }
+
         $snapshot = KseiOwnership::max('snapshot_date');
         if ($snapshot === null) {
             return [];
@@ -330,14 +451,16 @@ class IdxMarketSummaryService
     {
         return [
             'trade_date' => null,
+            'news_date' => null,
             'generated_at' => now()->toIso8601String(),
             'universe' => 0,
             'source' => null,
-            'counts' => ['volume' => 0, 'gap' => 0, 'foreign' => 0, 'ownership' => 0],
+            'counts' => ['volume' => 0, 'gap' => 0, 'foreign' => 0, 'ownership' => 0, 'macro' => 0],
             'volume' => [],
             'gap' => [],
             'foreign' => [],
             'ownership' => [],
+            'macro' => [],
         ];
     }
 }
