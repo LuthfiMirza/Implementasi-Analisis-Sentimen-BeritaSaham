@@ -17,6 +17,16 @@
       </p>
     </div>
     <div class="flex items-center gap-2 text-xs text-slate-500">
+      <a href="{{ route('trades.radar') }}"
+         class="px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 transition inline-flex items-center gap-1 font-medium"
+         title="Buka Signal Radar">
+        <x-heroicon-o-signal class="w-3.5 h-3.5 text-cyan-400" /> Signal Radar
+      </a>
+      <a href="{{ route('trades.index') }}"
+         class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition inline-flex items-center gap-1 font-medium"
+         title="Buka Trade Journal">
+        <x-heroicon-o-book-open class="w-3.5 h-3.5 text-slate-400" /> Journal
+      </a>
       <span x-show="loading" x-cloak class="text-sky-400">Memuat...</span>
       <span>Update terakhir: <span x-text="lastUpdateLabel" class="text-slate-300 font-mono"></span></span>
       <button type="button" @click="fetchData()"

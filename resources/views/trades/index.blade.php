@@ -2,20 +2,36 @@
 <div class="space-y-6">
 
   {{-- ── HEADER ── --}}
-  <div class="flex items-center justify-between">
+  <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
       <p class="text-xs text-slate-500 uppercase font-medium tracking-wider">Portfolio Tracker</p>
       <h1 class="text-2xl font-bold text-slate-100 mt-0.5">Trade Journal</h1>
       <p class="text-sm text-slate-400 mt-1">Rekam jejak sinyal DSS vs hasil aktual pasar</p>
     </div>
-    <button onclick="document.getElementById('addTradeModal').classList.remove('hidden')"
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
-                   bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold text-sm transition">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-      Catat Trade Baru
-    </button>
+    <div class="flex items-center gap-2">
+      <a href="{{ route('trades.radar') }}"
+         class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-cyan-500/40
+                bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 font-semibold text-sm transition shadow-sm"
+         title="Buka Signal Radar Real-time">
+        <x-heroicon-o-signal class="w-4 h-4 text-cyan-400" />
+        Signal Radar
+      </a>
+      <a href="{{ route('trades.live') }}"
+         class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-700
+                bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition"
+         title="Live Trailing Stop Monitor">
+        <x-heroicon-o-bolt class="w-4 h-4 text-amber-400" />
+        Live Monitor
+      </a>
+      <button onclick="document.getElementById('addTradeModal').classList.remove('hidden')"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl
+                     bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold text-sm transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Catat Trade Baru
+      </button>
+    </div>
   </div>
 
   {{-- ── PREVIEW RINGKAS + LINK KE LAPORAN LENGKAP ── --}}
@@ -68,11 +84,18 @@
     </div>
   </div>
 
-  <a href="{{ route('trades.laporan') }}"
-     class="flex items-center justify-center gap-1.5 py-3 rounded-xl border border-sky-500/30
-            bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-sm font-semibold transition">
-    <x-heroicon-o-document-chart-bar class="w-4 h-4" /> Lihat Laporan Lengkap →
-  </a>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <a href="{{ route('trades.radar') }}"
+       class="flex items-center justify-center gap-2 py-3 rounded-xl border border-cyan-500/30
+              bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 text-sm font-semibold transition">
+      <x-heroicon-o-signal class="w-4 h-4" /> Buka Signal Radar (Live TINS & Sinyal) →
+    </a>
+    <a href="{{ route('trades.laporan') }}"
+       class="flex items-center justify-center gap-1.5 py-3 rounded-xl border border-sky-500/30
+              bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-sm font-semibold transition">
+      <x-heroicon-o-document-chart-bar class="w-4 h-4" /> Lihat Laporan Lengkap →
+    </a>
+  </div>
 
   {{-- ── POSITION SIZING (Fase DD) ── --}}
   {{-- Modal trading + risk% per trade, dipakai kalkulator "lot disarankan" di modal Catat Trade

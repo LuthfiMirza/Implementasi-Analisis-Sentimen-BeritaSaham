@@ -16,7 +16,25 @@
         Ticker mana yang mendekati threshold sinyal -- auto-refresh tiap 45 detik.
       </p>
     </div>
-    <div class="flex items-center gap-2 text-xs text-slate-500">
+    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+      <a href="{{ route('trades.live') }}"
+         class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition inline-flex items-center gap-1 font-medium"
+         title="Live Trailing Stop Monitor">
+        <x-heroicon-o-bolt class="w-3.5 h-3.5 text-amber-400" /> Live Monitor
+      </a>
+      <a href="{{ route('trades.index') }}"
+         class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition inline-flex items-center gap-1 font-medium"
+         title="Trade Journal">
+        <x-heroicon-o-book-open class="w-3.5 h-3.5 text-slate-400" /> Journal
+      </a>
+      <a href="{{ route('trades.radar-log') }}"
+         class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition inline-flex items-center gap-1 font-medium"
+         title="Radar Log">
+        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+        Log
+      </a>
       <span x-show="loading" x-cloak class="text-sky-400">Memuat...</span>
       <span>Estimasi per: <span x-text="radar.generated_at || '—'" class="text-slate-300 font-mono"></span> WIB</span>
       <button type="button" @click="fetchData()"
