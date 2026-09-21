@@ -329,5 +329,21 @@ class SignalRadarTest extends TestCase
         $this->assertFalse($tins['triggered']);
         $this->assertSame('OVERBOUGHT (AREA PUCUK - JANGAN FOMO)', $tins['status']);
     }
+
+    public function test_bsjp_momentum_section_present_in_radar_data(): void
+    {
+        $user = $this->user();
+        $this->seedAllTickers();
+
+        $response = $this->actingAs($user)->getJson('/trades/radar-data');
+        $response->assertOk();
+
+        $bsjp = $response->json('bsjp_momentum');
+        $this->assertNotNull($bsjp, 'bsjp_momentum harus ada di response radar-data');
+        $this->assertArrayHasKey('stage', $bsjp);
+        $this->assertArrayHasKey('stage_label', $bsjp);
+        $this->assertArrayHasKey('candidates', $bsjp);
+        $this->assertIsArray($bsjp['candidates']);
+    }
 }
 

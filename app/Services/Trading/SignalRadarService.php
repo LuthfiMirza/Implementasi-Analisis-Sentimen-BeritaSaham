@@ -8,7 +8,9 @@ use App\Models\SelfRadarSignalLog;
 use App\Services\MarketData\LiveMarketDataService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 /**
@@ -125,6 +127,7 @@ class SignalRadarService
 
         $tinsStock = $stocks->get('TINS') ?? Stock::where('code', 'TINS')->first();
         $tinsBottomToTop = $this->buildTinsBottomToTopRow($tinsStock);
+        $bsjpMomentum = $this->buildBsjpMomentumRows();
 
         return [
             'gabungan' => array_values($gabungan),
@@ -133,6 +136,7 @@ class SignalRadarService
             'self_radar' => array_values(array_slice($selfRadar, 0, 10)),
             'self_radar_top5' => $selfRadarTop5,
             'tins_bottom_to_top' => $tinsBottomToTop,
+            'bsjp_momentum' => $bsjpMomentum,
             'generated_at' => now()->timezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
         ];
     }
@@ -589,6 +593,94 @@ class SignalRadarService
             'triggered' => $triggered,
             'status' => $status,
             'notes' => 'Validasi Kuantitatif: 12 trade, Win Rate 66.7%, Modal Rp10jt jadi Rp18.46M (+84.66%). Auto Cut Loss 3.0%, Kunci Cuan Trailing 2.5% dari Puncak.',
+        ];
+    }
+
+    public function buildBsjpMomentumRows(int $limit = 5): array
+    {
+        if (! Schema::hasTable('idx_daily_summaries')) {
+            return [
+                'stage' => 'early',
+                'stage_label' => 'Radar Pantau Dini (15:00 WIB)',
+                'trade_date' => null,
+                'candidates' => [],
+            ];
+        }
+
+        $latestDate = DB::table('idx_daily_summaries')->max('trade_date');
+        if (! $latestDate) {
+            return [
+                'stage' => 'early',
+                'stage_label' => 'Radar Pantau Dini (15:00 WIB)',
+                'trade_date' => null,
+                'candidates' => [],
+            ];
+        }
+
+        $priorDate = DB::table('idx_daily_summaries')
+            ->where('trade_date', '<', $latestDate)
+            ->max('trade_date');
+
+        if (! $priorDate) {
+            return [
+                'stage' => 'early',
+                'stage_label' => 'Radar Pantau Dini (15:00 WIB)',
+                'trade_date' => $latestDate,
+                'candidates' => [],
+            ];
+        }
+
+        $rows = DB::table('idx_daily_summaries as t')
+            ->join('idx_daily_summaries as p', function ($join) use ($priorDate) {
+                $join->on('t.stock_code', '=', 'p.stock_code')
+                    ->where('p.trade_date', '=', $priorDate);
+            })
+            ->where('t.trade_date', '=', $latestDate)
+            ->where('t.close', '>', DB::raw('t.open'))
+            ->where('t.pct_change', '>=', 3.0)
+            ->where('t.value', '>=', 100000000)
+            ->where('t.volume', '>', DB::raw('p.volume'))
+            ->select([
+                't.stock_code as ticker',
+                't.stock_name as name',
+                't.close as price',
+                't.open as open_price',
+                't.previous as prev_price',
+                't.pct_change as return_pct',
+                't.volume as volume_today',
+                'p.volume as volume_prev',
+                DB::raw('t.volume / NULLIF(p.volume, 0) as volume_ratio'),
+                't.value as transaction_value',
+                't.trade_date',
+            ])
+            ->having('volume_ratio', '>=', 1.5)
+            ->orderByDesc('volume_ratio')
+            ->orderByDesc('t.value')
+            ->take($limit)
+            ->get();
+
+        $hour = (int) now('Asia/Jakarta')->format('H');
+        $minute = (int) now('Asia/Jakarta')->format('i');
+        $stage = ($hour < 15 || ($hour === 15 && $minute < 35)) ? 'early' : 'confirm';
+
+        return [
+            'stage' => $stage,
+            'stage_label' => $stage === 'early' ? 'Radar Pantau Dini (15:00 WIB)' : 'Konfirmasi Beli (15:35 WIB)',
+            'trade_date' => $latestDate,
+            'candidates' => $rows->map(function ($r) {
+                $price = (float) $r->price;
+                return [
+                    'ticker' => (string) $r->ticker,
+                    'name' => (string) ($r->name ?? $r->ticker),
+                    'price' => $price,
+                    'open' => (float) $r->open_price,
+                    'return_pct' => (float) $r->return_pct,
+                    'volume_ratio' => round((float) $r->volume_ratio, 1),
+                    'value' => (float) $r->transaction_value,
+                    'target_tp' => round($price * 1.025),
+                    'stop_loss' => round($price * 0.97),
+                ];
+            })->all(),
         ];
     }
 }

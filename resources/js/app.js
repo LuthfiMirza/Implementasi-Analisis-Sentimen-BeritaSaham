@@ -526,7 +526,7 @@ document.addEventListener('alpine:init', () => {
     // Live Position Monitor krn tiap poll bisa memicu re-fetch harga live utk 7 ticker sekaligus,
     // bukan cuma posisi terbuka user). Render 3 seksi (GABUNGAN/MOMENTUM/BOTTOM_REBOUND) terpisah.
     Alpine.data('signalRadarMonitor', (initialRadar) => ({
-        radar: initialRadar || { gabungan: [], momentum: [], bottom_rebound: [], tins_bottom_to_top: null, generated_at: null },
+        radar: initialRadar || { gabungan: [], momentum: [], bottom_rebound: [], tins_bottom_to_top: null, bsjp_momentum: null, generated_at: null },
         loading: false,
         pollHandle: null,
         init() {

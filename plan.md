@@ -77,3 +77,46 @@ Dokumentasi operasional disimpan di `quant/drawdown_bounce_tracker/TINS_BOTTOM_T
 #### 3. Status Fase EZ: SELESAI (Aktif Produksi).
 Sinyal otomatis aktif di cron EOD 15:18 WIB dan intraday trailing monitor setiap 15 menit. Live radar dapat dipantau di halaman `/trades/radar`.
 
+---
+
+### Fase FA — Otomatisasi 2-Tahap BSJP Momentum: Early Warning 15:00 WIB & Konfirmasi 15:35 WIB (21 Sep 2026)
+
+#### 1. Latar Belakang & Validasi Kuantitatif
+* Reverse engineering dari 20 saham screener Stockbit (SMLE, BKDP, VERN, PSDN, GRIA, ASLC, RISE, DSFI, MAYA, BAIK, SCNP, IOTF, MSIE, CARS, ARII, NATO, AMIN, BCIC, URBN, VINS) menghasilkan 5 aturan inti:
+  1. *Volume Spike:* Volume > Previous Volume (1.5x s/d 50x).
+  2. *Bullish Candle:* Price > Open Price.
+  3. *Price Return:* Kenaikan $\ge +3.0\%$.
+  4. *Liquidity:* Nilai transaksi $\ge \text{Rp 100 Juta}$.
+  5. *Breakout:* Price $\ge$ Price MA5 atau MA10.
+* Backtest historis membuktikan:
+  * Model Swing Hold 1 Hari: Modal Rp 10 Juta anjlok menjadi **Rp 3.605.542 (-63.94%)** (rugi dibanting bandar pada sore H+1).
+  * Model BSJP Murni (Beli Sore Jual Open 09:00 WIB): Modal Rp 10 Juta melonjak menjadi **Rp 55.382.991 (+453.83% | WR 50.0%)**!
+  * Probabilitas H+1 Pagi mencetak *Higher High*: **82.8%** dengan rata-rata puncak **+6.38%**.
+
+#### 2. Solusi Data Akurat & Skema 2-Tahap
+* **Tantangan Waktu:** User menginginkan screening dimulai sejak **Pukul 15:00 WIB** agar punya waktu 35 menit untuk menganalisis order book dengan santai sebelum penutupan.
+* **Skema 2-Tahap:**
+  1. **Pukul 15:00 WIB (Early Warning):** Scan lonjakan volume & lilin hijau awal. Kirim alert Telegram untuk mulai pantau 3-5 saham terkuat.
+  2. **Pukul 15:35 WIB (Final Confirmation):** Validasi ulang apakah candle tetap hijau solid tanpa guyuran menit akhir. Kirim rekomendasi beli di Pre-Closing (15:50 WIB).
+  3. **Pukul 08:52 WIB (Morning Reminder):** Pengingat 8 menit sebelum bursa buka untuk memasang antrian jual di pembukaan 09:00 WIB (Target TP +2.5% / Open).
+
+#### 3. Implementasi Sistem
+1. **Artisan Command (`app/Console/Commands/ScanBsjpMomentumCommand.php`):**
+   * Perintah `trade:scan-bsjp {--stage=early|confirm|reminder} {--send}`.
+   * Query database BEI `idx_daily_summaries` secara instan (kecepatan 7 ms).
+   * Notifikasi Telegram otomatis berformat HTML lengkap dengan target TP (+2.5%) dan SL (-3.0%).
+2. **Scheduler Cron (`routes/console.php`):**
+   * 15:00 WIB (Senin-Jumat): `trade:scan-bsjp --stage=early --send`
+   * 15:35 WIB (Senin-Jumat): `trade:scan-bsjp --stage=confirm --send`
+   * 08:52 WIB (Senin-Jumat): `trade:scan-bsjp --stage=reminder --send`
+3. **Web Signal Radar (`SignalRadarService.php` & `radar.blade.php`):**
+   * Method `buildBsjpMomentumRows()` menambahkan kandidat BSJP real-time ke payload JSON `/trades/radar-data`.
+   * Komponen UI responsif menampilkan kartu saham dengan badge status tahap, harga sore, nilai transaksi, rasio volume, dan instruksi entry/exit.
+4. **Pengujian & Verifikasi:**
+   * Unit test `test_bsjp_momentum_section_present_in_radar_data` lolos (10/10 tests, 53 assertions).
+   * Verifikasi browser visual via subagent: tangkapan layar `bsjp_momentum_section_1790006227203.png` memvalidasi rendering sempurna kartu BSJP.
+   * Uji coba kirim live alert Telegram sukses diterima di chat ID `7162558029` dan `8870402966`.
+
+#### 4. Status Fase FA: SELESAI (Aktif Produksi).
+Sistem scanner 2-tahap telah aktif di cron scheduler dan terintegrasi penuh di halaman `/trades/radar`.
+

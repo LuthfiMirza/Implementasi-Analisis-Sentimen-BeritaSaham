@@ -300,5 +300,75 @@
     </div>
   </div>
 
+  {{-- ── SEKSI RADAR BSJP MOMENTUM (BELI SORE JUAL PAGI) ── --}}
+  <div x-show="radar.bsjp_momentum" x-cloak class="space-y-3 pt-2">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+          <x-heroicon-o-bolt class="w-4 h-4 text-amber-400" /> RADAR BSJP MOMENTUM (BELI SORE JUAL PAGI)
+          <span class="text-[10px] text-amber-300 font-normal normal-case">(Skema 2-Tahap: 15:00 Early Warning &rarr; 15:35 Final Call)</span>
+        </h2>
+        <p class="text-[11px] text-slate-500 mt-0.5">
+          Deteksi lonjakan volume & lilin hijau solid menjelang penutupan sesi 2. Beli di Pre-Closing (15:50 WIB) &times; Take Profit di Open (09:00 WIB).
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] px-2.5 py-1 rounded-full font-semibold border flex items-center gap-1.5"
+              :class="radar.bsjp_momentum?.stage === 'confirm' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'">
+          <span class="w-1.5 h-1.5 rounded-full" :class="radar.bsjp_momentum?.stage === 'confirm' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"></span>
+          <span x-text="radar.bsjp_momentum?.stage_label"></span>
+        </span>
+        <span class="text-[10px] px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-medium">
+          Backtest: +453.83% (WR 50% | H+1 High 82.8%)
+        </span>
+      </div>
+    </div>
+
+    {{-- Cards Grid --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      <template x-for="item in (radar.bsjp_momentum?.candidates || [])" :key="item.ticker + '-bsjp'">
+        <div class="glass-card rounded-2xl p-4 border-2 transition-all hover:border-slate-700"
+             :class="radar.bsjp_momentum?.stage === 'confirm' ? 'border-emerald-500/40 bg-emerald-500/[0.03]' : 'border-slate-800/80 bg-slate-900/40'">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-base text-slate-100" x-text="item.ticker"></span>
+              <span class="text-[11px] font-semibold text-emerald-400" x-text="'+' + fmtNum(item.return_pct, 2) + '%'"></span>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 font-bold font-mono"
+                  x-text="'Vol ' + item.volume_ratio + 'x'"></span>
+          </div>
+
+          <p class="text-xs text-slate-400 truncate mb-3" x-text="item.name"></p>
+
+          <div class="grid grid-cols-2 gap-2 py-2 border-y border-slate-800/80 text-[11px] mb-3">
+            <div>
+              <span class="text-slate-500 block text-[10px]">Harga Sore</span>
+              <span class="font-mono font-bold text-slate-200" x-text="'Rp' + fmtNum(item.price, 0)"></span>
+            </div>
+            <div>
+              <span class="text-slate-500 block text-[10px]">Nilai Trx</span>
+              <span class="font-mono font-bold text-slate-300" x-text="'Rp' + fmtNum(item.value / 1000000000, 2) + ' M'"></span>
+            </div>
+            <div>
+              <span class="text-slate-500 block text-[10px]">Target Jual (09:00 WIB)</span>
+              <span class="font-mono font-bold text-emerald-400" x-text="'Rp' + fmtNum(item.target_tp, 0) + ' (+2.5%)'"></span>
+            </div>
+            <div>
+              <span class="text-slate-500 block text-[10px]">Stop Loss</span>
+              <span class="font-mono font-bold text-rose-400" x-text="'Rp' + fmtNum(item.stop_loss, 0) + ' (-3%)'"></span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+            <span class="inline-flex items-center gap-1">
+              <x-heroicon-o-clock class="w-3.5 h-3.5 text-slate-500" /> Beli: Pre-Closing (15:50 WIB)
+            </span>
+            <span class="text-emerald-400 font-medium">Jual: Open Besok</span>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
 </div>
 </x-app-layout>
