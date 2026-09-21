@@ -47,5 +47,33 @@ Untuk menjaga performa repositori agar tetap ringan dan cepat, riwayat fase sebe
 * **Hasil Akhir Modal:** **Rp 18.466.070 (+84.66% | Profit Bersih: Rp 8.466.070)**.
 * Script verifikasi reproducible: `quant/test_optimized_risk_be.py`.
 
-#### 4. Status Fase EY: SELESAI.
+#### 4. Status Fase EY: SELESAI (21 Sep 2026).
 Dokumentasi operasional disimpan di `quant/drawdown_bounce_tracker/TINS_BOTTOM_TO_TOP_NOTES.md`. Laporan formal di `output/tins_bottom_to_top_strategy_report.md`. Riwayat audit lama sukses dipisahkan ke `docs/audit_history/`.
+
+---
+
+### Fase EZ — Otomatisasi Strategi TINS Bottom-to-Top ke Signal Radar & Telegram Alert (21 Sep 2026)
+
+#### 1. Latar Belakang & Kebutuhan
+* Pengguna menyetujui penerapan otomatisasi penuh (Opsi 1) dari temuan riset Fase EY agar TINS dimonitoring secara real-time via Signal Radar web dan dikirim otomatis ke Telegram saat sinyal beli/jual muncul.
+* TINS dilepaskan dari aturan generic GABUNGAN/BOTTOM_REBOUND agar tidak terjebak dalam batas 10-hari bursa yang kaku.
+
+#### 2. Implementasi Sistem Kuantitatif
+1. **Database Schema (`quant/drawdown_bounce_tracker/schema.sql`):**
+   * Membuat tabel `tins_bottom_to_top_signals` dengan audit trail append-only (`tins_btt_no_update`, `tins_btt_no_delete`).
+2. **EOD Signal Detector (`detect_signal.py`):**
+   * Fungsi `detect_tins_bottom_to_top()`: scanning EOD 15:18 WIB untuk kondisi dasar diskon (Stoch %K < 30 / BB %B < 0.25 / RSI < 45) + konfirmasi lilin hijau.
+   * Format alert Telegram kaya informasi: status sinyal, indikator, harga beli, rekomendasi Stop Loss (-3%), target trailing cuan 2.5%, dan auto-register ke `open_positions.json` (strategy: `BOTTOM_TO_TOP`).
+3. **Intraday Monitor & Alerting (`check_trailing_stop.py`):**
+   * Hard Stop Loss alert (-3.0% harga saham) untuk mencegah kerugian $\ge 5\%$.
+   * Trailing Profit Lock alert (kemunduran 2.5% dari puncak tertinggi setelah profit $\ge +3.0\%$).
+4. **Backend Signal Radar (`SignalRadarService.php`):**
+   * Menambahkan `buildTinsBottomToTopRow()`: live calculation Stochastic %K 14-period, Bollinger Band %B 20-period, RSI14 Wilder, dan status 4-tingkat (`BUY SEKARANG`, `DISKON SIKLUS`, `OVERBOUGHT`, `WAIT`).
+5. **Frontend Signal Radar (`radar.blade.php` & `app.js`):**
+   * Menampilkan kartu khusus TINS Bottom-to-Top Swing dengan badge live status, harga live, konfirmasi lilin hijau, level SL ketat Rp, dan metrik teknikal.
+6. **Automated Testing (`tests/Feature/SignalRadarTest.php`):**
+   * Menambahkan unit test deteksi kondisi diskon + lilin hijau (`test_tins_bottom_to_top_trigger_detected_on_oversold_and_green`) dan kondisi overbought (`test_tins_bottom_to_top_not_triggered_when_overbought`). 9 test lolos (47 assertions).
+
+#### 3. Status Fase EZ: SELESAI (Aktif Produksi).
+Sinyal otomatis aktif di cron EOD 15:18 WIB dan intraday trailing monitor setiap 15 menit. Live radar dapat dipantau di halaman `/trades/radar`.
+
