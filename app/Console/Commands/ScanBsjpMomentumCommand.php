@@ -133,7 +133,7 @@ class ScanBsjpMomentumCommand extends Command
             ->where('t.close', '>', DB::raw('t.open'))
             ->where('t.pct_change', '>=', $minRet)
             ->where('t.value', '>=', $minVal)
-            ->where('t.volume', '>', DB::raw('p.volume'))
+            ->where('t.volume', '>=', DB::raw('p.volume * ' . (float) $minVolRatio))
             ->select([
                 't.stock_code as ticker',
                 't.stock_name as name',
@@ -146,7 +146,6 @@ class ScanBsjpMomentumCommand extends Command
                 DB::raw('t.volume / NULLIF(p.volume, 0) as volume_ratio'),
                 't.value as transaction_value',
             ])
-            ->having('volume_ratio', '>=', $minVolRatio)
             ->orderByDesc('volume_ratio')
             ->orderByDesc('t.value')
             ->take($limit)

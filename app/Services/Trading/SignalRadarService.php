@@ -429,8 +429,8 @@ class SignalRadarService
     private function historicalSeries(string $ticker, ?Stock $stock): array
     {
         $today = now()->timezone('Asia/Jakarta')->format('Y-m-d');
-
-        $series = Cache::store('file')->remember("trades:radar-series:{$ticker}:v1", now()->addMinutes(15), function () use ($ticker, $today) {
+        $cacheStore = app()->environment('testing') ? 'array' : 'file';
+        $series = Cache::store($cacheStore)->remember("trades:radar-series:{$ticker}:v1", now()->addMinutes(15), function () use ($ticker, $today) {
             try {
                 $resp = Http::withHeaders(['User-Agent' => 'Mozilla/5.0'])
                     ->timeout(15)
@@ -639,7 +639,7 @@ class SignalRadarService
             ->where('t.close', '>', DB::raw('t.open'))
             ->where('t.pct_change', '>=', 3.0)
             ->where('t.value', '>=', 100000000)
-            ->where('t.volume', '>', DB::raw('p.volume'))
+            ->where('t.volume', '>=', DB::raw('p.volume * 1.5'))
             ->select([
                 't.stock_code as ticker',
                 't.stock_name as name',
@@ -653,7 +653,6 @@ class SignalRadarService
                 't.value as transaction_value',
                 't.trade_date',
             ])
-            ->having('volume_ratio', '>=', 1.5)
             ->orderByDesc('volume_ratio')
             ->orderByDesc('t.value')
             ->take($limit)

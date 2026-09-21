@@ -335,6 +335,80 @@ class SignalRadarTest extends TestCase
         $user = $this->user();
         $this->seedAllTickers();
 
+        $prevDate = '2026-09-18';
+        $targetDate = '2026-09-21';
+
+        \Illuminate\Support\Facades\DB::table('idx_daily_summaries')->insert([
+            [
+                'trade_date' => $prevDate,
+                'stock_code' => 'ROCK',
+                'stock_name' => 'Rocket Tbk',
+                'previous' => 100,
+                'open' => 100,
+                'high' => 100,
+                'low' => 100,
+                'close' => 100,
+                'change' => 0,
+                'pct_change' => 0,
+                'volume' => 10000,
+                'value' => 1000000,
+                'frequency' => 10,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'trade_date' => $targetDate,
+                'stock_code' => 'ROCK',
+                'stock_name' => 'Rocket Tbk',
+                'previous' => 100,
+                'open' => 105,
+                'high' => 125,
+                'low' => 105,
+                'close' => 125,
+                'change' => 25,
+                'pct_change' => 25.0,
+                'volume' => 50000,
+                'value' => 500000000,
+                'frequency' => 100,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'trade_date' => $prevDate,
+                'stock_code' => 'SWET',
+                'stock_name' => 'Sweetspot Tbk',
+                'previous' => 200,
+                'open' => 200,
+                'high' => 200,
+                'low' => 200,
+                'close' => 200,
+                'change' => 0,
+                'pct_change' => 0,
+                'volume' => 20000,
+                'value' => 4000000,
+                'frequency' => 20,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'trade_date' => $targetDate,
+                'stock_code' => 'SWET',
+                'stock_name' => 'Sweetspot Tbk',
+                'previous' => 200,
+                'open' => 202,
+                'high' => 216,
+                'low' => 202,
+                'close' => 214,
+                'change' => 14,
+                'pct_change' => 7.0,
+                'volume' => 80000,
+                'value' => 600000000,
+                'frequency' => 150,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
         $response = $this->actingAs($user)->getJson('/trades/radar-data');
         $response->assertOk();
 
@@ -344,6 +418,17 @@ class SignalRadarTest extends TestCase
         $this->assertArrayHasKey('stage_label', $bsjp);
         $this->assertArrayHasKey('candidates', $bsjp);
         $this->assertIsArray($bsjp['candidates']);
+        $this->assertCount(2, $bsjp['candidates']);
+
+        $candidatesByTicker = collect($bsjp['candidates'])->keyBy('ticker');
+
+        $this->assertTrue($candidatesByTicker->has('ROCK'));
+        $this->assertSame('rocket', $candidatesByTicker['ROCK']['category']);
+        $this->assertSame('🚀 Super Rocket', $candidatesByTicker['ROCK']['category_label']);
+
+        $this->assertTrue($candidatesByTicker->has('SWET'));
+        $this->assertSame('sweetspot', $candidatesByTicker['SWET']['category']);
+        $this->assertSame('🎯 Sweetspot', $candidatesByTicker['SWET']['category_label']);
     }
 }
 
