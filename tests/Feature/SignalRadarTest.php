@@ -91,7 +91,15 @@ class SignalRadarTest extends TestCase
                     return null;
                 }
 
-                $last = $this->priceByCode[$stock->code];
+                $val = $this->priceByCode[$stock->code];
+                if (is_array($val)) {
+                    return array_merge([
+                        'stock_code' => $stock->code,
+                        'source' => 'fake_radar_test', 'is_live' => true, 'fetched_at' => now(),
+                    ], $val);
+                }
+
+                $last = $val;
 
                 return [
                     'stock_code' => $stock->code,
@@ -266,4 +274,60 @@ class SignalRadarTest extends TestCase
         $this->assertFalse($dewaRow['triggered_today'], 'DEWA TIDAK boleh dianggap sinyal baru -- sudah di zona sejak kemarin');
         $this->assertTrue($dewaRow['already_in_zone']);
     }
+
+    public function test_tins_bottom_to_top_trigger_detected_on_oversold_and_green(): void
+    {
+        $user = $this->user();
+        $this->seedAllTickers();
+
+        // TINS: 30 hari drop tajam dari 300 ke 100
+        $series = [];
+        $price = 300.0;
+        for ($i = 0; $i < 30; $i++) {
+            $price -= 6.0;
+            $series[] = $price;
+        }
+
+        $this->fakeHttpForAllTickers(['TINS' => $series]);
+        // Live price naik di atas harga kemarin (135 > 126) & di atas open (135 > 125) -> green candle
+        $this->fakeLivePrices(['TINS' => ['last' => 135.0, 'open' => 125.0, 'high' => 135.0, 'low' => 125.0]]);
+
+        $response = $this->actingAs($user)->getJson('/trades/radar-data');
+        $response->assertOk();
+
+        $tins = $response->json('tins_bottom_to_top');
+        $this->assertNotNull($tins, 'tins_bottom_to_top harus ada di response radar-data');
+        $this->assertSame('TINS', $tins['ticker']);
+        $this->assertSame('BOTTOM_TO_TOP', $tins['strategy']);
+        $this->assertTrue($tins['triggered']);
+        $this->assertSame('BUY SEKARANG (BOTTOM REBOUND)', $tins['status']);
+        $this->assertTrue($tins['is_green']);
+        $this->assertEquals(round(135.0 * 0.97, 0), $tins['sl_price']);
+    }
+
+    public function test_tins_bottom_to_top_not_triggered_when_overbought(): void
+    {
+        $user = $this->user();
+        $this->seedAllTickers();
+
+        // TINS: 30 hari naik kencang dari 100 ke 400
+        $series = [];
+        $price = 100.0;
+        for ($i = 0; $i < 30; $i++) {
+            $price += 10.0;
+            $series[] = $price;
+        }
+
+        $this->fakeHttpForAllTickers(['TINS' => $series]);
+        $this->fakeLivePrices(['TINS' => 410.0]);
+
+        $response = $this->actingAs($user)->getJson('/trades/radar-data');
+        $response->assertOk();
+
+        $tins = $response->json('tins_bottom_to_top');
+        $this->assertNotNull($tins);
+        $this->assertFalse($tins['triggered']);
+        $this->assertSame('OVERBOUGHT (AREA PUCUK - JANGAN FOMO)', $tins['status']);
+    }
 }
+

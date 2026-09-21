@@ -35,9 +35,9 @@ class SignalRadarService
     //
     // Fase DU: INET ditambahkan -- screening lanjutan pick "Paper To Billion" (Fase DR/DS/DU),
     // n=21 episode, win rate 47.6%, avg +1.89%, konsisten discovery/holdout, lolos filter
-    // likuiditas Rp100M/hari (rata-rata Rp145M). Lihat detect_signal.py utk detail lengkap +
-    // kandidat lain (MGLV) yg ditolak murni krn likuiditas walau statistiknya lebih kuat.
-    private const GABUNGAN_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA', 'INET'];
+    // Fase EY: TINS dipindahkan ke strategi khusus BOTTOM-TO-TOP SWING karena strategi GABUNGAN
+    // kaku terbukti rugi (-11.75%) di TINS, sedangkan Bottom-to-Top untung besar (+84.66%).
+    private const GABUNGAN_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'PTRO', 'ENRG', 'RAJA', 'INET'];
 
     private const MOMENTUM_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'DSSA'];
 
@@ -45,9 +45,9 @@ class SignalRadarService
 
     private const SELF_RADAR_TICKERS = ['BAJA', 'MCAS', 'GDST', 'MDIA', 'BYAN', 'PACK', 'KOTA', 'MGLV', 'SLIS', 'FAST', 'TEBE', 'IATA', 'JGLE', 'KIJA', 'SINI', 'GULA', 'JKON', 'JARR', 'INET', 'NSSS', 'DEWA', 'ISAT', 'CUAN', 'PADA', 'WIFI', 'SSIA', 'HATM', 'ESSA', 'BRMS', 'FPNI'];
 
-    // Ticker yg leg drawdown_20d berlaku -- SAMA PERSIS COMBINED_RULE_TICKERS python (9 ticker,
+    // Ticker yg leg drawdown_20d berlaku -- SAMA PERSIS COMBINED_RULE_TICKERS python (8 ticker,
     // SMGR sengaja TIDAK termasuk -- gagal gate P4 validasi ketat, tetap ret_2d saja).
-    private const DRAWDOWN_LEG_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'ESSA', 'UNVR', 'TINS', 'PTRO', 'ENRG', 'RAJA'];
+    private const DRAWDOWN_LEG_TICKERS = ['BUMI', 'DEWA', 'BRPT', 'ESSA', 'UNVR', 'PTRO', 'ENRG', 'RAJA'];
 
     private const DROP_THRESHOLD = -0.05;       // ret_2d, sama persis DROP_THRESHOLD python
 
@@ -74,6 +74,7 @@ class SignalRadarService
             ->merge(self::MOMENTUM_TICKERS)
             ->merge(self::BOTTOM_REBOUND_TICKERS)
             ->merge(self::SELF_RADAR_TICKERS)
+            ->merge(['TINS'])
             ->unique()->sort()->values();
 
         $gabungan = [];
@@ -122,12 +123,16 @@ class SignalRadarService
         $selfRadarTop5 = array_values(array_slice(array_values(array_filter($selfRadar, fn ($row) => $row['triggered'])), 0, 5));
         $this->logSelfRadarTop5($selfRadarTop5);
 
+        $tinsStock = $stocks->get('TINS') ?? Stock::where('code', 'TINS')->first();
+        $tinsBottomToTop = $this->buildTinsBottomToTopRow($tinsStock);
+
         return [
             'gabungan' => array_values($gabungan),
             'momentum' => array_values($momentum),
             'bottom_rebound' => array_values($bottomRebound),
             'self_radar' => array_values(array_slice($selfRadar, 0, 10)),
             'self_radar_top5' => $selfRadarTop5,
+            'tins_bottom_to_top' => $tinsBottomToTop,
             'generated_at' => now()->timezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
         ];
     }
@@ -486,5 +491,104 @@ class SignalRadarService
             ->map(fn ($close) => (float) $close)
             ->values()
             ->all();
+    }
+
+    /**
+     * Fase EY: Estimasi Live Radar TINS Bottom-to-Top Swing (Ambil di Dasar, Jual di Pucuk).
+     */
+    private function buildTinsBottomToTopRow(?Stock $stock): ?array
+    {
+        if (! $stock) {
+            return null;
+        }
+
+        $series = $this->historicalSeries('TINS', $stock);
+        if (count($series) < 25) {
+            return null;
+        }
+
+        $quote = $this->liveMarketData->quote($stock);
+        $livePrice = $quote['last'] ?? end($series);
+        if (! $livePrice) {
+            return null;
+        }
+
+        $livePrice = (float) $livePrice;
+        $combined = array_merge($series, [$livePrice]);
+        $rsiNow = $this->rsiWilder($combined, 14);
+
+        // Stochastic %K (14 period)
+        $today = now()->timezone('Asia/Jakarta')->toDateString();
+        $historyPrices = StockPrice::query()
+            ->where('stock_id', $stock->id)
+            ->whereDate('price_date', '<', $today)
+            ->orderByDesc('price_date')
+            ->limit(25)
+            ->get();
+
+        $highs = $historyPrices->take(13)->pluck('high')->map(fn ($v) => (float) $v)->all();
+        $lows = $historyPrices->take(13)->pluck('low')->map(fn ($v) => (float) $v)->all();
+
+        $todayHigh = (float) ($quote['high'] ?? $livePrice);
+        $todayLow = (float) ($quote['low'] ?? $livePrice);
+        $todayOpen = (float) ($quote['open'] ?? end($series));
+        $closeYesterday = (float) end($series);
+
+        $highs[] = $todayHigh;
+        $lows[] = $todayLow;
+
+        $maxHigh14 = count($highs) > 0 ? max($highs) : $livePrice;
+        $minLow14 = count($lows) > 0 ? min($lows) : $livePrice;
+
+        $stochK = ($maxHigh14 > $minLow14)
+            ? (($livePrice - $minLow14) / ($maxHigh14 - $minLow14)) * 100
+            : 50.0;
+
+        // Bollinger Band %B (20 period)
+        $last20 = array_slice($combined, -20);
+        $count20 = count($last20);
+        $mean20 = array_sum($last20) / $count20;
+        $variance = 0.0;
+        foreach ($last20 as $val) {
+            $variance += pow($val - $mean20, 2);
+        }
+        $std20 = sqrt($variance / $count20);
+        $bbLower = $mean20 - 2 * $std20;
+        $bbUpper = $mean20 + 2 * $std20;
+        $bbPctB = ($bbUpper > $bbLower)
+            ? ($livePrice - $bbLower) / ($bbUpper - $bbLower)
+            : 0.5;
+
+        $isGreen = ($livePrice > $todayOpen) && ($livePrice > $closeYesterday);
+        $condDip = ($stochK < 30) || ($bbPctB < 0.25) || ($rsiNow !== null && $rsiNow < 45);
+        $triggered = $condDip && $isGreen;
+
+        if ($triggered) {
+            $status = 'BUY SEKARANG (BOTTOM REBOUND)';
+        } elseif ($condDip && ! $isGreen) {
+            $status = 'DISKON SIKLUS (TUNGGU LILIN HIJAU)';
+        } elseif ($stochK > 75 || $bbPctB > 0.85 || ($rsiNow !== null && $rsiNow > 65)) {
+            $status = 'OVERBOUGHT (AREA PUCUK - JANGAN FOMO)';
+        } else {
+            $status = 'WAIT (MENUNGGU SIKLUS DISKON)';
+        }
+
+        $slPrice = round($livePrice * 0.97, 0);
+
+        return [
+            'ticker' => 'TINS',
+            'strategy' => 'BOTTOM_TO_TOP',
+            'price_now' => round($livePrice, 2),
+            'open_today' => round($todayOpen, 2),
+            'close_yesterday' => round($closeYesterday, 2),
+            'is_green' => $isGreen,
+            'stoch_k' => round($stochK, 1),
+            'bb_pct_b' => round($bbPctB, 2),
+            'rsi14' => $rsiNow !== null ? round($rsiNow, 1) : null,
+            'sl_price' => $slPrice,
+            'triggered' => $triggered,
+            'status' => $status,
+            'notes' => 'Validasi Kuantitatif: 12 trade, Win Rate 66.7%, Modal Rp10jt jadi Rp18.46M (+84.66%). Auto Cut Loss 3.0%, Kunci Cuan Trailing 2.5% dari Puncak.',
+        ];
     }
 }

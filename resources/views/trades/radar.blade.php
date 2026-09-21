@@ -190,5 +190,97 @@
     </div>
   </div>
 
+  {{-- ── SEKSI TINS BOTTOM-TO-TOP SWING (SPECIAL RADAR) ── --}}
+  <div x-show="radar.tins_bottom_to_top" x-cloak>
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+      <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+        <x-heroicon-o-chart-bar-square class="w-4 h-4 text-cyan-400" /> TINS BOTTOM-TO-TOP SWING
+        <span class="text-[10px] text-cyan-400 font-normal normal-case">(Ambil di Dasar Diskon &times; Jual di Pucuk Reli)</span>
+      </h2>
+      <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-medium">
+        Backtest Terbukti: WR 66.7% (+84.66%)
+      </span>
+    </div>
+    <p class="text-[11px] text-slate-500 mb-3">
+      Radar siklus khusus TINS: deteksi titik diskon ekstrem (Stoch &lt; 30 / BB %B &lt; 0.25 / RSI &lt; 45) terkonfirmasi lilin hijau. Auto SL -3.0%, trailing lock 2.5%.
+    </p>
+
+    <div class="glass-card rounded-2xl p-5 border-2 transition-colors max-w-2xl"
+         :class="radar.tins_bottom_to_top?.triggered ? 'border-emerald-500/60 bg-emerald-500/[0.06] ring-2 ring-emerald-500/20' : (radar.tins_bottom_to_top?.status?.includes('OVERBOUGHT') ? 'border-amber-500/40 bg-amber-500/[0.02]' : 'border-slate-800/80')">
+      
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg font-bold text-slate-100 tracking-wide">TINS</span>
+          <span class="text-xs text-slate-400 font-mono">PT Timah Tbk</span>
+        </div>
+        <div>
+          <span class="text-[11px] px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1.5"
+                :class="radar.tins_bottom_to_top?.triggered 
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm shadow-emerald-500/20' 
+                          : (radar.tins_bottom_to_top?.status?.includes('DISKON') 
+                              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' 
+                              : (radar.tins_bottom_to_top?.status?.includes('OVERBOUGHT')
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                  : 'bg-slate-700 text-slate-400 border border-slate-600'))">
+            <span class="w-2 h-2 rounded-full"
+                  :class="radar.tins_bottom_to_top?.triggered ? 'bg-emerald-400 animate-ping' : (radar.tins_bottom_to_top?.status?.includes('DISKON') ? 'bg-sky-400' : (radar.tins_bottom_to_top?.status?.includes('OVERBOUGHT') ? 'bg-amber-400' : 'bg-slate-500'))"></span>
+            <span x-text="radar.tins_bottom_to_top?.status"></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 py-3 border-y border-slate-800/60 my-2">
+        <div>
+          <span class="text-[10px] text-slate-500 block uppercase">Harga Live</span>
+          <span class="text-lg font-mono font-bold text-slate-100" x-text="'Rp' + fmtNum(radar.tins_bottom_to_top?.price_now, 0)"></span>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-500 block uppercase">Lilin Hari Ini</span>
+          <span class="text-xs font-semibold inline-flex items-center gap-1 mt-1"
+                :class="radar.tins_bottom_to_top?.is_green ? 'text-emerald-400' : 'text-rose-400'">
+            <span x-text="radar.tins_bottom_to_top?.is_green ? 'HIJAU (Konfirmasi)' : 'MERAH / NETRAL'"></span>
+          </span>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-500 block uppercase">Stop Loss Ketat</span>
+          <span class="text-xs font-mono font-bold text-rose-400 mt-1 block" x-text="'Rp' + fmtNum(radar.tins_bottom_to_top?.sl_price, 0) + ' (-3%)'"></span>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-500 block uppercase">Trailing Profit</span>
+          <span class="text-xs font-mono font-bold text-emerald-400 mt-1 block">2.5% dari Puncak</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] mt-3">
+        <div class="bg-slate-900/50 rounded-lg p-2 border border-slate-800">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Stochastic %K</span>
+            <span class="font-mono font-bold"
+                  :class="radar.tins_bottom_to_top?.stoch_k < 30 ? 'text-emerald-400' : (radar.tins_bottom_to_top?.stoch_k > 75 ? 'text-amber-400' : 'text-slate-200')"
+                  x-text="fmtNum(radar.tins_bottom_to_top?.stoch_k, 1) + ' (Ambang < 30)'"></span>
+          </div>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-2 border border-slate-800">
+          <div class="flex justify-between">
+            <span class="text-slate-400">BB %B</span>
+            <span class="font-mono font-bold"
+                  :class="radar.tins_bottom_to_top?.bb_pct_b < 0.25 ? 'text-emerald-400' : (radar.tins_bottom_to_top?.bb_pct_b > 0.85 ? 'text-amber-400' : 'text-slate-200')"
+                  x-text="fmtNum(radar.tins_bottom_to_top?.bb_pct_b, 2) + ' (Ambang < 0.25)'"></span>
+          </div>
+        </div>
+        <div class="bg-slate-900/50 rounded-lg p-2 border border-slate-800">
+          <div class="flex justify-between">
+            <span class="text-slate-400">RSI(14)</span>
+            <span class="font-mono font-bold"
+                  :class="radar.tins_bottom_to_top?.rsi14 < 45 ? 'text-emerald-400' : (radar.tins_bottom_to_top?.rsi14 > 65 ? 'text-amber-400' : 'text-slate-200')"
+                  x-text="fmtNum(radar.tins_bottom_to_top?.rsi14, 1) + ' (Ambang < 45)'"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 text-[10px] text-slate-500 bg-slate-950/40 rounded-lg p-2.5 border border-slate-800/60" x-text="radar.tins_bottom_to_top?.notes"></div>
+    </div>
+  </div>
+
 </div>
 </x-app-layout>
