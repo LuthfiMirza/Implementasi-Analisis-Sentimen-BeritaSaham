@@ -1,19 +1,19 @@
 {
     "BUMI": [
         {
-            "title": "Simak Rekomendasi Saham PTBA, SSIA, dan BUMI untuk Rabu (9\/9)",
-            "sentiment": "neutral",
-            "published_at": "2026-09-09T15:01:35+07:00"
-        },
-        {
             "title": "Laba Bumi Resources (BUMI) Naik 35% Jadi Rp 418 M di Kuartal I, Intip Faktornya",
             "sentiment": "positive",
-            "published_at": "2026-09-09T15:01:26+07:00"
+            "published_at": "2026-09-15T12:02:00+07:00"
         },
         {
             "title": "Kepemilikan Chengdong Investment Corporation di Bumi Resources BUMI Sisa 2,8%",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T15:01:26+07:00"
+            "published_at": "2026-09-15T12:02:00+07:00"
+        },
+        {
+            "title": "Pimpin Top Stock, BUMI Diserok Asing Rp22,6 Miliar di Tengah Distribusi - KabarBursa.com",
+            "sentiment": "neutral",
+            "published_at": "2026-09-13T02:46:00+07:00"
         }
     ],
     "DEWA": [
@@ -37,63 +37,63 @@
         {
             "title": "Barito Pacific (BRPT) Milik Prajogo Ungkap Fakta di Balik Kabar IPO Griya Idola",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T15:05:53+07:00"
+            "published_at": "2026-09-15T11:07:11+07:00"
+        },
+        {
+            "title": "EBIT of PT Barito Pacific Tbk – HAM:OB8 - TradingView",
+            "sentiment": "neutral",
+            "published_at": "2026-09-03T08:45:36+07:00"
         },
         {
             "title": "Net current asset value per share of PT Barito Pacific Tbk – HAM:OB8 - TradingView",
             "sentiment": "neutral",
             "published_at": "2026-09-03T06:57:09+07:00"
-        },
-        {
-            "title": "Daftar Saham PER Terendah & Tertinggi LQ45 (24 Agustus 2026), INDY dan BRPT Disorot",
-            "sentiment": "neutral",
-            "published_at": "2026-08-26T11:51:40+07:00"
         }
     ],
     "SMGR": [
         {
+            "title": "Semen Indonesia (SMGR): Emisi Karbon Semen Hijau 38% Lebih Rendah dari Produk Konvensional - Bisnis.com - Market",
+            "sentiment": "neutral",
+            "published_at": "2026-09-13T22:08:09+07:00"
+        },
+        {
+            "title": "Pefindo Pertahankan Peringkat idAAA untuk Semen Indonesia (SMGR) - Bisnis.com - Market",
+            "sentiment": "neutral",
+            "published_at": "2026-09-11T00:00:22+07:00"
+        },
+        {
             "title": "Harga Semen Indonesia (SMGR) Turun 33% di Tengah Upaya Perbaikan, Simak Prospeknya",
             "sentiment": "negative",
             "published_at": "2026-09-09T15:09:20+07:00"
-        },
-        {
-            "title": "Laba Sudah Terbang 445%, SMGR Buka-bukaan Strategi Tahun Ini",
-            "sentiment": "neutral",
-            "published_at": "2026-09-08T20:00:40+07:00"
-        },
-        {
-            "title": "Belum di Fase Turnaround, Lonjakan Laba Bersih SMGR Lebih Karena Low-Base Effect",
-            "sentiment": "neutral",
-            "published_at": "2026-09-04T00:00:00+07:00"
         }
     ],
     "ESSA": [
         {
             "title": "Rilis Kinerja Keuangan, Ini Penyebab Laba ESSA Industries Anjlok 91%",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T15:10:58+07:00"
+            "published_at": "2026-09-15T12:22:22+07:00"
         },
         {
-            "title": "IHSG Melemah ke 6.628 di Sesi Pertama Hari Ini, Top Losers LQ45: ESSA, HRTA, MAPI - kontan.co.id",
-            "sentiment": "negative",
-            "published_at": "2026-09-07T05:11:08+07:00"
-        },
-        {
-            "title": "Prospek Saham ESSA Semester II di Tengah Penurunan Harga Amonia & Pemulihan Produksi - KONTAN",
+            "title": "Rekomendasi Saham Ajaib Sekuritas Hari Ini: ISAT, INET, dan ESSA - Ajaib",
             "sentiment": "neutral",
-            "published_at": "2026-09-03T00:52:43+07:00"
+            "published_at": "2026-09-14T02:37:07+07:00"
+        },
+        {
+            "title": "IHSG Anjlok 1,49% ke 6.490 Sesi I, Top Losers LQ45: ESSA, CUAN, CPIN, Jumat (11\/9) - kontan.co.id",
+            "sentiment": "negative",
+            "published_at": "2026-09-11T04:42:27+07:00"
         }
     ],
     "UNVR": [
         {
             "title": "Prinsip Penggunaan dan Pengelolaan Plastik ala Unilever Indonesia",
             "sentiment": "neutral",
-            "published_at": "2026-09-14T00:48:25+07:00"
+            "published_at": "2026-09-15T20:48:11+07:00"
         },
         {
             "title": "Menengok Aksi Unilever Indonesia dan OCBC Kikis Bias Gender di Tempat Kerja",
             "sentiment": "neutral",
-            "published_at": "2026-09-14T00:48:25+07:00"
+            "published_at": "2026-09-15T20:48:11+07:00"
         },
         {
             "title": "IHSG Diramal Naik Meski Ada Kabar Buruk dari MSCI, Ini Pilihan Sahamnya",
@@ -103,87 +103,87 @@
     ],
     "TINS": [
         {
+            "title": "Penambang dan Kolektor Legah, Presiden Akhirnya Keluarkan Perpres 79\/2026 Tentang Tata Kelola Baru Pertambangan PT Timah - Negeri Laskar Pelangi",
+            "sentiment": "neutral",
+            "published_at": "2026-09-15T02:13:02+07:00"
+        },
+        {
+            "title": "Calon Mitra TINS di Proyek LTJ Mulai Mengerucut - investor.id",
+            "sentiment": "neutral",
+            "published_at": "2026-09-13T15:00:00+07:00"
+        },
+        {
             "title": "Diskusi di Sekretariat KD-17 Belitong dari Pengiriman Pasir Timah, Smelter hingga Blok Ambalat - TrawangNews.com",
             "sentiment": "neutral",
             "published_at": "2026-09-09T04:47:07+07:00"
-        },
-        {
-            "title": "Saham TINS Diprediksi Lanjut Menguat, Ini Katalis dan Target Harganya",
-            "sentiment": "neutral",
-            "published_at": "2026-09-09T00:00:00+07:00"
-        },
-        {
-            "title": "PT Timah Sambut Baik Perpres 79\/2026 tentang Tata Kelola Timah di Babel, Beri Kepastian Hukum - InvestorTrust",
-            "sentiment": "positive",
-            "published_at": "2026-09-08T16:42:00+07:00"
         }
     ],
     "PTRO": [
         {
             "title": "Mengulik Free Float Saham Emiten Prajogo di BEI, Baru BRPT-PTRO Lolos Batas 15%",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T15:21:22+07:00"
+            "published_at": "2026-09-15T12:38:09+07:00"
         },
         {
             "title": "Menilik Prospek Saham SINI - PTRO dari Aksi Duet di Tambang Batu Bara Kalimantan",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T15:21:22+07:00"
+            "published_at": "2026-09-15T12:38:09+07:00"
         },
         {
-            "title": "Bupati Luwu Tekankan Manfaat CSR dan Prioritas Tenaga Kerja Lokal Saat Terima Audiensi PT Petrosea - Daulat Rakyat",
+            "title": "Pefindo Pertahankan Rating Utang PTRO di Level idA+",
             "sentiment": "neutral",
-            "published_at": "2026-09-08T03:35:15+07:00"
+            "published_at": "2026-09-15T00:00:00+07:00"
         }
     ],
     "ENRG": [
         {
             "title": "Energi Mega (ENRG) Bidik Akuisisi Blok Migas Baru pada 2026, Siapkan Rp 3,3 T",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T12:02:52+07:00"
+            "published_at": "2026-09-15T12:42:20+07:00"
         },
         {
             "title": "Aksi Baru Emiten Bakrie (ENRG): Temukan Sumber Minyak Baru di Malacca Strait",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T12:02:52+07:00"
+            "published_at": "2026-09-15T12:42:19+07:00"
         },
         {
-            "title": "Price to sales ratio of PT Energi Mega Persada Tbk Unsponsored ADR – FWB:HFK0 - TradingView",
+            "title": "Simak, ini Alasan Pefindo Labeli Grup Bakrie (ENRG) A+ - Emitennews.com",
             "sentiment": "neutral",
-            "published_at": "2026-09-05T03:09:33+07:00"
+            "published_at": "2026-09-14T00:30:00+07:00"
         }
     ],
     "RAJA": [
         {
             "title": "Rukun Raharja (RAJA) Akan Buyback Saham Rp 250 Miliar",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T15:27:19+07:00"
+            "published_at": "2026-09-15T12:47:12+07:00"
         },
         {
             "title": "Emiten Happy Hapsoro RAJA Bersiap Stock Split 1:5, Intip Jadwal dan Rencananya",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T15:27:19+07:00"
+            "published_at": "2026-09-15T12:47:11+07:00"
         },
         {
             "title": "RAJA Tebar Dividen Rp 274,17 Miliar, Akan Stock Split 1:5",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T15:27:19+07:00"
+            "published_at": "2026-09-15T12:47:10+07:00"
         }
     ],
     "DSSA": [
         {
-            "title": "Membaca Arah Transformasi Bisnis Emiten Grup Sinar Mas (DSSA) ke Ekosistem AI",
-            "sentiment": "neutral",
-            "published_at": "2026-09-09T15:13:58+07:00"
-        },
-        {
             "title": "Membaca Arah Baru DSSA di Balik Perubahan Pemegang Saham, Bersiap Lepas Treasuri",
             "sentiment": "neutral",
-            "published_at": "2026-09-09T15:13:57+07:00"
+            "published_at": "2026-09-15T12:28:35+07:00"
         },
         {
-            "title": "IHSG Terkoreksi 0,11% di Sesi I, Investor Berburu Saham DSSA, TINS, dan CUAN - SWA.co.id",
-            "sentiment": "negative",
-            "published_at": "2026-09-04T06:40:00+07:00"
+            "title": "Franky Widjaja Lepas Jabatan di DSSA, Bagaimana Status Pemilik Manfaat Akhir?",
+            "sentiment": "neutral",
+            "published_at": "2026-09-15T12:28:34+07:00"
+        },
+        {
+            "title": "Eks Bos MNC Gantikan Franky Widjaja di Kursi Komisaris DSSA",
+            "sentiment": "neutral",
+            "published_at": "2026-09-14T08:25:14+07:00"
         }
     ],
     "INET": [
