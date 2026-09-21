@@ -62,6 +62,7 @@ GABUNGAN_START_DATE_BY_TICKER = {
     "TINS": date(2026, 8, 26), "PTRO": date(2026, 8, 26),
     "ENRG": date(2026, 8, 26), "RAJA": date(2026, 8, 26),
     "INET": date(2026, 9, 2),
+    "PSAB": date(2026, 9, 21),
 }
 DROP_THRESHOLD = -0.05
 DRAWDOWN_THRESHOLD = -0.20  # Fase BK: leg kedua aturan gabungan, lihat COMBINED_RULE_TICKERS
@@ -79,7 +80,7 @@ DRAWDOWN_THRESHOLD = -0.20  # Fase BK: leg kedua aturan gabungan, lihat COMBINED
 # lolos GABUNGAN+MOMENTUM sekaligus, tapi cuma Rp2 miliar/hari), CTTH, OILS, REAL, TOBA, KBLV,
 # KOKA. MINA dan MLPT dibuang lebih dulu karena hasilnya didominasi 1 episode ekstrem (+126% dan
 # +92% dari cuma 2-4 trade) -- pola yang sama menjatuhkan TPIA di Fase AY. Lihat plan.md Fase CH.
-COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA"}
+COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA", "PSAB"}
 
 # Fase DC: GAP DITEMUKAN (bukan sengaja) -- detect()/detect_heads_up() sebelumnya HARDCODE loop
 # "BUMI, DEWA, BRPT, SMGR, ESSA, UNVR" saja, TIDAK PERNAH ikut scan TINS/PTRO/ENRG/RAJA walau
@@ -95,10 +96,11 @@ COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR", "TINS", "PTRO",
 # walau SMGR TIDAK ada di COMBINED_RULE_TICKERS. TINS/PTRO/ENRG/RAJA sekarang ditambahkan supaya
 # scan yang jalan SAMA PERSIS dengan yang sudah divalidasi P1-P4 (bukan cuma "terdaftar" tapi tidak
 # pernah dipakai).
-GABUNGAN_SCAN_TICKERS = ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA", "INET"]
+GABUNGAN_SCAN_TICKERS = ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA", "INET", "PSAB"]
 LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "tracked",
-          "ESSA": "tracked", "UNVR": "tracked", "TINS": "tracked", "PTRO": "tracked",
-          "ENRG": "tracked", "RAJA": "tracked", "DSSA": "tracked", "INET": "tracked"}  # DEWA dinaikkan dari
+          "ESSA": "tracked", "UNVR": "tracked", "TINS": "exploratory", "PTRO": "tracked",
+          "ENRG": "tracked", "RAJA": "tracked", "DSSA": "tracked", "INET": "tracked",
+          "PSAB": "exploratory"}  # TINS & PSAB berlabel "exploratory" (kandidat likuiditas rendah)  # DEWA dinaikkan dari
 # "exploratory" ke "tracked" di Fase AX -- backtest BUMI-only -5% khusus DEWA (2024-sekarang)
 # menunjukkan win rate 86% discovery / 88% holdout, median return tetap positif & MENINGKAT di
 # holdout (tidak overfit), bahkan lebih kuat dari hasil BUMI sendiri. Lihat plan.md Fase AX.
@@ -250,6 +252,7 @@ BUTTON_CLOSE_ENRG = "\U0001F534 Tutup ENRG"
 BUTTON_CLOSE_RAJA = "\U0001F534 Tutup RAJA"
 BUTTON_CLOSE_DSSA = "\U0001F534 Tutup DSSA"
 BUTTON_CLOSE_INET = "\U0001F534 Tutup INET"  # Fase DU -- screening lanjutan pick PTB
+BUTTON_CLOSE_PSAB = "\U0001F534 Tutup PSAB"
 BUTTON_HELP = "❓ Bantuan"
 
 
@@ -268,6 +271,7 @@ def default_keyboard() -> dict:
             [BUTTON_CLOSE_TINS, BUTTON_CLOSE_PTRO],
             [BUTTON_CLOSE_ENRG, BUTTON_CLOSE_RAJA],
             [BUTTON_CLOSE_DSSA, BUTTON_CLOSE_INET],
+            [BUTTON_CLOSE_PSAB],
             [BUTTON_HELP],
         ],
         "resize_keyboard": True,

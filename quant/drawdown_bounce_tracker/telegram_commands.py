@@ -50,6 +50,7 @@ from detect_signal import (  # noqa: E402
     BUTTON_CLOSE_RAJA,
     BUTTON_CLOSE_DSSA,
     BUTTON_CLOSE_INET,
+    BUTTON_CLOSE_PSAB,
     BUTTON_HELP,
     BUTTON_HISTORY,
     BUTTON_STATUS,
@@ -90,6 +91,7 @@ BUTTON_LABELS = {
     BUTTON_CLOSE_RAJA: "/close RAJA",
     BUTTON_CLOSE_DSSA: "/close DSSA",
     BUTTON_CLOSE_INET: "/close INET",
+    BUTTON_CLOSE_PSAB: "/close PSAB",
     BUTTON_HELP: "/help",
 }
 
