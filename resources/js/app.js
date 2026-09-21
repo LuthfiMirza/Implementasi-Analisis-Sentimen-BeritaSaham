@@ -543,6 +543,17 @@ document.addEventListener('alpine:init', () => {
                 .catch((e) => console.warn('Signal radar fetch error:', e))
                 .finally(() => { this.loading = false; });
         },
+        bsjpCategory: 'all',
+        filteredBsjpCandidates() {
+            const list = this.radar?.bsjp_momentum?.candidates || [];
+            if (this.bsjpCategory === 'rocket') {
+                return list.filter((c) => c.category === 'rocket');
+            }
+            if (this.bsjpCategory === 'sweetspot') {
+                return list.filter((c) => c.category === 'sweetspot');
+            }
+            return list;
+        },
         // Bar visual (0-100%) jarak ke trigger -- skala referensi beda per strategi krn unit beda
         // (persentase-poin GABUNGAN, poin RSI MOMENTUM, persentase harga BOTTOM_REBOUND).
         // Sudah triggered (distance <= 0) = bar penuh 100%.

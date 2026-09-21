@@ -324,15 +324,41 @@
       </div>
     </div>
 
+    {{-- Filter Tabs (All / Rocket / Sweetspot) --}}
+    <div class="flex flex-wrap items-center gap-2 pt-1 pb-1">
+      <button type="button" @click="bsjpCategory = 'all'"
+              class="px-2.5 py-1 rounded-lg text-xs font-medium transition"
+              :class="bsjpCategory === 'all' ? 'bg-slate-700 text-slate-100 border border-slate-600' : 'bg-slate-800/60 text-slate-400 hover:text-slate-200'">
+        Semua (<span x-text="(radar.bsjp_momentum?.candidates || []).length"></span>)
+      </button>
+      <button type="button" @click="bsjpCategory = 'rocket'"
+              class="px-2.5 py-1 rounded-lg text-xs font-medium transition inline-flex items-center gap-1.5"
+              :class="bsjpCategory === 'rocket' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/50' : 'bg-slate-800/60 text-slate-400 hover:text-slate-200'">
+        <span>🚀 Super Rocket (&ge;15%)</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/30 text-rose-200 font-mono"
+              x-text="(radar.bsjp_momentum?.candidates || []).filter(c => c.category === 'rocket').length"></span>
+      </button>
+      <button type="button" @click="bsjpCategory = 'sweetspot'"
+              class="px-2.5 py-1 rounded-lg text-xs font-medium transition inline-flex items-center gap-1.5"
+              :class="bsjpCategory === 'sweetspot' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50' : 'bg-slate-800/60 text-slate-400 hover:text-slate-200'">
+        <span>🎯 Sweetspot BSJP (4% - 15%)</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/30 text-emerald-200 font-mono"
+              x-text="(radar.bsjp_momentum?.candidates || []).filter(c => c.category === 'sweetspot').length"></span>
+      </button>
+    </div>
+
     {{-- Cards Grid --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-      <template x-for="item in (radar.bsjp_momentum?.candidates || [])" :key="item.ticker + '-bsjp'">
+      <template x-for="item in filteredBsjpCandidates()" :key="item.ticker + '-bsjp'">
         <div class="glass-card rounded-2xl p-4 border-2 transition-all hover:border-slate-700"
              :class="radar.bsjp_momentum?.stage === 'confirm' ? 'border-emerald-500/40 bg-emerald-500/[0.03]' : 'border-slate-800/80 bg-slate-900/40'">
           <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
               <span class="font-bold text-base text-slate-100" x-text="item.ticker"></span>
               <span class="text-[11px] font-semibold text-emerald-400" x-text="'+' + fmtNum(item.return_pct, 2) + '%'"></span>
+              <span class="text-[9px] px-2 py-0.5 rounded-full border font-semibold inline-flex items-center gap-1"
+                    :class="item.category_badge || (item.category === 'rocket' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30')"
+                    x-text="item.category_label || (item.category === 'rocket' ? '🚀 Super Rocket' : '🎯 Sweetspot')"></span>
             </div>
             <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 font-bold font-mono"
                   x-text="'Vol ' + item.volume_ratio + 'x'"></span>
