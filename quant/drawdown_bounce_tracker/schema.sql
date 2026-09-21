@@ -101,6 +101,24 @@ CREATE TABLE IF NOT EXISTS outcomes (
     UNIQUE(signal_id, horizon_days)
 );
 
+-- Fase EY: sinyal TINS BOTTOM-TO-TOP SWING -- strategi KEEMPAT (khusus komoditas siklikal TINS).
+-- Menangkap dasar siklus (Stoch < 30 / BB %B < 0.25 / RSI < 45 + lilin hijau) dan kunci untung
+-- di pucuk (Trailing 2.5% setelah cuan >= 3%), diproteksi Auto Cut Loss 3.0% (anti-minus 5%).
+CREATE TABLE IF NOT EXISTS tins_bottom_to_top_signals (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    detected_at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    ticker              TEXT NOT NULL DEFAULT 'TINS',
+    trigger_date        TEXT NOT NULL,
+    stoch_k             REAL NOT NULL,
+    bb_pct_b            REAL NOT NULL,
+    rsi14               REAL NOT NULL,
+    entry_date          TEXT NOT NULL,
+    entry_price         REAL NOT NULL,
+    sl_price            REAL NOT NULL,
+    notes               TEXT,
+    UNIQUE(ticker, trigger_date)
+);
+
 CREATE TRIGGER IF NOT EXISTS signals_no_update
 BEFORE UPDATE ON signals
 BEGIN
@@ -123,6 +141,18 @@ CREATE TRIGGER IF NOT EXISTS momentum_signals_no_delete
 BEFORE DELETE ON momentum_signals
 BEGIN
     SELECT RAISE(ABORT, 'momentum_signals is append-only: rows cannot be deleted');
+END;
+
+CREATE TRIGGER IF NOT EXISTS tins_bottom_to_top_signals_no_update
+BEFORE UPDATE ON tins_bottom_to_top_signals
+BEGIN
+    SELECT RAISE(ABORT, 'tins_bottom_to_top_signals is append-only: log a new row instead of editing');
+END;
+
+CREATE TRIGGER IF NOT EXISTS tins_bottom_to_top_signals_no_delete
+BEFORE DELETE ON tins_bottom_to_top_signals
+BEGIN
+    SELECT RAISE(ABORT, 'tins_bottom_to_top_signals is append-only: rows cannot be deleted');
 END;
 
 CREATE TRIGGER IF NOT EXISTS heads_up_alerts_no_update
@@ -148,3 +178,4 @@ BEFORE DELETE ON outcomes
 BEGIN
     SELECT RAISE(ABORT, 'outcomes is append-only: rows cannot be deleted');
 END;
+

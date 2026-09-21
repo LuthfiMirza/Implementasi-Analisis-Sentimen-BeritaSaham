@@ -77,10 +77,9 @@ DRAWDOWN_THRESHOLD = -0.20  # Fase BK: leg kedua aturan gabungan, lihat COMBINED
 # P1-P4), plus filter likuiditas (nilai transaksi harian >Rp100 miliar) yang tidak pernah dipakai
 # screening sebelumnya. Kandidat lain yang lolos statistik tapi TIDAK ditambahkan karena mikro-cap
 # berisiko slippage tinggi (turnover <Rp10 miliar/hari): BAJA (kandidat TERKUAT secara statistik,
-# lolos GABUNGAN+MOMENTUM sekaligus, tapi cuma Rp2 miliar/hari), CTTH, OILS, REAL, TOBA, KBLV,
-# KOKA. MINA dan MLPT dibuang lebih dulu karena hasilnya didominasi 1 episode ekstrem (+126% dan
-# +92% dari cuma 2-4 trade) -- pola yang sama menjatuhkan TPIA di Fase AY. Lihat plan.md Fase CH.
-COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA", "PSAB"}
+# Fase EY: TINS dipindahkan ke strategi khusus BOTTOM-TO-TOP SWING karena strategi GABUNGAN
+# kaku terbukti rugi (-11.75%) di TINS, sedangkan Bottom-to-Top untung besar (+84.66%).
+COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR", "PTRO", "ENRG", "RAJA", "PSAB"}
 
 # Fase DC: GAP DITEMUKAN (bukan sengaja) -- detect()/detect_heads_up() sebelumnya HARDCODE loop
 # "BUMI, DEWA, BRPT, SMGR, ESSA, UNVR" saja, TIDAK PERNAH ikut scan TINS/PTRO/ENRG/RAJA walau
@@ -93,12 +92,10 @@ COMBINED_RULE_TICKERS = {"BUMI", "DEWA", "BRPT", "ESSA", "UNVR", "TINS", "PTRO",
 #
 # GABUNGAN_SCAN_TICKERS = universe LENGKAP yang benar-benar di-loop detect()/detect_heads_up().
 # SMGR TETAP ikut (aturan lama ret_2d-saja, bukan leg drawdown -- lihat komentar Fase BK di atas)
-# walau SMGR TIDAK ada di COMBINED_RULE_TICKERS. TINS/PTRO/ENRG/RAJA sekarang ditambahkan supaya
-# scan yang jalan SAMA PERSIS dengan yang sudah divalidasi P1-P4 (bukan cuma "terdaftar" tapi tidak
-# pernah dipakai).
-GABUNGAN_SCAN_TICKERS = ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR", "TINS", "PTRO", "ENRG", "RAJA", "INET", "PSAB"]
+# walau SMGR TIDAK ada di COMBINED_RULE_TICKERS.
+GABUNGAN_SCAN_TICKERS = ["BUMI", "DEWA", "BRPT", "SMGR", "ESSA", "UNVR", "PTRO", "ENRG", "RAJA", "INET", "PSAB"]
 LABELS = {"BUMI": "tracked", "DEWA": "tracked", "BRPT": "tracked", "SMGR": "tracked",
-          "ESSA": "tracked", "UNVR": "tracked", "TINS": "exploratory", "PTRO": "tracked",
+          "ESSA": "tracked", "UNVR": "tracked", "TINS": "tracked", "PTRO": "tracked",
           "ENRG": "tracked", "RAJA": "tracked", "DSSA": "tracked", "INET": "tracked",
           "PSAB": "exploratory"}  # TINS & PSAB berlabel "exploratory" (kandidat likuiditas rendah)  # DEWA dinaikkan dari
 # "exploratory" ke "tracked" di Fase AX -- backtest BUMI-only -5% khusus DEWA (2024-sekarang)
@@ -178,6 +175,13 @@ BOTTOM_REBOUND_WINDOW = 10          # bar bursa untuk rolling min ("titik bawah"
 BOTTOM_REBOUND_THRESHOLD = 0.05     # trigger kalau closing >= bottom_10d * (1 + ini)
 BOTTOM_REBOUND_TRAILING_STOP = 0.02  # dipakai check_trailing_stop.py, BUKAN di sini -- dicatat di
                                       # sini juga sebagai dokumentasi kontrak (harus konsisten)
+
+# Fase EY (21 Sep 2026): strategi KEEMPAT -- TINS BOTTOM-TO-TOP SWING (Ambil di Dasar, Jual di Pucuk).
+# Menggantikan strategi Drawdown Bounce kaku di TINS. Menangkap dasar oversold siklikal dan kunci di pucuk.
+# Validasi kuantitatif Des 2025-Sep 2026: 12 trade, win rate 66.7%, modal Rp10jt jadi Rp18.46M (+84.66%).
+TINS_BOTTOM_TO_TOP_START_DATE = date(2026, 9, 21)
+TINS_BOTTOM_TO_TOP_SL_PCT = 0.03            # 3.0% Hard Stop Loss Broker Intraday (maks -3.8% net)
+TINS_BOTTOM_TO_TOP_TRAILING_LOCK_PCT = 0.025 # 2.5% Kunci Profit Trailing dari Puncak (jika cuan >= +3%)
 BOTTOM_REBOUND_TICKERS = {"BUMI", "DEWA"}
 BOTTOM_REBOUND_TRACKING_START_DATE = date(2026, 8, 19)  # aktif hari ini -- jangan backdate
 
@@ -542,6 +546,34 @@ def format_bottom_rebound_alert(signal: dict) -> str:
     )
 
 
+def format_tins_bottom_to_top_alert(signal: dict) -> str:
+    """Fase EY: alert khusus strategi TINS Bottom-to-Top Swing (Juara Komoditas Volatil).
+    Beli di area dasar siklus saat lilin hijau terkonfirmasi, kunci untung di pucuk."""
+    stoch = f"{signal['stoch_k']:.1f}" if signal.get("stoch_k") is not None else "-"
+    bb = f"{signal['bb_pct_b']:.2f}" if signal.get("bb_pct_b") is not None else "-"
+    rsi_val = f"{signal['rsi14']:.1f}" if signal.get("rsi14") is not None else "-"
+    entry_p = signal["entry_price"]
+    sl_p = signal["sl_price"]
+
+    return (
+        f"\U0001F7E2 <b>SINYAL BUY: TINS (BOTTOM-TO-TOP SWING)</b>\n\n"
+        f"<b>Trigger</b>: {signal['trigger_date']} (Lilin Rebound Hijau Terkonfirmasi)\n"
+        f"<b>Estimasi Entry</b>: {signal['entry_date']} @ Rp{entry_p:,.0f} (Dekat Close / Open Esok)\n\n"
+        f"📊 <b>Indikator Dasar (Oversold Rebound)</b>:\n"
+        f"• Stochastic %K: <b>{stoch}</b> (< 30 Diskon Siklus)\n"
+        f"• Bollinger Band %B: <b>{bb}</b> (< 0.25 Area Pita Bawah)\n"
+        f"• RSI(14): <b>{rsi_val}</b>\n"
+        f"• Lilin: <b>HIJAU</b> (Close > Open & Close > Kemarin)\n\n"
+        f"🎯 <b>Protokol Eksekusi & Manajemen Risiko (Anti-Minus 5%)</b>:\n"
+        f"1. <b>Auto Cut Loss Broker (WAJIB)</b>: Pasang langsung di <b>Rp{sl_p:,.0f} (-3.0%)</b>. Risiko maksimal terkunci rapi -3.8% net.\n"
+        f"2. <b>Kunci Profit Dinamis</b>: Begitu untung >= +3.0%, pasang trailing lock 2.5% dari harga puncak tertinggi (*Peak*).\n"
+        f"3. <b>Target Pucuk Overbought</b>: Stochastic > 75 atau BB %B > 0.85.\n\n"
+        f"ℹ️ Hasil Riset Kuantitatif (Des 2025-Sep 2026): Win Rate 66.7%, Modal Rp10jt jadi Rp18.4jt (+84.66%). "
+        f"Tidak ada batas kaku 10 hari bursa. Lihat TINS_BOTTOM_TO_TOP_NOTES.md.\n\n"
+        f"{format_news_block('TINS')}"
+    )
+
+
 def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -598,6 +630,9 @@ def fetch_recent(symbol: str, days: int = 200) -> pd.DataFrame:
     df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
     df = df.reset_index().rename(columns={"Date": "date"})
     df["date"] = pd.to_datetime(df["date"]).dt.date
+    df["open"] = df["Open"]
+    df["high"] = df["High"]
+    df["low"] = df["Low"]
     df["adj_close"] = df["Close"]  # nama kolom dipertahankan ("adj_close") supaya konsumen lama
     # (format_signal_alert, dll) tidak perlu diubah -- isinya sekarang Close mentah, bukan
     # Adj Close, per catatan Fase BK di atas.
@@ -607,6 +642,10 @@ def fetch_recent(symbol: str, days: int = 200) -> pd.DataFrame:
     df["dd_20d"] = df["Close"] / df["Close"].rolling(20).max() - 1
     # Fase CS: rolling min utk aturan BOTTOM_REBOUND -- "titik bawah" 10 hari bursa terakhir.
     df["bottom_10d"] = df["Close"].rolling(BOTTOM_REBOUND_WINDOW).min()
+    # Fase EY: Bollinger Bands %B untuk deteksi dasar dan puncak siklus TINS
+    sma20 = df["Close"].rolling(20).mean()
+    std20 = df["Close"].rolling(20).std()
+    df["bb_pct_b"] = (df["Close"] - (sma20 - 2 * std20)) / (4 * std20).replace(0, np.nan)
 
     # Fase BO: guard snapshot-intraday — kalau baris terakhir tanggalnya hari ini DAN bursa belum
     # tutup (< 15:20 WIB), harga Close itu BUKAN closing final (masih bisa berubah sampai 15:00).
@@ -620,7 +659,7 @@ def fetch_recent(symbol: str, days: int = 200) -> pd.DataFrame:
         print(f"⏳ {symbol}: data hari ini ({today}) dibuang — bursa belum tutup "
               f"({now_wib.strftime('%H:%M')} WIB < {MARKET_CLOSE_TIME.strftime('%H:%M')}).")
 
-    return df[["date", "adj_close", "ret_2d", "rsi14", "stoch_k", "dd_20d", "bottom_10d"]]
+    return df[["date", "open", "high", "low", "adj_close", "ret_2d", "rsi14", "stoch_k", "dd_20d", "bottom_10d", "bb_pct_b"]]
 
 
 def detect() -> list[dict]:
@@ -824,6 +863,56 @@ def detect_bottom_rebound() -> list[dict]:
     return found
 
 
+def detect_tins_bottom_to_top() -> list[dict]:
+    """Fase EY: strategi TINS Bottom-to-Top Swing (Ambil di Dasar, Jual di Pucuk).
+    Trigger:
+      1. Diskon Siklus Ekstrem: Stochastic %K < 30 ATAU Bollinger Band %B < 0.25 ATAU RSI14 < 45
+      2. Konfirmasi Rebound Lilin Hijau: Close > Open DAN Close > Close Kemarin
+    Hasil riset kuantitatif: Modal Rp10jt jadi Rp18.46M (+84.66%), win rate 66.7%, max loss 3.8% net.
+    """
+    found = []
+    stock = fetch_recent("TINS.JK", days=200).dropna(subset=["stoch_k", "bb_pct_b", "rsi14"])
+    if len(stock) < 2:
+        return found
+
+    for i in range(1, len(stock)):
+        trigger_row = stock.iloc[i]
+        prev_row = stock.iloc[i - 1]
+        trigger_date = trigger_row["date"]
+
+        if trigger_date < TINS_BOTTOM_TO_TOP_START_DATE:
+            continue
+
+        cond_dip = bool(
+            trigger_row["stoch_k"] < 30
+            or trigger_row["bb_pct_b"] < 0.25
+            or trigger_row["rsi14"] < 45
+        )
+        cond_green = bool(
+            trigger_row["adj_close"] > trigger_row["open"]
+            and trigger_row["adj_close"] > prev_row["adj_close"]
+        )
+
+        if not (cond_dip and cond_green):
+            continue
+
+        entry_price = float(trigger_row["adj_close"])
+        sl_price = round(entry_price * (1.0 - TINS_BOTTOM_TO_TOP_SL_PCT), 0)
+
+        found.append({
+            "ticker": "TINS",
+            "trigger_date": trigger_date.isoformat(),
+            "stoch_k": float(trigger_row["stoch_k"]),
+            "bb_pct_b": float(trigger_row["bb_pct_b"]),
+            "rsi14": float(trigger_row["rsi14"]),
+            "entry_date": trigger_date.isoformat(),
+            "entry_price": entry_price,
+            "sl_price": sl_price,
+        })
+
+    return found
+
+
 POSITIONS_PATH = Path(__file__).parent / "open_positions.json"
 
 
@@ -958,6 +1047,30 @@ def main() -> None:
         except sqlite3.IntegrityError:
             pass
 
+    tins_signals = detect_tins_bottom_to_top()
+    inserted_tins = 0
+    for s in tins_signals:
+        try:
+            conn.execute(
+                """INSERT INTO tins_bottom_to_top_signals
+                (ticker, trigger_date, stoch_k, bb_pct_b, rsi14, entry_date, entry_price, sl_price)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (s["ticker"], s["trigger_date"], s["stoch_k"], s["bb_pct_b"], s["rsi14"],
+                 s["entry_date"], s["entry_price"], s["sl_price"]),
+            )
+            inserted_tins += 1
+            print(f"SINYAL TINS BOTTOM-TO-TOP BARU: trigger {s['trigger_date']} "
+                  f"(Stoch={s['stoch_k']:.1f}, BB%B={s['bb_pct_b']:.2f}) -> entry {s['entry_date']} @ {s['entry_price']:.0f} | SL={s['sl_price']:.0f}")
+
+            send_telegram_alert(format_tins_bottom_to_top_alert(s),
+                                 reply_markup=build_action_keyboard(s["ticker"], "BOTTOM_TO_TOP", s["entry_date"]))
+
+            register_open_position(s["ticker"], s["entry_date"], s["entry_price"],
+                                    strategy="BOTTOM_TO_TOP")
+            print(f"SYNC_OPEN|{s['ticker']}|{s['entry_price']}|{s['entry_date']}|BOTTOM_TO_TOP|bottom_to_top")
+        except sqlite3.IntegrityError:
+            pass
+
     inserted_heads_up = 0
     for s in heads_up_signals:
         try:
@@ -980,6 +1093,7 @@ def main() -> None:
     total = conn.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
     total_momentum = conn.execute("SELECT COUNT(*) FROM momentum_signals").fetchone()[0]
     total_bottom_rebound = conn.execute("SELECT COUNT(*) FROM bottom_rebound_signals").fetchone()[0]
+    total_tins = conn.execute("SELECT COUNT(*) FROM tins_bottom_to_top_signals").fetchone()[0]
     total_heads_up = conn.execute("SELECT COUNT(*) FROM heads_up_alerts").fetchone()[0]
     conn.close()
 
@@ -999,6 +1113,11 @@ def main() -> None:
     else:
         print(f"{inserted_bottom_rebound} sinyal bottom-rebound baru dicatat. "
               f"Total tercatat: {total_bottom_rebound}.")
+
+    if inserted_tins == 0:
+        print(f"Tidak ada sinyal TINS bottom-to-top baru. Tidak ada trigger sejak {TINS_BOTTOM_TO_TOP_START_DATE}. Total tercatat: {total_tins}.")
+    else:
+        print(f"{inserted_tins} sinyal TINS bottom-to-top baru dicatat. Total tercatat: {total_tins}.")
 
     if inserted_heads_up == 0:
         print(f"Tidak ada peringatan dini baru. Total tercatat: {total_heads_up}.")
