@@ -669,14 +669,20 @@ class SignalRadarService
             'trade_date' => $latestDate,
             'candidates' => $rows->map(function ($r) {
                 $price = (float) $r->price;
+                $retPct = (float) $r->return_pct;
+                $isRocket = $retPct >= 15.0;
+
                 return [
                     'ticker' => (string) $r->ticker,
                     'name' => (string) ($r->name ?? $r->ticker),
                     'price' => $price,
                     'open' => (float) $r->open_price,
-                    'return_pct' => (float) $r->return_pct,
+                    'return_pct' => $retPct,
                     'volume_ratio' => round((float) $r->volume_ratio, 1),
                     'value' => (float) $r->transaction_value,
+                    'category' => $isRocket ? 'rocket' : 'sweetspot',
+                    'category_label' => $isRocket ? '🚀 Super Rocket' : '🎯 Sweetspot',
+                    'category_badge' => $isRocket ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
                     'target_tp' => round($price * 1.025),
                     'stop_loss' => round($price * 0.97),
                 ];
