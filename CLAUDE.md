@@ -48,9 +48,7 @@ Fitur Gabungan (technical + sentiment) → Model Prediksi (V6A/V6B, RF/LogReg) �
   every promotion) + `candidates/` (rejected/pending retrains).
 - `routes/console.php` — single source of truth for the scheduler; if a command should run
   automatically, its entry must be here (there is no separate cron config).
-- `plan.md` — running execution log of this thesis session's audit/fixes, per phase. Check it
-  before assuming something is broken or unfixed; append to it (don't rewrite) when documenting a
-  new finding.
+- `plan.md` — running execution log of active roadmap phases (completed historical phases are archived losslessly in `docs/audit_history/`). Check it before assuming something is broken or unfixed; append to it when documenting a new finding.
 
 ## Conventions / rules specific to this repo
 

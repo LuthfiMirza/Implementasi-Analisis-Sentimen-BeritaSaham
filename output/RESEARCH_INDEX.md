@@ -18,6 +18,8 @@ Ringkasan status resmi terkini seluruh proyek riset kuantitatif (baseline aktif,
 | Eksperimen trading lanjutan (regime/hold-lama) | `trading_research/reports/BUMI_DEWA_v3_regime_longer_hold_experiment.md` | 1 kandidat experimental (belum boleh dipromosikan), sisanya kalah vs naive buy-hold |
 | Eksperimen fitur/model BUMI v3 (2026-07-07) | `prediction_research/bumi_v3_fair_subset_verification.txt` | Tidak ada improvement robust; sentimen coverage cuma ~2% |
 | Coverage sentimen & rencana perbaikan (2026-07-07) | *(lihat memory Claude, bukan file — `project-gap-remediation-plan.md`)* | Coverage 0.22%, tie-break sentimen ML→rule-based sudah diperbaiki, 801 artikel divalidasi manual |
+| Strategi TINS Bottom-to-Top (2026-09-21) | `tins_bottom_to_top_strategy_report.md` | **[VALIDATED]** — modal Rp 10Jt → Rp 18.46Jt (+84.7%), SL 3.0%, win rate 66.7% |
+
 
 ## Peta Direktori
 
