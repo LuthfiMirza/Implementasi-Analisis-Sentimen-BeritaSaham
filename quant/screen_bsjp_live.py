@@ -117,18 +117,22 @@ def scan_candidates(trade_date: str | None = None) -> list[dict]:
 
             candidates = []
             for r in rows:
+                ret_pct = float(r["return_pct"])
+                is_rocket = ret_pct >= 15.0
                 candidates.append({
                     "ticker": r["ticker"],
                     "name": r.get("name") or r["ticker"],
                     "price": float(r["price"]),
                     "open": float(r["open_price"]),
                     "prev_price": float(r["prev_price"]),
-                    "return_pct": float(r["return_pct"]),
+                    "return_pct": ret_pct,
                     "volume": int(r["volume_today"]),
                     "prev_volume": int(r["volume_prev"]),
                     "volume_ratio": float(r["volume_ratio"]) if r["volume_ratio"] else 1.0,
                     "value": float(r["transaction_value"]),
                     "trade_date": str(r["trade_date"]),
+                    "category": "rocket" if is_rocket else "sweetspot",
+                    "category_label": "🚀 Super Rocket" if is_rocket else "🎯 Sweetspot",
                 })
 
             return candidates
@@ -139,7 +143,7 @@ def scan_candidates(trade_date: str | None = None) -> list[dict]:
 def format_early_telegram_alert(candidates: list[dict]) -> str:
     """Format Jam 15:00 WIB Early Warning alert in HTML."""
     now_str = datetime.now(JAKARTA_TZ).strftime("%d %b %Y, %H:%M WIB")
-    top = candidates[:5]
+    top = candidates[:8]
 
     lines = [
         "🟡 <b>RADAR PANTAU BSJP (Beli Sore Jual Pagi)</b>",
@@ -151,8 +155,9 @@ def format_early_telegram_alert(candidates: list[dict]) -> str:
 
     for idx, c in enumerate(top, 1):
         val_m = c["value"] / 1_000_000_000.0
+        tag = "🚀 <i>[Super Rocket]</i>" if c.get("category") == "rocket" else "🎯 <i>[Sweetspot]</i>"
         lines.append(
-            f"<b>{idx}. #{c['ticker']}</b> — Rp{c['price']:,.0f} (<b>+{c['return_pct']:.2f}%</b>)\n"
+            f"<b>{idx}. #{c['ticker']}</b> {tag} — Rp{c['price']:,.0f} (<b>+{c['return_pct']:.2f}%</b>)\n"
             f"   • Vol Spike: <b>{c['volume_ratio']:.1f}x lipat</b> vs kemarin\n"
             f"   • Nilai Trx: Rp{val_m:.2f} Miliar | Open: Rp{c['open']:,.0f}"
         )
@@ -169,7 +174,7 @@ def format_early_telegram_alert(candidates: list[dict]) -> str:
 def format_confirm_telegram_alert(candidates: list[dict]) -> str:
     """Format Jam 15:35 WIB Final Confirmation alert in HTML."""
     now_str = datetime.now(JAKARTA_TZ).strftime("%d %b %Y, %H:%M WIB")
-    top = candidates[:3]  # Pick top 2-3 strongest
+    top = candidates[:5]
 
     lines = [
         "🟢 <b>KONFIRMASI AKHIR BSJP — SIAP BELI</b>",
@@ -182,8 +187,9 @@ def format_confirm_telegram_alert(candidates: list[dict]) -> str:
     for idx, c in enumerate(top, 1):
         val_m = c["value"] / 1_000_000_000.0
         target_tp = c["price"] * 1.025
+        tag = "🚀 [Super Rocket]" if c.get("category") == "rocket" else "🎯 [Sweetspot Likuid]"
         lines.append(
-            f"🎯 <b>PILIHAN #{idx}: #{c['ticker']}</b> (Rp{c['price']:,.0f} | <b>+{c['return_pct']:.2f}%</b>)\n"
+            f"<b>PILIHAN #{idx}: #{c['ticker']}</b> {tag} (Rp{c['price']:,.0f} | <b>+{c['return_pct']:.2f}%</b>)\n"
             f"   • Rasio Volume: <b>{c['volume_ratio']:.1f}x</b> | Trx: Rp{val_m:.2f} Miliar\n"
             f"   • <b>Rekomendasi Beli:</b> Sesi Pre-Closing (15:50 - 15:58 WIB)\n"
             f"   • <b>Target Jual Besok:</b> Rp{target_tp:,.0f} (+2.5% s/d Open 09:00 WIB)"
@@ -203,7 +209,7 @@ def format_confirm_telegram_alert(candidates: list[dict]) -> str:
 def format_reminder_telegram_alert(candidates: list[dict]) -> str:
     """Format Jam 08:50 WIB Morning Exit Reminder in HTML."""
     now_str = datetime.now(JAKARTA_TZ).strftime("%d %b %Y, %H:%M WIB")
-    top = candidates[:3]
+    top = candidates[:5]
 
     lines = [
         "🔔 <b>PENGINGAT AMBIL CUAN BSJP (08:50 WIB)</b>",
@@ -215,8 +221,9 @@ def format_reminder_telegram_alert(candidates: list[dict]) -> str:
 
     for c in top:
         target_tp = c["price"] * 1.025
+        tag = "🚀" if c.get("category") == "rocket" else "🎯"
         lines.append(
-            f"• <b>#{c['ticker']}</b> (Beli Sore: Rp{c['price']:,.0f})\n"
+            f"• {tag} <b>#{c['ticker']}</b> (Beli Sore: Rp{c['price']:,.0f})\n"
             f"  ↳ Pasang Jual di: <b>Rp{target_tp:,.0f} (+2.5%)</b> atau langsung <b>HAKI di Open 09:00 WIB</b>"
         )
 
@@ -232,13 +239,21 @@ def main():
     parser = argparse.ArgumentParser(description="Scanner Momentum BSJP Live & Alert Telegram")
     parser.add_argument("--stage", choices=["early", "confirm", "reminder"], default="early",
                         help="Tahap: early (15:00 WIB), confirm (15:35 WIB), reminder (08:50 WIB)")
+    parser.add_argument("--category", choices=["all", "sweetspot", "rocket"], default="all",
+                        help="Filter: all, sweetspot (4%-15%), rocket (>15%)")
     parser.add_argument("--date", type=str, default=None, help="Tanggal trading YYYY-MM-DD")
     parser.add_argument("--send-telegram", action="store_true", help="Kirim notifikasi ke Telegram")
     parser.add_argument("--json", action="store_true", help="Output JSON untuk Laravel Radar")
 
     args = parser.parse_args()
 
-    candidates = scan_candidates(args.date)
+    all_candidates = scan_candidates(args.date)
+    if args.category == "rocket":
+        candidates = [c for c in all_candidates if c.get("category") == "rocket"]
+    elif args.category == "sweetspot":
+        candidates = [c for c in all_candidates if c.get("category") == "sweetspot"]
+    else:
+        candidates = all_candidates
 
     if args.json:
         print(json.dumps({

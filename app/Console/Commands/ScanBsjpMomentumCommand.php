@@ -12,11 +12,12 @@ class ScanBsjpMomentumCommand extends Command
 {
     protected $signature = 'trade:scan-bsjp 
         {--stage=early : Tahap pemindaian: early (15:00 WIB), confirm (15:35 WIB), reminder (08:50 WIB)}
+        {--category=all : Filter kategori: all, sweetspot (4% - 15%), rocket (> 15% / calon ARA)}
         {--date= : Tanggal perdagangan YYYY-MM-DD (default: tanggal terakhir di database)}
         {--min-ret=3.0 : Kenaikan harga minimum (%)}
         {--min-vol=1.5 : Rasio lonjakan volume minimum (x lipat)}
         {--min-val=100000000 : Nilai transaksi minimum dalam rupiah}
-        {--limit=5 : Jumlah saham teratas yang diambil}
+        {--limit=10 : Jumlah saham teratas yang diambil}
         {--send : Kirim notifikasi alert ke Telegram}';
 
     protected $description = 'Pindai saham momentum BSJP (Beli Sore Jual Pagi) dan kirim alert Telegram dua tahap (15:00 & 15:35 WIB)';
@@ -30,6 +31,7 @@ class ScanBsjpMomentumCommand extends Command
         }
 
         $stage = strtolower($this->option('stage') ?? 'early');
+        $categoryFilter = strtolower($this->option('category') ?? 'all');
         $targetDate = $this->resolveTradeDate($this->option('date'));
 
         if (! $targetDate) {
@@ -38,7 +40,7 @@ class ScanBsjpMomentumCommand extends Command
             return self::FAILURE;
         }
 
-        $candidates = $this->fetchCandidates(
+        $allCandidates = $this->fetchCandidates(
             $targetDate,
             (float) $this->option('min-ret'),
             (float) $this->option('min-vol'),
@@ -46,22 +48,29 @@ class ScanBsjpMomentumCommand extends Command
             (int) $this->option('limit')
         );
 
-        $this->info("=== SCANNER MOMENTUM BSJP [STAGE: " . strtoupper($stage) . "] ===");
+        $candidates = match ($categoryFilter) {
+            'rocket' => array_values(array_filter($allCandidates, fn ($c) => $c['category'] === 'rocket')),
+            'sweetspot' => array_values(array_filter($allCandidates, fn ($c) => $c['category'] === 'sweetspot')),
+            default => $allCandidates,
+        };
+
+        $this->info("=== SCANNER MOMENTUM BSJP [STAGE: " . strtoupper($stage) . " | KATEGORI: " . strtoupper($categoryFilter) . "] ===");
         $this->line("Tanggal Evaluasi: {$targetDate}");
         $this->line("Ditemukan: " . count($candidates) . " saham potensial.");
 
         if (empty($candidates)) {
-            $this->warn('Tidak ada saham yang memenuhi seluruh kriteria BSJP hari ini.');
+            $this->warn('Tidak ada saham yang memenuhi kriteria untuk kategori ini.');
 
             return self::SUCCESS;
         }
 
         $this->table(
-            ['Ticker', 'Nama', 'Harga', 'Kenaikan', 'Vol Spike', 'Nilai Trx (Rp)', 'Open'],
+            ['Ticker', 'Nama', 'Kategori', 'Harga', 'Kenaikan', 'Vol Spike', 'Nilai Trx (Rp)', 'Open'],
             collect($candidates)->map(function ($c) {
                 return [
                     $c['ticker'],
-                    \Illuminate\Support\Str::limit($c['name'], 25),
+                    \Illuminate\Support\Str::limit($c['name'], 22),
+                    $c['category_label'],
                     'Rp ' . number_format($c['price'], 0, ',', '.'),
                     sprintf('%+.2f%%', $c['return_pct']),
                     sprintf('%.1fx', $c['volume_ratio']),
@@ -144,17 +153,22 @@ class ScanBsjpMomentumCommand extends Command
             ->get();
 
         return $rows->map(function ($r) {
+            $retPct = (float) $r->return_pct;
+            $isRocket = $retPct >= 15.0;
+
             return [
                 'ticker' => (string) $r->ticker,
                 'name' => (string) ($r->name ?? $r->ticker),
                 'price' => (float) $r->price,
                 'open' => (float) $r->open_price,
                 'prev_price' => (float) $r->prev_price,
-                'return_pct' => (float) $r->return_pct,
+                'return_pct' => $retPct,
                 'volume' => (int) $r->volume_today,
                 'prev_volume' => (int) $r->volume_prev,
                 'volume_ratio' => round((float) $r->volume_ratio, 2),
                 'value' => (float) $r->transaction_value,
+                'category' => $isRocket ? 'rocket' : 'sweetspot',
+                'category_label' => $isRocket ? '🚀 Super Rocket' : '🎯 Sweetspot',
             ];
         })->all();
     }
@@ -170,12 +184,13 @@ class ScanBsjpMomentumCommand extends Command
             '',
         ];
 
-        foreach (array_slice($candidates, 0, 5) as $idx => $c) {
+        foreach (array_slice($candidates, 0, 8) as $idx => $c) {
             $num = $idx + 1;
             $valM = number_format($c['value'] / 1_000_000_000, 2, ',', '.');
             $price = number_format($c['price'], 0, ',', '.');
             $ret = sprintf('%+.2f%%', $c['return_pct']);
-            $lines[] = "<b>{$num}. #{$c['ticker']}</b> — Rp{$price} (<b>{$ret}</b>)\n"
+            $tag = $c['category'] === 'rocket' ? '🚀 <i>[Super Rocket]</i>' : '🎯 <i>[Sweetspot]</i>';
+            $lines[] = "<b>{$num}. #{$c['ticker']}</b> {$tag} — Rp{$price} (<b>{$ret}</b>)\n"
                 . "   • Vol Spike: <b>{$c['volume_ratio']}x lipat</b> vs kemarin\n"
                 . "   • Nilai Trx: Rp{$valM} Miliar | Open: Rp" . number_format($c['open'], 0, ',', '.');
         }
@@ -198,14 +213,15 @@ class ScanBsjpMomentumCommand extends Command
             '',
         ];
 
-        foreach (array_slice($candidates, 0, 3) as $idx => $c) {
+        foreach (array_slice($candidates, 0, 5) as $idx => $c) {
             $num = $idx + 1;
             $valM = number_format($c['value'] / 1_000_000_000, 2, ',', '.');
             $price = number_format($c['price'], 0, ',', '.');
             $ret = sprintf('%+.2f%%', $c['return_pct']);
             $targetTp = number_format(round($c['price'] * 1.025), 0, ',', '.');
+            $tag = $c['category'] === 'rocket' ? '🚀 [Super Rocket]' : '🎯 [Sweetspot Likuid]';
 
-            $lines[] = "🎯 <b>PILIHAN #{$num}: #{$c['ticker']}</b> (Rp{$price} | <b>{$ret}</b>)\n"
+            $lines[] = "<b>PILIHAN #{$num}: #{$c['ticker']}</b> {$tag} (Rp{$price} | <b>{$ret}</b>)\n"
                 . "   • Rasio Volume: <b>{$c['volume_ratio']}x</b> | Trx: Rp{$valM} Miliar\n"
                 . "   • <b>Rekomendasi Beli:</b> Sesi Pre-Closing (15:50 - 15:58 WIB)\n"
                 . "   • <b>Target Jual Besok:</b> Rp{$targetTp} (+2.5% s/d Open 09:00 WIB)";
@@ -231,10 +247,11 @@ class ScanBsjpMomentumCommand extends Command
             '',
         ];
 
-        foreach (array_slice($candidates, 0, 3) as $c) {
+        foreach (array_slice($candidates, 0, 5) as $c) {
             $price = number_format($c['price'], 0, ',', '.');
             $targetTp = number_format(round($c['price'] * 1.025), 0, ',', '.');
-            $lines[] = "• <b>#{$c['ticker']}</b> (Beli Sore: Rp{$price})\n"
+            $tag = $c['category'] === 'rocket' ? '🚀' : '🎯';
+            $lines[] = "• {$tag} <b>#{$c['ticker']}</b> (Beli Sore: Rp{$price})\n"
                 . "  ↳ Pasang Jual di: <b>Rp{$targetTp} (+2.5%)</b> atau langsung <b>HAKI di Open 09:00 WIB</b>";
         }
 
