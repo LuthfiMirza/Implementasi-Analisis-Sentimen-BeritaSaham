@@ -38,6 +38,31 @@
             </div>
         @endif
 
+        {{-- Quick Hub Banner: Signal Radar --}}
+        <div class="glass-card rounded-2xl p-4 border border-cyan-500/30 bg-cyan-500/[0.04] flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                    <x-heroicon-o-signal class="w-6 h-6" />
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-slate-100">Signal Radar Live</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/40">NEW: TINS Bottom-to-Top</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        Pantau radar sinyal live: strategi TINS Bottom-to-Top Swing, GABUNGAN Mean-Reversion, dan MOMENTUM secara real-time.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('trades.radar') }}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold text-xs transition shadow-sm">
+                    <span>Buka Signal Radar</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+            </div>
+        </div>
+
         <div class="dashboard-workspace">
             <div class="dashboard-watchlist-shell">
                 @include('dashboard.partials.sidebar', ['watchlist' => $watchlist, 'stocks' => $stocks, 'watchlistInsights' => $watchlist_insights ?? collect()])
