@@ -120,3 +120,30 @@ Sinyal otomatis aktif di cron EOD 15:18 WIB dan intraday trailing monitor setiap
 #### 4. Status Fase FA: SELESAI (Aktif Produksi).
 Sistem scanner 2-tahap telah aktif di cron scheduler dan terintegrasi penuh di halaman `/trades/radar`.
 
+---
+
+### Fase FB — Klasifikasi Top Gainers Mover (Super Rocket vs Sweetspot) & Filter Kategori Web Radar (21 Sep 2026)
+
+#### 1. Latar Belakang & Analisis 50 Top Gainers
+* Pengguna menguji 50 saham *Top Gainers / Movers* bursa (CSMI, TRUE, BBSS, JAWA, AGAR, NASI, HOPE, BAJA, INTD, GDST, COIN, CHEM, TRIN, WAPO, PRAY, AISA, HELI, SQMI, IBOS, FLMC, IRSX, DPUM, GTSI, MAYA, PKPK, HUMI, GRIA, TCPI, BIPI, MSIE, PSDN, BKDP, NATO, ARII, RELI, RISE, VERN, NEST, CENT, KKES, SMLE, GWSA, SCNP, UVCR, AMIN, WIIM, SILO, BAIK, FOLK, VINS).
+* Pertanyaan Kritis: Mengapa saham-saham ini terbang, apakah semuanya bagus untuk BSJP, dan bagaimana membedakan calon ARA vs saham likuid serta menolak jebakan fakeout?
+* Temuan Kuantitatif:
+  1. **🚀 Super Rocket ($\ge$ 15% / Calon ARA):** Lonjakan volume 14x s/d 53x lipat (`BBSS` 53.2x, `CSMI` 18.3x). Potensi gap-up pagi rata-rata **+8.82%**, tetapi antrian offer rawan terkunci ARA saat pre-closing.
+  2. **🎯 Sweetspot BSJP (4% - 15% / Likuiditas Terbuka):** Saham seperti `COIN`, `CHEM`, `SQMI`, `IRSX`, `GRIA`, `PSDN`, `SMLE`, `SCNP`. Antrian offer melimpah di pre-closing 15:50 WIB sehingga order beli 100% pasti match, dengan **Win Rate pagi 83.9%** (rata-rata kenaikan +4.30%).
+  3. **⛔ Jebakan Batman / Volume Trap:** Saham yang naik tinggi tanpa volume (`NASI` +24.79% tapi volume ratio hanya 0.18x / drop 82%, `WAPO` 0.56x, `DPUM` 0.49x, `RELI` trx cuma Rp 51 Juta). Wajib disaring oleh kriteria volume spike $\ge 1.5x$ dan nilai transaksi $\ge$ Rp 1 Miliar.
+
+#### 2. Implementasi Sistem
+1. **Artisan Command & Engine CLI:**
+   * Ditambahkan opsi `--category=all|sweetspot|rocket` pada `php artisan trade:scan-bsjp` dan `quant/screen_bsjp_live.py`.
+   * Labeling otomatis badge `[🚀 Super Rocket]` dan `[🎯 Sweetspot]` pada tabel CLI dan pesan alert Telegram.
+2. **Web Signal Radar UI (`radar.blade.php` & `app.js`):**
+   * Filter tabs reaktif Alpine.js: `Semua`, `🚀 Super Rocket (≥15%)`, dan `🎯 Sweetspot BSJP (4% - 15%)`.
+   * Badge kategori berwarna cerah pada setiap kartu emiten (`bg-rose-500` vs `bg-emerald-500`).
+3. **Pengujian Kuantitatif & Database SQLite/MySQL:**
+   * Query volume spike distandarisasi ke klausa `WHERE t.volume >= p.volume * 1.5` untuk kompatibilitas penuh SQLite dan MySQL.
+   * Isolasi cache test menggunakan array store di lingkungan pengujian.
+   * Seluruh 10 test di `SignalRadarTest` lulus 100% (60 assertions).
+
+#### 3. Status Fase FB: SELESAI (Aktif Produksi).
+Fitur klasifikasi kategori BSJP dan filter tabs telah aktif di `/trades/radar` dan bot Telegram. Riwayat commit dicatat secara atomik ke repositori utama.
+
