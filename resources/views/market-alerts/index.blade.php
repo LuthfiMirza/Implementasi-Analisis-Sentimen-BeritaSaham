@@ -18,6 +18,7 @@
     <div class="flex items-center gap-2 text-xs text-slate-500">
       <span x-show="loading" x-cloak class="text-sky-400">Memuat&hellip;</span>
       <span>Data bursa: <span class="text-slate-300 font-mono" x-text="payload.trade_date || '—'"></span></span>
+      <span>Berita: <span class="text-slate-300 font-mono" x-text="payload.news_date || '—'"></span></span>
       <button type="button" @click="refresh()"
               class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition"
               title="Refresh sekarang">
@@ -131,18 +132,29 @@
               <th class="text-right font-medium px-4 py-3">Snapshot</th>
             </template>
 
-            <template x-if="active !== 'ownership'">
+            {{-- MACRO NEWS --}}
+            <template x-if="active === 'macro'">
+              <th class="text-left font-medium px-4 py-3">Warning</th>
+            </template>
+            <template x-if="active === 'macro'">
+              <th class="text-left font-medium px-4 py-3">Pemicu</th>
+            </template>
+            <template x-if="active === 'macro'">
+              <th class="text-right font-medium px-4 py-3">Waktu</th>
+            </template>
+
+            <template x-if="active !== 'ownership' && active !== 'macro'">
               <th class="text-right font-medium px-4 py-3">Harga</th>
             </template>
-            <template x-if="active !== 'ownership'">
+            <template x-if="active !== 'ownership' && active !== 'macro'">
               <th class="text-right font-medium px-4 py-3">%</th>
             </template>
-            <template x-if="active !== 'ownership'">
+            <template x-if="active !== 'ownership' && active !== 'macro'">
               <th class="text-right font-medium px-4 py-3">Nilai transaksi</th>
             </template>
           </tr>
         </thead>
-        <template x-for="row in rows()" :key="row.stock_code">
+        <template x-for="row in rows()" :key="`${active}-${row.stock_code}-${row.published_at || row.snapshot_date || row.close || ''}-${row.title || ''}`">
           <tbody class="border-t border-slate-800/70">
             <tr class="hover:bg-slate-800/40 transition"
                 :class="active === 'foreign' ? 'cursor-pointer' : ''"
@@ -156,8 +168,13 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                   </template>
-                  <a :href="`/stocks/${row.stock_code}`" @click.stop
-                     class="font-semibold text-slate-100 hover:text-sky-300" x-text="row.stock_code"></a>
+                  <template x-if="active !== 'macro'">
+                    <a :href="`/stocks/${row.stock_code}`" @click.stop
+                       class="font-semibold text-slate-100 hover:text-sky-300" x-text="row.stock_code"></a>
+                  </template>
+                  <template x-if="active === 'macro'">
+                    <span class="font-semibold text-slate-100" x-text="row.stock_code"></span>
+                  </template>
                 </div>
                 <div class="text-[11px] text-slate-500 truncate max-w-[220px]" x-text="row.stock_name"></div>
               </td>
@@ -206,13 +223,30 @@
                 <td class="px-4 py-3 text-right font-mono text-slate-500 text-xs" x-text="row.snapshot_date || '—'"></td>
               </template>
 
-              <template x-if="active !== 'ownership'">
+              {{-- MACRO NEWS --}}
+              <template x-if="active === 'macro'">
+                <td class="px-4 py-3">
+                  <div class="font-medium" :class="row.severity === 'high' ? 'text-rose-300' : 'text-amber-300'" x-text="row.severity === 'high' ? 'High' : 'Medium'"></div>
+                  <div class="text-[11px] text-slate-500" x-text="row.sentiment_label || 'headline match'"></div>
+                </td>
+              </template>
+              <template x-if="active === 'macro'">
+                <td class="px-4 py-3 max-w-xl">
+                  <a :href="row.source_url" target="_blank" rel="noopener" class="text-slate-200 hover:text-sky-300" x-text="row.title"></a>
+                  <div class="text-[11px] text-slate-500 mt-1" x-text="(row.reasons || []).join(' • ')"></div>
+                </td>
+              </template>
+              <template x-if="active === 'macro'">
+                <td class="px-4 py-3 text-right font-mono text-slate-500 text-xs" x-text="row.published_at || '—'"></td>
+              </template>
+
+              <template x-if="active !== 'ownership' && active !== 'macro'">
                 <td class="px-4 py-3 text-right font-mono text-slate-200" x-text="`Rp${fmtInt(row.close)}`"></td>
               </template>
-              <template x-if="active !== 'ownership'">
+              <template x-if="active !== 'ownership' && active !== 'macro'">
                 <td class="px-4 py-3 text-right font-mono" :class="signClass(row.pct_change)" x-text="fmtPct(row.pct_change)"></td>
               </template>
-              <template x-if="active !== 'ownership'">
+              <template x-if="active !== 'ownership' && active !== 'macro'">
                 <td class="px-4 py-3 text-right font-mono text-slate-400" x-text="fmtRp(row.value)"></td>
               </template>
             </tr>
@@ -315,8 +349,14 @@ function marketAlerts(payload, dataUrl, foreignHistoryUrl) {
       { key: 'gap', label: 'Harga & Gap' },
       { key: 'foreign', label: 'Foreign Flow' },
       { key: 'ownership', label: 'Kepemilikan' },
+      { key: 'macro', label: 'Macro News' },
     ],
-    init() {},
+    init() {
+      if (((this.payload.counts && this.payload.counts.macro) || 0) > 0
+          && ['volume', 'gap', 'foreign', 'ownership'].every(k => ((this.payload.counts && this.payload.counts[k]) || 0) === 0)) {
+        this.active = 'macro';
+      }
+    },
 
     async toggleForeignHistory(code) {
       if (this.expandedForeign === code) { this.expandedForeign = null; return; }
@@ -358,7 +398,9 @@ function marketAlerts(payload, dataUrl, foreignHistoryUrl) {
       if (!q) return list;
       return list.filter(r =>
         (r.stock_code || '').toLowerCase().includes(q) ||
-        (r.stock_name || '').toLowerCase().includes(q));
+        (r.stock_name || '').toLowerCase().includes(q) ||
+        (r.title || '').toLowerCase().includes(q) ||
+        (r.reasons || []).join(' ').toLowerCase().includes(q));
     },
     async refresh() {
       this.loading = true;
