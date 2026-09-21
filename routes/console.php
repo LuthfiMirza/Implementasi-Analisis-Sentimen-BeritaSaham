@@ -35,6 +35,15 @@ Schedule::command('news:fetch --limit=40 --provider=rss_local')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// PRE-MARKET BSJP EXIT REMINDER: 08.52 WIB
+// Pengingat pasang order jual pembukaan 09:00 WIB untuk saham BSJP kemarin sore
+Schedule::command('trade:scan-bsjp --stage=reminder --send')
+    ->weekdays()
+    ->dailyAt('08:52')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 Schedule::command('news:fetch-ojk --limit=50')
     ->everyTwoHours()
     ->timezone('Asia/Jakarta')
@@ -89,6 +98,24 @@ Schedule::command('stocks:sync-live --all-active')
 Schedule::command('news:fetch --limit=20')
     ->weekdays()
     ->dailyAt('14:30')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// RADAR BSJP TAHAP 1 (EARLY WARNING): 15.00 WIB
+// Deteksi dini lonjakan volume & bullish candle di bursa untuk persiapan BSJP
+Schedule::command('trade:scan-bsjp --stage=early --send')
+    ->weekdays()
+    ->dailyAt('15:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// RADAR BSJP TAHAP 2 (FINAL CONFIRMATION): 15.35 WIB
+// Konfirmasi akhir sebelum pre-closing 15:50 WIB untuk eksekusi beli BSJP
+Schedule::command('trade:scan-bsjp --stage=confirm --send')
+    ->weekdays()
+    ->dailyAt('15:35')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
