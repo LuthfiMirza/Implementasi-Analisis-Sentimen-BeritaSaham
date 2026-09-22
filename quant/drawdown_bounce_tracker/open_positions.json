@@ -95,8 +95,17 @@
     "ticker": "ENRG",
     "entry_date": "2026-09-18",
     "entry_price": 1255,
+    "alerted_pullback_pct": 0.023255813953488372,
+    "strategy": "GABUNGAN",
+    "signal_type": "ret2d",
+    "alerted_pullback_at_peak": 1290.0
+  },
+  {
+    "ticker": "DEWA",
+    "entry_date": "2026-09-22",
+    "entry_price": 346.0,
     "alerted_pullback_pct": null,
     "strategy": "GABUNGAN",
-    "signal_type": "ret2d"
+    "signal_type": "drawdown"
   }
 ]

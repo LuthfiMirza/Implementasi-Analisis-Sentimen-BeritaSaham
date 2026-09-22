@@ -147,3 +147,41 @@ Sistem scanner 2-tahap telah aktif di cron scheduler dan terintegrasi penuh di h
 #### 3. Status Fase FB: SELESAI (Aktif Produksi).
 Fitur klasifikasi kategori BSJP dan filter tabs telah aktif di `/trades/radar` dan bot Telegram. Riwayat commit dicatat secara atomik ke repositori utama.
 
+---
+
+### Fase FC — BSJP Live Trade Tracker, Alokasi Modal Rp 20.000.000, & Evaluator Otomatis 09:05 WIB (22 Sep 2026)
+
+#### 1. Latar Belakang & Kebutuhan Pengguna
+* Setelah pengujian backtest BSJP murni (144 trade menghasilkan pertumbuhan modal **+453.83%** dari Rp 10 Juta menjadi Rp 55,38 Juta), pengguna meminta sistem pencatatan nyata (**Live Trade Tracker**) untuk mulai trading asli.
+* Parameter eksekusi baku yang ditentukan:
+  1. **Alokasi Modal:** **Rp 20.000.000** per saham (menghitung jumlah lot otomatis sesuai harga emiten dan fee beli).
+  2. **Struktur Fee Broker:** Fee beli **0.15%**, Fee jual **0.25%** (total round-trip 0.40%).
+  3. **Filter Likuiditas Ketat:** Transaksi harian minimal $\ge$ **Rp 5 Miliar s/d Rp 10 Miliar+** (contoh: `BIPI` Rp 115,5M, `IRSX` Rp 73,3M, `DYAN` Rp 18,7M, `HUMI` Rp 14,6M, `CENT` Rp 8,5M, `SMLE` Rp 7,8M, `PSDN` Rp 6,1M, `BSSR` Rp 30,5M) agar eksekusi order modal Rp 20 Jt (200 - 2.000 lot) langsung match tanpa risiko slippage.
+  4. **Protokol Waktu:** Entry pre-closing 15:50 WIB &rarr; Hold menginap &rarr; Exit di pembukaan bursa 09:00 WIB (Target TP +2.5% / SL -3.0%).
+
+#### 2. Implementasi Arsitektur Sistem
+1. **Database Migration (`database/migrations/2026_09_22_100000_create_bsjp_trade_logs_table.php`):**
+   * Membuat tabel `bsjp_trade_logs` untuk mencatat detail signal, tanggal entry/exit, harga masuk/keluar, alokasi modal Rp 20 Jt, lot riil, status (`PENDING`, `OPEN`, `CLOSED`, `SKIPPED`), tipe exit (`OPEN_MARKET`, `TARGET_TP`, `STOP_LOSS`, `MANUAL`), serta kalkulasi PnL kotor dan bersih.
+2. **Model Eloquent (`app/Models/BsjpTradeLog.php`):**
+   * Menambahkan fungsi presisi `calculateLots($capital, $price, $buyFeeRate)` dan `calculatePnl($entryPrice, $exitPrice, $lots, $buyFeeRate, $sellFeeRate)`.
+   * Method `closeTrade($exitPrice, $exitedAt, $notes, $exitType)` untuk penutupan posisi otomatis / manual.
+3. **Controller & Web Routing (`BsjpTradeController.php` & `routes/web.php`):**
+   * Endpoint `GET /trades/bsjp-tracker`: Dasbor analitik portofolio BSJP (Metrik Modal Awal Rp 20 Jt, Total Realized PnL, Win Rate, Posisi Terbuka Menginap, dan Riwayat Trade).
+   * Endpoint `POST /trades/bsjp-tracker/buy`: Form eksekusi beli sore pre-closing.
+   * Endpoint `POST /trades/bsjp-tracker/{log}/sell`: Form eksekusi jual di open pagi atau saat TP tercapai.
+   * Endpoint `POST /trades/bsjp-tracker/{log}/skip`: Menandai sinyal dilewati jika volume offer tidak memadai.
+4. **Tampilan Web UI Modern (`resources/views/trades/bsjp_tracker.blade.php`):**
+   * Tampilan Glassmorphism Dark Mode Sentimena dengan 4 KPI metric cards, tabel posisi aktif menginap lengkap dengan kalkulasi target TP/SL, tabel riwayat trading selesai, dan modal dialog Alpine.js.
+   * Navigasi global sidebar di `resources/views/layouts/app.blade.php` dan tombol 1-klik `[🛒 Catat Beli Rp 20 Jt]` di kartu emiten `resources/views/trades/radar.blade.php`.
+5. **Registrasi Emiten Likuid & Sinkronisasi Harga:**
+   * Mendaftarkan 20 emiten likuid baru (`CENT`, `PSDN`, `SMLE`, `IRSX`, `HUMI`, `BIPI`, `CBRE`, `BKDP`, `DSFI`, `DYAN`, `BSSR`, `CSMI`, `ASLI`, `SRSN`, `DOOH`, `SMIL`, `AGAR`, `IDEA`, `IKAN`, `PSSI`) ke database `stocks` (`is_active = 1`) dan watchlist pengguna.
+   * Sinkronisasi data harga real-time via `stocks:sync-live`.
+6. **Evaluator Otomatis Pukul 09:05 WIB (`EvaluateBsjpTradesCommand.php` & `routes/console.php`):**
+   * Command `php artisan trade:evaluate-bsjp` otomatis dijalankan setiap hari bursa jam 09:05 WIB untuk memeriksa posisi menginap terhadap harga open bursa.
+7. **Pengujian Fitur Otomatis (`tests/Feature/BsjpTradeTrackerTest.php`):**
+   * 5 test suite lengkap (render halaman, buy calculation lot Rp 20 Jt, sell PnL calculation fee broker, skip action, artisan command execution) lulus 100% (15 assertions).
+
+#### 3. Status Fase FC: SELESAI (Aktif Produksi).
+Sistem pencatatan trade live BSJP aktif penuh dan siap digunakan pengguna untuk eksekusi portofolio riil Rp 20.000.000.
+
+
