@@ -56,6 +56,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/trades/radar-log/{log}/fill', [TradeController::class, 'radarLogFill'])->name('trades.radar-log.fill');
     Route::post('/trades/radar-log/{log}/skip', [TradeController::class, 'radarLogSkip'])->name('trades.radar-log.skip');
     Route::post('/trades/radar-log/{log}/exit', [TradeController::class, 'radarLogExit'])->name('trades.radar-log.exit');
+    Route::get('/trades/bsjp-tracker', [\App\Http\Controllers\BsjpTradeController::class, 'index'])->name('trades.bsjp-tracker');
+    Route::post('/trades/bsjp-tracker/buy', [\App\Http\Controllers\BsjpTradeController::class, 'buy'])->name('trades.bsjp-tracker.buy');
+    Route::post('/trades/bsjp-tracker/{log}/sell', [\App\Http\Controllers\BsjpTradeController::class, 'sell'])->name('trades.bsjp-tracker.sell');
+    Route::post('/trades/bsjp-tracker/{log}/skip', [\App\Http\Controllers\BsjpTradeController::class, 'skip'])->name('trades.bsjp-tracker.skip');
     Route::get('/trades/laporan', [TradeController::class, 'laporan'])->name('trades.laporan');
     Route::post('/trades', [TradeController::class, 'store'])->name('trades.store');
     Route::post('/trades/position-sizing', [TradeController::class, 'updatePositionSizing'])->name('trades.position-sizing');
