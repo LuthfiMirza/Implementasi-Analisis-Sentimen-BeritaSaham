@@ -44,6 +44,16 @@ Schedule::command('trade:scan-bsjp --stage=reminder --send')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// BSJP OPEN EVALUATION: 09.05 WIB
+// Evaluasi posisi BSJP aktif terhadap harga pembukaan pasar (09:00 WIB)
+Schedule::command('trade:evaluate-bsjp')
+    ->weekdays()
+    ->dailyAt('09:05')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+
 Schedule::command('news:fetch-ojk --limit=50')
     ->everyTwoHours()
     ->timezone('Asia/Jakarta')
