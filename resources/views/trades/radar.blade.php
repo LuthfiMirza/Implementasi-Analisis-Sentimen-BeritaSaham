@@ -321,6 +321,11 @@
         <span class="text-[10px] px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-medium">
           Backtest: +453.83% (WR 50% | H+1 High 82.8%)
         </span>
+        <a href="{{ route('trades.bsjp-tracker') }}"
+           class="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition flex items-center gap-1 font-semibold">
+          <x-heroicon-o-bolt class="w-3.5 h-3.5 text-amber-400" />
+          Live Tracker (Rp 20 Jt) &rarr;
+        </a>
       </div>
     </div>
 
@@ -385,11 +390,30 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+          <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 pb-2">
             <span class="inline-flex items-center gap-1">
               <x-heroicon-o-clock class="w-3.5 h-3.5 text-slate-500" /> Beli: Pre-Closing (15:50 WIB)
             </span>
             <span class="text-emerald-400 font-medium">Jual: Open Besok</span>
+          </div>
+
+          {{-- Quick Action Button --}}
+          <div class="pt-2 border-t border-slate-800/80">
+            <form action="{{ route('trades.bsjp-tracker.buy') }}" method="POST">
+              @csrf
+              <input type="hidden" name="ticker" :value="item.ticker">
+              <input type="hidden" name="signal_date" :value="radar.bsjp_momentum?.trade_date || ''">
+              <input type="hidden" name="entry_price" :value="item.price">
+              <input type="hidden" name="category" :value="item.category">
+              <input type="hidden" name="target_tp" :value="item.target_tp">
+              <input type="hidden" name="stop_loss" :value="item.stop_loss">
+              <input type="hidden" name="capital" value="20000000">
+              <button type="submit"
+                      class="w-full py-1.5 px-3 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-1.5">
+                <x-heroicon-o-shopping-cart class="w-3.5 h-3.5" />
+                Catat Beli Rp 20 Jt
+              </button>
+            </form>
           </div>
         </div>
       </template>
