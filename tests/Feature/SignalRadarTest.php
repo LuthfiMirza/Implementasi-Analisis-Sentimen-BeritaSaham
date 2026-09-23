@@ -430,5 +430,39 @@ class SignalRadarTest extends TestCase
         $this->assertSame('sweetspot', $candidatesByTicker['SWET']['category']);
         $this->assertSame('🎯 Sweetspot', $candidatesByTicker['SWET']['category_label']);
     }
+
+    public function test_user_can_trigger_radar_sync_endpoint(): void
+    {
+        $user = $this->user();
+
+        Http::fake([
+            'query2.finance.yahoo.com/*' => Http::response([
+                'chart' => [
+                    'result' => [
+                        [
+                            'meta' => ['currency' => 'IDR'],
+                            'timestamp' => [1727078400, 1727164800],
+                            'indicators' => [
+                                'quote' => [
+                                    [
+                                        'open' => [100, 105],
+                                        'high' => [105, 110],
+                                        'low' => [98, 102],
+                                        'close' => [102, 108],
+                                        'volume' => [50000, 75000],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $response = $this->actingAs($user)->post('/trades/radar/sync');
+        $response->assertRedirect();
+        $response->assertSessionHas('status');
+    }
 }
+
 
