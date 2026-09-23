@@ -112,11 +112,27 @@ Schedule::command('news:fetch --limit=20')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// SINKRONISASI LIVE INTRADAY BSJP: 14.55 WIB (Sebelum Early Warning 15:00 WIB)
+Schedule::command('trade:sync-bsjp-live')
+    ->weekdays()
+    ->dailyAt('14:55')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // RADAR BSJP TAHAP 1 (EARLY WARNING): 15.00 WIB
 // Deteksi dini lonjakan volume & bullish candle di bursa untuk persiapan BSJP
 Schedule::command('trade:scan-bsjp --stage=early --send')
     ->weekdays()
     ->dailyAt('15:00')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// SINKRONISASI LIVE INTRADAY BSJP: 15.30 WIB (Sebelum Final Confirmation 15:35 WIB)
+Schedule::command('trade:sync-bsjp-live')
+    ->weekdays()
+    ->dailyAt('15:30')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
