@@ -312,12 +312,34 @@
           Deteksi lonjakan volume & lilin hijau solid menjelang penutupan sesi 2. Beli di Pre-Closing (15:50 WIB) &times; Take Profit di Open (09:00 WIB).
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <span class="text-[10px] px-2.5 py-1 rounded-full font-semibold border flex items-center gap-1.5"
               :class="radar.bsjp_momentum?.stage === 'confirm' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'">
           <span class="w-1.5 h-1.5 rounded-full" :class="radar.bsjp_momentum?.stage === 'confirm' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"></span>
           <span x-text="radar.bsjp_momentum?.stage_label"></span>
         </span>
+
+        {{-- Tanggal Data & Indikator Freshness --}}
+        <template x-if="radar.bsjp_momentum?.trade_date">
+          <span class="text-[10px] px-2.5 py-1 rounded-full font-mono flex items-center gap-1.5 border"
+                :class="radar.bsjp_momentum?.is_today ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/10 text-amber-300 border-amber-500/30'">
+            <x-heroicon-o-calendar class="w-3.5 h-3.5" />
+            <span x-text="(radar.bsjp_momentum?.is_today ? 'Hari Ini: ' : 'Data: ') + (radar.bsjp_momentum?.trade_date_formatted || radar.bsjp_momentum?.trade_date)"></span>
+            <span x-show="radar.bsjp_momentum?.last_sync_at" class="text-slate-400 text-[9px]" x-text="'(' + radar.bsjp_momentum?.last_sync_at + ')'"></span>
+          </span>
+        </template>
+
+        {{-- Tombol Sync Data Live Satu-Klik --}}
+        <form action="{{ route('trades.radar.sync') }}" method="POST" class="inline">
+          @csrf
+          <button type="submit"
+                  title="Tarik data harga dan volume live sesi 2 terbaru sekarang"
+                  class="text-[10px] px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30 transition flex items-center gap-1 font-semibold">
+            <x-heroicon-o-arrow-path class="w-3.5 h-3.5" />
+            Sync Live
+          </button>
+        </form>
+
         <span class="text-[10px] px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-medium">
           Backtest: +453.83% (WR 50% | H+1 High 82.8%)
         </span>
@@ -327,6 +349,21 @@
           Live Tracker (Rp 20 Jt) &rarr;
         </a>
       </div>
+    </div>
+
+    {{-- Banner Peringatan jika data pasar belum disinkronkan hari ini --}}
+    <div x-show="radar.bsjp_momentum && !radar.bsjp_momentum?.is_today" x-cloak
+         class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-200">
+      <div class="flex items-center gap-2">
+        <x-heroicon-o-exclamation-triangle class="w-4 h-4 text-amber-400 flex-shrink-0" />
+        <span>Data di bawah merupakan penutupan terakhir (<span class="font-mono font-bold" x-text="radar.bsjp_momentum?.trade_date_formatted || radar.bsjp_momentum?.trade_date"></span>). Klik <strong>Sync Live</strong> untuk memperbarui data hari ini secara real-time.</span>
+      </div>
+      <form action="{{ route('trades.radar.sync') }}" method="POST">
+        @csrf
+        <button type="submit" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-[10px] border border-amber-500/40 transition">
+          Sync Sekarang &rarr;
+        </button>
+      </form>
     </div>
 
     {{-- Filter Tabs (All / Rocket / Sweetspot) --}}
