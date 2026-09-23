@@ -227,6 +227,16 @@ class TradeController extends Controller
         return response()->json($radarService->build());
     }
 
+    public function radarSync(Request $request)
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('trade:sync-bsjp-live');
+            return back()->with('status', '⚡ Data pergerakan live pasar sore hari ini berhasil disinkronkan ke Radar BSJP!');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal menyinkronkan data live: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Halaman Radar Log -- riwayat semua sinyal SELF_RADAR_V1 + form catat fill/skip/exit.
      * Data dari tabel self_radar_signal_logs, diurutkan terbaru dulu.

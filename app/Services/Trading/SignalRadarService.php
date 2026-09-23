@@ -7,9 +7,11 @@ use App\Models\StockPrice;
 use App\Models\SelfRadarSignalLog;
 use App\Services\MarketData\LiveMarketDataService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
@@ -607,12 +609,33 @@ class SignalRadarService
             ];
         }
 
+        $nowJakarta = now('Asia/Jakarta');
+        $today = $nowJakarta->toDateString();
+        $hour = (int) $nowJakarta->format('H');
+        $minute = (int) $nowJakarta->format('i');
+
+        // Jika hari kerja bursa dan waktu sesi sore (>= 14:50 WIB), otomatis sinkronkan data live jika belum ada
+        if (! app()->runningUnitTests() && $nowJakarta->isWeekday() && ($hour >= 15 || ($hour === 14 && $minute >= 50))) {
+            $latestCheck = DB::table('idx_daily_summaries')->max('trade_date');
+            if ($latestCheck !== $today && ! Cache::has('bsjp_live_sync_throttle')) {
+                Cache::put('bsjp_live_sync_throttle', true, now()->addMinutes(10));
+                try {
+                    Artisan::call('trade:sync-bsjp-live');
+                } catch (\Throwable $e) {
+                    Log::warning('Auto sync BSJP live error: ' . $e->getMessage());
+                }
+            }
+        }
+
         $latestDate = DB::table('idx_daily_summaries')->max('trade_date');
         if (! $latestDate) {
             return [
                 'stage' => 'early',
                 'stage_label' => 'Radar Pantau Dini (15:00 WIB)',
                 'trade_date' => null,
+                'trade_date_formatted' => null,
+                'is_today' => false,
+                'last_sync_at' => null,
                 'candidates' => [],
             ];
         }
@@ -626,6 +649,9 @@ class SignalRadarService
                 'stage' => 'early',
                 'stage_label' => 'Radar Pantau Dini (15:00 WIB)',
                 'trade_date' => $latestDate,
+                'trade_date_formatted' => Carbon::parse($latestDate)->locale('id')->isoFormat('D MMM Y'),
+                'is_today' => $latestDate === $today,
+                'last_sync_at' => null,
                 'candidates' => [],
             ];
         }
@@ -658,14 +684,19 @@ class SignalRadarService
             ->take($limit)
             ->get();
 
-        $hour = (int) now('Asia/Jakarta')->format('H');
-        $minute = (int) now('Asia/Jakarta')->format('i');
         $stage = ($hour < 15 || ($hour === 15 && $minute < 35)) ? 'early' : 'confirm';
+        $isToday = $latestDate === $today;
+        $lastSyncTime = DB::table('idx_daily_summaries')
+            ->where('trade_date', $latestDate)
+            ->max('updated_at');
 
         return [
             'stage' => $stage,
             'stage_label' => $stage === 'early' ? 'Radar Pantau Dini (15:00 WIB)' : 'Konfirmasi Beli (15:35 WIB)',
             'trade_date' => $latestDate,
+            'trade_date_formatted' => Carbon::parse($latestDate)->locale('id')->isoFormat('D MMM Y'),
+            'is_today' => $isToday,
+            'last_sync_at' => $lastSyncTime ? Carbon::parse($lastSyncTime)->timezone('Asia/Jakarta')->format('H:i') . ' WIB' : null,
             'candidates' => $rows->map(function ($r) {
                 $price = (float) $r->price;
                 $retPct = (float) $r->return_pct;
