@@ -127,7 +127,7 @@ class SignalRadarService
 
         $tinsStock = $stocks->get('TINS') ?? Stock::where('code', 'TINS')->first();
         $tinsBottomToTop = $this->buildTinsBottomToTopRow($tinsStock);
-        $bsjpMomentum = $this->buildBsjpMomentumRows();
+        $bsjpMomentum = $this->buildBsjpMomentumRows(10);
 
         return [
             'gabungan' => array_values($gabungan),
@@ -596,7 +596,7 @@ class SignalRadarService
         ];
     }
 
-    public function buildBsjpMomentumRows(int $limit = 5): array
+    public function buildBsjpMomentumRows(int $limit = 10): array
     {
         if (! Schema::hasTable('idx_daily_summaries')) {
             return [
