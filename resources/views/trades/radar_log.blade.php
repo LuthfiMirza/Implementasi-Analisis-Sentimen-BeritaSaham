@@ -153,6 +153,20 @@
               </span>
             </div>
 
+            {{-- Peringatan Risiko Suspensi / High Volatility --}}
+            @php
+              $isSuspensionRisk = ($log->ret_5d_pct !== null && (float)$log->ret_5d_pct >= 20.0) && ($log->rsi14 !== null && (float)$log->rsi14 >= 75.0);
+            @endphp
+            @if($isSuspensionRisk)
+              <div class="mb-3 px-2.5 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-[11px] text-rose-300 font-semibold flex items-center gap-1.5 shadow-sm shadow-rose-950/40">
+                <span class="text-sm shrink-0">⚠️</span>
+                <div>
+                  <span class="block text-rose-200 uppercase tracking-wider text-[10px] font-bold">HIGH VOLATILITY / RISIKO SUSPENSI</span>
+                  <span class="text-[10px] text-rose-300 font-normal">Wajib <strong>Same-Day Exit</strong> (Jual sebelum 15:50 WIB, dilarang inapkan).</span>
+                </div>
+              </div>
+            @endif
+
             {{-- Metrik sinyal --}}
             <div class="grid grid-cols-3 gap-2 text-[11px] mb-3">
               <div>
@@ -202,6 +216,46 @@
                     </div>
                   @endif
                 @endif
+              </div>
+            @endif
+
+            {{-- Panduan Exit Dinamis untuk Posisi OPEN --}}
+            @if($isFilled && !$isExited)
+              @php
+                $bepPrice = round($log->fill_price * 1.008);
+              @endphp
+              <div class="rounded-xl border p-2.5 mb-3 text-[11px] space-y-1.5 {{ $isSuspensionRisk ? 'bg-rose-500/10 border-rose-500/30 text-rose-200' : 'bg-sky-500/10 border-sky-500/30 text-sky-200' }}">
+                <div class="flex items-center justify-between font-bold">
+                  <span class="flex items-center gap-1">
+                    <span>🎯</span> Panduan Rencana Exit:
+                  </span>
+                  @if($isSuspensionRisk)
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/30 text-rose-200 uppercase font-mono">Wajib Hari Ini</span>
+                  @else
+                    <span class="text-[10px] text-sky-300 font-mono">Trailing Stop 1%</span>
+                  @endif
+                </div>
+
+                <div class="space-y-1 text-[10px] text-slate-300">
+                  @if($isSuspensionRisk)
+                    <p class="text-rose-300 font-medium">
+                      ⚠️ <strong>Lonjakan ekstrem terdeteksi.</strong> Wajib Take Profit sebelum penutupan sesi 2 (15:40–15:50 WIB) untuk hindari gembok suspensi BEI.
+                    </p>
+                  @else
+                    <div class="flex justify-between">
+                      <span class="text-slate-400">Jadwal Trailing:</span>
+                      <span class="font-mono text-slate-200">{{ $log->trailing_start_at?->format('d/m H:i') ?? 'Besok 09:30' }} WIB</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-slate-400">Proteksi Break-Even (BEP):</span>
+                      <span class="font-mono text-emerald-400">Rp{{ number_format($bepPrice, 0, ',', '.') }} (+0.8%)</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-slate-400">Ambang Keluar:</span>
+                      <span class="font-mono text-amber-300">1.0% di bawah Puncak (Peak)</span>
+                    </div>
+                  @endif
+                </div>
               </div>
             @endif
 
@@ -274,7 +328,8 @@
                           <label class="text-[10px] text-slate-400 block mb-1">Harga Exit (Rp)</label>
                           <input type="number" name="exit_price"
                                  min="1" step="1" required
-                                 placeholder="Misal: 3800"
+                                 value="{{ $log->latest_price ? (int)$log->latest_price : '' }}"
+                                 placeholder="Misal: {{ $log->latest_price ? (int)$log->latest_price : 3800 }}"
                                  class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono text-slate-100 focus:outline-none focus:border-sky-500">
                         </div>
                         <div class="flex-1">

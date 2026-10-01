@@ -161,6 +161,18 @@
                   :class="row.triggered ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-400 border border-slate-600'"
                   x-text="row.status"></span>
           </div>
+
+          {{-- Peringatan Risiko Suspensi / High Volatility --}}
+          <template x-if="row.ret_5d_pct >= 20 && row.rsi14_now >= 75">
+            <div class="mb-2.5 px-2 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-[10px] text-rose-300 font-semibold flex items-center gap-1.5 shadow-sm shadow-rose-950/40">
+              <span class="text-xs shrink-0">⚠️</span>
+              <div>
+                <span class="block text-rose-200 uppercase font-bold tracking-wider text-[9px]">RISIKO SUSPENSI BEI</span>
+                <span class="text-[9px] text-rose-300 font-normal">Wajib <strong>Same-Day Exit</strong> (dilarang inapkan).</span>
+              </div>
+            </div>
+          </template>
+
           <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
           <div class="space-y-1.5 text-[11px]">
             <div class="flex justify-between"><span class="text-slate-500">RSI14</span><span class="font-mono" :class="row.rsi14_now >= 60 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.rsi14_now)"></span></div>
