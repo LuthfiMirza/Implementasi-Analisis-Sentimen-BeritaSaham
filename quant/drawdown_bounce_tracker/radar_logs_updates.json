@@ -1,0 +1,587 @@
+[
+  {
+    "id": 1,
+    "fill_price": 15800.0,
+    "filled_at": "2026-09-04 15:40:00",
+    "exit_price": 15650,
+    "exited_at": "2026-09-07 09:30:00",
+    "pnl_pct": -0.95,
+    "result": "LOSS"
+  },
+  {
+    "id": 2,
+    "fill_price": 970.0,
+    "filled_at": "2026-09-04 15:40:00",
+    "exit_price": 960,
+    "exited_at": "2026-09-07 09:30:00",
+    "pnl_pct": -1.03,
+    "result": "LOSS"
+  },
+  {
+    "id": 3,
+    "fill_price": 134.0,
+    "filled_at": "2026-09-04 15:40:00",
+    "exit_price": 135,
+    "exited_at": "2026-09-07 09:30:00",
+    "pnl_pct": 0.75,
+    "result": "WIN"
+  },
+  {
+    "id": 4,
+    "fill_price": 705.0,
+    "filled_at": "2026-09-04 15:40:00",
+    "exit_price": 700,
+    "exited_at": "2026-09-07 09:30:00",
+    "pnl_pct": -0.71,
+    "result": "LOSS"
+  },
+  {
+    "id": 5,
+    "fill_price": 560.0,
+    "filled_at": "2026-09-04 15:40:00",
+    "exit_price": 615,
+    "exited_at": "2026-09-17 15:50:00",
+    "pnl_pct": 9.82,
+    "result": "WIN"
+  },
+  {
+    "id": 6,
+    "fill_price": 14500.0,
+    "filled_at": "2026-09-06 15:40:00",
+    "exit_price": 14450,
+    "exited_at": "2026-09-07 09:30:00",
+    "pnl_pct": -0.34,
+    "result": "LOSS"
+  },
+  {
+    "id": 7,
+    "fill_price": 940.0,
+    "filled_at": "2026-09-06 15:40:00",
+    "exit_price": 945,
+    "exited_at": "2026-09-07 09:30:00",
+    "pnl_pct": 0.53,
+    "result": "WIN"
+  },
+  {
+    "id": 8,
+    "fill_price": 705.0,
+    "filled_at": "2026-09-06 15:40:00",
+    "exit_price": 700,
+    "exited_at": "2026-09-07 09:30:00",
+    "pnl_pct": -0.71,
+    "result": "LOSS"
+  },
+  {
+    "id": 9,
+    "fill_price": 14375.0,
+    "filled_at": "2026-09-07 15:40:00",
+    "exit_price": 15700,
+    "exited_at": "2026-09-09 09:30:00",
+    "pnl_pct": 9.22,
+    "result": "WIN"
+  },
+  {
+    "id": 10,
+    "fill_price": 950.0,
+    "filled_at": "2026-09-07 15:40:00",
+    "exit_price": 960,
+    "exited_at": "2026-09-08 09:35:00",
+    "pnl_pct": 1.05,
+    "result": "WIN"
+  },
+  {
+    "id": 11,
+    "fill_price": 13500.0,
+    "filled_at": "2026-09-07 15:40:00",
+    "exit_price": 14850,
+    "exited_at": "2026-09-08 15:50:00",
+    "pnl_pct": 10.0,
+    "result": "WIN"
+  },
+  {
+    "id": 12,
+    "fill_price": 134.0,
+    "filled_at": "2026-09-07 15:40:00",
+    "exit_price": 141,
+    "exited_at": "2026-09-08 09:30:00",
+    "pnl_pct": 5.22,
+    "result": "WIN"
+  },
+  {
+    "id": 13,
+    "fill_price": 90.0,
+    "filled_at": "2026-09-07 15:40:00",
+    "exit_price": 89,
+    "exited_at": "2026-09-08 09:30:00",
+    "pnl_pct": -1.11,
+    "result": "LOSS"
+  },
+  {
+    "id": 14,
+    "fill_price": 660.0,
+    "filled_at": "2026-09-07 15:40:00",
+    "exit_price": 680,
+    "exited_at": "2026-09-08 09:30:00",
+    "pnl_pct": 3.03,
+    "result": "WIN"
+  },
+  {
+    "id": 15,
+    "fill_price": 14850.0,
+    "filled_at": "2026-09-08 15:40:00",
+    "exit_price": 15850,
+    "exited_at": "2026-09-10 09:30:00",
+    "pnl_pct": 6.73,
+    "result": "WIN"
+  },
+  {
+    "id": 16,
+    "fill_price": 15075.0,
+    "filled_at": "2026-09-08 15:40:00",
+    "exit_price": 15700,
+    "exited_at": "2026-09-09 09:30:00",
+    "pnl_pct": 4.15,
+    "result": "WIN"
+  },
+  {
+    "id": 17,
+    "fill_price": 139.0,
+    "filled_at": "2026-09-08 15:40:00",
+    "exit_price": 144,
+    "exited_at": "2026-09-09 09:30:00",
+    "pnl_pct": 3.6,
+    "result": "WIN"
+  },
+  {
+    "id": 19,
+    "fill_price": 3220.0,
+    "filled_at": "2026-09-08 15:40:00",
+    "exit_price": 3430,
+    "exited_at": "2026-09-09 09:30:00",
+    "pnl_pct": 6.52,
+    "result": "WIN"
+  },
+  {
+    "id": 21,
+    "fill_price": 955.0,
+    "filled_at": "2026-09-08 15:40:00",
+    "exit_price": 950,
+    "exited_at": "2026-09-09 09:30:00",
+    "pnl_pct": -0.52,
+    "result": "LOSS"
+  },
+  {
+    "id": 18,
+    "fill_price": 660.0,
+    "filled_at": "2026-09-08 15:40:00",
+    "exit_price": 655,
+    "exited_at": "2026-09-09 09:30:00",
+    "pnl_pct": -0.76,
+    "result": "LOSS"
+  },
+  {
+    "id": 20,
+    "fill_price": 374.0,
+    "filled_at": "2026-09-08 15:40:00",
+    "exit_price": 372,
+    "exited_at": "2026-09-09 09:30:00",
+    "pnl_pct": -0.53,
+    "result": "LOSS"
+  },
+  {
+    "id": 22,
+    "fill_price": 1775.0,
+    "filled_at": "2026-09-08 15:40:00",
+    "exit_price": 1845,
+    "exited_at": "2026-09-09 09:30:00",
+    "pnl_pct": 3.94,
+    "result": "WIN"
+  },
+  {
+    "id": 23,
+    "fill_price": 14850.0,
+    "filled_at": "2026-09-09 15:40:00",
+    "exit_price": 15850,
+    "exited_at": "2026-09-10 09:30:00",
+    "pnl_pct": 6.73,
+    "result": "WIN"
+  },
+  {
+    "id": 24,
+    "fill_price": 15075.0,
+    "filled_at": "2026-09-09 15:40:00",
+    "exit_price": 14925,
+    "exited_at": "2026-09-10 09:30:00",
+    "pnl_pct": -1.0,
+    "result": "LOSS"
+  },
+  {
+    "id": 25,
+    "fill_price": 143.0,
+    "filled_at": "2026-09-09 15:40:00",
+    "exit_price": 142,
+    "exited_at": "2026-09-10 09:30:00",
+    "pnl_pct": -0.7,
+    "result": "LOSS"
+  },
+  {
+    "id": 28,
+    "fill_price": 370.0,
+    "filled_at": "2026-09-09 15:40:00",
+    "exit_price": 368,
+    "exited_at": "2026-09-10 09:30:00",
+    "pnl_pct": -0.54,
+    "result": "LOSS"
+  },
+  {
+    "id": 26,
+    "fill_price": 3400.0,
+    "filled_at": "2026-09-09 15:40:00",
+    "exit_price": 3440,
+    "exited_at": "2026-09-10 09:30:00",
+    "pnl_pct": 1.18,
+    "result": "WIN"
+  },
+  {
+    "id": 27,
+    "fill_price": 1795.0,
+    "filled_at": "2026-09-09 15:40:00",
+    "exit_price": 1800,
+    "exited_at": "2026-09-10 09:30:00",
+    "pnl_pct": 0.28,
+    "result": "WIN"
+  },
+  {
+    "id": 29,
+    "fill_price": 119.0,
+    "filled_at": "2026-09-09 15:40:00",
+    "exit_price": 122,
+    "exited_at": "2026-09-10 09:30:00",
+    "pnl_pct": 2.52,
+    "result": "WIN"
+  },
+  {
+    "id": 30,
+    "fill_price": 3710.0,
+    "filled_at": "2026-09-14 15:40:00",
+    "exit_price": 3930,
+    "exited_at": "2026-09-15 09:30:00",
+    "pnl_pct": 5.93,
+    "result": "WIN"
+  },
+  {
+    "id": 31,
+    "fill_price": 15250.0,
+    "filled_at": "2026-09-14 15:40:00",
+    "exit_price": 15100,
+    "exited_at": "2026-09-15 09:30:00",
+    "pnl_pct": -0.98,
+    "result": "LOSS"
+  },
+  {
+    "id": 32,
+    "fill_price": 845.0,
+    "filled_at": "2026-09-14 15:40:00",
+    "exit_price": 835,
+    "exited_at": "2026-09-15 09:30:00",
+    "pnl_pct": -1.18,
+    "result": "LOSS"
+  },
+  {
+    "id": 33,
+    "fill_price": 3900.0,
+    "filled_at": "2026-09-15 15:40:00",
+    "exit_price": 3950,
+    "exited_at": "2026-09-16 09:30:00",
+    "pnl_pct": 1.28,
+    "result": "WIN"
+  },
+  {
+    "id": 34,
+    "fill_price": 16850.0,
+    "filled_at": "2026-09-18 15:40:00",
+    "exit_price": 17125,
+    "exited_at": "2026-09-21 09:30:00",
+    "pnl_pct": 1.63,
+    "result": "WIN"
+  },
+  {
+    "id": 38,
+    "fill_price": 340.0,
+    "filled_at": "2026-09-18 15:40:00",
+    "exit_price": 416,
+    "exited_at": "2026-09-21 09:30:00",
+    "pnl_pct": 22.35,
+    "result": "WIN"
+  },
+  {
+    "id": 35,
+    "fill_price": 2110.0,
+    "filled_at": "2026-09-18 15:40:00",
+    "exit_price": 2090,
+    "exited_at": "2026-09-22 09:30:00",
+    "pnl_pct": -0.95,
+    "result": "LOSS"
+  },
+  {
+    "id": 36,
+    "fill_price": 620.0,
+    "filled_at": "2026-09-18 15:40:00",
+    "exit_price": 615,
+    "exited_at": "2026-09-21 09:55:00",
+    "pnl_pct": -0.81,
+    "result": "LOSS"
+  },
+  {
+    "id": 37,
+    "fill_price": 4050.0,
+    "filled_at": "2026-09-18 15:40:00",
+    "exit_price": 4010,
+    "exited_at": "2026-09-21 09:30:00",
+    "pnl_pct": -0.99,
+    "result": "LOSS"
+  },
+  {
+    "id": 39,
+    "fill_price": 119.0,
+    "filled_at": "2026-09-18 15:40:00",
+    "exit_price": 131,
+    "exited_at": "2026-09-21 09:30:00",
+    "pnl_pct": 10.08,
+    "result": "WIN"
+  },
+  {
+    "id": 40,
+    "fill_price": 408.0,
+    "filled_at": "2026-09-21 15:40:00",
+    "exit_price": 500,
+    "exited_at": "2026-09-22 09:30:00",
+    "pnl_pct": 22.55,
+    "result": "WIN"
+  },
+  {
+    "id": 45,
+    "fill_price": 364.0,
+    "filled_at": "2026-09-21 15:40:00",
+    "exit_price": 366,
+    "exited_at": "2026-09-22 09:30:00",
+    "pnl_pct": 0.55,
+    "result": "WIN"
+  },
+  {
+    "id": 42,
+    "fill_price": 2080.0,
+    "filled_at": "2026-09-21 15:40:00",
+    "exit_price": 2080,
+    "exited_at": "2026-09-22 09:30:00",
+    "pnl_pct": 0.0,
+    "result": "DRAW"
+  },
+  {
+    "id": 43,
+    "fill_price": 126.0,
+    "filled_at": "2026-09-21 15:40:00",
+    "exit_price": 139,
+    "exited_at": "2026-09-22 09:30:00",
+    "pnl_pct": 10.32,
+    "result": "WIN"
+  },
+  {
+    "id": 41,
+    "fill_price": 17050.0,
+    "filled_at": "2026-09-21 15:40:00",
+    "exit_price": 16875,
+    "exited_at": "2026-09-22 09:30:00",
+    "pnl_pct": -1.03,
+    "result": "LOSS"
+  },
+  {
+    "id": 44,
+    "fill_price": 15500.0,
+    "filled_at": "2026-09-21 15:40:00",
+    "exit_price": 16225,
+    "exited_at": "2026-09-22 09:30:00",
+    "pnl_pct": 4.68,
+    "result": "WIN"
+  },
+  {
+    "id": 46,
+    "fill_price": 482.0,
+    "filled_at": "2026-09-22 15:40:00",
+    "exit_price": 478,
+    "exited_at": "2026-09-23 09:30:00",
+    "pnl_pct": -0.83,
+    "result": "LOSS"
+  },
+  {
+    "id": 47,
+    "fill_price": 16400.0,
+    "filled_at": "2026-09-22 15:40:00",
+    "exit_price": 16225,
+    "exited_at": "2026-09-23 09:30:00",
+    "pnl_pct": -1.07,
+    "result": "LOSS"
+  },
+  {
+    "id": 49,
+    "fill_price": 1985.0,
+    "filled_at": "2026-09-22 15:40:00",
+    "exit_price": 1965,
+    "exited_at": "2026-09-23 09:30:00",
+    "pnl_pct": -1.01,
+    "result": "LOSS"
+  },
+  {
+    "id": 48,
+    "fill_price": 134.0,
+    "filled_at": "2026-09-22 15:40:00",
+    "exit_price": 133,
+    "exited_at": "2026-09-23 09:30:00",
+    "pnl_pct": -0.75,
+    "result": "LOSS"
+  },
+  {
+    "id": 50,
+    "fill_price": 16200.0,
+    "filled_at": "2026-09-22 15:40:00",
+    "exit_price": 16825,
+    "exited_at": "2026-09-23 09:30:00",
+    "pnl_pct": 3.86,
+    "result": "WIN"
+  },
+  {
+    "id": 51,
+    "fill_price": 442.0,
+    "filled_at": "2026-09-23 15:40:00",
+    "exit_price": 446,
+    "exited_at": "2026-09-24 09:30:00",
+    "pnl_pct": 0.9,
+    "result": "WIN"
+  },
+  {
+    "id": 52,
+    "fill_price": 18250.0,
+    "filled_at": "2026-09-23 15:40:00",
+    "exit_price": 18300,
+    "exited_at": "2026-09-24 15:50:00",
+    "pnl_pct": 0.27,
+    "result": "WIN"
+  },
+  {
+    "id": 53,
+    "fill_price": 2050.0,
+    "filled_at": "2026-09-23 15:40:00",
+    "exit_price": 2080,
+    "exited_at": "2026-09-24 09:30:00",
+    "pnl_pct": 1.46,
+    "result": "WIN"
+  },
+  {
+    "id": 55,
+    "fill_price": 15250.0,
+    "filled_at": "2026-09-23 15:40:00",
+    "exit_price": 15450,
+    "exited_at": "2026-09-24 09:30:00",
+    "pnl_pct": 1.31,
+    "result": "WIN"
+  },
+  {
+    "id": 54,
+    "fill_price": 965.0,
+    "filled_at": "2026-09-23 15:40:00",
+    "exit_price": 955,
+    "exited_at": "2026-09-24 09:30:00",
+    "pnl_pct": -1.04,
+    "result": "LOSS"
+  },
+  {
+    "id": 58,
+    "fill_price": 2080.0,
+    "filled_at": "2026-09-24 15:40:00",
+    "exit_price": 2440,
+    "exited_at": "2026-09-25 09:30:00",
+    "pnl_pct": 17.31,
+    "result": "WIN"
+  },
+  {
+    "id": 56,
+    "fill_price": 18300.0,
+    "filled_at": "2026-09-24 15:40:00",
+    "exit_price": 18300,
+    "exited_at": "2026-09-25 15:50:00",
+    "pnl_pct": 0.0,
+    "result": "DRAW"
+  },
+  {
+    "id": 57,
+    "fill_price": 15550.0,
+    "filled_at": "2026-09-24 15:40:00",
+    "exit_price": 15750,
+    "exited_at": "2026-09-25 09:30:00",
+    "pnl_pct": 1.29,
+    "result": "WIN"
+  },
+  {
+    "id": 59,
+    "fill_price": 650.0,
+    "filled_at": "2026-09-25 15:40:00",
+    "exit_price": 645,
+    "exited_at": "2026-09-28 09:30:00",
+    "pnl_pct": -0.77,
+    "result": "LOSS"
+  },
+  {
+    "id": 60,
+    "fill_price": 2320.0,
+    "filled_at": "2026-09-25 15:40:00",
+    "exit_price": 2330,
+    "exited_at": "2026-09-28 09:30:00",
+    "pnl_pct": 0.43,
+    "result": "WIN"
+  },
+  {
+    "id": 61,
+    "fill_price": 18300.0,
+    "filled_at": "2026-09-25 15:40:00",
+    "exit_price": 18300,
+    "exited_at": "2026-09-28 15:50:00",
+    "pnl_pct": 0.0,
+    "result": "DRAW"
+  },
+  {
+    "id": 62,
+    "fill_price": 15250.0,
+    "filled_at": "2026-09-25 15:40:00",
+    "exit_price": 15100,
+    "exited_at": "2026-09-28 09:30:00",
+    "pnl_pct": -0.98,
+    "result": "LOSS"
+  },
+  {
+    "id": 63,
+    "fill_price": 18300.0,
+    "filled_at": "2026-09-28 15:40:00",
+    "exit_price": 18300,
+    "exited_at": "2026-09-29 15:50:00",
+    "pnl_pct": 0.0,
+    "result": "DRAW"
+  },
+  {
+    "id": 65,
+    "fill_price": 18300.0,
+    "filled_at": "2026-09-29 15:40:00",
+    "exit_price": 18300,
+    "exited_at": "2026-09-30 15:50:00",
+    "pnl_pct": 0.0,
+    "result": "DRAW"
+  },
+  {
+    "id": 66,
+    "fill_price": 2690.0,
+    "filled_at": "2026-10-01 15:40:00",
+    "exit_price": null,
+    "exited_at": null,
+    "pnl_pct": null,
+    "result": null
+  }
+]
