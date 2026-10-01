@@ -59,6 +59,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/trades/radar-log/{log}/exit', [TradeController::class, 'radarLogExit'])->name('trades.radar-log.exit');
     Route::get('/trades/bsjp-tracker', [\App\Http\Controllers\BsjpTradeController::class, 'index'])->name('trades.bsjp-tracker');
     Route::post('/trades/bsjp-tracker/buy', [\App\Http\Controllers\BsjpTradeController::class, 'buy'])->name('trades.bsjp-tracker.buy');
+    Route::post('/trades/bsjp-tracker/{log}/update', [\App\Http\Controllers\BsjpTradeController::class, 'update'])->name('trades.bsjp-tracker.update');
+    Route::delete('/trades/bsjp-tracker/{log}', [\App\Http\Controllers\BsjpTradeController::class, 'destroy'])->name('trades.bsjp-tracker.destroy');
     Route::post('/trades/bsjp-tracker/{log}/sell', [\App\Http\Controllers\BsjpTradeController::class, 'sell'])->name('trades.bsjp-tracker.sell');
     Route::post('/trades/bsjp-tracker/{log}/skip', [\App\Http\Controllers\BsjpTradeController::class, 'skip'])->name('trades.bsjp-tracker.skip');
     Route::get('/trades/laporan', [TradeController::class, 'laporan'])->name('trades.laporan');

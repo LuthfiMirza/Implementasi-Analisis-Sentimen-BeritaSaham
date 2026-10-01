@@ -53,7 +53,11 @@ class BsjpTradeController extends Controller
             'pending_count' => $pendingSignals->count(),
         ];
 
-        return view('trades.bsjp_tracker', compact('stats', 'openPositions', 'closedTrades', 'pendingSignals'));
+        $bsjpRadar = rescue(fn () => $radarService->buildBsjpMomentumRows(10), []);
+        $bsjpCandidates = $bsjpRadar['candidates'] ?? [];
+        $activeOpenTickers = $openPositions->pluck('ticker')->toArray();
+
+        return view('trades.bsjp_tracker', compact('stats', 'openPositions', 'closedTrades', 'pendingSignals', 'bsjpRadar', 'bsjpCandidates', 'activeOpenTickers'));
     }
 
     /**
@@ -111,6 +115,54 @@ class BsjpTradeController extends Controller
 
         $cost = number_format($lots * 100 * $entryPrice, 0, ',', '.');
         return back()->with('status', "🛒 Berhasil mencatat BELI BSJP {$ticker} @ Rp " . number_format($entryPrice, 0, ',', '.') . " sebanyak {$lots} lot (Nilai: Rp {$cost}). Siap jual di Open 09:00 WIB!");
+    }
+
+    /**
+     * Perbarui data posisi beli (misal: sesuaikan harga fill riil match sekuritas atau modal/lot).
+     */
+    public function update(Request $request, BsjpTradeLog $log): RedirectResponse
+    {
+        $data = $request->validate([
+            'entry_price' => ['required', 'numeric', 'min:1'],
+            'capital' => ['nullable', 'numeric', 'min:100000'],
+            'lots' => ['nullable', 'integer', 'min:1'],
+            'target_tp' => ['nullable', 'numeric'],
+            'stop_loss' => ['nullable', 'numeric'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $entryPrice = (float) $data['entry_price'];
+        $capital = (float) ($data['capital'] ?? $log->capital_allocated ?? 20000000.00);
+        $lots = isset($data['lots']) && $data['lots'] > 0
+            ? (int) $data['lots']
+            : BsjpTradeLog::calculateLots($capital, $entryPrice);
+
+        $targetTp = (float) ($data['target_tp'] ?? round($entryPrice * 1.025, 0));
+        $stopLoss = (float) ($data['stop_loss'] ?? round($entryPrice * 0.97, 0));
+
+        $log->update([
+            'entry_price' => $entryPrice,
+            'signal_price' => $entryPrice,
+            'capital_allocated' => $capital,
+            'lots' => $lots,
+            'target_tp' => $targetTp,
+            'stop_loss' => $stopLoss,
+            'notes' => $data['notes'] ?? $log->notes,
+        ]);
+
+        $cost = number_format($lots * 100 * $entryPrice, 0, ',', '.');
+        return back()->with('status', "✏️ Berhasil memperbarui posisi BSJP {$log->ticker}: Harga Beli Rp " . number_format($entryPrice, 0, ',', '.') . ", {$lots} Lot (Modal: Rp {$cost}).");
+    }
+
+    /**
+     * Hapus pencatatan trade BSJP jika salah input.
+     */
+    public function destroy(BsjpTradeLog $log): RedirectResponse
+    {
+        $ticker = $log->ticker;
+        $log->delete();
+
+        return back()->with('status', "🗑️ Posisi BSJP {$ticker} berhasil dihapus.");
     }
 
     /**
