@@ -185,6 +185,20 @@ def check_position(position: dict) -> None:
             )
             position["alerted_sl"] = True
             print(f"  -> ALERT CUT LOSS 3% terkirim (Harga Rp{current:.0f} <= SL Rp{sl_price:.0f}).")
+    # --- GABUNGAN / MOMENTUM: Alert Stop Loss Pengaman -3.5% (Golden Compromise) ---
+    elif strategy in ("GABUNGAN", "MOMENTUM"):
+        sl_price = entry_price * 0.965
+        if current <= sl_price and not position.get("alerted_sl_initial"):
+            send_telegram_alert(
+                f"\U0001F6A8 <b>PERINGATAN CUT LOSS (STOP LOSS -3.5%): {label}</b>\n\n"
+                f"Harga menyentuh batas risiko stop loss -3.5%: <b>Rp{current:.0f}</b> (Level SL: Rp{sl_price:.0f}).\n\n"
+                f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
+                f"<b>Kerugian Saat Ini</b>: {unrealized_pct:+.1%}\n\n"
+                f"⚠️ Batas toleransi risiko teruji optimal (-3.5%) telah tercapai. "
+                f"Disiplin eksekusi Cut Loss di broker/StockBit untuk membatasi kerugian dan melindungi modal!"
+            )
+            position["alerted_sl_initial"] = True
+            print(f"  -> ALERT CUT LOSS -3.5% terkirim (Harga Rp{current:.0f} <= SL Rp{sl_price:.0f}).")
 
     if not is_ganda:
         # --- Alert 0: puncak baru (milestone +5% dari puncak terakhir yang sudah diberi tahu) ---
