@@ -142,12 +142,21 @@ def scan_candidates(trade_date: str | None = None) -> list[dict]:
 
 def format_early_telegram_alert(candidates: list[dict]) -> str:
     """Format Jam 15:00 WIB Early Warning alert in HTML."""
-    now_str = datetime.now(JAKARTA_TZ).strftime("%d %b %Y, %H:%M WIB")
+    trade_date_str = candidates[0].get("trade_date") if candidates else None
+    if trade_date_str:
+        try:
+            dt = datetime.strptime(trade_date_str, "%Y-%m-%d")
+            date_label = dt.strftime("%d %b %Y")
+        except Exception:
+            date_label = trade_date_str
+    else:
+        date_label = datetime.now(JAKARTA_TZ).strftime("%d %b %Y")
+
     top = candidates[:8]
 
     lines = [
         "🟡 <b>RADAR PANTAU BSJP (Beli Sore Jual Pagi)</b>",
-        f"📅 <i>Pukul 15:00 WIB Early Warning • {now_str}</i>",
+        f"📅 <i>Pukul 15:00 WIB Early Warning • Sesi {date_label}</i>",
         "",
         "Terdeteksi saham dengan <b>Ledakan Volume & Bullish Candle</b> yang memenuhi kriteria BSJP:",
         "",
@@ -173,12 +182,21 @@ def format_early_telegram_alert(candidates: list[dict]) -> str:
 
 def format_confirm_telegram_alert(candidates: list[dict]) -> str:
     """Format Jam 15:35 WIB Final Confirmation alert in HTML."""
-    now_str = datetime.now(JAKARTA_TZ).strftime("%d %b %Y, %H:%M WIB")
+    trade_date_str = candidates[0].get("trade_date") if candidates else None
+    if trade_date_str:
+        try:
+            dt = datetime.strptime(trade_date_str, "%Y-%m-%d")
+            date_label = dt.strftime("%d %b %Y")
+        except Exception:
+            date_label = trade_date_str
+    else:
+        date_label = datetime.now(JAKARTA_TZ).strftime("%d %b %Y")
+
     top = candidates[:5]
 
     lines = [
         "🟢 <b>KONFIRMASI AKHIR BSJP — SIAP BELI</b>",
-        f"📅 <i>Pukul 15:35 WIB Final Call • {now_str}</i>",
+        f"📅 <i>Pukul 15:35 WIB Final Call • Sesi {date_label}</i>",
         "",
         "Validasi selesai! Saham-saham berikut <b>tetap solid bertahan di area atas</b> tanpa tekanan guyuran bandar:",
         "",
@@ -208,12 +226,21 @@ def format_confirm_telegram_alert(candidates: list[dict]) -> str:
 
 def format_reminder_telegram_alert(candidates: list[dict]) -> str:
     """Format Jam 08:50 WIB Morning Exit Reminder in HTML."""
-    now_str = datetime.now(JAKARTA_TZ).strftime("%d %b %Y, %H:%M WIB")
+    trade_date_str = candidates[0].get("trade_date") if candidates else None
+    if trade_date_str:
+        try:
+            dt = datetime.strptime(trade_date_str, "%Y-%m-%d")
+            date_label = dt.strftime("%d %b %Y")
+        except Exception:
+            date_label = trade_date_str
+    else:
+        date_label = datetime.now(JAKARTA_TZ).strftime("%d %b %Y")
+
     top = candidates[:5]
 
     lines = [
         "🔔 <b>PENGINGAT AMBIL CUAN BSJP (08:50 WIB)</b>",
-        f"📅 <i>Persiapan Pembukaan Bursa • {now_str}</i>",
+        f"📅 <i>Persiapan Pembukaan Bursa • Sesi {date_label}</i>",
         "",
         "10 menit lagi bursa buka! Jangan lupa siapkan antrian jual untuk saham BSJP kemarin sore:",
         "",
