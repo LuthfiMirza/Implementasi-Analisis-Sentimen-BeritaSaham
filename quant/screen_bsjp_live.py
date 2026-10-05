@@ -240,7 +240,7 @@ def main():
     parser.add_argument("--stage", choices=["early", "confirm", "reminder"], default="early",
                         help="Tahap: early (15:00 WIB), confirm (15:35 WIB), reminder (08:50 WIB)")
     parser.add_argument("--category", choices=["all", "sweetspot", "rocket"], default="all",
-                        help="Filter: all, sweetspot (4%-15%), rocket (>15%)")
+                        help="Filter: all, sweetspot (4%%-15%%), rocket (>15%%)")
     parser.add_argument("--date", type=str, default=None, help="Tanggal trading YYYY-MM-DD")
     parser.add_argument("--send-telegram", action="store_true", help="Kirim notifikasi ke Telegram")
     parser.add_argument("--json", action="store_true", help="Output JSON untuk Laravel Radar")

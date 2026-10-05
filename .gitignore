@@ -60,3 +60,4 @@ output/prediction_research/dataset_v6b_10ticker.csv
 output/prediction_research/dataset_bumi_special.csv
 output/prediction_research/dataset_dewa_special.csv
 data/intraday/
+quant/drawdown_bounce_tracker/tracker.db
