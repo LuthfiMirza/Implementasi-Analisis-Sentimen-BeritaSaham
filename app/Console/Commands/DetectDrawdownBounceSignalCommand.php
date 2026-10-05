@@ -177,6 +177,8 @@ class DetectDrawdownBounceSignalCommand extends Command
                     $quantity = 100;
                 }
 
+                $slPct = 0.035; // Batas risiko teruji optimal: -3.5% (Golden Compromise: Max DD rendah & cuan maksimal)
+
                 Trade::create([
                     'user_id' => 2,
                     'stock_id' => $stock->id,
@@ -184,7 +186,7 @@ class DetectDrawdownBounceSignalCommand extends Command
                     'direction' => 'long',
                     'signal_quality' => 'journal',
                     'entry_price' => $entryPrice,
-                    'stop_loss' => round($entryPrice * (1 - 0.02), 2),
+                    'stop_loss' => round($entryPrice * (1 - $slPct), 2),
                     'target_1' => round($entryPrice * (1 + 0.05), 2),
                     // lot_size di kolom DB menyimpan LEMBAR (bukan jumlah lot) -- konvensi yang
                     // sama dipakai TradeController::store() untuk trade manual via form web

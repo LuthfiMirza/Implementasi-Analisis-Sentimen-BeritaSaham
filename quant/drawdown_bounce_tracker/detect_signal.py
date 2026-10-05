@@ -481,13 +481,19 @@ def format_signal_alert(signal: dict) -> str:
             f"Waktu) menyusul otomatis, tidak perlu dipantau manual."
         )
 
+    entry_p = signal['entry_price']
+    target_tp = entry_p * 1.05
+    stop_loss = entry_p * 0.965
+
     return (
         f"{header}\n\n"
         f"<b>Trigger</b>: {signal['trigger_date']}\n"
         f"{trigger_block}\n"
         f"IHSG {signal['ihsg_ret_2d']:+.1%} (2 hari) -- info konteks saja, bukan syarat\n\n"
         f"<b>Entry</b>: {signal['entry_date']}\n"
-        f"Harga: Rp{signal['entry_price']:.0f}\n\n"
+        f"Harga: Rp{entry_p:.0f}\n"
+        f"🎯 <b>Target TP (Swing)</b>: Rp{target_tp:.0f} (+5.0%)\n"
+        f"🛡️ <b>Stop Loss Pengaman</b>: Rp{stop_loss:.0f} (-3.5% toleransi risiko terukur)\n\n"
         f"{exit_text}\n\n"
         f"<b>Info tambahan</b> (bukan bagian aturan -- live-checked hanya cocok ~3/8 kasus):\n"
         f"RSI14: {describe_rsi(signal.get('rsi14'))}\n"
@@ -504,6 +510,9 @@ def format_momentum_alert(signal: dict) -> str:
     MOMENTUM_RSI_THRESHOLD di atas), tidak peduli saham yang lulus validasi penuh sekalipun."""
     entry_date = date.fromisoformat(signal["entry_date"])
     exit_estimate = entry_date + pd.tseries.offsets.BDay(10)
+    entry_p = signal['entry_price']
+    target_tp = entry_p * 1.05
+    stop_loss = entry_p * 0.965
 
     header = f"\U0001F535 <b>SINYAL MOMENTUM: {signal['ticker']}</b>"
 
@@ -512,7 +521,9 @@ def format_momentum_alert(signal: dict) -> str:
         f"<b>Trigger</b>: {signal['trigger_date']}\n"
         f"RSI14: {signal['rsi14']:.0f} (>{MOMENTUM_RSI_THRESHOLD}) -- syarat sinyal (Momentum Naik)\n\n"
         f"<b>Entry</b>: {signal['entry_date']}\n"
-        f"Harga: Rp{signal['entry_price']:.0f}\n\n"
+        f"Harga: Rp{entry_p:.0f}\n"
+        f"🎯 <b>Target TP</b>: Rp{target_tp:.0f} (+5.0%)\n"
+        f"🛡️ <b>Stop Loss</b>: Rp{stop_loss:.0f} (-3.5% toleransi risiko terukur)\n\n"
         f"<b>Rencana exit</b>: tahan 10 hari bursa (trailing stop 2% dari puncak)\n"
         f"≈ {exit_estimate.date().isoformat()}\n\n"
         f"⚠️ <b>EXPLORATORY</b> — beda dari sinyal drawdown-bounce (mean-reversion): ini "
