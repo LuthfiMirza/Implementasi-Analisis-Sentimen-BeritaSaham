@@ -1,14 +1,5 @@
 [
   {
-    "ticker": "BUMI",
-    "entry_date": "2026-09-30",
-    "entry_price": 175,
-    "alerted_pullback_pct": 0.022598870056497175,
-    "strategy": "GABUNGAN",
-    "signal_type": "drawdown",
-    "alerted_pullback_at_peak": 177
-  },
-  {
     "ticker": "DEWA",
     "entry_date": "2026-09-29",
     "entry_price": 340,
@@ -30,40 +21,35 @@
     "ticker": "BRPT",
     "entry_date": "2026-09-30",
     "entry_price": 1405,
-    "alerted_pullback_pct": 0.021052631578947368,
+    "alerted_pullback_pct": 0.02097902097902098,
     "strategy": "GABUNGAN",
     "signal_type": "drawdown",
-    "alerted_pullback_at_peak": 1425.0
-  },
-  {
-    "ticker": "RAJA",
-    "entry_date": "2026-09-30",
-    "entry_price": 665,
-    "alerted_pullback_pct": 0.022058823529411766,
-    "strategy": "GABUNGAN",
-    "signal_type": "drawdown",
-    "alerted_pullback_at_peak": 680
+    "alerted_pullback_at_peak": 1430,
+    "milestone_peak": 1480
   },
   {
     "ticker": "BUMI",
     "entry_date": "2026-10-01",
-    "entry_price": 170.0,
-    "alerted_pullback_pct": null,
+    "entry_price": 170,
+    "alerted_pullback_pct": 0.0223463687150838,
     "strategy": "GABUNGAN",
-    "signal_type": "drawdown"
+    "signal_type": "drawdown",
+    "alerted_pullback_at_peak": 179,
+    "milestone_peak": 179
   },
   {
     "ticker": "DEWA",
     "entry_date": "2026-10-01",
-    "entry_price": 336.0,
-    "alerted_pullback_pct": null,
+    "entry_price": 336,
+    "alerted_pullback_pct": 0.023529411764705882,
     "strategy": "GABUNGAN",
-    "signal_type": "drawdown"
+    "signal_type": "drawdown",
+    "alerted_pullback_at_peak": 340
   },
   {
     "ticker": "BRPT",
     "entry_date": "2026-10-01",
-    "entry_price": 1420.0,
+    "entry_price": 1420,
     "alerted_pullback_pct": null,
     "strategy": "GABUNGAN",
     "signal_type": "drawdown"
@@ -71,23 +57,93 @@
   {
     "ticker": "ESSA",
     "entry_date": "2026-10-01",
-    "entry_price": 560.0,
+    "entry_price": 560,
+    "alerted_pullback_pct": 0.025210084033613446,
+    "strategy": "GABUNGAN",
+    "signal_type": "drawdown",
+    "alerted_pullback_at_peak": 595,
+    "milestone_peak": 595
+  },
+  {
+    "ticker": "INET",
+    "entry_date": "2026-10-01",
+    "entry_price": 266,
+    "alerted_pullback_pct": 0.03546099290780142,
+    "strategy": "GABUNGAN",
+    "signal_type": "ret2d",
+    "milestone_peak": 282,
+    "alerted_pullback_at_peak": 282
+  },
+  {
+    "ticker": "BUMI",
+    "entry_date": "2026-10-02",
+    "entry_price": 175,
     "alerted_pullback_pct": null,
     "strategy": "GABUNGAN",
     "signal_type": "drawdown"
   },
   {
+    "ticker": "BUMI",
+    "entry_date": "2026-10-05",
+    "entry_price": 176,
+    "alerted_pullback_pct": null,
+    "strategy": "GABUNGAN",
+    "signal_type": "drawdown"
+  },
+  {
+    "ticker": "DEWA",
+    "entry_date": "2026-10-02",
+    "entry_price": 338,
+    "alerted_pullback_pct": null,
+    "strategy": "GABUNGAN",
+    "signal_type": "drawdown"
+  },
+  {
+    "ticker": "DEWA",
+    "entry_date": "2026-10-05",
+    "entry_price": 342,
+    "alerted_pullback_pct": null,
+    "strategy": "GABUNGAN",
+    "signal_type": "drawdown"
+  },
+  {
+    "ticker": "BRPT",
+    "entry_date": "2026-10-02",
+    "entry_price": 1420,
+    "alerted_pullback_pct": null,
+    "strategy": "GABUNGAN",
+    "signal_type": "drawdown"
+  },
+  {
+    "ticker": "SMGR",
+    "entry_date": "2026-10-02",
+    "entry_price": 1505,
+    "alerted_pullback_pct": null,
+    "strategy": "GABUNGAN",
+    "signal_type": "ret2d"
+  },
+  {
     "ticker": "RAJA",
-    "entry_date": "2026-10-01",
-    "entry_price": 660.0,
+    "entry_date": "2026-10-02",
+    "entry_price": 640,
+    "alerted_pullback_pct": 0.04285714285714286,
+    "strategy": "GABUNGAN",
+    "signal_type": "drawdown",
+    "milestone_peak": 700,
+    "alerted_pullback_at_peak": 700
+  },
+  {
+    "ticker": "RAJA",
+    "entry_date": "2026-10-05",
+    "entry_price": 660,
     "alerted_pullback_pct": null,
     "strategy": "GABUNGAN",
     "signal_type": "drawdown"
   },
   {
     "ticker": "INET",
-    "entry_date": "2026-10-01",
-    "entry_price": 266.0,
+    "entry_date": "2026-10-02",
+    "entry_price": 262,
     "alerted_pullback_pct": null,
     "strategy": "GABUNGAN",
     "signal_type": "ret2d"
