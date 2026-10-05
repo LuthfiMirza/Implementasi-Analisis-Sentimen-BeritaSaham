@@ -285,7 +285,23 @@ class TradeController extends Controller
                 : null,
         ];
 
-        return view('trades.radar_log', compact('logs', 'stats', 'baseCapital'));
+        $topPerformers = $closed->groupBy('ticker')->map(function ($items, $ticker) use ($baseCapital) {
+            $trades = $items->count();
+            $wins = $items->where('result', 'WIN')->count();
+            $totPnlPct = (float) $items->sum('pnl_pct');
+            $totPnlRp = (float) $items->sum(fn ($i) => $baseCapital * (($i->pnl_pct ?? 0) / 100));
+
+            return [
+                'ticker' => $ticker,
+                'trades' => $trades,
+                'wins' => $wins,
+                'win_rate' => $trades > 0 ? round(($wins / $trades) * 100, 1) : 0.0,
+                'tot_pnl_pct' => round($totPnlPct, 2),
+                'tot_pnl_rp' => $totPnlRp,
+            ];
+        })->sortByDesc('tot_pnl_rp')->take(5)->values();
+
+        return view('trades.radar_log', compact('logs', 'stats', 'baseCapital', 'topPerformers'));
     }
 
     /** Catat fill (entry aktual) untuk sinyal tertentu. */

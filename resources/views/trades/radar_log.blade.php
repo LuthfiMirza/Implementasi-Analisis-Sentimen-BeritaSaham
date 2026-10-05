@@ -1,5 +1,5 @@
 <x-app-layout>
-<div class="space-y-6">
+<div class="space-y-6" x-data="{ activeFilter: 'all' }">
 
   {{-- ── HEADER ── --}}
   <div class="flex flex-wrap items-center justify-between gap-3">
@@ -113,6 +113,70 @@
     </p>
   </div>
 
+  {{-- ── SEKSI: TOP 5 EMITEN PENCETAK CUAN TERBESAR ── --}}
+  @if(!empty($topPerformers) && $topPerformers->count() > 0)
+    <div class="glass-card rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.02] p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+          <span>🏆</span> Top 5 Emiten Pencetak Cuan Terbesar (SELF_RADAR_V1)
+        </h2>
+        <span class="text-[11px] text-slate-400">Modal Sizing Rp 10 Jt / Trade</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+        @foreach($topPerformers as $idx => $tp)
+          @php
+            $medals = ['🥇', '🥈', '🥉', '⭐', '⭐'];
+            $medal = $medals[$idx] ?? '⭐';
+          @endphp
+          <div class="rounded-xl p-3 bg-slate-900/70 border border-slate-800 text-center">
+            <div class="flex items-center justify-center gap-1 mb-1">
+              <span>{{ $medal }}</span>
+              <span class="font-bold text-slate-100 text-sm">#{{ $tp['ticker'] }}</span>
+            </div>
+            <p class="text-xs font-mono font-bold text-emerald-400">
+              +Rp {{ number_format($tp['tot_pnl_rp'], 0, ',', '.') }}
+            </p>
+            <p class="text-[10px] text-emerald-300/80 font-mono font-semibold">
+              +{{ number_format($tp['tot_pnl_pct'], 2) }}% akumulasi
+            </p>
+            <p class="text-[10px] text-slate-400 mt-1">
+              {{ $tp['trades'] }} Trade (WR {{ $tp['win_rate'] }}%)
+            </p>
+          </div>
+        @endforeach
+      </div>
+    </div>
+  @endif
+
+  {{-- ── FILTER CEPAT ── --}}
+  <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-semibold text-slate-400">Filter Tampilan:</span>
+      <div class="inline-flex rounded-xl bg-slate-900/80 p-1 border border-slate-800">
+        <button type="button" @click="activeFilter = 'all'"
+                :class="activeFilter === 'all' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 text-xs font-semibold rounded-lg transition">
+          Semua ({{ $stats['total'] }})
+        </button>
+        <button type="button" @click="activeFilter = 'win'"
+                :class="activeFilter === 'win' ? 'bg-emerald-600 text-white shadow' : 'text-emerald-400 hover:text-emerald-300'"
+                class="px-3 py-1 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+          <span>🟢</span> Cuan Saja ({{ $stats['win'] }})
+        </button>
+        <button type="button" @click="activeFilter = 'loss'"
+                :class="activeFilter === 'loss' ? 'bg-rose-600 text-white shadow' : 'text-rose-400 hover:text-rose-300'"
+                class="px-3 py-1 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+          <span>🔴</span> Loss Saja ({{ $stats['loss'] }})
+        </button>
+        <button type="button" @click="activeFilter = 'open'"
+                :class="activeFilter === 'open' ? 'bg-sky-600 text-white shadow' : 'text-sky-400 hover:text-sky-300'"
+                class="px-3 py-1 text-xs font-semibold rounded-lg transition flex items-center gap-1">
+          <span>🔵</span> Open Saja ({{ $stats['open'] }})
+        </button>
+      </div>
+    </div>
+  </div>
+
   {{-- ── TABEL LOG ── --}}
   @php
     $byDate = $logs->groupBy(fn($l) => $l->signal_date->format('Y-m-d'));
@@ -141,7 +205,8 @@
             $isLoss    = $log->result === 'LOSS';
           @endphp
 
-          <div class="glass-card rounded-2xl p-4 border-2 transition-colors
+          <div x-show="activeFilter === 'all' || (activeFilter === 'win' && {{ $isWin ? 'true' : 'false' }}) || (activeFilter === 'loss' && {{ $isLoss ? 'true' : 'false' }}) || (activeFilter === 'open' && {{ ($isFilled && !$isExited) ? 'true' : 'false' }})"
+               class="glass-card rounded-2xl p-4 border-2 transition-colors
             @if($isWin) border-green-500/40 bg-green-500/[0.04]
             @elseif($isLoss) border-rose-500/40 bg-rose-500/[0.04]
             @elseif($isSkipped) border-slate-700/50 opacity-60
