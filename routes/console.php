@@ -146,6 +146,15 @@ Schedule::command('trade:scan-bsjp --stage=confirm --send')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// BROADCAST TERPADU SENTIMENA SORE: 15.36 WIB
+// Merangkum Juara 1 BSJP, Tiket Emas SELF_RADAR_V1, Juara 2 Gabungan, Juara 3 Momentum, & Trailing Stop
+Schedule::command('trade:broadcast-sentimena-sore --send')
+    ->weekdays()
+    ->dailyAt('15:36')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // END-OF-DAY: 15.10 WIB
 // Simpan snapshot harian final + hitung ulang indikator
 Schedule::command('stocks:fetch-history --days=1')
