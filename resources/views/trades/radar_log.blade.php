@@ -33,44 +33,69 @@
     </div>
   @endif
 
-  {{-- ── KARTU RINGKASAN ── --}}
-  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-    <div class="glass-card rounded-2xl p-4 border border-slate-800/80">
-      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Total Sinyal</p>
-      <p class="text-2xl font-bold text-slate-100">{{ $stats['total'] }}</p>
-    </div>
-    <div class="glass-card rounded-2xl p-4 border border-emerald-500/20 bg-emerald-500/[0.03]">
-      <p class="text-[10px] text-emerald-400/80 uppercase font-medium mb-1 flex items-center gap-1">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Difill
+  {{-- ── KARTU RINGKASAN METRIK (MODAL RP 10 JUTA PER TRADE) ── --}}
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    {{-- Saldo Modal Berjalan --}}
+    <div class="glass-card rounded-2xl p-4 border border-slate-800/80 bg-slate-900/50">
+      <p class="text-[10px] text-slate-500 uppercase font-semibold tracking-wider mb-1">Saldo Modal Berjalan</p>
+      <p class="text-xl font-bold font-mono text-slate-100">
+        Rp {{ number_format($stats['current_capital'], 0, ',', '.') }}
       </p>
-      <p class="text-2xl font-bold text-emerald-400">{{ $stats['filled'] }}</p>
+      <p class="text-[11px] mt-1 font-medium font-mono {{ $stats['total_realized_pnl'] >= 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+        {{ $stats['total_realized_pnl'] >= 0 ? '+' : '' }}{{ number_format($stats['total_capital_growth_pct'], 2) }}% dari Rp 10Jt
+      </p>
     </div>
-    <div class="glass-card rounded-2xl p-4 border border-sky-500/20 bg-sky-500/[0.03]">
-      <p class="text-[10px] text-sky-400/80 uppercase font-medium mb-1">Posisi Terbuka</p>
-      <p class="text-2xl font-bold text-sky-400">{{ $stats['open'] }}</p>
+
+    {{-- Realized P&L Rp --}}
+    <div class="glass-card rounded-2xl p-4 border {{ $stats['total_realized_pnl'] >= 0 ? 'border-emerald-500/30 bg-emerald-500/[0.03]' : 'border-rose-500/30 bg-rose-500/[0.03]' }}">
+      <p class="text-[10px] uppercase font-semibold tracking-wider mb-1 {{ $stats['total_realized_pnl'] >= 0 ? 'text-emerald-400/80' : 'text-rose-400/80' }}">
+        Total Realized P&L
+      </p>
+      <p class="text-xl font-bold font-mono {{ $stats['total_realized_pnl'] >= 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+        {{ $stats['total_realized_pnl'] >= 0 ? '+' : '' }}Rp {{ number_format($stats['total_realized_pnl'], 0, ',', '.') }}
+      </p>
+      <p class="text-[11px] text-slate-500 mt-1">Modal Rp 10 Jt / trade</p>
     </div>
-    <div class="glass-card rounded-2xl p-4 border border-slate-800/80">
-      <p class="text-[10px] text-slate-500 uppercase font-medium mb-1">Ditutup</p>
-      <p class="text-2xl font-bold text-slate-100">{{ $stats['closed'] }}</p>
-    </div>
-    <div class="glass-card rounded-2xl p-4 border border-green-500/20 bg-green-500/[0.03]">
-      <p class="text-[10px] text-green-400/80 uppercase font-medium mb-1">WIN</p>
-      <p class="text-2xl font-bold text-green-400">{{ $stats['win'] }}</p>
-    </div>
-    <div class="glass-card rounded-2xl p-4 border border-rose-500/20 bg-rose-500/[0.03]">
-      <p class="text-[10px] text-rose-400/80 uppercase font-medium mb-1">LOSS</p>
-      <p class="text-2xl font-bold text-rose-400">{{ $stats['loss'] }}</p>
-    </div>
-    <div class="glass-card rounded-2xl p-4 border border-amber-500/20 bg-amber-500/[0.03]">
-      <p class="text-[10px] text-amber-400/80 uppercase font-medium mb-1">Win Rate</p>
-      <p class="text-2xl font-bold text-amber-400">
+
+    {{-- Win Rate Live --}}
+    <div class="glass-card rounded-2xl p-4 border border-amber-500/20 bg-amber-500/[0.02]">
+      <p class="text-[10px] text-amber-400/80 uppercase font-semibold tracking-wider mb-1">Win Rate Live</p>
+      <p class="text-xl font-bold font-mono text-amber-300">
         {{ $stats['win_rate'] !== null ? $stats['win_rate'].'%' : '—' }}
       </p>
+      <p class="text-[11px] text-slate-400 mt-1 font-mono">
+        <span class="text-emerald-400 font-bold">{{ $stats['win'] }}W</span> &times; <span class="text-rose-400 font-bold">{{ $stats['loss'] }}L</span>
+        @if(($stats['draw'] ?? 0) > 0)
+          &times; <span class="text-slate-400">{{ $stats['draw'] }}D</span>
+        @endif
+      </p>
+    </div>
+
+    {{-- Trade Ditutup --}}
+    <div class="glass-card rounded-2xl p-4 border border-slate-800/80 bg-slate-900/50">
+      <p class="text-[10px] text-slate-500 uppercase font-semibold tracking-wider mb-1">Trade Selesai</p>
+      <p class="text-xl font-bold font-mono text-slate-100">{{ $stats['closed'] }} Sinyal</p>
       @if($stats['avg_pnl'] !== null)
-        <p class="text-[10px] mt-1 {{ $stats['avg_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-          avg {{ $stats['avg_pnl'] >= 0 ? '+' : '' }}{{ $stats['avg_pnl'] }}%
+        <p class="text-[11px] mt-1 font-mono {{ $stats['avg_pnl'] >= 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+          avg {{ $stats['avg_pnl'] >= 0 ? '+' : '' }}{{ $stats['avg_pnl'] }}% / trade
         </p>
       @endif
+    </div>
+
+    {{-- Posisi Terbuka --}}
+    <div class="glass-card rounded-2xl p-4 border border-sky-500/20 bg-sky-500/[0.03]">
+      <p class="text-[10px] text-sky-400/80 uppercase font-semibold tracking-wider mb-1 flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span> Posisi Terbuka
+      </p>
+      <p class="text-xl font-bold font-mono text-sky-400">{{ $stats['open'] }} Posisi</p>
+      <p class="text-[11px] text-sky-400/70 mt-1">TEBE (Hold)</p>
+    </div>
+
+    {{-- Rentang Periode Data --}}
+    <div class="glass-card rounded-2xl p-4 border border-slate-800/80 bg-slate-900/50">
+      <p class="text-[10px] text-slate-500 uppercase font-semibold tracking-wider mb-1">Rentang Data</p>
+      <p class="text-xs font-bold font-mono text-slate-200 mt-1.5 leading-tight">{{ $stats['date_range_label'] }}</p>
+      <p class="text-[11px] text-slate-500 mt-1">{{ $stats['total'] }} total sinyal masuk</p>
     </div>
   </div>
 
@@ -208,11 +233,19 @@
                     </span>
                   </div>
                   @if($log->pnl_pct !== null)
-                    <div class="flex justify-between font-semibold">
-                      <span class="text-slate-400">PnL</span>
-                      <span class="font-mono {{ $log->pnl_pct >= 0 ? 'text-green-400' : 'text-rose-400' }}">
-                        {{ $log->pnl_pct >= 0 ? '+' : '' }}{{ $log->pnl_pct }}%
-                      </span>
+                    @php
+                      $cardPnlRp = ($baseCapital ?? 10000000) * ($log->pnl_pct / 100);
+                    @endphp
+                    <div class="flex justify-between items-center font-semibold pt-1 border-t border-slate-700/50">
+                      <span class="text-slate-400">PnL (Rp 10Jt):</span>
+                      <div class="text-right">
+                        <span class="font-mono {{ $log->pnl_pct >= 0 ? 'text-green-400' : 'text-rose-400' }}">
+                          {{ $log->pnl_pct >= 0 ? '+' : '' }}{{ $log->pnl_pct }}%
+                        </span>
+                        <span class="block text-[10px] font-mono {{ $cardPnlRp >= 0 ? 'text-emerald-400' : 'text-rose-400' }}">
+                          {{ $cardPnlRp >= 0 ? '+' : '' }}Rp {{ number_format($cardPnlRp, 0, ',', '.') }}
+                        </span>
+                      </div>
                     </div>
                   @endif
                 @endif
@@ -223,7 +256,13 @@
             @if($isFilled && !$isExited)
               @php
                 $bepPrice = round($log->fill_price * 1.008);
+                $lotSizing = floor(($baseCapital ?? 10000000) / ($log->fill_price * 100 * 1.0015));
+                $valSizing = $lotSizing * 100 * $log->fill_price;
               @endphp
+              <div class="flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 mb-2.5 text-slate-300">
+                <span class="text-slate-400">Sizing Modal Rp 10 Jt:</span>
+                <span class="font-mono font-bold text-amber-300">{{ number_format($lotSizing) }} Lot <span class="text-slate-500 font-normal text-[10px]">(Rp {{ number_format($valSizing, 0, ',', '.') }})</span></span>
+              </div>
               <div class="rounded-xl border p-2.5 mb-3 text-[11px] space-y-1.5 {{ $isSuspensionRisk ? 'bg-rose-500/10 border-rose-500/30 text-rose-200' : 'bg-sky-500/10 border-sky-500/30 text-sky-200' }}">
                 <div class="flex items-center justify-between font-bold">
                   <span class="flex items-center gap-1">

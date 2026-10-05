@@ -243,6 +243,8 @@ class TradeController extends Controller
      */
     public function radarLog(Request $request)
     {
+        $baseCapital = (float) $request->input('capital', 10000000.00); // Rp 10 Juta default
+
         $logs = \App\Models\SelfRadarSignalLog::orderByDesc('signal_date')
             ->orderBy('rank')
             ->get();
@@ -252,8 +254,21 @@ class TradeController extends Controller
         $closed  = $filled->whereNotNull('exit_price');
         $wins    = $closed->where('result', 'WIN');
         $losses  = $closed->where('result', 'LOSS');
+        $draws   = $closed->where('result', 'DRAW');
+
+        $totalRealizedPnl = (float) $closed->sum(fn ($l) => $baseCapital * (($l->pnl_pct ?? 0) / 100));
+        $currentCapital = $baseCapital + $totalRealizedPnl;
+        $totalCapitalGrowthPct = $baseCapital > 0 ? round(($totalRealizedPnl / $baseCapital) * 100, 2) : 0.0;
+
+        $minDate = $logs->min('signal_date');
+        $maxDate = $logs->max('signal_date');
 
         $stats = [
+            'base_capital' => $baseCapital,
+            'current_capital' => $currentCapital,
+            'total_realized_pnl' => $totalRealizedPnl,
+            'total_capital_growth_pct' => $totalCapitalGrowthPct,
+            'date_range_label' => $minDate && $maxDate ? $minDate->format('d M Y') . ' — ' . $maxDate->format('d M Y') : '—',
             'total'    => $logs->count(),
             'filled'   => $filled->count(),
             'open'     => $filled->whereNull('exit_price')->count(),
@@ -261,6 +276,7 @@ class TradeController extends Controller
             'skipped'  => $logs->where('result', 'SKIP')->count(),
             'win'      => $wins->count(),
             'loss'     => $losses->count(),
+            'draw'     => $draws->count(),
             'win_rate' => $closed->count() > 0
                 ? round($wins->count() / $closed->count() * 100, 1)
                 : null,
@@ -269,7 +285,7 @@ class TradeController extends Controller
                 : null,
         ];
 
-        return view('trades.radar_log', compact('logs', 'stats'));
+        return view('trades.radar_log', compact('logs', 'stats', 'baseCapital'));
     }
 
     /** Catat fill (entry aktual) untuk sinyal tertentu. */
