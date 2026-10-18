@@ -258,28 +258,46 @@ BUTTON_CLOSE_DSSA = "\U0001F534 Tutup DSSA"
 BUTTON_CLOSE_INET = "\U0001F534 Tutup INET"  # Fase DU -- screening lanjutan pick PTB
 BUTTON_CLOSE_PSAB = "\U0001F534 Tutup PSAB"
 BUTTON_HELP = "❓ Bantuan"
+BUTTON_HIDE_KEYBOARD = "❌ Sembunyikan Menu"
 
 
-def default_keyboard() -> dict:
-    """Persistent tappable keyboard shown under the message box -- tapping a button just sends
-    its label as a normal message, same as typing it. Price is deliberately not on the button:
-    handle_command() fills it in from the live market price when a command arrives without one,
-    so these buttons work with a single tap. /price and /open TICKER aren't buttons because they
-    need a free-typed ticker -- Bantuan (/help) tells the user how to type those."""
+def default_keyboard(positions: list[dict] | None = None) -> dict:
+    """Tappable keyboard di bawah kotak pesan chat Telegram.
+    - Menampilkan '📊 Status' dan '📜 Riwayat'.
+    - HANYA menampilkan tombol '🔴 Tutup TICKER' untuk emiten yang saat ini BENAR-BENAR sedang aktif di open_positions.json.
+    - Jika tidak ada emiten yang dipantau, tombol '🔴 Tutup ...' tidak ditampilkan sama sekali.
+    - Menghapus 'is_persistent': True agar keyboard di iOS/Android Telegram TIDAK terkunci dan bisa di-minimize/swipe down.
+    - Menambahkan tombol '❌ Sembunyikan Menu' untuk menutup keyboard sepenuhnya.
+    """
+    if positions is None:
+        positions_path = Path(__file__).parent / "open_positions.json"
+        if positions_path.is_file():
+            try:
+                positions = json.loads(positions_path.read_text(encoding="utf-8"))
+            except Exception:
+                positions = []
+        else:
+            positions = []
+
+    rows = [
+        [BUTTON_STATUS, BUTTON_HISTORY],
+    ]
+
+    active_tickers = sorted(list(set(p["ticker"] for p in positions if p.get("ticker"))))
+    close_row = []
+    for ticker in active_tickers:
+        close_row.append(f"🔴 Tutup {ticker}")
+        if len(close_row) == 2:
+            rows.append(close_row)
+            close_row = []
+    if close_row:
+        rows.append(close_row)
+
+    rows.append([BUTTON_HELP, BUTTON_HIDE_KEYBOARD])
+
     return {
-        "keyboard": [
-            [BUTTON_STATUS, BUTTON_HISTORY],
-            [BUTTON_CLOSE_BUMI, BUTTON_CLOSE_DEWA],
-            [BUTTON_CLOSE_BRPT, BUTTON_CLOSE_SMGR],
-            [BUTTON_CLOSE_ESSA, BUTTON_CLOSE_UNVR],
-            [BUTTON_CLOSE_TINS, BUTTON_CLOSE_PTRO],
-            [BUTTON_CLOSE_ENRG, BUTTON_CLOSE_RAJA],
-            [BUTTON_CLOSE_DSSA, BUTTON_CLOSE_INET],
-            [BUTTON_CLOSE_PSAB],
-            [BUTTON_HELP],
-        ],
+        "keyboard": rows,
         "resize_keyboard": True,
-        "is_persistent": True,
     }
 
 

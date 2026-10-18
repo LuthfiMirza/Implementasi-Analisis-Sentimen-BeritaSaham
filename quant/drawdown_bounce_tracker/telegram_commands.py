@@ -52,6 +52,7 @@ from detect_signal import (  # noqa: E402
     BUTTON_CLOSE_INET,
     BUTTON_CLOSE_PSAB,
     BUTTON_HELP,
+    BUTTON_HIDE_KEYBOARD,
     BUTTON_HISTORY,
     BUTTON_STATUS,
     DROP_THRESHOLD,
@@ -673,20 +674,43 @@ def main() -> None:
             continue  # ignore anyone except the allowed chat(s) -- primary + TELEGRAM_CHAT_ID_2
 
         text = message.get("text", "")
-        text = BUTTON_LABELS.get(text.strip(), text)  # translate a tapped icon button, if any
+        stripped_text = text.strip()
+
+        # Support tombol dinamis "🔴 Tutup TICKER"
+        if stripped_text.startswith("🔴 Tutup "):
+            target_ticker = stripped_text.replace("🔴 Tutup ", "").strip().upper()
+            text = f"/close {target_ticker}"
+        elif stripped_text in (BUTTON_HIDE_KEYBOARD, "❌ Sembunyikan Menu", "/hide"):
+            send_telegram_alert(
+                "Menu keyboard disembunyikan. Ketik /menu atau /status untuk memunculkannya kembali.",
+                reply_markup={"remove_keyboard": True},
+                chat_id=sender_chat_id,
+            )
+            processed += 1
+            continue
+        elif stripped_text in ("/menu", "/keyboard"):
+            send_telegram_alert(
+                "Menu keyboard ditampilkan kembali:",
+                reply_markup=default_keyboard(positions),
+                chat_id=sender_chat_id,
+            )
+            processed += 1
+            continue
+        else:
+            text = BUTTON_LABELS.get(stripped_text, text)  # translate a tapped icon button, if any
 
         if text.strip() == "/status":
-            send_telegram_alert(format_status(positions), reply_markup=default_keyboard(), chat_id=sender_chat_id)
+            send_telegram_alert(format_status(positions), reply_markup=default_keyboard(positions), chat_id=sender_chat_id)
             processed += 1
             continue
 
         if text.strip() == "/history":
-            send_telegram_alert(format_history(load_closed_trades()), reply_markup=default_keyboard(), chat_id=sender_chat_id)
+            send_telegram_alert(format_history(load_closed_trades()), reply_markup=default_keyboard(positions), chat_id=sender_chat_id)
             processed += 1
             continue
 
         if text.strip() == "/help":
-            send_telegram_alert(format_help(), reply_markup=default_keyboard(), chat_id=sender_chat_id)
+            send_telegram_alert(format_help(), reply_markup=default_keyboard(positions), chat_id=sender_chat_id)
             processed += 1
             continue
 
@@ -695,19 +719,19 @@ def main() -> None:
             ticker = price_match.group(1).upper()
             send_telegram_alert(
                 format_price(ticker, fetch_price_snapshot(ticker)),
-                reply_markup=default_keyboard(), chat_id=sender_chat_id,
+                reply_markup=default_keyboard(positions), chat_id=sender_chat_id,
             )
             processed += 1
             continue
 
         if IHSG_PATTERN.match(text.strip()):
-            send_telegram_alert(format_ihsg_progress(), reply_markup=default_keyboard(), chat_id=sender_chat_id)
+            send_telegram_alert(format_ihsg_progress(), reply_markup=default_keyboard(positions), chat_id=sender_chat_id)
             processed += 1
             continue
 
         if text.startswith("/open") or text.startswith("/close"):
             positions, reply = handle_command(text, positions)
-            send_telegram_alert(reply, reply_markup=default_keyboard(), chat_id=sender_chat_id)
+            send_telegram_alert(reply, reply_markup=default_keyboard(positions), chat_id=sender_chat_id)
             processed += 1
             print(f"Diproses: {text.strip()} -> {reply}")
 

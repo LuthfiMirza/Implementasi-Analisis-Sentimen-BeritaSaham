@@ -86,20 +86,22 @@ class CheckTelegramCommandsCommand extends Command
             }
 
             try {
-                $trade = Trade::where('ticker', $ticker)
+                $trades = Trade::where('ticker', $ticker)
                     ->where('status', 'open')
                     ->orderByDesc('entry_date')
-                    ->first();
+                    ->get();
 
-                if (! $trade) {
+                if ($trades->isEmpty()) {
                     $this->warn("Sync Trade Journal: tidak ada posisi OPEN {$ticker} di web -- dilewati (mungkin belum pernah dicatat di sana).");
 
                     continue;
                 }
 
                 $exitDate = $dateStr ? Carbon::parse($dateStr) : Carbon::now();
-                $trade->close((float) $price, 'manual_close', $exitDate);
-                $this->info("Sync Trade Journal: {$ticker} ditutup otomatis di web (exit Rp{$price}, {$exitDate->toDateString()}).");
+                foreach ($trades as $trade) {
+                    $trade->close((float) $price, 'manual_close', $exitDate);
+                }
+                $this->info("Sync Trade Journal: {$trades->count()} posisi {$ticker} ditutup otomatis di web (exit Rp{$price}, {$exitDate->toDateString()}).");
             } catch (Throwable $e) {
                 $this->warn("Sync Trade Journal gagal untuk {$ticker} (DB mungkin mati): ".$e->getMessage());
             }
@@ -275,17 +277,26 @@ class CheckTelegramCommandsCommand extends Command
             $kept = array_values(array_filter($positions, function (array $p) use ($closedKeys, $openKeys, $openTickerStrategy, $staleBefore, &$removed): bool {
                 $key = $this->positionKey($p['ticker'] ?? '', $p['strategy'] ?? 'GABUNGAN', $p['entry_date'] ?? null);
 
-                // (1) trade-nya sudah closed
+                // (1) trade-nya sudah closed di DB
                 if (isset($closedKeys[$key]) && ! isset($openKeys[$key])) {
                     $removed[] = "{$key} (closed)";
 
                     return false;
                 }
 
-                // (2) orphan lama tanpa posisi open utk ticker+strategi itu
+                $tickerStrategy = strtolower((string) ($p['ticker'] ?? '')).'|'.strtolower((string) ($p['strategy'] ?? 'gabungan'));
                 $hasAnyTrade = isset($closedKeys[$key]) || isset($openKeys[$key]);
+
+                // (2) jika ticker+strategi ini punya trade OPEN di DB, tapi baris entry_date ini BUKAN trade open tersebut
+                // (mencegah penumpukan sinyal unexecuted pada saham yang sudah punya trade open aktif)
+                if (isset($openTickerStrategy[$tickerStrategy]) && ! isset($openKeys[$key])) {
+                    $removed[] = "{$key} (bukan open trade aktif)";
+
+                    return false;
+                }
+
+                // (3) orphan lama tanpa posisi open utk ticker+strategi itu
                 if (! $hasAnyTrade) {
-                    $tickerStrategy = strtolower((string) ($p['ticker'] ?? '')).'|'.strtolower((string) ($p['strategy'] ?? 'gabungan'));
                     $entry = isset($p['entry_date']) ? Carbon::parse($p['entry_date']) : null;
                     if ($entry !== null && $entry->lt($staleBefore) && ! isset($openTickerStrategy[$tickerStrategy])) {
                         $removed[] = "{$key} (orphan basi)";

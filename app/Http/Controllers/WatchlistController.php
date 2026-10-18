@@ -17,6 +17,7 @@ class WatchlistController extends Controller
 
     public function index(Request $request)
     {
+        @set_time_limit(180);
         $search = (string) $request->query('q', '');
         $items = $this->watchlistService->getWatchlistWithAnalytics($request->user(), 14)
             ->when($search !== '', fn ($collection) => $collection->filter(function ($item) use ($search) {

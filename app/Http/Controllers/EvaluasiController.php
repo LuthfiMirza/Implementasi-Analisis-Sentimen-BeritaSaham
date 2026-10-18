@@ -22,7 +22,7 @@ class EvaluasiController extends Controller
         // tetap butuh waktu penuh -- naikkan batas eksekusi PHP khusus jalur ini (bukan ubah
         // php.ini global) dengan margin dari 77 detik terukur.
         if (! Cache::store('file')->has('evaluasi:index:v1')) {
-            set_time_limit(120);
+            @set_time_limit(0);
         }
         [$results, $summary] = Cache::store('file')->remember(
             'evaluasi:index:v1',
