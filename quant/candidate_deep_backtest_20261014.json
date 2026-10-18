@@ -1,0 +1,212 @@
+[
+  {
+    "ticker": "BAIK",
+    "current_date": "2026-10-14",
+    "current_close": 276.0,
+    "current_ret_1d": 14.049586776859503,
+    "current_vol_ratio": 11.172073218910496,
+    "current_value_bio": 14.0490072,
+    "current_rsi14": 54.29362331482893,
+    "current_ret_5d": 18.965517241379317,
+    "current_dd_20d": -10.389610389610393,
+    "history_bars": 637,
+    "bsjp_stats": {
+      "n_signals": 53,
+      "open_win_rate": 39.6,
+      "open_mean_net": 0.32,
+      "open_median_net": -0.5,
+      "tpsl_win_rate": 41.5,
+      "tpsl_mean_net": -0.55,
+      "high_ge_25_pct": 58.5,
+      "avg_max_high": 8.65
+    },
+    "momentum_stats": {
+      "n_signals": 152,
+      "win_rate_2d": 39.5,
+      "mean_ret_2d": 1.83,
+      "win_rate_5d": 48.0,
+      "mean_ret_5d": 4.96,
+      "avg_max_upside_5d": 21.19
+    }
+  },
+  {
+    "ticker": "BRPT",
+    "current_date": "2026-10-14",
+    "current_close": 1440.0,
+    "current_ret_1d": 9.090909090909083,
+    "current_vol_ratio": 2.9524996523060136,
+    "current_value_bio": 238.445856,
+    "current_rsi14": 42.47387350760023,
+    "current_ret_5d": 0.6993006993007089,
+    "current_dd_20d": -13.772455089820356,
+    "history_bars": 1234,
+    "bsjp_stats": {
+      "n_signals": 80,
+      "open_win_rate": 50.0,
+      "open_mean_net": 0.03,
+      "open_median_net": 0.0,
+      "tpsl_win_rate": 46.2,
+      "tpsl_mean_net": -0.74,
+      "high_ge_25_pct": 53.8,
+      "avg_max_high": 4.98
+    },
+    "momentum_stats": {
+      "n_signals": 218,
+      "win_rate_2d": 52.3,
+      "mean_ret_2d": 0.86,
+      "win_rate_5d": 50.9,
+      "mean_ret_5d": 2.17,
+      "avg_max_upside_5d": 10.62
+    }
+  },
+  {
+    "ticker": "HATM",
+    "current_date": "2026-10-14",
+    "current_close": 675.0,
+    "current_ret_1d": 13.4453781512605,
+    "current_vol_ratio": 0.6492696458757747,
+    "current_value_bio": 10.1110275,
+    "current_rsi14": 73.89834792753784,
+    "current_ret_5d": 27.35849056603774,
+    "current_dd_20d": -0.7352941176470562,
+    "history_bars": 1015,
+    "bsjp_stats": {
+      "n_signals": 64,
+      "open_win_rate": 31.2,
+      "open_mean_net": -0.13,
+      "open_median_net": -0.5,
+      "tpsl_win_rate": 37.5,
+      "tpsl_mean_net": -1.33,
+      "high_ge_25_pct": 39.1,
+      "avg_max_high": 3.29
+    },
+    "momentum_stats": {
+      "n_signals": 249,
+      "win_rate_2d": 50.2,
+      "mean_ret_2d": -0.18,
+      "win_rate_5d": 51.0,
+      "mean_ret_5d": -0.77,
+      "avg_max_upside_5d": 6.24
+    }
+  },
+  {
+    "ticker": "PANI",
+    "current_date": "2026-10-14",
+    "current_close": 5075.0,
+    "current_ret_1d": 8.440170940170933,
+    "current_vol_ratio": 3.3129812508945182,
+    "current_value_bio": 58.7375425,
+    "current_rsi14": 52.27356729279954,
+    "current_ret_5d": 7.978723404255317,
+    "current_dd_20d": -7.727272727272727,
+    "history_bars": 1233,
+    "bsjp_stats": {
+      "n_signals": 117,
+      "open_win_rate": 57.3,
+      "open_mean_net": 0.74,
+      "open_median_net": 0.12,
+      "tpsl_win_rate": 52.1,
+      "tpsl_mean_net": 0.21,
+      "high_ge_25_pct": 59.8,
+      "avg_max_high": 6.24
+    },
+    "momentum_stats": {
+      "n_signals": 348,
+      "win_rate_2d": 43.7,
+      "mean_ret_2d": 2.45,
+      "win_rate_5d": 50.6,
+      "mean_ret_5d": 6.73,
+      "avg_max_upside_5d": 15.05
+    }
+  },
+  {
+    "ticker": "MAPI",
+    "current_date": "2026-10-14",
+    "current_close": 1550.0,
+    "current_ret_1d": 7.638888888888884,
+    "current_vol_ratio": 4.3606155008024166,
+    "current_value_bio": 14.31952,
+    "current_rsi14": 56.17296756114604,
+    "current_ret_5d": 0.0,
+    "current_dd_20d": -1.5873015873015928,
+    "history_bars": 1233,
+    "bsjp_stats": {
+      "n_signals": 70,
+      "open_win_rate": 32.9,
+      "open_mean_net": -0.16,
+      "open_median_net": -0.5,
+      "tpsl_win_rate": 42.9,
+      "tpsl_mean_net": -0.61,
+      "high_ge_25_pct": 42.9,
+      "avg_max_high": 2.44
+    },
+    "momentum_stats": {
+      "n_signals": 251,
+      "win_rate_2d": 33.1,
+      "mean_ret_2d": -1.06,
+      "win_rate_5d": 34.7,
+      "mean_ret_5d": -1.3,
+      "avg_max_upside_5d": 3.79
+    }
+  },
+  {
+    "ticker": "BUMI",
+    "current_date": "2026-10-14",
+    "current_close": 166.0,
+    "current_ret_1d": 1.2195121951219523,
+    "current_vol_ratio": 0.8348525694958636,
+    "current_value_bio": 230.7027994,
+    "current_rsi14": 37.69336123286983,
+    "current_ret_5d": -7.777777777777772,
+    "current_dd_20d": -19.417475728155342,
+    "history_bars": 2806,
+    "bsjp_stats": {
+      "n_signals": 255,
+      "open_win_rate": 53.7,
+      "open_mean_net": -1.78,
+      "open_median_net": 0.18,
+      "tpsl_win_rate": 46.3,
+      "tpsl_mean_net": -2.32,
+      "high_ge_25_pct": 60.0,
+      "avg_max_high": 4.92
+    },
+    "momentum_stats": {
+      "n_signals": 396,
+      "win_rate_2d": 45.2,
+      "mean_ret_2d": 1.91,
+      "win_rate_5d": 44.4,
+      "mean_ret_5d": 7.0,
+      "avg_max_upside_5d": 22.24
+    }
+  },
+  {
+    "ticker": "ESSA",
+    "current_date": "2026-10-14",
+    "current_close": 585.0,
+    "current_ret_1d": 0.8620689655172376,
+    "current_vol_ratio": 0.9373476899860308,
+    "current_value_bio": 10.7556345,
+    "current_rsi14": 43.872430525653385,
+    "current_ret_5d": 0.0,
+    "current_dd_20d": -5.645161290322576,
+    "history_bars": 1234,
+    "bsjp_stats": {
+      "n_signals": 112,
+      "open_win_rate": 51.8,
+      "open_mean_net": -0.08,
+      "open_median_net": 0.03,
+      "tpsl_win_rate": 46.4,
+      "tpsl_mean_net": -0.84,
+      "high_ge_25_pct": 49.1,
+      "avg_max_high": 3.66
+    },
+    "momentum_stats": {
+      "n_signals": 245,
+      "win_rate_2d": 44.1,
+      "mean_ret_2d": -0.09,
+      "win_rate_5d": 44.9,
+      "mean_ret_5d": 0.08,
+      "avg_max_upside_5d": 7.92
+    }
+  }
+]

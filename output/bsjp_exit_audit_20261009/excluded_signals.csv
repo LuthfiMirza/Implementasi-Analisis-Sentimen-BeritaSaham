@@ -1,0 +1,14 @@
+ticker,date,exit_date,reason
+ARII,2026-09-21,2026-09-22,incomplete_opening_bars
+BCIC,2026-09-21,2026-09-22,incomplete_opening_bars
+BKDP,2026-07-28,2026-07-29,incomplete_opening_bars
+BKDP,2026-09-01,2026-09-02,incomplete_opening_bars
+BKDP,2026-09-04,2026-09-07,incomplete_opening_bars
+BKDP,2026-10-05,2026-10-06,incomplete_opening_bars
+GRIA,2026-08-24,2026-08-26,incomplete_opening_bars
+MSIE,2026-08-12,2026-08-13,incomplete_opening_bars
+NATO,2026-09-22,2026-09-23,incomplete_opening_bars
+NATO,2026-10-05,2026-10-06,incomplete_opening_bars
+SCNP,2026-07-17,2026-07-20,incomplete_opening_bars
+SMLE,2026-10-08,2026-10-09,incomplete_opening_bars
+URBN,2026-09-21,2026-09-22,incomplete_opening_bars

@@ -1,0 +1,182 @@
+[
+  {
+    "ticker": "BRRC",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:40:40.660889+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BRRC.JK",
+    "params": {
+      "range": "2y",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 414
+  },
+  {
+    "ticker": "BRRC",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:40:40.661799+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BRRC.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5213
+  },
+  {
+    "ticker": "BRRC",
+    "interval": "1m",
+    "retrieved_utc": "2026-10-09T08:40:40.662316+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BRRC.JK",
+    "params": {
+      "range": "1d",
+      "interval": "1m"
+    },
+    "status": 200,
+    "bars": 389
+  },
+  {
+    "ticker": "ARCI",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:40:40.662800+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ARCI.JK",
+    "params": {
+      "range": "2y",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 475
+  },
+  {
+    "ticker": "ARCI",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:40:40.881105+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ARCI.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5213
+  },
+  {
+    "ticker": "ARCI",
+    "interval": "1m",
+    "retrieved_utc": "2026-10-09T08:40:40.884168+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ARCI.JK",
+    "params": {
+      "range": "1d",
+      "interval": "1m"
+    },
+    "status": 200,
+    "bars": 392
+  },
+  {
+    "ticker": "GULA",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:40:40.887702+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/GULA.JK",
+    "params": {
+      "range": "2y",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 475
+  },
+  {
+    "ticker": "GULA",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:40:41.058227+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/GULA.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5211
+  },
+  {
+    "ticker": "GULA",
+    "interval": "1m",
+    "retrieved_utc": "2026-10-09T08:40:41.132065+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/GULA.JK",
+    "params": {
+      "range": "1d",
+      "interval": "1m"
+    },
+    "status": 200,
+    "bars": 381
+  },
+  {
+    "ticker": "ESSA",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:40:41.155905+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ESSA.JK",
+    "params": {
+      "range": "2y",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 475
+  },
+  {
+    "ticker": "ESSA",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:40:41.217666+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ESSA.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5213
+  },
+  {
+    "ticker": "ESSA",
+    "interval": "1m",
+    "retrieved_utc": "2026-10-09T08:40:41.262327+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ESSA.JK",
+    "params": {
+      "range": "1d",
+      "interval": "1m"
+    },
+    "status": 200,
+    "bars": 392
+  },
+  {
+    "ticker": "BRPT",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:40:41.293039+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BRPT.JK",
+    "params": {
+      "range": "2y",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 475
+  },
+  {
+    "ticker": "BRPT",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:40:41.339910+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BRPT.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5213
+  },
+  {
+    "ticker": "BRPT",
+    "interval": "1m",
+    "retrieved_utc": "2026-10-09T08:40:41.403785+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BRPT.JK",
+    "params": {
+      "range": "1d",
+      "interval": "1m"
+    },
+    "status": 200,
+    "bars": 392
+  }
+]

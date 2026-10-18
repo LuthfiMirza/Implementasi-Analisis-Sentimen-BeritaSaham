@@ -1,0 +1,518 @@
+[
+  {
+    "ticker": "AMIN",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:05.959869+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/AMIN.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5201
+  },
+  {
+    "ticker": "AMIN",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:05.960905+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/AMIN.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "ARII",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:05.961293+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ARII.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "ARII",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:05.962039+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ARII.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "ASLC",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:06.175442+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ASLC.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "ASLC",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:06.200933+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/ASLC.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "BAIK",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:06.242068+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BAIK.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "BAIK",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:06.254540+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BAIK.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "BCIC",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:06.335078+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BCIC.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5206
+  },
+  {
+    "ticker": "BCIC",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:06.376529+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BCIC.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "BKDP",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:06.398509+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BKDP.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "BKDP",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:06.452826+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/BKDP.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "CARS",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:06.600130+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/CARS.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "CARS",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:06.606471+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/CARS.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "DSFI",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:06.658535+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/DSFI.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "DSFI",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:06.674739+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/DSFI.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "GRIA",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:06.745449+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/GRIA.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5208
+  },
+  {
+    "ticker": "GRIA",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:06.832294+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/GRIA.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "IOTF",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:06.841037+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/IOTF.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "IOTF",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:06.965410+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/IOTF.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "MAYA",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:07.113939+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/MAYA.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5209
+  },
+  {
+    "ticker": "MAYA",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:07.159794+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/MAYA.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "MCAS",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:07.184077+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/MCAS.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "MCAS",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:07.268107+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/MCAS.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "MSIE",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:07.304009+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/MSIE.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5209
+  },
+  {
+    "ticker": "MSIE",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:07.307591+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/MSIE.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "NATO",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:07.395153+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/NATO.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5206
+  },
+  {
+    "ticker": "NATO",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:07.398664+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/NATO.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "PSDN",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:07.500236+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/PSDN.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "PSDN",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:07.521037+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/PSDN.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "RISE",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:07.606658+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/RISE.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "RISE",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:07.632741+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/RISE.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "SCNP",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:07.727114+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/SCNP.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5195
+  },
+  {
+    "ticker": "SCNP",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:07.763130+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/SCNP.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "SMLE",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:07.780717+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/SMLE.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5134
+  },
+  {
+    "ticker": "SMLE",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:07.809117+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/SMLE.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "URBN",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:07.903064+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/URBN.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5199
+  },
+  {
+    "ticker": "URBN",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:08.002730+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/URBN.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "VERN",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:08.042246+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/VERN.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5210
+  },
+  {
+    "ticker": "VERN",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:08.047972+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/VERN.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "VINS",
+    "interval": "5m",
+    "retrieved_utc": "2026-10-09T08:28:08.209000+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/VINS.JK",
+    "params": {
+      "range": "60d",
+      "interval": "5m"
+    },
+    "status": 200,
+    "bars": 5209
+  },
+  {
+    "ticker": "VINS",
+    "interval": "1d",
+    "retrieved_utc": "2026-10-09T08:28:08.243353+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/VINS.JK",
+    "params": {
+      "range": "6mo",
+      "interval": "1d"
+    },
+    "status": 200,
+    "bars": 123
+  },
+  {
+    "ticker": "MCAS",
+    "interval": "1m",
+    "retrieved_utc": "2026-10-09T08:28:08.254982+00:00",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/MCAS.JK",
+    "params": {
+      "range": "7d",
+      "interval": "1m"
+    },
+    "status": 200,
+    "bars": 2989
+  }
+]
