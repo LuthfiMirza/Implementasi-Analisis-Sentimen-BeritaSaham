@@ -137,6 +137,60 @@ class BsjpTradeTrackerTest extends TestCase
         $this->assertEquals('SKIPPED', $trade->status);
     }
 
+    public function test_can_log_bsjp_sell_with_trailing_stop_2_and_breakout_trail(): void
+    {
+        $user = $this->user();
+        $this->seedStock('MCAS');
+
+        $trade1 = BsjpTradeLog::create([
+            'signal_date' => Carbon::yesterday('Asia/Jakarta')->toDateString(),
+            'ticker' => 'MCAS',
+            'stock_name' => 'M Cash Integrasi Tbk.',
+            'category' => 'rocket',
+            'signal_price' => 284,
+            'entry_price' => 284,
+            'lots' => 703,
+            'capital_allocated' => 19965200,
+            'status' => 'OPEN',
+        ]);
+
+        $response1 = $this->actingAs($user)->post("/trades/bsjp-tracker/{$trade1->id}/sell", [
+            'exit_price' => 306,
+            'exit_type' => 'TRAILING_STOP_2',
+            'notes' => 'Eksekusi Trailing Stop 2% Stockbit',
+        ]);
+        $response1->assertRedirect();
+        $trade1->refresh();
+        $this->assertEquals('CLOSED', $trade1->status);
+        $this->assertEquals('TRAILING_STOP_2', $trade1->exit_type);
+        $this->assertEquals(306, $trade1->exit_price);
+
+        $this->seedStock('BAJA');
+
+        $trade2 = BsjpTradeLog::create([
+            'signal_date' => Carbon::yesterday('Asia/Jakarta')->toDateString(),
+            'ticker' => 'BAJA',
+            'stock_name' => 'Saranacentral Bajatama Tbk.',
+            'category' => 'sweetspot',
+            'signal_price' => 252,
+            'entry_price' => 252,
+            'lots' => 790,
+            'capital_allocated' => 19908000,
+            'status' => 'OPEN',
+        ]);
+
+        $response2 = $this->actingAs($user)->post("/trades/bsjp-tracker/{$trade2->id}/sell", [
+            'exit_price' => 264,
+            'exit_type' => 'BREAKOUT_TRAIL_2',
+            'notes' => 'Eksekusi Breakout Menit-1 + Trail 2%',
+        ]);
+        $response2->assertRedirect();
+        $trade2->refresh();
+        $this->assertEquals('CLOSED', $trade2->status);
+        $this->assertEquals('BREAKOUT_TRAIL_2', $trade2->exit_type);
+        $this->assertEquals(264, $trade2->exit_price);
+    }
+
     public function test_evaluate_bsjp_artisan_command_runs_safely(): void
     {
         $stock = $this->seedStock('DSFI');

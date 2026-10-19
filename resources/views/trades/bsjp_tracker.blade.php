@@ -392,9 +392,31 @@
                 <td class="py-3 px-3 font-bold text-slate-100">Rp {{ number_format($trade->exit_price, 0, ',', '.') }}</td>
                 <td class="py-3 px-3 text-slate-400">{{ number_format($trade->lots) }} Lot</td>
                 <td class="py-3 px-3 font-sans">
-                  <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                    {{ str_replace('_', ' ', $trade->exit_type ?? 'OPEN_MARKET') }}
-                  </span>
+                  @if(($trade->exit_type ?? 'OPEN_MARKET') === 'TRAILING_STOP_2')
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                      Trail 2% (09:00)
+                    </span>
+                  @elseif(($trade->exit_type ?? 'OPEN_MARKET') === 'BREAKOUT_TRAIL_2')
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                      Breakout M1 + Trail 2%
+                    </span>
+                  @elseif(($trade->exit_type ?? 'OPEN_MARKET') === 'OPEN_MARKET')
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                      Open 09:00 WIB
+                    </span>
+                  @elseif(($trade->exit_type ?? 'OPEN_MARKET') === 'TARGET_TP')
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30">
+                      Target TP (+2.5%)
+                    </span>
+                  @elseif(($trade->exit_type ?? 'OPEN_MARKET') === 'STOP_LOSS')
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                      Stop Loss (-3%)
+                    </span>
+                  @else
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                      {{ str_replace('_', ' ', $trade->exit_type) }}
+                    </span>
+                  @endif
                 </td>
                 <td class="py-3 px-3 {{ $trade->gross_pnl_pct >= 0 ? 'text-emerald-400' : 'text-rose-400' }}">
                   {{ sprintf('%+.2f%%', $trade->gross_pnl_pct) }}
@@ -514,6 +536,7 @@
       <template x-if="sellTarget">
         <form :action="'{{ url('/trades/bsjp-tracker') }}/' + sellTarget.id + '/sell'" method="POST" class="space-y-3.5" x-data="{
           sellPrice: sellTarget.target_tp ? Math.round(sellTarget.target_tp) : Math.round(sellTarget.entry_price * 1.025),
+          exitType: 'OPEN_MARKET',
           calcProfit() {
             if (!this.sellPrice || this.sellPrice <= 0 || !sellTarget) return 0;
             const entry = sellTarget.entry_price;
@@ -560,14 +583,22 @@
 
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">Tipe Eksekusi</label>
-            <select name="exit_type"
+            <select name="exit_type" x-model="exitType"
                     class="w-full rounded-xl border border-slate-700 px-3 py-2.5 text-xs text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     style="background-color: #0f172a !important; color: #f8fafc !important;">
               <option value="OPEN_MARKET">Jual Pembukaan Open (09:00 WIB)</option>
+              <option value="TRAILING_STOP_2">B. Trailing Stop 2% Langsung (09:00)</option>
+              <option value="BREAKOUT_TRAIL_2">Breakout Menit-1 + Trail 2%</option>
               <option value="TARGET_TP">Kena Target TP (+2.5%)</option>
               <option value="STOP_LOSS">Kena Stop Loss (-3%)</option>
               <option value="MANUAL">Manual / Intraday</option>
             </select>
+            <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5" x-show="exitType === 'TRAILING_STOP_2'">
+              <span class="text-sky-400 font-semibold">ℹ️ Info:</span> Auto-order Stockbit trailing stop 2% aktif sejak pembukaan 09:00 WIB (mengekor peak harga).
+            </p>
+            <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5" x-show="exitType === 'BREAKOUT_TRAIL_2'">
+              <span class="text-indigo-400 font-semibold">ℹ️ Info:</span> Konfirmasi breakout high candle menit pertama, lalu mengawal trailing stop 2%.
+            </p>
           </div>
 
           <div class="flex items-center justify-end gap-2 pt-2">

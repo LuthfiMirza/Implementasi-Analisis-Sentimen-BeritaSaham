@@ -172,7 +172,7 @@ class BsjpTradeController extends Controller
     {
         $data = $request->validate([
             'exit_price' => ['required', 'numeric', 'min:1'],
-            'exit_type' => ['nullable', 'string', 'in:OPEN_MARKET,TARGET_TP,STOP_LOSS,MANUAL'],
+            'exit_type' => ['nullable', 'string', 'in:OPEN_MARKET,TRAILING_STOP_2,BREAKOUT_TRAIL_2,TARGET_TP,STOP_LOSS,MANUAL'],
             'exited_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
