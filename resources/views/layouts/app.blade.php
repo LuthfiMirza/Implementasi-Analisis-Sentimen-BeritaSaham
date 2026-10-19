@@ -29,6 +29,7 @@
                     $nav = [
                         ['label' => 'Dashboard', 'route' => 'dashboard', 'href' => route('dashboard'), 'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001 1h4a1 1 0 001-1m-6 0V9m0 12h6'],
                         ['label' => 'Berita Terkini', 'route' => 'news.index', 'href' => route('news.index'), 'icon' => 'M4 6h16M4 10h16M4 14h10m-4 4h4'],
+                        ['label' => 'Market Intelligence', 'route' => 'market-intelligence.*', 'href' => route('market-intelligence.index'), 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
                         ['label' => 'Watchlist', 'route' => 'watchlist.index', 'href' => route('watchlist.index'), 'icon' => 'M5 4h14a1 1 0 011 1v10a1 1 0 01-.553.894l-6.894 3.447a1 1 0 01-.894 0L4.765 15.96A1 1 0 014 15V5a1 1 0 011-1z'],
                         ['label' => 'Prediksi', 'route' => 'analytics.index', 'href' => route('analytics.index'), 'icon' => 'M3 17l6-6 4 4 8-8'],
                         ['label' => 'Market Alerts', 'route' => 'market-alerts.*', 'href' => route('market-alerts.index'), 'icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'],

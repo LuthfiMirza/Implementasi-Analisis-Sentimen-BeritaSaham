@@ -38,6 +38,43 @@
             </div>
         @endif
 
+        {{-- Market Regime & Intelligence Alert Banner --}}
+        <div class="glass-card rounded-2xl p-4 sm:p-5 border border-rose-500/40 bg-gradient-to-r from-rose-950/40 via-slate-900/90 to-slate-950 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+            <div class="flex items-start sm:items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0 mt-0.5 sm:mt-0">
+                    <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-rose-500/25 text-rose-300 border border-rose-500/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span>
+                            STATUS: CASH IS KING / DEFENSIVE
+                        </span>
+                        <span class="text-[11px] text-slate-400 font-mono">IHSG: 4.996,61 (-3,64%) • RSI(14): 15,93</span>
+                    </div>
+                    <h3 class="text-sm sm:text-base font-bold text-white mt-1">
+                        Peringatan Rezim Pasar: Penembusan Level 5.000 & Regulasi ARB 7% BEI
+                    </h3>
+                    <p class="text-xs text-slate-300 mt-0.5 max-w-2xl leading-relaxed">
+                        Ancaman evaluasi status bursa oleh MSCI menekan indeks. Dilarang belanja spekulatif menangkap pisau jatuh. Skenario konfirmasi rebound diproyeksikan pada <strong>Rabu - Kamis (21 - 22 Oktober 2026)</strong>.
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                <a href="{{ route('market-intelligence.show', 'rebound_prediction_scenarios_20261020') }}"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs transition shadow-md shadow-rose-500/20">
+                    <span>Baca Skenario Rebound</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+                <a href="{{ route('market-intelligence.index') }}"
+                   class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition">
+                    <span>Semua Riset</span>
+                </a>
+            </div>
+        </div>
+
         {{-- Quick Hub Banner: Signal Radar --}}
         <div class="glass-card rounded-2xl p-4 border border-cyan-500/30 bg-cyan-500/[0.04] flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">

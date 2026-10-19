@@ -35,6 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/market-alerts', [MarketAlertController::class, 'index'])->name('market-alerts.index');
     Route::get('/market-alerts/data', [MarketAlertController::class, 'data'])->name('market-alerts.data');
     Route::get('/market-alerts/foreign-history', [MarketAlertController::class, 'foreignHistory'])->name('market-alerts.foreign-history');
+    Route::get('/market-intelligence', [\App\Http\Controllers\MarketIntelligenceController::class, 'index'])->name('market-intelligence.index');
+    Route::get('/market-intelligence/{slug}', [\App\Http\Controllers\MarketIntelligenceController::class, 'show'])->name('market-intelligence.show');
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');
     Route::get('/sentiment-validation', [SentimentValidationController::class, 'index'])->name('sentiment-validation.index');
     Route::get('/sentiment-validation/next', [SentimentValidationController::class, 'next'])->name('sentiment-validation.next');
