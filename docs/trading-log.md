@@ -189,3 +189,12 @@ Berdasarkan 25 closed trades Aug-Sep:
 2. **Monitoring Support 4.900 - 5.000**:
    - Amati apakah terbentuk pola konsolidasi dasar (*basing*) dan apakah bid volume perbankan mulai kembali normal.
    - Entri spekulatif (maksimal 25-30% kas) **HANYA** diperbolehkan apabila ketiga syarat konfirmasi rebound di GEMINI.md terpenuhi secara penuh.
+
+### Intelijen Sentimen Media & Pemodelan Tanggal Rebound
+- **Katalis Episentrum Crash**: Ancaman MSCI mendowngrade bursa RI dari *Emerging Market* ke *Standalone Market* akibat transparansi free-float dan saham konglomerasi (HSC - Prajogo Pangestu Cs). Memicu *forced liquidation* ETF pasif global.
+- **Intervensi BEI**: Pemangkasan batas ARB menjadi 7% mulai 19 Okt 2026. Pertemuan daring BEI & MSCI pada Senin sore menghasilkan kompromi: BEI menghapus saham HSC dari konstituen indeks utama.
+- **Proyeksi Tanggal Rebound**:
+  - **Selasa, 20 Okt (Prob 35%)**: Potensi *Dead Cat Bounce* di Sesi 2 setelah inertia gap down pagi hari menguji support 4.900. Rentan fakeout, dilarang FOMO.
+  - **Rabu - Kamis, 21 - 22 Okt (Prob 50% - Primary Target)**: Jendela rebound valid paling ideal. Tekanan jual asing mereda (*exhaustion*), respons resmi MSCI atas reformasi BEI terkonfirmasi, dan support 4.900 teruji 2 hari berturut-turut (*Double Bottom*). Jendela entri awal 25-30% kas dibuka jika 3 syarat GEMINI.md terpenuhi.
+  - **Jumat, 23 Okt s/d Pekan Depan (Prob 15% - Worst Case)**: Jika isu MSCI memburuk, IHSG meluncur ke support proyeksi Bloomberg Technoz di 4.700. Kas tetap 100% aman.
+

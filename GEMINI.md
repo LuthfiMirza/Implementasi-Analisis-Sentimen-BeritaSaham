@@ -42,4 +42,6 @@ File ini adalah memori permanen dan aturan disiplin trading untuk proyek **Senti
 - Laporan riset mendalam crash Oktober 2026 (Tahap 1 - Breakdown 5.800): `laravel-app/reports/market_regime_research_20261015.md`
 - Laporan riset investigasi crash IHSG (-8,01%) & audit portofolio (Tahap 2): `laravel-app/reports/market_regime_research_20261016.md`
 - Laporan riset kapitualasi & penembusan level psikologis 5.000 (Tahap 3): `laravel-app/reports/market_regime_research_20261019.md`
+- Laporan proyeksi tanggal & skenario rebound IHSG pasca isu MSCI & ARB 7%: `laravel-app/reports/rebound_prediction_scenarios_20261020.md`
 - Catatan histori trading dan evaluasi berkala: `laravel-app/docs/trading-log.md`
+
