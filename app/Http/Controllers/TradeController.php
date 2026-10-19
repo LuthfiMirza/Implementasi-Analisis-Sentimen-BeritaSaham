@@ -858,6 +858,106 @@ class TradeController extends Controller
     }
 
     /**
+     * Dedicated Stockbit-Inspired Portfolio & Performance View
+     * URL: /trades/portfolio
+     * Desain persis seperti Stockbit (Clean Light Theme), data sama persis dengan laporan?scope=all
+     */
+    public function stockbitPortfolio(Request $request)
+    {
+        $userId = auth()->id();
+        if (Trade::where('user_id', $userId)->count() === 0) {
+            $fallbackUser = Trade::select('user_id')->first()?->user_id;
+            if ($fallbackUser) {
+                $userId = $fallbackUser;
+            }
+        }
+
+        $trades = Trade::with('stock')
+            ->where('user_id', $userId)
+            ->orderByDesc('entry_date')
+            ->get();
+
+        $closed = $trades->where('status', 'closed');
+        $open = $trades->where('status', 'open');
+
+        $scope = $request->query('scope', 'all');
+        $officialClosed = $scope === 'all' ? $closed : $closed->where('strategy_label', 'gabungan');
+        $officialOpen = $scope === 'all' ? $open : $open->where('strategy_label', 'gabungan');
+
+        $winners = $officialClosed->where('pnl_total', '>', 0);
+        $losers = $officialClosed->where('pnl_total', '<=', 0);
+
+        $stats = [
+            'total' => $officialOpen->count() + $officialClosed->count(),
+            'open' => $officialOpen->count(),
+            'closed' => $officialClosed->count(),
+            'win' => $winners->count(),
+            'loss' => $losers->count(),
+            'win_rate' => $officialClosed->count() > 0
+                ? round($winners->count() / $officialClosed->count() * 100, 1)
+                : 0,
+            'total_pnl' => (float) $officialClosed->sum('pnl_total'),
+            'avg_rr' => $officialClosed->count() > 0 ? round($officialClosed->avg('actual_rr'), 2) : 0,
+            'avg_holding' => $officialClosed->count() > 0 ? round($officialClosed->avg('holding_days'), 1) : 0,
+        ];
+
+        $portfolioReport = $this->buildPortfolioReport($officialClosed, $officialOpen, $scope);
+
+        // Top Ribbon 5 Metrik ala Stockbit
+        $latestDailyRow = $portfolioReport['daily_equity_table'][0] ?? null;
+        $invested = (float) $officialOpen->sum(fn ($t) => (float) ($t->position_value ?? 0));
+        $openCount = $officialOpen->count();
+
+        // Hitung live floating PnL untuk posisi terbuka
+        $liveQuotes = $this->livePnlFor($officialOpen);
+        $netFloatingPnl = 0.0;
+        foreach ($officialOpen as $t) {
+            $quote = $liveQuotes[$t->id] ?? null;
+            if ($quote && isset($quote['pnl'])) {
+                $netFloatingPnl += (float) $quote['pnl'];
+            }
+        }
+        $netFloatingPnlPct = $invested > 0 ? round($netFloatingPnl / $invested * 100, 2) : 0.0;
+
+        // Total Equity = Saldo Kas Realisasi + Nilai Investasi Terbuka + Floating PnL
+        $baseEquity = $latestDailyRow ? (float) $latestDailyRow['equity'] : (float) (self::STARTING_CAPITAL + $stats['total_pnl']);
+        $totalEquity = $baseEquity + $netFloatingPnl;
+        $tradingBalance = max(0, $baseEquity - $invested);
+
+        // Logo resmi emiten dari tabel stocks
+        $stockLogos = Stock::whereNotNull('logo_url')->pluck('logo_url', 'code')->toArray();
+
+        // Top Gainers & Top Losers ala Stockbit: daftar seluruh emiten diurutkan sesuai opsi dropdown
+        $leaderboard = $portfolioReport['leaderboard'] ?? [];
+        $topGainers = $leaderboard; // Sorted PnL desc (emiten cuan di atas)
+        $topLosers = $leaderboard;
+        usort($topLosers, fn ($a, $b) => ($a['pnl'] ?? 0) <=> ($b['pnl'] ?? 0)); // Sorted PnL asc (emiten rugi di atas)
+
+        // Realized PnL curve untuk grafik Trade Summary
+        $chartData = $portfolioReport['chart'];
+        $realizedCurve = [];
+        foreach (($chartData['portfolioRp'] ?? []) as $eq) {
+            $realizedCurve[] = round($eq - self::STARTING_CAPITAL, 0);
+        }
+
+        return view('trades.stockbit_portfolio', compact(
+            'stats',
+            'portfolioReport',
+            'scope',
+            'totalEquity',
+            'invested',
+            'tradingBalance',
+            'openCount',
+            'netFloatingPnl',
+            'netFloatingPnlPct',
+            'topGainers',
+            'topLosers',
+            'realizedCurve',
+            'stockLogos'
+        ));
+    }
+
+    /**
      * Fase CU: laporan portofolio ala StockBit -- diminta user setelah lihat referensi tab
      * "Portfolio" (return % vs IHSG) dan tab "Trade" (Rupiah kumulatif + leaderboard per saham).
      * Digabung jadi satu (user pilih "dua-duanya, ada toggle" lewat AskUserQuestion) supaya tidak

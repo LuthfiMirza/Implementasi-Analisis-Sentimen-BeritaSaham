@@ -114,9 +114,9 @@
               <tr class="border-b border-slate-800/40">
                 <td class="py-1 pr-2 text-slate-400 font-mono">{{ \Carbon\Carbon::parse($row['date'])->format('d M y') }}</td>
                 <td class="py-1 pr-2 text-right font-mono text-slate-200">{{ number_format($row['equity'], 0, ',', '.') }}</td>
-                <td class="py-1 text-right font-mono {{ $row['pnl'] > 0 ? 'text-green-400' : ($row['pnl'] < 0 ? 'text-rose-400' : 'text-slate-500') }}">
+                <td class="py-1 text-right font-mono whitespace-nowrap {{ $row['pnl'] > 0 ? 'text-green-400' : ($row['pnl'] < 0 ? 'text-rose-400' : 'text-slate-500') }}">
                   {{ $row['pnl'] > 0 ? '+' : '' }}{{ number_format($row['pnl'], 0, ',', '.') }}
-                  <span class="text-[9px] opacity-70">({{ $row['pnl_pct'] > 0 ? '+' : '' }}{{ $row['pnl_pct'] }}%)</span>
+                  <span class="text-[9px] opacity-70 whitespace-nowrap">({{ $row['pnl_pct'] > 0 ? '+' : '' }}{{ $row['pnl_pct'] }}%)</span>
                 </td>
               </tr>
               @endforeach

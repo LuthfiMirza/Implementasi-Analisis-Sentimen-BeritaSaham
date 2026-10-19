@@ -64,6 +64,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/trades/bsjp-tracker/{log}/sell', [\App\Http\Controllers\BsjpTradeController::class, 'sell'])->name('trades.bsjp-tracker.sell');
     Route::post('/trades/bsjp-tracker/{log}/skip', [\App\Http\Controllers\BsjpTradeController::class, 'skip'])->name('trades.bsjp-tracker.skip');
     Route::get('/trades/laporan', [TradeController::class, 'laporan'])->name('trades.laporan');
+    Route::get('/trades/portfolio', [TradeController::class, 'stockbitPortfolio'])->name('trades.portfolio');
+    Route::get('/trades/portofolio', [TradeController::class, 'stockbitPortfolio'])->name('trades.portofolio');
     Route::post('/trades', [TradeController::class, 'store'])->name('trades.store');
     Route::post('/trades/position-sizing', [TradeController::class, 'updatePositionSizing'])->name('trades.position-sizing');
     Route::post('/trades/{trade}/close', [TradeController::class, 'close'])->name('trades.close');

@@ -43,6 +43,55 @@ class Trade extends Model
         'dss_confidence' => 'float',
     ];
 
+    protected static function booted(): void
+    {
+        static::updated(function (Trade $trade) {
+            if ($trade->wasChanged('status') && $trade->status === 'closed') {
+                $trade->removeFromOpenPositionsJson();
+            }
+        });
+
+        static::deleted(function (Trade $trade) {
+            $trade->removeFromOpenPositionsJson();
+        });
+    }
+
+    public function removeFromOpenPositionsJson(): void
+    {
+        $path = base_path('quant/drawdown_bounce_tracker/open_positions.json');
+        if (! is_file($path)) {
+            return;
+        }
+
+        try {
+            $positions = json_decode((string) file_get_contents($path), true);
+            if (! is_array($positions)) {
+                return;
+            }
+
+            $ticker = strtoupper($this->ticker);
+            $entryDate = $this->entry_date?->toDateString();
+
+            $filtered = array_values(array_filter($positions, function ($p) use ($ticker, $entryDate) {
+                $pTicker = strtoupper($p['ticker'] ?? '');
+                $pDate = $p['entry_date'] ?? '';
+                if ($pTicker !== $ticker) {
+                    return true;
+                }
+                if ($entryDate !== null && $pDate !== '' && $pDate !== $entryDate) {
+                    return true;
+                }
+                return false;
+            }));
+
+            if (count($filtered) !== count($positions)) {
+                file_put_contents($path, json_encode($filtered, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            }
+        } catch (\Throwable $e) {
+            // Silently ignore if file write fails
+        }
+    }
+
     public function stock(): BelongsTo
     {
         return $this->belongsTo(Stock::class);
