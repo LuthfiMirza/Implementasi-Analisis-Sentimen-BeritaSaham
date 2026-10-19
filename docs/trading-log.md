@@ -125,3 +125,67 @@ Berdasarkan 25 closed trades Aug-Sep:
 - ESSA: sudah melewati TS 2% dari puncak, pertimbangkan cut
 - INET: masih profit, pantau ketat
 - Radar sore: cek Self Radar sinyal baru
+
+## 2026-10-15
+
+### Situasi Pasar & Diagnosa Crash IHSG
+- **IHSG**: Ditutup anjlok ke 5.844,43 (-1,83% / -109 poin), low harian menusuk 5.804.
+- **Teknikal**: Jauh di bawah MA20 (6.131) & MA50 (6.346). MACD histogram melebar negatif (-22,90).
+- **Market Breadth**: Sangat buruk, hanya 7 saham naik vs 116 saham turun (90,6% bursa merah).
+- **Akar Rentetan Loss Pekan Ini**: Kegagalan regime (*regime mismatch*) pada strategi *Drawdown Bounce*. Di tengah indeks yang anjlok -1,8%/hari, beli saham turun -5% berubah menjadi *catching a falling knife*, memicu rentetan hit stop loss (BUMI, INET, PTRO, BRPT, DEWA, DSSA, ENRG).
+
+### Monitoring Portofolio Berjalan
+- **SMGR [GABUNGAN]**: Entry 1.505 (02 Okt) | Live 1.590 (+5,65%) | **HARI KE-10 TERCAPAI** ➔ Wajib **Take Profit** di pembukaan 16 Okt 09:00 WIB untuk amankan kas.
+- **PTRO [GABUNGAN]**: Entry 4.190 (12 Okt) | Live 3.880 (-7,40%) | Kena sentimen katalis Rights Issue 170 Jt saham | **Wajib Cut Loss**.
+- **ESSA [GABUNGAN]**: Entry 585 (14 Okt) | Live 555 (-5,13%) | Tembus batas SL (-3,5%) | **Wajib Cut Loss**.
+- **ENRG [GABUNGAN]**: Masuk 4x (1.070, 1.060, 970, 950) | Live 895–905 (-5,3% s/d -15,9%) | **DILARANG AVERAGE DOWN LAGI**.
+
+### 3 Syarat Wajib Rebound Sebelum Entri Baru
+1. Konfirmasi candle pembalikan IHSG (*hammer / bullish engulfing*) ditutup hijau tebal + volume naik.
+2. Market breadth membaik (*gainers* > 50% bursa).
+3. Level support 5.800 bertahan minimal 2 hari bursa berturut-turut tanpa *new low*.
+
+### Roadmap Waktu Entri
+- **Jumat, 16 Okt**: *Testing support* 5.800 & *weekend risk* ➔ **DILARANG ENTRY DI PAGI HARI**.
+- **Senin, 19 Okt**: Observasi pembentukan *base* & *selling exhaustion* ➔ **WAIT & SEE**.
+- **Selasa, 20 Okt**: Jendela waktu terawal entri spekulatif (25-30% kas) **HANYA JIKA** 3 syarat konfirmasi di atas terpenuhi.
+
+## 2026-10-16
+
+### Situasi Pasar & Flash Crash Pagi (09:30 WIB)
+- **IHSG**: Dibuka langsung *gap down* ekstrem ke **5.393,92 (-8,01% / -469,85 poin)**. Support 5.800 jebol total tanpa perlawanan bid.
+- **Kondisi Bursa**: Likuidasi masif, saham penopang indeks (BBRI -14,56%, BMRI -14,39%, TLKM -15,56%) dihantam hingga membentur Auto Rejection Bawah (ARB).
+- **Portofolio Status**: 4 posisi terbuka riil di Trade Journal (SMGR, PTRO, ENRG, ESSA). Desinkronisasi 20 entri sinyal hantu di open_positions.json telah dibersihkan dan disinkronkan kembali ke database.
+
+### Evaluasi 4 Posisi Terbuka Riil Portofolio
+- **SMGR [GABUNGAN] (ID #732)**: Entry 1.505 (02 Okt) | Live 1.395 (-7,31%). Hari bursa ke-11. Profit +8% kemarin tergerus gap down bursa. Wajib antrikan likuidasi kas.
+- **PTRO [GABUNGAN] (ID #748)**: Entry 4.190 (12 Okt) | Live 3.340 (-20,29%). Tembus batas SL (-3,5%) + katalis Rights Issue 170 jt lembar saham. Wajib Cut Loss.
+- **ENRG [GABUNGAN] (ID #749)**: Entry 950 (12 Okt) | Live 790 (-16,84%). Tembus batas SL (-3,5%). Wajib Cut Loss.
+- **ESSA [GABUNGAN] (ID #752)**: Entry 585 (14 Okt) | Live 480 (-17,95%). Tembus batas SL (-3,5%). Wajib Cut Loss.
+
+### Protokol Tindakan Wajib Hari Ini Sesuai GEMINI.md
+1. **STATUS: CASH IS KING / DEFENSIVE MUTLAK**: Dilarang belanja saham apapun atau mencoba menangkap pisau jatuh.
+2. **STOP AVERAGING DOWN**: Kunci order beli dan hentikan penambahan lot.
+3. **Likuidasi Disiplin**: Antrikan penjualan bertahap saat antrian bid menyerap volume untuk menghentikan pendarahan modal.
+4. **Tunggu 3 Syarat Rebound**: Reversal candle IHSG, market breadth >50% gainers, dan support baru bertahan 2 hari berturut-turut.
+
+## 2026-10-19
+
+### Situasi Pasar & Penutupan Sesi (Level 5.000 Tertekan)
+- **IHSG**: Ditutup anjlok ke **4.996,61 (-3,64% / -188,49 poin)** setelah sempat menyentuh Intraday Low **4.907,37 (-5,36%)**.
+- **Teknikal**: Jauh di bawah MA20 (6.000,69, deviasi -16,7%), MA50 (6.296,28, deviasi -20,6%), dan MA200 (7.014,94, deviasi -28,8%). RSI(14) berada di **15,93** (deep oversold). MACD histogram negatif melebar drastis ke **-98,38**.
+- **Market Breadth**: Sangat timpang, hanya 6 saham naik (12,5%) vs 40 saham turun (83,3%) dari 48 saham acuan LQ45/IDX30. Sebanyak 8 saham bluechip/likuid terkunci di batas ARB (BBCA, TLKM, PTRO, DEWA, BUMI, AMMN, MBMA, MDKA).
+- **Nilai Tukar**: Rupiah bertengger di **Rp17.943 - Rp18.020 per USD**, memicu kelanjutan capital outflow investor asing.
+
+### Evaluasi Kriteria Rebound Sesuai GEMINI.md
+- **Candle Reversal IHSG**: GAGAL. Candle ditutup merah, menembus low baru di 4.907,37. Tidak ada hammer atau engulfing hijau tebal.
+- **Market Breadth**: GAGAL. Hanya 12,5% gainers (syarat minimal > 50%).
+- **Support Defense**: GAGAL. Support 5.800 hancur, support 5.000 tertembus intraday dan belum teruji 2 hari berturut-turut tanpa new low.
+
+### Keputusan Portofolio & Tindakan Besok (Selasa, 20 Oktober 2026)
+1. **STATUS: CASH IS KING / 100% DEFENSIVE**:
+   - Dilarang keras membuka posisi baru (termasuk strategi Drawdown Bounce, Bottom Rebound, atau BSJP).
+   - Menghindari spekulasi menangkap pisau jatuh (*falling knife*).
+2. **Monitoring Support 4.900 - 5.000**:
+   - Amati apakah terbentuk pola konsolidasi dasar (*basing*) dan apakah bid volume perbankan mulai kembali normal.
+   - Entri spekulatif (maksimal 25-30% kas) **HANYA** diperbolehkan apabila ketiga syarat konfirmasi rebound di GEMINI.md terpenuhi secara penuh.
