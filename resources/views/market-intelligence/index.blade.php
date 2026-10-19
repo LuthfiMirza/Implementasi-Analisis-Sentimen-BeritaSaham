@@ -1,5 +1,42 @@
 <x-app-layout>
-    <div class="space-y-6 max-w-7xl mx-auto px-2 sm:px-4 lg:px-0">
+    <div x-data="{ 
+        showPromptModal: false, 
+        copied: false,
+        promptText: `Halo Antigravity, tolong jalankan analisis dan riset mendalam Market Intelligence untuk kondisi pasar bursa hari ini:
+
+1. DIAGNOSA KUANTITATIF PASAR HARI INI:
+   - Ambil data penutupan IHSG (^JKSE) hari ini: Open, High, Low, Close, Volume, dan % perubahan.
+   - Hitung deviasi harga terhadap MA20, MA50, dan MA200.
+   - Evaluasi nilai RSI(14) dan akselerasi MACD Histogram.
+   - Uji Market Breadth pada 48 saham acuan (LQ45/IDX30): jumlah gainers, losers, unchanged, dan saham yang membentur batas ARB (7%).
+   - Cek kurs penutupan USD/IDR dan dampaknya terhadap capital flow.
+
+2. EVALUASI ATURAN DISIPLIN GEMINI.md (3 KUNCI REBOUND):
+   - Kunci 1 (Candle Reversal): Apakah terbentuk hammer/pin bar/bullish engulfing hijau tebal dengan volume di atas MA20?
+   - Kunci 2 (Market Breadth): Apakah jumlah gainers sudah melampaui > 50% bursa aktif?
+   - Kunci 3 (Support Defense): Apakah support kunci bertahan minimal 2 hari bursa berturut-turut tanpa new low?
+   - Tentukan STATUS REZIM PASAR saat ini (CASH IS KING / DEFENSIVE / REBOUND SPECULATIVE / REBOUND CONFIRMED).
+
+3. INTELIJEN SENTIMEN BERITA & KATALIS:
+   - Telusuri perkembangan berita sentimen terkini (kebijakan BEI/OJK, respon resmi MSCI, pergerakan dana asing, dan sentimen sektoral/komoditas).
+   - Identifikasi apakah ada katalis yang meredakan atau memperparah kepanikan likuiditas.
+
+4. AUDIT PORTOFOLIO & SINKRONISASI SISTEM:
+   - Cek posisi terbuka di database MySQL / open_positions.json.
+   - Pastikan kepatuhan Stop Loss (-3,5%), larangan averaging down (martingale), dan aturan batas waktu 10 hari.
+
+5. PENCATATAN & GIT COMMIT ATOMIK:
+   - Buat laporan riset baru di: reports/market_regime_research_YYYYMMDD.md
+   - Perbarui log kronologis di: docs/trading-log.md
+   - Perbarui memori permanen di: GEMINI.md
+   - Lakukan commit dan push secara atomik ke origin/main dengan pesan commit terstandar.
+   - Tampilkan ringkasan eksekutif beserta rekomendasi aksi konkret untuk sesi besok.`,
+        copyToClipboard() {
+            navigator.clipboard.writeText(this.promptText);
+            this.copied = true;
+            setTimeout(() => { this.copied = false; }, 2500);
+        }
+    }" class="space-y-6 max-w-7xl mx-auto px-2 sm:px-4 lg:px-0">
         
         {{-- Header Section --}}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
@@ -19,7 +56,16 @@
                     Kajian mendalam dinamika pasar saham Indonesia, audit rezim teknikal makro, intelijen sentimen media, serta pemodelan skenario rebound untuk perlindungan modal portofolio.
                 </p>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2.5">
+                <button type="button"
+                        @click="showPromptModal = true"
+                        class="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500/20 to-cyan-500/20 hover:from-amber-500/30 hover:to-cyan-500/30 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 transition shadow-lg shadow-amber-500/10 cursor-pointer">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                    <span>Salin Prompt AI Harian</span>
+                </button>
+
                 <a href="{{ route('dashboard') }}" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5 border border-slate-700/60">
                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -174,6 +220,118 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
+        </div>
+
+        {{-- Interactive Prompt Modal --}}
+        <div x-show="showPromptModal" 
+             x-cloak
+             class="fixed inset-0 z-50 overflow-y-auto"
+             aria-labelledby="modal-title" 
+             role="dialog" 
+             aria-modal="true">
+            {{-- Backdrop --}}
+            <div x-show="showPromptModal"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
+                 @click="showPromptModal = false"></div>
+
+            {{-- Modal Panel --}}
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                <div x-show="showPromptModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     class="relative transform overflow-hidden rounded-2xl bg-slate-900 border border-amber-500/30 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl p-6">
+                    
+                    {{-- Modal Header --}}
+                    <div class="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white tracking-tight" id="modal-title">
+                                    Master Prompt Riset Harian Sentimena AI
+                                </h3>
+                                <p class="text-xs text-slate-400 mt-0.5">
+                                    Jalankan di Antigravity IDE setiap penutupan bursa (15:45 - 16:30 WIB)
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" 
+                                @click="showPromptModal = false"
+                                class="text-slate-400 hover:text-slate-200 transition p-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {{-- Modal Body: Prompt Display --}}
+                    <div class="my-4 space-y-3">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                            <span>Teks Prompt Siap Pakai:</span>
+                            <span class="text-[11px] font-mono text-cyan-400">Deep Quantitative & Risk Audit</span>
+                        </div>
+
+                        <div class="relative group">
+                            <textarea readonly 
+                                      x-text="promptText"
+                                      rows="12"
+                                      class="w-full rounded-xl bg-slate-950 border border-slate-800 p-3.5 text-xs font-mono text-slate-200 leading-relaxed focus:outline-none focus:border-amber-500/50 resize-none select-all"></textarea>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs text-slate-400 space-y-1">
+                            <div class="font-semibold text-slate-300">💡 Alur Otomatis yang Dijalankan AI:</div>
+                            <div>1. Mengambil data real-time IHSG, RSI, deviasi MA20/50/200, dan market breadth.</div>
+                            <div>2. Mengaudit kepatuhan 3 Kunci Rebound sesuai <code class="text-rose-400 font-mono">GEMINI.md</code>.</div>
+                            <div>3. Menyimpan laporan baru di <code class="text-cyan-400 font-mono">reports/</code> dan memperbarui log harian.</div>
+                            <div>4. Melakukan commit & push secara atomik ke GitHub.</div>
+                        </div>
+                    </div>
+
+                    {{-- Modal Footer --}}
+                    <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <span x-show="copied" 
+                                  x-transition
+                                  class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Berhasil disalin ke clipboard! Siap di-paste ke chat Antigravity IDE.</span>
+                            </span>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button type="button"
+                                    @click="showPromptModal = false"
+                                    class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                                Tutup
+                            </button>
+                            <button type="button"
+                                    @click="copyToClipboard()"
+                                    class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center gap-1.5 transition shadow-lg shadow-amber-500/20 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                <span x-text="copied ? 'Tersalin!' : 'Salin ke Clipboard'"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
 
