@@ -76,47 +76,58 @@
         </div>
 
         {{-- Live Market Regime Alert Hero Card --}}
-        <div class="relative overflow-hidden rounded-2xl border border-rose-500/40 bg-gradient-to-br from-rose-950/40 via-slate-900/90 to-slate-950 p-5 sm:p-6 shadow-2xl backdrop-blur-xl">
-            <div class="absolute -right-16 -top-16 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        @php
+            $severity = $latestRegime['severity'] ?? 'rose';
+            $isAmber = $severity === 'amber';
+            $borderClass = $isAmber ? 'border-amber-500/40' : 'border-rose-500/40';
+            $bgGradClass = $isAmber ? 'from-amber-950/40 via-slate-900/90 to-slate-950' : 'from-rose-950/40 via-slate-900/90 to-slate-950';
+            $blurBgClass = $isAmber ? 'bg-amber-500/10' : 'bg-rose-500/10';
+            $badgeClass = $isAmber ? 'bg-amber-500/30 text-amber-300 border-amber-500/50' : 'bg-rose-500/30 text-rose-300 border-rose-500/50';
+            $dotClass = $isAmber ? 'bg-amber-400' : 'bg-rose-400';
+            $isPositiveChange = str_starts_with($latestRegime['ihsg_change'] ?? '', '+');
+        @endphp
+
+        <div class="relative overflow-hidden rounded-2xl border {{ $borderClass }} bg-gradient-to-br {{ $bgGradClass }} p-5 sm:p-6 shadow-2xl backdrop-blur-xl">
+            <div class="absolute -right-16 -top-16 w-64 h-64 {{ $blurBgClass }} rounded-full blur-3xl pointer-events-none"></div>
             
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
                 <div class="space-y-2 max-w-2xl">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/30 text-rose-300 border border-rose-500/50 animate-pulse">
-                            <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold {{ $badgeClass }} animate-pulse">
+                            <span class="w-2 h-2 rounded-full {{ $dotClass }}"></span>
                             STATUS: {{ $latestRegime['status'] }}
                         </span>
                         <span class="text-xs text-slate-400 font-mono">Diperbarui: {{ $latestRegime['last_updated'] }}</span>
                     </div>
                     <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">
-                        Fase Kapitulasi Sistemik: Penembusan Level 5.000 & Regulasi ARB 7%
+                        {{ $latestRegime['headline'] ?? 'Fase Kapitulasi Sistemik: Penembusan Level 5.000 & Regulasi ARB 7%' }}
                     </h2>
                     <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                        Katalis ancaman evaluasi MSCI dan pelemahan Rupiah memicu tekanan jual masif. Sesuai aturan protokol <span class="font-mono text-rose-300">GEMINI.md</span>, seluruh strategi pantulan dilarang dientri hingga terpenuhinya 3 syarat konfirmasi rebound.
+                        {{ $latestRegime['description'] ?? 'Katalis ancaman evaluasi MSCI dan pelemahan Rupiah memicu tekanan jual masif. Sesuai aturan protokol GEMINI.md, seluruh strategi pantulan dilarang dientri hingga terpenuhinya 3 syarat konfirmasi rebound.' }}
                     </p>
                 </div>
 
                 {{-- Key Indicator Grid --}}
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 w-full lg:w-auto">
                     <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                        <div class="text-[10px] text-slate-400 font-mono uppercase">IHSG Close</div>
+                        <div class="text-[10px] text-slate-400 font-mono uppercase">IHSG Sesi 1</div>
                         <div class="text-sm font-bold text-white mt-0.5">{{ $latestRegime['ihsg_close'] }}</div>
-                        <div class="text-[11px] font-semibold text-rose-400">{{ $latestRegime['ihsg_change'] }}</div>
+                        <div class="text-[11px] font-semibold {{ $isPositiveChange ? 'text-emerald-400' : 'text-rose-400' }}">{{ $latestRegime['ihsg_change'] }}</div>
                     </div>
                     <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
                         <div class="text-[10px] text-slate-400 font-mono uppercase">RSI (14)</div>
                         <div class="text-sm font-bold text-amber-300 mt-0.5">{{ $latestRegime['rsi_14'] }}</div>
-                        <div class="text-[10px] text-slate-400">Oversold Ekstrem</div>
+                        <div class="text-[10px] text-slate-400">Exit Oversold</div>
                     </div>
                     <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
                         <div class="text-[10px] text-slate-400 font-mono uppercase">Deviasi MA20</div>
-                        <div class="text-sm font-bold text-rose-400 mt-0.5">{{ $latestRegime['ma20_dev'] }}</div>
-                        <div class="text-[10px] text-slate-400">Tren Jangka Pendek</div>
+                        <div class="text-sm font-bold text-amber-400 mt-0.5">{{ $latestRegime['ma20_dev'] }}</div>
+                        <div class="text-[10px] text-slate-400">Penyempitan Deviasi</div>
                     </div>
                     <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                        <div class="text-[10px] text-slate-400 font-mono uppercase">Target Rebound</div>
-                        <div class="text-xs font-bold text-cyan-300 mt-0.5">Rabu-Kamis</div>
-                        <div class="text-[10px] text-slate-400">21-22 Okt 2026</div>
+                        <div class="text-[10px] text-slate-400 font-mono uppercase">Jendela Entri</div>
+                        <div class="text-xs font-bold text-cyan-300 mt-0.5">Sesi 2 Hari Ini</div>
+                        <div class="text-[10px] text-slate-400">14:45 - 15:45 WIB</div>
                     </div>
                 </div>
             </div>

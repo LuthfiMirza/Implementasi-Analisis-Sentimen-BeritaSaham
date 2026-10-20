@@ -18,13 +18,15 @@ class MarketIntelligenceController extends Controller
         $latestRegime = [
             'status' => 'TRANSISI REBOUND SPEKULATIF (TIER 1)',
             'severity' => 'amber',
+            'headline' => 'Transisi Rebound Spekulatif: Rebound Impulsif IHSG +3,61% & Skenario Masuk Sesi 2',
+            'description' => 'IHSG melonjak +3,61% ke 5.181 dengan 85,4% saham menguat dan 0 saham ARB. Kunci 1 & 2 GEMINI.md valid. Sesuai hasil backtest empiris kuantitatif, entri akumulasi Tier 1 (15-20% kas) direkomendasikan dieksekusi di akhir Sesi 2 (14:45 - 15:45 WIB) dengan Stop Loss ketat -3,5%.',
             'ihsg_close' => '5.181,48',
             'ihsg_change' => '+3,61%',
             'rsi_14' => '25,08',
             'ma20_dev' => '-12,86%',
             'market_breadth' => '85,4% Gainers (41 Naik vs 7 Turun | 0 ARB)',
             'key_catalyst' => 'BEI Hapus Saham HSC & Rebound Big Banks Serentak',
-            'rebound_window' => 'Sesi 2 Hari Ini (Tier 1: 15-20%) & Rabu (Tier 2)',
+            'rebound_window' => 'Sesi 2 Hari Ini (14:45 - 15:45 WIB)',
             'last_updated' => '20 Oktober 2026 (Sesi 1 Siang)',
         ];
 
@@ -125,11 +127,14 @@ class MarketIntelligenceController extends Controller
         $readTime = max(2, ceil($wordCount / 180));
 
         // Category & Tagging
-        $isFeatured = str_contains($slug, 'rebound_prediction');
+        $isFeatured = ($slug === 'market_regime_research_20261020');
         $tag = 'Analisis Rezim';
         $tagColor = 'rose';
 
-        if (str_contains($slug, 'rebound_prediction')) {
+        if ($slug === 'market_regime_research_20261020') {
+            $tag = 'Rebound & Backtest Sesi';
+            $tagColor = 'emerald';
+        } elseif (str_contains($slug, 'rebound_prediction')) {
             $tag = 'Proyeksi Rebound & MSCI';
             $tagColor = 'amber';
         } elseif (str_contains($slug, 'screener')) {
@@ -145,7 +150,7 @@ class MarketIntelligenceController extends Controller
 
         // Sort key based on filename date pattern
         preg_match('/\d{8}/', $slug, $numMatch);
-        $sortKey = isset($numMatch[0]) ? $numMatch[0] : '20261001';
+        $sortKey = (isset($numMatch[0]) ? $numMatch[0] : '20261001') . ($slug === 'market_regime_research_20261020' ? '9' : '1');
 
         // Hide internal test candidate file from public research list
         $isPublic = !str_contains($slug, 'official_test');
