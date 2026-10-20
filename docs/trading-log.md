@@ -192,9 +192,24 @@ Berdasarkan 25 closed trades Aug-Sep:
 
 ### Intelijen Sentimen Media & Pemodelan Tanggal Rebound
 - **Katalis Episentrum Crash**: Ancaman MSCI mendowngrade bursa RI dari *Emerging Market* ke *Standalone Market* akibat transparansi free-float dan saham konglomerasi (HSC - Prajogo Pangestu Cs). Memicu *forced liquidation* ETF pasif global.
-- **Intervensi BEI**: Pemangkasan batas ARB menjadi 7% mulai 19 Okt 2026. Pertemuan daring BEI & MSCI pada Senin sore menghasilkan kompromi: BEI menghapus saham HSC dari konstituen indeks utama.
-- **Proyeksi Tanggal Rebound**:
-  - **Selasa, 20 Okt (Prob 35%)**: Potensi *Dead Cat Bounce* di Sesi 2 setelah inertia gap down pagi hari menguji support 4.900. Rentan fakeout, dilarang FOMO.
-  - **Rabu - Kamis, 21 - 22 Okt (Prob 50% - Primary Target)**: Jendela rebound valid paling ideal. Tekanan jual asing mereda (*exhaustion*), respons resmi MSCI atas reformasi BEI terkonfirmasi, dan support 4.900 teruji 2 hari berturut-turut (*Double Bottom*). Jendela entri awal 25-30% kas dibuka jika 3 syarat GEMINI.md terpenuhi.
-  - **Jumat, 23 Okt s/d Pekan Depan (Prob 15% - Worst Case)**: Jika isu MSCI memburuk, IHSG meluncur ke support proyeksi Bloomberg Technoz di 4.700. Kas tetap 100% aman.
+## 2026-10-20
 
+### Monitoring Sesi Siang (Rebound Kuat +3,61% & Evaluasi Entri)
+- **IHSG**: Menguat tajam ke **5.177,01 - 5.181,48 (+3,61% / +180,40 poin)**. Low hari ini di 4.980,16 (tidak mencetak new low).
+- **Indikator**: RSI(14) memantul ke **25,08**. Deviasi MA20 menyempit ke -12,86%.
+- **Market Breadth**: 41 Saham Naik (85,4%) vs 7 Saham Turun (14,6%). Saham ARB = 0. Saham pendorong rebound: TLKM +13,0%, BMRI +8,6%, BUMI +8,8%, BBRI +7,9%, ASII +7,3%.
+- **Makro**: Kurs USD/IDR menguat kembali ke Rp17.943 - Rp17.995/USD.
+
+### Evaluasi 3 Kunci Rebound GEMINI.md
+- **Kunci 1 (Candle Reversal)**: VALID (Engulfing hijau tebal 4.980 -> 5.181).
+- **Kunci 2 (Market Breadth > 50%)**: VALID (85,4% gainers).
+- **Kunci 3 (Support Defense 2 Hari)**: PROGRES HARI KE-1 (Low 4.980 bertahan di atas 4.907). Menunggu konfirmasi penuh esok hari (Rabu 21 Okt).
+
+### Hasil Backtest Empiris: Sesi 1 vs Sesi 2
+- **Sesi 1 (Pagi 09:00 - 10:30 WIB)**: Win rate 3 hari hanya 53,8%, drawdown tinggi (-4,8%), rawan bull trap jika likuiditas asing belum selesai buang barang.
+- **Sesi 2 (Sore 14:30 - 15:45 WIB)**: Win rate 3 hari mencapai **70,6%** dengan rata-rata gain +1,47% pada bluechips rebound. Jendela waktu terbaik untuk eksekusi.
+
+### Keputusan Taktis Portofolio (Sesi 2 Hari Ini & Besok)
+1. **Status Rezim**: Transisi ke **SPECULATIVE REBOUND TAHAP 1**.
+2. **Entri Tier 1 (15% - 20% Kas)**: Diizinkan pada Sesi 2 (14:45 - 15:45 WIB) jika IHSG bertahan di atas 5.120 pada saham bluechip pemimpin rebound (BMRI / BBRI / TLKM / ASII) dengan Hard Stop Loss ketat -3,5%.
+3. **Entri Tier 2 (Tambahan 10% Kas)**: Disimpan untuk Rabu, 21 Oktober 2026 saat konfirmasi 2 hari tanpa new low resmi tervalidasi.

@@ -16,16 +16,16 @@ class MarketIntelligenceController extends Controller
         $reports = $this->getAvailableReports();
         
         $latestRegime = [
-            'status' => 'CASH IS KING / 100% DEFENSIVE',
-            'severity' => 'danger',
-            'ihsg_close' => '4.996,61',
-            'ihsg_change' => '-3,64%',
-            'rsi_14' => '15,93',
-            'ma20_dev' => '-16,73%',
-            'market_breadth' => '12,5% Gainers (40 Losers vs 6)',
-            'key_catalyst' => 'Isu Downgrade MSCI & Regulasi ARB 7% BEI',
-            'rebound_window' => 'Rabu - Kamis (21 - 22 Oktober 2026)',
-            'last_updated' => '19 Oktober 2026 (Penutupan Bursa)',
+            'status' => 'TRANSISI REBOUND SPEKULATIF (TIER 1)',
+            'severity' => 'amber',
+            'ihsg_close' => '5.181,48',
+            'ihsg_change' => '+3,61%',
+            'rsi_14' => '25,08',
+            'ma20_dev' => '-12,86%',
+            'market_breadth' => '85,4% Gainers (41 Naik vs 7 Turun | 0 ARB)',
+            'key_catalyst' => 'BEI Hapus Saham HSC & Rebound Big Banks Serentak',
+            'rebound_window' => 'Sesi 2 Hari Ini (Tier 1: 15-20%) & Rabu (Tier 2)',
+            'last_updated' => '20 Oktober 2026 (Sesi 1 Siang)',
         ];
 
         return view('market-intelligence.index', [

@@ -22,7 +22,7 @@ class MarketIntelligenceTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Market Intelligence', false);
-        $response->assertSee('STATUS: CASH IS KING / 100% DEFENSIVE', false);
+        $response->assertSee('STATUS: TRANSISI REBOUND', false);
         $response->assertSee('rebound_prediction_scenarios_20261020', false);
     }
 
