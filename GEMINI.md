@@ -44,5 +44,7 @@ File ini adalah memori permanen dan aturan disiplin trading untuk proyek **Senti
 - Laporan riset kapitualasi & penembusan level psikologis 5.000 (Tahap 3): `laravel-app/reports/market_regime_research_20261019.md`
 - Laporan proyeksi tanggal & skenario rebound IHSG pasca isu MSCI & ARB 7%: `laravel-app/reports/rebound_prediction_scenarios_20261020.md`
 - Laporan riset rebound IHSG (+3,61%) & backtest entri Sesi 1 vs Sesi 2: `laravel-app/reports/market_regime_research_20261020.md`
+- Laporan konfirmasi rebound IHSG (Support 5.000 teruji 2 hari) & eksekusi Tier 2: `laravel-app/reports/market_regime_research_20261021.md`
 - Catatan histori trading dan evaluasi berkala: `laravel-app/docs/trading-log.md`
+
 

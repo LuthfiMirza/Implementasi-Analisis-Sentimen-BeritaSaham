@@ -39,33 +39,33 @@
         @endif
 
         {{-- Market Regime & Intelligence Alert Banner --}}
-        <div class="glass-card rounded-2xl p-4 sm:p-5 border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-slate-900/90 to-slate-950 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+        <div class="glass-card rounded-2xl p-4 sm:p-5 border border-emerald-500/40 bg-gradient-to-r from-emerald-950/40 via-slate-900/90 to-slate-950 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
             <div class="flex items-start sm:items-center gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-0.5 sm:mt-0">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5 sm:mt-0">
                     <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                 </div>
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-500/25 text-amber-300 border border-amber-500/40">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
-                            STATUS: TRANSISI REBOUND (TIER 1)
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-500/25 text-emerald-300 border border-emerald-500/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            STATUS: REBOUND TERKONFIRMASI (TIER 2)
                         </span>
-                        <span class="text-[11px] text-slate-400 font-mono">IHSG: 5.181,48 (+3,61%) • RSI(14): 25,08 • 0 Saham ARB</span>
+                        <span class="text-[11px] text-slate-400 font-mono">IHSG: 5.273,87 (-0,10%) • RSI(14): 29,86 • Support 5.000 Teruji 2 Hari • 0 ARB</span>
                     </div>
                     <h3 class="text-sm sm:text-base font-bold text-white mt-1">
-                        Peluang Rebound Pasar: IHSG Melesat +3,61% & Evaluasi Entri Sesi 2
+                        Rebound Pasar Terkonfirmasi Penuh: 3 Kunci GEMINI.md Valid & Alokasi Tier 2
                     </h3>
                     <p class="text-xs text-slate-300 mt-0.5 max-w-2xl leading-relaxed">
-                        Langkah BEI mencoret saham HSC meredakan kepanikan MSCI. Breadth melonjak ke <strong>85,4% gainers</strong>. Backtest membuktikan entri <strong>Sesi 2 (14:45-15:45 WIB)</strong> memiliki win rate 70,6% untuk alokasi awal Tier 1 (15-20% kas).
+                        Support 5.000 terbukti bertahan 2 hari berturut-turut tanpa new low (Low 5.224). Kurs Rupiah menguat ke <strong>Rp17.943/USD</strong>. Alokasi kas portofolio dinaikkan ke <strong>Tier 2 (25-30% kas)</strong> dengan metode Pyramiding pada saham breakout resistance.
                     </p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2 shrink-0">
-                <a href="{{ route('market-intelligence.show', 'market_regime_research_20261020') }}"
-                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/20">
-                    <span>Baca Riset & Backtest Sesi 2</span>
+                <a href="{{ route('market-intelligence.show', 'market_regime_research_20261021') }}"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-md shadow-emerald-500/20">
+                    <span>Baca Riset & Eksekusi Tier 2</span>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </a>
                 <a href="{{ route('market-intelligence.index') }}"

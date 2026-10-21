@@ -213,3 +213,34 @@ Berdasarkan 25 closed trades Aug-Sep:
 1. **Status Rezim**: Transisi ke **SPECULATIVE REBOUND TAHAP 1**.
 2. **Entri Tier 1 (15% - 20% Kas)**: Diizinkan pada Sesi 2 (14:45 - 15:45 WIB) jika IHSG bertahan di atas 5.120 pada saham bluechip pemimpin rebound (BMRI / BBRI / TLKM / ASII) dengan Hard Stop Loss ketat -3,5%.
 3. **Entri Tier 2 (Tambahan 10% Kas)**: Disimpan untuk Rabu, 21 Oktober 2026 saat konfirmasi 2 hari tanpa new low resmi tervalidasi.
+
+## 2026-10-21
+
+### Monitoring Penutupan Sesi (Konfirmasi Penuh Rebound & Validasi 3 Kunci GEMINI.md)
+- **IHSG**: Ditutup di **5.273,87 (-0,10% / -5,02 poin)** setelah konsolidasi sehat di range **5.224,83 - 5.326,96**.
+- **Indikator**: RSI(14) menguat ke **29,86**. MACD Histogram deselerasi negatif menyusut ke **-87,21** (konvergensi bullish). Deviasi MA20 menyempit ke -10,55%.
+- **Market Breadth**: 50,0% Gainers pada LQ45/IDX30 (rotasi sektoral normal). Saham ARB = **0 SAHAM** (hari ke-2 beruntun tanpa ada kemacetan likuiditas). Penggerak utama: BREN +12,8%, BRPT +11,3%, TPIA +5,6%, ICBP +4,8%, BBCA +3,9%, CPIN +3,4%, TLKM +2,9%.
+- **Makro**: Kurs USD/IDR stabil menguat di **Rp17.943/USD**, bertahan di bawah batas psikologis Rp18.000/USD.
+
+### Evaluasi 3 Kunci Rebound GEMINI.md
+- **Kunci 1 (Candle Reversal)**: TERKONFIRMASI ✅ (Engulfing tebal 20 Okt + base building kokoh 21 Okt).
+- **Kunci 2 (Market Breadth > 50%)**: TERKONFIRMASI ✅ (85,4% pada 20 Okt & 50,0% rotasi sehat pada 21 Okt, 0 ARB).
+- **Kunci 3 (Support Defense 2 Hari)**: TERPENUHI PENUH ✅ (Low 4.980 pada hari ke-1 dan Low 5.224 pada hari ke-2, terbukti bertahan 2 hari bursa berturut-turut tanpa mencetak new low).
+
+### Audit Portofolio & Tindakan Disiplin
+1. **Posisi Floating Profit Masif**:
+   - BRPT (ID #759, entry 1.195 ➔ live 1.475, **+23,43%**) — siapkan trailing stop di 1.445.
+   - ESSA (ID #763, entry 470 ➔ live 498, **+5,96%**).
+   - BUMI (ID #754, entry 125 ➔ live 132, **+5,60%**).
+   - SMGR (ID #761, entry 1.285 ➔ live 1.350, **+5,06%**).
+   - RAJA (+4,39%), DEWA (+4,13%), UNVR (+4,15%).
+2. **Disiplin Cut Loss (Pelanggaran Batas SL -3,5%)**:
+   - Wajib eksekusi Cut Loss untuk 5 posisi melanggar batas: PTRO ID #767 (-8,38%), ENRG ID #770 (-4,55%), INET ID #776 & #778 (-3,74%), PSAB ID #779 (-3,59%).
+3. **Pemberantasan Martingale**:
+   - Penambahan lot dilarang pada posisi minus; kuota 1 posisi per setup diaktifkan di command detector.
+
+### Keputusan Rezim & Rencana Besok (Kamis, 22 Oktober 2026)
+1. **Status Rezim**: Naik kelas menjadi **REBOUND TERKONFIRMASI (CONFIRMED REBOUND TIER 2)**.
+2. **Alokasi Kas Tier 2 (Total 25% - 30% Kas)**: Diizinkan menambah posisi (Pyramiding) pada saham yang breakout resistance pertama.
+3. **Trailing Stop**: Ketatkan trailing stop 2% untuk mengamankan floating profit posisi rebound.
+

@@ -74,7 +74,7 @@ class DetectDrawdownBounceSignalCommand extends Command
             return self::FAILURE;
         }
 
-        $result = Process::timeout(60)->run([$python, $script]);
+        $result = Process::timeout(300)->run([$python, $script]);
 
         $outputLines = explode("\n", trim($result->output()));
         foreach ($outputLines as $line) {
@@ -114,103 +114,125 @@ class DetectDrawdownBounceSignalCommand extends Command
                 continue;
             }
 
-            try {
-                $stock = Stock::where('code', $ticker)->first();
-                if (! $stock) {
-                    $this->warn("Sync Trade Journal (open): saham {$ticker} tidak ditemukan di tabel stocks -- dilewati.");
-                    continue;
-                }
+            $this->syncPositionToJournal((string) $ticker, (float) $price, (string) $dateStr, (string) ($strategy ?: 'GABUNGAN'), $detail);
+        }
 
-                // Fase CS: dulu ternary 2-cabang (MOMENTUM vs default-ke-GABUNGAN) -- aman selama
-                // cuma ada 2 strategi otomatis. Begitu BOTTOM_REBOUND ditambah, default itu jadi
-                // BAHAYA DIAM-DIAM: sinyal strategi baru bakal salah tercatat 'gabungan' dan
-                // mengotori statistik resmi GABUNGAN tanpa error apapun. match() eksplisit --
-                // strategi baru ke depan WAJIB ditambah di sini dulu, tidak boleh jatuh ke default.
-                $strategyLabel = match ($strategy) {
-                    'MOMENTUM' => "MOMENTUM ({$detail})",
-                    'BOTTOM_REBOUND' => "BOTTOM-REBOUND ({$detail})",
-                    default => 'GABUNGAN, jenis: '.($detail ?: 'ret2d'),
-                };
-                $strategyLabelColumn = match ($strategy) {
-                    'MOMENTUM' => 'momentum',
-                    'BOTTOM_REBOUND' => 'bottom_rebound',
-                    default => 'gabungan',
-                };
+        // Resilient fallback: sinkronkan juga entri dari open_positions.json
+        // jika ada sinyal yang sudah tercatat di JSON tapi belum sempat masuk ke DB Trade Journal (mis. akibat timeout terdahulu)
+        $this->syncActiveOpenPositionsJson();
+    }
 
-                // Fase DK: idempotency check SEBELUMNYA cuma ticker+tanggal (tanpa strategi) --
-                // begitu BUMI MOMENTUM tercatat lebih dulu di suatu tanggal, sinyal BUMI
-                // BOTTOM-REBOUND di tanggal SAMA (strategi beda, entry beda) ikut dianggap
-                // "sudah ada" dan di-skip diam-diam -- padahal keduanya sinyal independen yang
-                // sah. Ketahuan 28 Agu 2026: BUMI BOTTOM-REBOUND hilang dari Trade Journal
-                // (tetap tercatat di open_positions.json/alert Telegram, tapi tidak di web).
-                // Tambah `strategy_label` ke pengecekan supaya idempotency tetap mencegah
-                // duplikat kalau command jalan ulang (tujuan ASLI-nya), tanpa ikut memblokir
-                // strategi lain yang kebetulan ticker+tanggalnya sama.
-                $exists = Trade::where('ticker', $ticker)
-                    ->whereDate('entry_date', $dateStr)
-                    ->where('strategy_label', $strategyLabelColumn)
-                    ->where('notes', 'like', 'LIVE — sinyal otomatis%')
-                    ->exists();
-                if ($exists) {
-                    continue; // idempotent -- jangan dobel kalau command jalan ulang
-                }
+    private function syncPositionToJournal(string $ticker, float $price, string $dateStr, string $strategy, ?string $detail): void
+    {
+        try {
+            $stock = Stock::where('code', $ticker)->first();
+            if (! $stock) {
+                $this->warn("Sync Trade Journal (open): saham {$ticker} tidak ditemukan di tabel stocks -- dilewati.");
 
-                // Fase DJ: batas pyramiding -- lihat docblock MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY.
-                // Dihitung per ticker+strategi (BUKAN per ticker keseluruhan) supaya BUMI MOMENTUM
-                // dan BUMI BOTTOM-REBOUND tetap dianggap dua "slot" terpisah -- keduanya sinyal
-                // independen secara teknikal, cuma kebetulan ticker sama.
-                $openCountForStrategy = Trade::where('ticker', $ticker)
-                    ->where('strategy_label', $strategyLabelColumn)
-                    ->where('status', 'open')
-                    ->count();
-                if ($openCountForStrategy >= self::MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY) {
-                    $this->warn("Sync Trade Journal (open): {$ticker} sudah {$openCountForStrategy} posisi ".
-                        "{$strategyLabelColumn} terbuka (batas ".self::MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY.
-                        "), sinyal baru @ Rp{$price} ({$dateStr}) dilewati -- tetap tercatat di ".
-                        'open_positions.json untuk alert Telegram, tapi tidak dibuka otomatis di Trade Journal.');
-                    continue;
-                }
-
-                $entryPrice = (float) $price;
-                $quantity = (int) (floor(self::LIVE_CAPITAL / $entryPrice / 100) * 100);
-                if ($quantity <= 0) {
-                    $quantity = 100;
-                }
-
-                $slPct = 0.035; // Batas risiko teruji optimal: -3.5% (Golden Compromise: Max DD rendah & cuan maksimal)
-
-                Trade::create([
-                    'user_id' => 2,
-                    'stock_id' => $stock->id,
-                    'ticker' => $ticker,
-                    'direction' => 'long',
-                    'signal_quality' => 'journal',
-                    'entry_price' => $entryPrice,
-                    'stop_loss' => round($entryPrice * (1 - $slPct), 2),
-                    'target_1' => round($entryPrice * (1 + 0.05), 2),
-                    // lot_size di kolom DB menyimpan LEMBAR (bukan jumlah lot) -- konvensi yang
-                    // sama dipakai TradeController::store() untuk trade manual via form web
-                    // (lihat LEMBAR_PER_LOT), "Lot" yang ditampilkan di UI itu lot_size/100.
-                    'lot_size' => $quantity,
-                    'quantity' => $quantity,
-                    'position_value' => round($quantity * $entryPrice, 2),
-                    'status' => 'open',
-                    'entry_date' => $dateStr,
-                    'trade_date' => $dateStr,
-                    'result' => 'open',
-                    'notes' => "LIVE — sinyal otomatis {$strategyLabel}. Modal simulasi tetap Rp10.000.000 ".
-                        '(bukan compounding). Exit dipantau otomatis via research:check-trailing-stop-alert '.
-                        '(trailing stop 2% / target waktu 10 hari) -- posisi ini juga terdaftar di '.
-                        'open_positions.json untuk alert Telegram.',
-                    // Fase CA: diisi eksplisit saat insert, bukan ditebak dari notes belakangan --
-                    // strategy_label='gabungan' inilah yang dihitung ke kartu ringkasan RESMI.
-                    'strategy_label' => $strategyLabelColumn,
-                ]);
-
-                $this->info("Sync Trade Journal: {$ticker} dibuka otomatis di web (entry Rp{$price}, {$dateStr}, {$strategyLabel}).");
-            } catch (Throwable $e) {
-                $this->warn("Sync Trade Journal (open) gagal untuk {$ticker} (DB mungkin mati): ".$e->getMessage());
+                return;
             }
+
+            $strategyUpper = strtoupper($strategy);
+            $strategyLabel = match ($strategyUpper) {
+                'MOMENTUM' => "MOMENTUM ({$detail})",
+                'BOTTOM_REBOUND' => "BOTTOM-REBOUND ({$detail})",
+                'BOTTOM_TO_TOP' => "BOTTOM-TO-TOP ({$detail})",
+                default => 'GABUNGAN, jenis: '.($detail ?: 'ret2d'),
+            };
+            $strategyLabelColumn = match ($strategyUpper) {
+                'MOMENTUM' => 'momentum',
+                'BOTTOM_REBOUND' => 'bottom_rebound',
+                'BOTTOM_TO_TOP' => 'bottom_to_top',
+                default => 'gabungan',
+            };
+
+            $exists = Trade::where('ticker', $ticker)
+                ->whereDate('entry_date', $dateStr)
+                ->where('strategy_label', $strategyLabelColumn)
+                ->where('notes', 'like', 'LIVE — sinyal otomatis%')
+                ->exists();
+            if ($exists) {
+                return; // idempotent -- jangan dobel kalau command jalan ulang
+            }
+
+            $openCountForStrategy = Trade::where('ticker', $ticker)
+                ->where('strategy_label', $strategyLabelColumn)
+                ->where('status', 'open')
+                ->count();
+            if ($openCountForStrategy >= self::MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY) {
+                $this->warn("Sync Trade Journal (open): {$ticker} sudah {$openCountForStrategy} posisi ".
+                    "{$strategyLabelColumn} terbuka (batas ".self::MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY.
+                    "), sinyal baru @ Rp{$price} ({$dateStr}) dilewati -- tetap tercatat di ".
+                    'open_positions.json untuk alert Telegram, tapi tidak dibuka otomatis di Trade Journal.');
+
+                return;
+            }
+
+            $entryPrice = (float) $price;
+            $quantity = (int) (floor(self::LIVE_CAPITAL / $entryPrice / 100) * 100);
+            if ($quantity <= 0) {
+                $quantity = 100;
+            }
+
+            $slPct = 0.035; // Batas risiko teruji optimal: -3.5% (Golden Compromise: Max DD rendah & cuan maksimal)
+
+            Trade::create([
+                'user_id' => 2,
+                'stock_id' => $stock->id,
+                'ticker' => $ticker,
+                'direction' => 'long',
+                'signal_quality' => 'journal',
+                'entry_price' => $entryPrice,
+                'stop_loss' => round($entryPrice * (1 - $slPct), 2),
+                'target_1' => round($entryPrice * (1 + 0.05), 2),
+                'lot_size' => $quantity,
+                'quantity' => $quantity,
+                'position_value' => round($quantity * $entryPrice, 2),
+                'status' => 'open',
+                'entry_date' => $dateStr,
+                'trade_date' => $dateStr,
+                'result' => 'open',
+                'notes' => "LIVE — sinyal otomatis {$strategyLabel}. Modal simulasi tetap Rp10.000.000 ".
+                    '(bukan compounding). Exit dipantau otomatis via research:check-trailing-stop-alert '.
+                    '(trailing stop 2% / target waktu 10 hari) -- posisi ini juga terdaftar di '.
+                    'open_positions.json untuk alert Telegram.',
+                'strategy_label' => $strategyLabelColumn,
+            ]);
+
+            $this->info("Sync Trade Journal: {$ticker} dibuka otomatis di web (entry Rp{$price}, {$dateStr}, {$strategyLabel}).");
+        } catch (Throwable $e) {
+            $this->warn("Sync Trade Journal (open) gagal untuk {$ticker} (DB mungkin mati): ".$e->getMessage());
+        }
+    }
+
+    private function syncActiveOpenPositionsJson(): void
+    {
+        $path = base_path('quant/drawdown_bounce_tracker/open_positions.json');
+        if (! is_file($path)) {
+            return;
+        }
+
+        try {
+            $positions = json_decode((string) file_get_contents($path), true);
+            if (! is_array($positions)) {
+                return;
+            }
+
+            foreach ($positions as $p) {
+                $ticker = $p['ticker'] ?? null;
+                $price = $p['entry_price'] ?? null;
+                $dateStr = $p['entry_date'] ?? null;
+                $strategy = $p['strategy'] ?? 'GABUNGAN';
+                $detail = $p['signal_type'] ?? null;
+
+                if (! $ticker || ! is_numeric($price) || ! $dateStr) {
+                    continue;
+                }
+
+                $this->syncPositionToJournal((string) $ticker, (float) $price, (string) $dateStr, (string) $strategy, $detail);
+            }
+        } catch (Throwable $e) {
+            $this->warn('Gagal membaca open_positions.json saat sinkronisasi: '.$e->getMessage());
         }
     }
 

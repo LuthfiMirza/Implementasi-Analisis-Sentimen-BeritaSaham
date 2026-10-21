@@ -22,8 +22,8 @@ class MarketIntelligenceTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Market Intelligence', false);
-        $response->assertSee('STATUS: TRANSISI REBOUND', false);
-        $response->assertSee('rebound_prediction_scenarios_20261020', false);
+        $response->assertSee('REBOUND TERKONFIRMASI', false);
+        $response->assertSee('market_regime_research_20261021', false);
     }
 
     public function test_authenticated_user_can_view_specific_research_report()

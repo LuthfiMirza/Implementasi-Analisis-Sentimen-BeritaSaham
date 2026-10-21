@@ -16,18 +16,18 @@ class MarketIntelligenceController extends Controller
         $reports = $this->getAvailableReports();
         
         $latestRegime = [
-            'status' => 'TRANSISI REBOUND SPEKULATIF (TIER 1)',
-            'severity' => 'amber',
-            'headline' => 'Transisi Rebound Spekulatif: Rebound Impulsif IHSG +3,61% & Skenario Masuk Sesi 2',
-            'description' => 'IHSG melonjak +3,61% ke 5.181 dengan 85,4% saham menguat dan 0 saham ARB. Kunci 1 & 2 GEMINI.md valid. Sesuai hasil backtest empiris kuantitatif, entri akumulasi Tier 1 (15-20% kas) direkomendasikan dieksekusi di akhir Sesi 2 (14:45 - 15:45 WIB) dengan Stop Loss ketat -3,5%.',
-            'ihsg_close' => '5.181,48',
-            'ihsg_change' => '+3,61%',
-            'rsi_14' => '25,08',
-            'ma20_dev' => '-12,86%',
-            'market_breadth' => '85,4% Gainers (41 Naik vs 7 Turun | 0 ARB)',
-            'key_catalyst' => 'BEI Hapus Saham HSC & Rebound Big Banks Serentak',
-            'rebound_window' => 'Sesi 2 Hari Ini (14:45 - 15:45 WIB)',
-            'last_updated' => '20 Oktober 2026 (Sesi 1 Siang)',
+            'status' => 'REBOUND TERKONFIRMASI (TIER 2)',
+            'severity' => 'emerald',
+            'headline' => 'Rebound Terkonfirmasi Penuh: Support 5.000 Teruji 2 Hari Berturut-turut & Alokasi Tier 2',
+            'description' => 'IHSG berkonsolidasi sehat di 5.273,87 dengan 0 saham ARB 2 hari beruntun dan kurs Rupiah menguat ke Rp17.943/USD. Seluruh 3 Kunci Rebound GEMINI.md resmi terpenuhi penuh. Portofolio siap berekspansi ke alokasi Tier 2 (25-30% kas) dengan metode Pyramiding pada saham breakout resistance.',
+            'ihsg_close' => '5.273,87',
+            'ihsg_change' => '-0,10%',
+            'rsi_14' => '29,86',
+            'ma20_dev' => '-10,55%',
+            'market_breadth' => '50,0% Gainers LQ45/IDX30 (0 Saham ARB Hari ke-2)',
+            'key_catalyst' => 'MSCI & BEI Reformasi HSC, Rupiah < Rp18.000, 3 Kunci Rebound Valid',
+            'rebound_window' => 'Alokasi Tier 2 Aktif (25% - 30% Kas)',
+            'last_updated' => '21 Oktober 2026 (Penutupan Bursa)',
         ];
 
         return view('market-intelligence.index', [

@@ -1,1 +1,198 @@
-[]
+[
+    {
+        "ticker": "BUMI",
+        "entry_date": "2026-10-19",
+        "entry_price": 125,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "BUMI",
+        "entry_date": "2026-10-20",
+        "entry_price": 136,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "DEWA",
+        "entry_date": "2026-10-19",
+        "entry_price": 242,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "DEWA",
+        "entry_date": "2026-10-20",
+        "entry_price": 256,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "BRPT",
+        "entry_date": "2026-10-19",
+        "entry_price": 1195,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "BRPT",
+        "entry_date": "2026-10-20",
+        "entry_price": 1435,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "SMGR",
+        "entry_date": "2026-10-19",
+        "entry_price": 1285,
+        "alerted_pullback_pct": 0.03225806451612903,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "milestone_peak": 1395,
+        "alerted_pullback_at_peak": 1395
+    },
+    {
+        "ticker": "SMGR",
+        "entry_date": "2026-10-20",
+        "entry_price": 1385,
+        "alerted_pullback_pct": 0.03225806451612903,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "alerted_pullback_at_peak": 1395
+    },
+    {
+        "ticker": "ESSA",
+        "entry_date": "2026-10-19",
+        "entry_price": 470,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "ESSA",
+        "entry_date": "2026-10-20",
+        "entry_price": 505,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "UNVR",
+        "entry_date": "2026-10-19",
+        "entry_price": 1325,
+        "alerted_pullback_pct": 0.02120141342756184,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "milestone_peak": 1415,
+        "alerted_pullback_at_peak": 1415
+    },
+    {
+        "ticker": "UNVR",
+        "entry_date": "2026-10-20",
+        "entry_price": 1375,
+        "alerted_pullback_pct": 0.02120141342756184,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "alerted_pullback_at_peak": 1415
+    },
+    {
+        "ticker": "PTRO",
+        "entry_date": "2026-10-19",
+        "entry_price": 3110,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "PTRO",
+        "entry_date": "2026-10-20",
+        "entry_price": 3150,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "ENRG",
+        "entry_date": "2026-10-19",
+        "entry_price": 845,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "ENRG",
+        "entry_date": "2026-10-20",
+        "entry_price": 865,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "RAJA",
+        "entry_date": "2026-10-19",
+        "entry_price": 456,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "RAJA",
+        "entry_date": "2026-10-20",
+        "entry_price": 484,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "INET",
+        "entry_date": "2026-10-19",
+        "entry_price": 174,
+        "alerted_pullback_pct": 0.05670103092783505,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "milestone_peak": 194,
+        "alerted_pullback_at_peak": 194
+    },
+    {
+        "ticker": "INET",
+        "entry_date": "2026-10-20",
+        "entry_price": 187,
+        "alerted_pullback_pct": 0.05670103092783505,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "alerted_pullback_at_peak": 194
+    },
+    {
+        "ticker": "PSAB",
+        "entry_date": "2026-10-19",
+        "entry_price": 446,
+        "alerted_pullback_pct": 0.05701754385964912,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "alerted_sl_initial": true,
+        "alerted_pullback_at_peak": 456
+    },
+    {
+        "ticker": "PSAB",
+        "entry_date": "2026-10-20",
+        "entry_price": 440,
+        "alerted_pullback_pct": 0.04,
+        "strategy": "GABUNGAN",
+        "signal_type": "ret2d",
+        "alerted_pullback_at_peak": 450
+    },
+    {
+        "ticker": "TINS",
+        "entry_date": "2026-10-20",
+        "entry_price": 3740,
+        "alerted_pullback_pct": 0.02610966057441253,
+        "strategy": "BOTTOM_TO_TOP",
+        "alerted_pullback_at_peak": 3830
+    }
+]
