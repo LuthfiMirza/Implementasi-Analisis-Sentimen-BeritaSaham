@@ -71,14 +71,19 @@ class Trade extends Model
 
             $ticker = strtoupper($this->ticker);
             $entryDate = $this->entry_date?->toDateString();
+            $strategy = strtolower((string) ($this->strategy_label ?: ''));
 
-            $filtered = array_values(array_filter($positions, function ($p) use ($ticker, $entryDate) {
+            $filtered = array_values(array_filter($positions, function ($p) use ($ticker, $entryDate, $strategy) {
                 $pTicker = strtoupper($p['ticker'] ?? '');
                 $pDate = $p['entry_date'] ?? '';
+                $pStrategy = strtolower((string) ($p['strategy'] ?? 'gabungan'));
                 if ($pTicker !== $ticker) {
                     return true;
                 }
                 if ($entryDate !== null && $pDate !== '' && $pDate !== $entryDate) {
+                    return true;
+                }
+                if ($strategy !== '' && $pStrategy !== '' && $pStrategy !== $strategy) {
                     return true;
                 }
                 return false;

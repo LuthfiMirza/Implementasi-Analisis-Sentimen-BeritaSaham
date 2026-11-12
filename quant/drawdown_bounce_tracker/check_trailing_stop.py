@@ -174,7 +174,7 @@ def check_position(position: dict) -> None:
 
     # --- Khusus BOTTOM_TO_TOP: Alert Hard Stop Loss 3.0% ---
     if is_bottom_to_top:
-        sl_price = entry_price * 0.97
+        sl_price = round(entry_price * 0.97, 2)
         if current <= sl_price and not position.get("alerted_sl"):
             send_telegram_alert(
                 f"\U0001F6A8 <b>CUT LOSS (STOP LOSS 3%): {label}</b>\n\n"
@@ -185,9 +185,10 @@ def check_position(position: dict) -> None:
             )
             position["alerted_sl"] = True
             print(f"  -> ALERT CUT LOSS 3% terkirim (Harga Rp{current:.0f} <= SL Rp{sl_price:.0f}).")
-    # --- GABUNGAN / MOMENTUM: Alert Stop Loss Pengaman -3.5% (Golden Compromise) ---
-    elif strategy in ("GABUNGAN", "MOMENTUM"):
-        sl_price = entry_price * 0.965
+            print(f"SYNC_ALERT_CLOSE|{ticker}|{sl_price:.2f}|{current_ts.strftime('%Y-%m-%d %H:%M')}|stop_loss|{strategy}|{entry_date}")
+    # --- GABUNGAN / MOMENTUM / BOTTOM_REBOUND: Alert Stop Loss Pengaman -3.5% (Golden Compromise) ---
+    elif strategy in ("GABUNGAN", "MOMENTUM", "BOTTOM_REBOUND"):
+        sl_price = round(entry_price * 0.965, 2)
         if current <= sl_price and not position.get("alerted_sl_initial"):
             send_telegram_alert(
                 f"\U0001F6A8 <b>PERINGATAN CUT LOSS (STOP LOSS -3.5%): {label}</b>\n\n"
@@ -199,49 +200,52 @@ def check_position(position: dict) -> None:
             )
             position["alerted_sl_initial"] = True
             print(f"  -> ALERT CUT LOSS -3.5% terkirim (Harga Rp{current:.0f} <= SL Rp{sl_price:.0f}).")
+            print(f"SYNC_ALERT_CLOSE|{ticker}|{sl_price:.2f}|{current_ts.strftime('%Y-%m-%d %H:%M')}|stop_loss|{strategy}|{entry_date}")
 
-    if not is_ganda:
-        # --- Alert 0: puncak baru (milestone +5% dari puncak terakhir yang sudah diberi tahu) ---
-        milestone_base = position.get("milestone_peak") or entry_price
-        if peak >= milestone_base * (1 + NEW_HIGH_THRESHOLD):
-            gain_from_last = (peak - milestone_base) / milestone_base
-            new_stop_level = peak * (1 - pullback_thresh)
-            send_telegram_alert(
-                f"\U0001F389 <b>PUNCAK BARU: {label}</b>\n\n"
-                f"Harga bikin rekor tertinggi baru sejak entry: <b>Rp{peak:.0f}</b> "
-                f"({peak_ts.strftime('%d %b %H:%M')}), naik <b>{gain_from_last:+.1%}</b> dari puncak "
-                f"sebelumnya (Rp{milestone_base:.0f}).\n\n"
-                f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
-                f"<b>P&amp;L saat ini</b>: {unrealized_pct:+.1%}\n\n"
-                f"Level trailing stop ikut naik ke sekitar <b>Rp{new_stop_level:.0f}</b> "
-                f"({pullback_thresh:.1%} di bawah puncak baru ini). Alert saja -- keputusan tetap "
-                f"di kamu."
-            )
-            position["milestone_peak"] = peak
-            print(f"  -> ALERT PUNCAK BARU terkirim (Rp{peak:.0f}, {gain_from_last:+.1%} dari puncak sebelumnya).")
+    # --- Lapis 2: Puncak Baru & Trailing Stop 2.0% dari Puncak (Kunci Cuan) ---
+    milestone_base = position.get("milestone_peak") or entry_price
+    if peak >= milestone_base * (1 + NEW_HIGH_THRESHOLD):
+        gain_from_last = (peak - milestone_base) / milestone_base
+        new_stop_level = peak * (1 - pullback_thresh)
+        send_telegram_alert(
+            f"\U0001F389 <b>PUNCAK BARU: {label}</b>\n\n"
+            f"Harga bikin rekor tertinggi baru sejak entry: <b>Rp{peak:.0f}</b> "
+            f"({peak_ts.strftime('%d %b %H:%M')}), naik <b>{gain_from_last:+.1%}</b> dari puncak "
+            f"sebelumnya (Rp{milestone_base:.0f}).\n\n"
+            f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
+            f"<b>P&amp;L saat ini</b>: {unrealized_pct:+.1%}\n\n"
+            f"Level trailing stop ikut naik ke sekitar <b>Rp{new_stop_level:.0f}</b> "
+            f"({pullback_thresh:.1%} di bawah puncak baru ini). Alert saja -- keputusan tetap "
+            f"di kamu."
+        )
+        position["milestone_peak"] = peak
+        print(f"  -> ALERT PUNCAK BARU terkirim (Rp{peak:.0f}, {gain_from_last:+.1%} dari puncak sebelumnya).")
 
-        # --- Alert 1: trailing stop / kunci profit ---
-        alerted_at_peak = position.get("alerted_pullback_at_peak") or 0
-        if pullback >= pullback_thresh and peak > alerted_at_peak:
-            gain_from_entry = (peak - entry_price) / entry_price
-            if is_bottom_to_top:
-                title = "KUNCI PROFIT (MUNDUR 2.5% DARI PUNCAK)" if gain_from_entry >= 0.03 else "TRAILING STOP"
-                msg_header = f"💰 <b>{title}: {label}</b>"
-            else:
-                msg_header = f"\U0001F534 <b>TRAILING STOP: {label}</b>"
+    # --- Alert 1: trailing stop / kunci profit ---
+    alerted_at_peak = position.get("alerted_pullback_at_peak") or 0
+    ts_level_price = round(peak * (1 - pullback_thresh), 2)
+    if pullback >= pullback_thresh and peak > alerted_at_peak:
+        gain_from_entry = (peak - entry_price) / entry_price
+        if is_bottom_to_top:
+            title = "KUNCI PROFIT (MUNDUR 2.5% DARI PUNCAK)" if gain_from_entry >= 0.03 else "TRAILING STOP"
+            msg_header = f"💰 <b>{title}: {label}</b>"
+        else:
+            msg_header = f"\U0001F534 <b>TRAILING STOP: {label}</b>"
 
-            send_telegram_alert(
-                f"{msg_header}\n\n"
-                f"Harga mundur <b>{pullback:.1%}</b> dari puncak sejak entry.\n\n"
-                f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
-                f"<b>Puncak</b>: {peak_ts.strftime('%d %b %H:%M')} @ Rp{peak:.0f}\n"
-                f"<b>Sekarang</b>: {current_ts.strftime('%d %b %H:%M')} @ Rp{current:.0f}\n"
-                f"<b>P&amp;L</b>: {unrealized_pct:+.1%} dari entry\n\n"
-                f"Alert saja -- tidak ada order otomatis. Pasang trailing stop/take profit sendiri di StockBit."
-            )
-            position["alerted_pullback_pct"] = pullback
-            position["alerted_pullback_at_peak"] = peak
-            print(f"  -> ALERT TRAILING STOP terkirim ({pullback:.1%}, puncak Rp{peak:.0f}).")
+        send_telegram_alert(
+            f"{msg_header}\n\n"
+            f"Harga mundur <b>{pullback:.1%}</b> dari puncak sejak entry.\n\n"
+            f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
+            f"<b>Puncak</b>: {peak_ts.strftime('%d %b %H:%M')} @ Rp{peak:.0f}\n"
+            f"<b>Level TS</b>: Rp{ts_level_price:.2f}\n"
+            f"<b>Sekarang</b>: {current_ts.strftime('%d %b %H:%M')} @ Rp{current:.0f}\n"
+            f"<b>P&amp;L</b>: {unrealized_pct:+.1%} dari entry\n\n"
+            f"Posisi otomatis ditutup di Trade Journal pada level Trailing Stop untuk mengunci profit."
+        )
+        position["alerted_pullback_pct"] = pullback
+        position["alerted_pullback_at_peak"] = peak
+        print(f"  -> ALERT TRAILING STOP terkirim ({pullback:.1%}, puncak Rp{peak:.0f}, TS Rp{ts_level_price:.2f}).")
+        print(f"SYNC_ALERT_CLOSE|{ticker}|{ts_level_price:.2f}|{current_ts.strftime('%Y-%m-%d %H:%M')}|trailing_stop|{strategy}|{entry_date}")
 
     # Fase CS: alert target-waktu 10 hari cuma valid utk strategi yang BENERAN divalidasi pakai
     # exit waktu tetap (GABUNGAN/MOMENTUM, Fase AB/AD/AE). BOTTOM_REBOUND TIDAK divalidasi pakai

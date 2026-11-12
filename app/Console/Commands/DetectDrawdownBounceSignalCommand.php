@@ -57,6 +57,12 @@ class DetectDrawdownBounceSignalCommand extends Command
 
     public function handle(): int
     {
+        // Pastikan posisi open yang sudah kena Lapis 1 (-3.5% SL) atau Lapis 2 (2% Trailing Stop)
+        // ditutup lebih dulu sebelum mengecek batas pyramiding (MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY).
+        if (! app()->environment('testing')) {
+            \Illuminate\Support\Facades\Artisan::call('research:check-trailing-stop-alert');
+        }
+
         // Fase DG: News-in-Signal -- cache berita+sentimen terbaru per ticker DITULIS SEBELUM
         // python script jalan (pola sama persis refreshClosedTradesCache() di
         // CheckTelegramCommandsCommand.php). detect_signal.py SENGAJA tidak pernah query MySQL

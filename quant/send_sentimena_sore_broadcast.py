@@ -101,12 +101,113 @@ def fetch_self_radar_candidates(trade_date: str) -> list[dict]:
         conn.close()
 
 
+def fetch_gabungan_candidates(trade_date: str) -> list[dict]:
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT 
+                    t.stock_code as ticker,
+                    t.close as price,
+                    t.pct_change as return_pct,
+                    (
+                        SELECT MAX(h.close) 
+                        FROM idx_daily_summaries h 
+                        WHERE h.stock_code = t.stock_code 
+                          AND h.trade_date <= t.trade_date 
+                          AND h.trade_date >= DATE_SUB(t.trade_date, INTERVAL 30 DAY)
+                    ) as peak_20d
+                FROM idx_daily_summaries t
+                WHERE t.trade_date = %s
+                  AND t.stock_code IN ('BUMI', 'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'PTRO', 'ENRG', 'RAJA', 'INET')
+            """, (trade_date,))
+            rows = cur.fetchall()
+            candidates = []
+            for r in rows:
+                price = float(r["price"] or 0)
+                peak = float(r["peak_20d"] or price)
+                dd = ((price - peak) / peak * 100) if peak > 0 else 0
+                tp1 = round(price * 1.05)
+                tp_swing = round(price * 1.09)
+                sl = round(price * 0.975)
+                candidates.append({
+                    "ticker": r["ticker"],
+                    "price": price,
+                    "return_pct": float(r["return_pct"] or 0),
+                    "dd_20d": dd,
+                    "tp1": tp1,
+                    "tp_swing": tp_swing,
+                    "sl": sl,
+                })
+            candidates.sort(key=lambda x: x["dd_20d"])
+            return candidates
+    finally:
+        conn.close()
+
+
+def fetch_momentum_candidates(trade_date: str) -> list[dict]:
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT stock_code as ticker, close as price, pct_change as return_pct, value
+                FROM idx_daily_summaries
+                WHERE trade_date = %s
+                  AND stock_code IN ('BRPT', 'BREN', 'TLKM', 'BBCA', 'TINS', 'DSSA')
+                  AND pct_change > 0
+                ORDER BY pct_change DESC, value DESC
+                LIMIT 2
+            """, (trade_date,))
+            return cur.fetchall()
+    finally:
+        conn.close()
+
+
+def fetch_trailing_positions(trade_date: str) -> list[dict]:
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT t.id, t.ticker, t.entry_price, t.entry_date, s.close as current_price
+                FROM trades t
+                JOIN idx_daily_summaries s ON t.ticker = s.stock_code AND s.trade_date = %s
+                WHERE t.status = 'OPEN'
+                ORDER BY ((s.close - t.entry_price) / t.entry_price) DESC
+            """, (trade_date,))
+            trades = cur.fetchall()
+            seen = set()
+            result = []
+            for tr in trades:
+                tk = tr["ticker"]
+                if tk in seen:
+                    continue
+                seen.add(tk)
+                entry = float(tr["entry_price"])
+                curr = float(tr["current_price"])
+                pnl = (curr - entry) / entry * 100
+                if pnl >= 2.0:
+                    ts_price = round(curr * 0.98)
+                    result.append({
+                        "ticker": tk,
+                        "entry": entry,
+                        "current": curr,
+                        "pnl": pnl,
+                        "trailing_stop": ts_price,
+                    })
+            return result
+    finally:
+        conn.close()
+
+
 def build_unified_message(trade_date: str) -> str:
     dt = datetime.strptime(trade_date, "%Y-%m-%d")
     date_header = dt.strftime("%d %b %Y").upper()
 
     bsjp_list = fetch_bsjp_candidates(trade_date)
     self_radar_list = fetch_self_radar_candidates(trade_date)
+    gabungan_list = fetch_gabungan_candidates(trade_date)
+    momentum_list = fetch_momentum_candidates(trade_date)
+    trailing_list = fetch_trailing_positions(trade_date)
 
     # 1. BSJP Section
     if bsjp_list:
@@ -143,49 +244,47 @@ def build_unified_message(trade_date: str) -> str:
     else:
         v1_text = "<i>Belum ada trigger baru untuk Super Rocket hari ini.</i>"
 
-    # 3. Dynamic GABUNGAN & MOMENTUM context based on date
-    if trade_date == "2026-10-05":
-        gabungan_text = (
-            "Pilihan Rebound Terbaik (Khusus Top 10 Elit):\n"
-            "⭐ <b>#BUMI [TOP 10 ELIT]</b> — Rp178 (Drawdown 20d: -22.1%)\n"
-            "   • Aksi   : Beli di Pre-Closing 15:50 WIB\n"
-            "   • Target : TP1 Rp187 (+5.0%) | Target Swing Rp195 (+9.5%)\n"
-            "   • SL     : Rp174 (-2.0%)\n\n"
-            "⭐ <b>#DEWA [TOP 10 ELIT]</b> — Rp340 (Drawdown 20d: -23.8%)\n"
-            "   • Aksi   : Beli di Pre-Closing 15:50 WIB\n"
-            "   • Target : TP1 Rp357 (+5.0%) | SL Rp333 (-2.0%)"
-        )
-        momentum_text = (
-            "⭐ <b>#BUMI [TOP 10 ELIT]</b> — RSI14: 64 (Pantulan Kuat dari Low 170)\n"
-            "   • Status : Rebound terkonfirmasi, menunggangi tren naik\n"
-            "   • Aksi   : Hold / Buy Add on Weakness\n"
-            "   • Target : Rp192 (+7.8%)"
-        )
-        trailing_text = (
-            "🟢 <b>#RAJA</b> : Entry Rp650 ➔ Harga Rp670 (<b>+3.08%</b>)\n"
-            "   • Kunci profit! Naikkan Trailing Stop ke Rp656 (+0.9%)."
-        )
-    else:  # 2026-10-02 or default
-        gabungan_text = (
-            "Pilihan Rebound Terbaik (Khusus Top 10 Elit):\n"
-            "⭐ <b>#BUMI [TOP 10 ELIT]</b> — Rp170 (Drawdown 20d: -24.0%)\n"
-            "   • Aksi   : Beli di Pre-Closing 15:50 WIB\n"
-            "   • Target : TP1 Rp179 (+5.3%) | Target Swing Rp185 (+8.8%)\n"
-            "   • SL     : Rp166 (-2.3%)\n\n"
-            "⭐ <b>#ESSA [TOP 10 ELIT]</b> — Rp560 (Drawdown 20d: -20.5%)\n"
-            "   • Aksi   : Beli di Pre-Closing 15:50 WIB\n"
-            "   • Target : TP1 Rp588 (+5.0%) | SL Rp548 (-2.1%)"
-        )
-        momentum_text = (
-            "⭐ <b>#BRPT [TOP 10 ELIT]</b> — RSI14: 62.5 (Tren Akumulasi Kuat)\n"
-            "   • Status : Momentum breakout resistance\n"
-            "   • Aksi   : Buy On Breakout / Hold\n"
-            "   • Target : Rp1.480 (+5.5%)"
-        )
-        trailing_text = (
-            "🟢 <b>#BRPT</b> : Entry Rp1.405 ➔ Harga Rp1.450 (<b>+3.20%</b>)\n"
-            "   • Kunci profit! Pasang Trailing Stop di Rp1.420 (+1.1%)."
-        )
+    # 3. Dynamic GABUNGAN DRAWDOWN Section
+    if gabungan_list:
+        gab_items = []
+        for g in gabungan_list[:2]:
+            gab_items.append(
+                f"⭐ <b>#{g['ticker']} [TOP 10 ELIT]</b> — Rp{g['price']:,.0f} (Drawdown 20d: {g['dd_20d']:.1f}%)\n"
+                f"   • Aksi   : Pantau / Hold Rebound\n"
+                f"   • Target : TP1 Rp{g['tp1']:,.0f} (+5.0%) | Target Swing Rp{g['tp_swing']:,.0f} (+9.0%)\n"
+                f"   • SL     : Rp{g['sl']:,.0f} (-2.5%)"
+            )
+        gabungan_text = "Pilihan Rebound Terbaik (Khusus Top 10 Elit):\n" + "\n\n".join(gab_items)
+    else:
+        gabungan_text = "<i>Tidak ada saham drawdown bounce hari ini.</i>"
+
+    # 4. Dynamic MOMENTUM Section
+    if momentum_list:
+        mom_items = []
+        for m in momentum_list:
+            mom_price = float(m["price"])
+            mom_target = round(mom_price * 1.055)
+            mom_items.append(
+                f"⭐ <b>#{m['ticker']} [TOP 10 ELIT]</b> — Rp{mom_price:,.0f} (+{float(m['return_pct']):.2f}%)\n"
+                f"   • Status : Tren Akumulasi & Aliran Dana Solid\n"
+                f"   • Aksi   : Buy On Breakout / Hold Tren Naik\n"
+                f"   • Target : Rp{mom_target:,.0f} (+5.5%)"
+            )
+        momentum_text = "\n\n".join(mom_items)
+    else:
+        momentum_text = "<i>Belum ada saham momentum breakout yang aktif.</i>"
+
+    # 5. Dynamic TRAILING STOP Section
+    if trailing_list:
+        trail_items = []
+        for tr in trailing_list[:2]:
+            trail_items.append(
+                f"🟢 <b>#{tr['ticker']}</b> : Entry Rp{tr['entry']:,.0f} ➔ Harga Rp{tr['current']:,.0f} (<b>+{tr['pnl']:.2f}%</b>)\n"
+                f"   • Kunci profit! Pasang Trailing Stop di Rp{tr['trailing_stop']:,.0f}."
+            )
+        trailing_text = "\n\n".join(trail_items)
+    else:
+        trailing_text = "<i>Semua posisi berjalan masih berada dalam batas toleransi normal.</i>"
 
     lines = [
         f"🔔 <b>SENTIMENA SORE • {date_header} (15:36 WIB)</b>",

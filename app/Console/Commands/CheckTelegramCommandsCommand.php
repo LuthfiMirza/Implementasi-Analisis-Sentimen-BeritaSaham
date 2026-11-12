@@ -25,6 +25,7 @@ class CheckTelegramCommandsCommand extends Command
     public function handle(): int
     {
         if ($this->option('reconcile-only')) {
+            $this->refreshClosedTradesCache();
             $this->reconcileOpenPositions();
 
             return self::SUCCESS;
@@ -253,7 +254,7 @@ class CheckTelegramCommandsCommand extends Command
         try {
             $tracked = Trade::query()
                 ->whereIn('status', ['open', 'closed'])
-                ->get(['ticker', 'strategy_label', 'entry_date', 'status']);
+                ->get(['ticker', 'strategy_label', 'entry_date', 'entry_price', 'status']);
 
             if ($tracked->isEmpty()) {
                 return; // DB kosong/aneh -- jangan sentuh
@@ -261,7 +262,8 @@ class CheckTelegramCommandsCommand extends Command
 
             $keyFor = fn (Trade $t): string => $this->positionKey($t->ticker, $t->strategy_label, $t->entry_date?->toDateString());
             $closedKeys = $tracked->where('status', 'closed')->mapWithKeys(fn (Trade $t) => [$keyFor($t) => true])->all();
-            $openKeys = $tracked->where('status', 'open')->mapWithKeys(fn (Trade $t) => [$keyFor($t) => true])->all();
+            $openTradesByKey = $tracked->where('status', 'open')->mapWithKeys(fn (Trade $t) => [$keyFor($t) => $t])->all();
+            $openKeys = array_fill_keys(array_keys($openTradesByKey), true);
             $openTickerStrategy = $tracked->where('status', 'open')
                 ->mapWithKeys(fn (Trade $t) => [strtolower($t->ticker).'|'.strtolower((string) ($t->strategy_label ?: 'gabungan')) => true])
                 ->all();
@@ -273,6 +275,8 @@ class CheckTelegramCommandsCommand extends Command
 
             $staleBefore = Carbon::now()->subDays(self::RECONCILE_ORPHAN_STALE_DAYS);
             $removed = [];
+            $added = [];
+            $updatedPrice = false;
 
             $kept = array_values(array_filter($positions, function (array $p) use ($closedKeys, $openKeys, $openTickerStrategy, $staleBefore, &$removed): bool {
                 $key = $this->positionKey($p['ticker'] ?? '', $p['strategy'] ?? 'GABUNGAN', $p['entry_date'] ?? null);
@@ -308,9 +312,41 @@ class CheckTelegramCommandsCommand extends Command
                 return true;
             }));
 
-            if ($removed !== []) {
+            $keptKeys = [];
+            foreach ($kept as &$p) {
+                $key = $this->positionKey($p['ticker'] ?? '', $p['strategy'] ?? 'GABUNGAN', $p['entry_date'] ?? null);
+                $keptKeys[$key] = true;
+                if (isset($openTradesByKey[$key])) {
+                    $dbPrice = (float) $openTradesByKey[$key]->entry_price;
+                    if ($dbPrice > 0 && abs(((float) ($p['entry_price'] ?? 0)) - $dbPrice) > 0.01) {
+                        $p['entry_price'] = $dbPrice;
+                        $updatedPrice = true;
+                    }
+                }
+            }
+            unset($p);
+
+            foreach ($openTradesByKey as $key => $openTrade) {
+                if (! isset($keptKeys[$key]) && $openTrade->entry_date !== null) {
+                    $kept[] = [
+                        'ticker' => strtoupper($openTrade->ticker),
+                        'entry_date' => $openTrade->entry_date->toDateString(),
+                        'entry_price' => (float) $openTrade->entry_price,
+                        'alerted_pullback_pct' => null,
+                        'strategy' => strtoupper((string) ($openTrade->strategy_label ?: 'GABUNGAN')),
+                    ];
+                    $added[] = $key;
+                }
+            }
+
+            if ($removed !== [] || $added !== [] || $updatedPrice) {
                 file_put_contents($path, json_encode($kept, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-                $this->info('reconcile open_positions.json: '.count($removed).' entri dibuang -> '.implode(', ', $removed));
+                if ($removed !== []) {
+                    $this->info('reconcile open_positions.json: '.count($removed).' entri dibuang -> '.implode(', ', $removed));
+                }
+                if ($added !== []) {
+                    $this->info('reconcile open_positions.json: '.count($added).' entri open DB ditambahkan -> '.implode(', ', $added));
+                }
             }
         } catch (Throwable $e) {
             $this->warn('Gagal reconcile open_positions.json (DB mungkin mati): '.$e->getMessage());
