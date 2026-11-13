@@ -244,3 +244,87 @@ Berdasarkan 25 closed trades Aug-Sep:
 2. **Alokasi Kas Tier 2 (Total 25% - 30% Kas)**: Diizinkan menambah posisi (Pyramiding) pada saham yang breakout resistance pertama.
 3. **Trailing Stop**: Ketatkan trailing stop 2% untuk mengamankan floating profit posisi rebound.
 
+## 2026-10-27
+
+### Audit Disiplin Portofolio & Eksekusi Retroaktif Stop Loss (21 Posisi)
+- **Logika Eksekusi**: Sesuai instruksi protokol, setiap posisi terbuka telah dipasangi batas Stop Loss (-3,5% atau level harga proteksi). Oleh karena itu, posisi yang menembus batas SL TIDAK ditutup di harga terendah hari ini, melainkan **resmi ditutup retroaktif pada tanggal dan harga saat batas Stop Loss tersebut pertama kali terpicu** (rentang 19–27 Okt 2026).
+- **21 Posisi Ditutup (Result = stop_loss)**:
+  - BUMI: ID #755 (entry 136 -> SL 131,2 @ 20 Okt), ID #782 (entry 135 -> SL 130,3 @ 21 Okt), ID #788 (entry 135 -> SL 130,3 @ 21 Okt).
+  - DEWA: ID #758 (entry 256 -> SL 247,0 @ 20 Okt), ID #783 (entry 258 -> SL 249,0 @ 21 Okt), ID #789 (entry 258 -> SL 249,0 @ 21 Okt).
+  - BRPT: ID #760 (entry 1.435 -> SL 1.384,8 @ 20 Okt).
+  - PTRO: ID #768 (entry 3.110 -> SL 3.001,2 @ 20 Okt), ID #769 (entry 3.150 -> SL 3.039,8 @ 20 Okt), ID #784 (entry 3.060 -> SL 2.952,9 @ 22 Okt).
+  - ENRG: ID #771 (entry 845 -> SL 815,4 @ 20 Okt), ID #772 (entry 865 -> SL 834,7 @ 20 Okt), ID #785 (entry 810 -> SL 781,6 @ 22 Okt).
+  - RAJA: ID #774 (entry 456 -> SL 440,0 @ 20 Okt), ID #775 (entry 484 -> SL 467,1 @ 20 Okt), ID #786 (entry 470 -> SL 453,6 @ 22 Okt).
+  - INET: ID #778 (entry 187 -> SL 180,4 @ 20 Okt).
+  - PSAB: ID #779 (entry 446 -> SL 430,4 @ 19 Okt), ID #780 (entry 440 -> SL 424,6 @ 21 Okt).
+  - TINS: ID #790 (entry 3.840 -> SL 3.705,6 @ 22 Okt), ID #791 (entry 3.900 -> SL 3.763,5 @ 27 Okt).
+- **Hasil Pembersihan**:
+  - Kerugian terkunci disiplin pada `-3,50%` per trade, mencegah akumulasi loss hingga -11,5% seandainya dibiarkan.
+  - Tracker `open_positions.json` dibersihkan otomatis via model observer.
+
+### Status 12 Posisi Terbuka Berjalan Saat Ini
+- **Posisi Profit Masif**:
+  - SMGR: ID #761 (+11,67%) & ID #762 (+3,61%)
+  - BRPT: ID #759 (+10,88%)
+  - ESSA: ID #763 (+10,64%) & ID #764 (+2,97%)
+  - UNVR: ID #765 (+4,15%) & ID #766 (+0,36%)
+  - BUMI: ID #754 (+2,40%)
+- **Posisi Hold Aman**:
+  - DEWA: ID #757 (0,00%)
+  - INET: ID #777 (-1,15%)
+  - TINS: ID #781 (-0,53%)
+  - PSAB: ID #787 (-0,96%)
+- **Rencana Tindakan**: Pasang Trailing Stop ketat 2% pada SMGR, BRPT, ESSA, dan UNVR untuk mengunci keuntungan maksimal.
+
+## 2026-11-11
+
+### Implementasi Sistem Auto-Close 3-Lapis Proteksi & Backtest Out-of-Sample 4 Tahun
+- **Sistem 3-Lapis Proteksi Aktif**:
+  - `check_trailing_stop.py` & `CheckTrailingStopAlertCommand.php` kini otomatis menutup posisi di MySQL (`trades`) dan `open_positions.json` saat menyentuh Lapis 1 (`-3,5%` Hard SL / `-3,0%` Bottom-to-Top) atau Lapis 2 (`2,0%` Trailing Stop dari Peak / `2,5%` Lock setelah `+3,0%` pada Bottom-to-Top).
+- **Panen Auto-Close Sinyal 6–10 Nov (21 Trade Ditutup)**:
+  - `#873 RAJA` (+29,77% / +Rp2.973.120), `#865 PTRO` (+23,84% / +Rp2.348.080), `#866 PTRO` (+19,10% / +Rp1.876.240), `#872 RAJA` (+17,70% / +Rp1.766.688), `#871 RAJA` (+13,50%), `#863 BRPT` (+9,71%), `#860 DEWA` (+7,96% @ Rp244), `#875 DEWA` (+6,75%), `#857 DEWA` (+6,17%).
+  - Satu-satunya posisi yang menyentuh batas bawah (`#864 BRPT` entry 820) langsung terpotong otomatis di `Rp791,30 (-3,50%)`.
+- **Eksekusi 3 Pick Terbaik Hasil Validasi 4 Tahun + Stres-Tes 15 Menit**:
+  - `#878 BUMI [BOTTOM_REBOUND]` @ Rp123 (SL Rp118,70, TP1 Rp129,15)
+  - `#879 PACK [BOTTOM_TO_TOP]` @ Rp306 (SL Rp296,82, TP1 Rp321,30)
+  - `#880 ENRG [GABUNGAN]` @ Rp590 (SL Rp569,35, TP1 Rp619,50)
+  - Bersama posisi berjalan `#877 TINS [BOTTOM_TO_TOP]` @ Rp3.550 (entry 10 Nov).
+
+## 2026-11-13
+
+### Situasi Pasar: IHSG Breakout Resmi di Atas MA20 (5.344,41 / +1,78%)
+- **IHSG (`^JKSE`)**: Ditutup menguat di **5.344,41 (+1,78% / +93,51 poin)** dengan range **5.215,15 – 5.361,94**, melanjutkan breakout di atas MA20 yang dimulai Kamis (`12 Nov` +2,66% di 5.250,90).
+- **Indikator Teknikal**: Berdiri kokoh **+3,35% di atas MA20 (5.170,95)**, RSI(14) naik ke **48,86**, dan MACD Histogram positif melebar ke **+60,49**.
+- **Market Breadth (130 Saham Aktif)**: **102 Saham Naik (78,5%)** vs **16 Saham Turun (12,3%)**, **12 Flat (9,2%)**. **0 saham utama/LQ45 terkunci ARB**.
+- **Status Rezim (`GEMINI.md`)**: **BULLISH MARKUP / CONFIRMED UPTREND DI ATAS MA20**.
+
+### Panen Profit Auto-Close Hari Ini (6 Trade Closed = 100% Win Rate, +Rp5.460.758)
+1. **DEWA (`#883`, `GABUNGAN`)**: Entry 11 Nov @ Rp234 ➔ Peak Rp274 (+17,09% @ 14:15) ➔ Auto-Close TS 2% @ **Rp268,52 (+14,75% / +Rp1.474.004)**.
+2. **PACK (`#879`, `BOTTOM_TO_TOP`)**: Entry 11 Nov @ Rp306 ➔ Peak Rp352 (+15,03% @ 11:15) ➔ Auto-Close Lock 2,5% @ **Rp343,20 (+12,16% / +Rp1.212.720)**.
+3. **RAJA (`#893`, `GABUNGAN`)**: Entry 11 Nov @ Rp520 ➔ Peak Rp585 (+12,50%) ➔ Auto-Close TS 2% @ **Rp573,30 (+10,25% / +Rp1.023.360)**.
+4. **BRPT (`#886`, `GABUNGAN`)**: Entry 12 Nov @ Rp750 ➔ Peak Rp825 (+10,00% @ 14:45) ➔ Auto-Close TS 2% @ **Rp808,50 (+7,80% / +Rp778.050)**.
+5. **BRPT (`#885`, `GABUNGAN`)**: Entry 11 Nov @ Rp765 ➔ Peak Rp825 (+7,84% @ 14:45) ➔ Auto-Close TS 2% @ **Rp808,50 (+5,69% / +Rp565.500)**.
+6. **DEWA (`#884`, `GABUNGAN`)**: Entry 12 Nov @ Rp258 ➔ Peak Rp274 (+6,20% @ 14:15) ➔ Auto-Close TS 2% @ **Rp268,52 (+4,08% / +Rp407.124)**.
+- **Rekap Kumulatif 6–13 Nov 2026**: **27 Trade Closed (`26 Win / 1 Loss` = 96,3% Win Rate)**; Total Closed seluruh histori naik menjadi **578 trade (Win Rate 64,4%, Total PnL +Rp269.040.706)**.
+
+### Status 13 Posisi Terbuka Berjalan (Per 13 Nov 16:00 WIB)
+- **9 Posisi Floating Profit (Pullback < 2,0% dari Puncak — HOLD)**:
+  - `#880 ENRG [GABUNGAN]`: Entry 590 ➔ Close **670 (+13,56%)**, Peak 675, Pullback 0,74% (TS Rp661,50).
+  - `#881 BUMI [GABUNGAN]`: Entry 120 ➔ Close **136 (+13,33%)**, Peak 138, Pullback 1,45% (TS Rp135,24).
+  - `#888 PTRO [GABUNGAN]`: Entry 2.250 ➔ Close **2.540 (+12,89%)**, Peak 2.550, Pullback 0,39% (TS Rp2.499).
+  - `#878 BUMI [BOTTOM_REBOUND]`: Entry 123 ➔ Close **136 (+10,57%)**, Peak 138, Pullback 1,45% (TS Rp135,24).
+  - `#882 BUMI [GABUNGAN]`: Entry 127 ➔ Close **136 (+7,09%)**, Peak 138, Pullback 1,45%.
+  - `#891 ENRG [GABUNGAN]`: Entry 630 ➔ Close **670 (+6,35%)**, Peak 675, Pullback 0,74%.
+  - `#889 PTRO [GABUNGAN]`: Entry 2.430 ➔ Close **2.540 (+4,53%)**, Peak 2.550, Pullback 0,39%.
+  - `#877 TINS [BOTTOM_TO_TOP]`: Entry 3.550 ➔ Close **3.650 (+2,82%)**, Peak 3.690, Pullback 1,08%.
+  - `#895 TINS [BOTTOM_TO_TOP]`: Entry 3.600 ➔ Close **3.650 (+1,39%)**, Peak 3.690, Pullback 1,08%.
+- **4 Posisi Baru Terbuka Sore Ini (`13 Nov 2026` Close)**:
+  - `#894 BUMI [BOTTOM_REBOUND]` @ Rp136 (SL Rp131,24)
+  - `#892 ENRG [GABUNGAN]` @ Rp670 (SL Rp646,55)
+  - `#890 PTRO [GABUNGAN]` @ Rp2.540 (SL Rp2.451,10)
+  - `#887 BRPT [GABUNGAN]` @ Rp805 (SL Rp776,82)
+
+### Sinyal Radar Sore Ini (Untuk Peluang Senin, 16 Nov 2026)
+- **Self Radar V1 (`#78`)**: **`NSSS` @ Rp665** (`RSI14=62,24`, `ret_5d=+30,39%`, `dd_20d=0,00%`, Score `30,62`).
+- **BSJP Momentum (`13 Nov`)**: **`ESSA` @ Rp545** (+11,68%, Vol Spike 2,94x, Nilai Trx Rp115,05 Miliar — *Sweetspot Utama*), **`SINI` @ Rp10.975** (+19,95%, Vol Spike 2,91x, Nilai Trx Rp230,61 Miliar — *Super Rocket*), **`NSSS` @ Rp665** (+10,83%, Vol Spike 2,75x), **`HRUM` @ Rp720** (+4,35%, Vol Spike 2,75x).
+- **DIP5_WICK Skenario A (`Lower Wick >= 1,0%`)**: **`RAJA`** (Low 510 / -4,67% ➔ Close 530, Wick +3,92%, Trx Rp81,35M), **`BREN`** (Low 2.120 / -5,78% ➔ Close 2.160, Wick +1,89%, Trx Rp80,58M), **`TEBE`** (Low 1.590 / -4,50% ➔ Close 1.660, Wick +4,40%).
