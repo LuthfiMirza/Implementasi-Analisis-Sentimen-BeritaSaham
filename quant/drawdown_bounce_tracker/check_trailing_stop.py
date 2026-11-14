@@ -82,7 +82,12 @@ def fetch_15m_since(ticker: str, entry_date: str) -> pd.DataFrame | None:
     return df if not df.empty else None
 
 
-def compute_snapshot(ticker: str, entry_date: str, entry_price: float) -> dict | None:
+def compute_snapshot(
+    ticker: str,
+    entry_date: str,
+    entry_price: float,
+    strategy: str = "GABUNGAN",
+) -> dict | None:
     """Read-only: puncak, harga terkini, mundur dari puncak, hari bursa ke berapa -- TIDAK PERNAH
     mengirim alert atau mengubah open_positions.json. Dipakai oleh check_position() di bawah
     (yang bisa kirim alert) dan oleh telegram_commands.py::format_status() (murni tampilan on-
@@ -94,15 +99,11 @@ def compute_snapshot(ticker: str, entry_date: str, entry_price: float) -> dict |
     peak dimulai FLAT di entry Close, baru bertambah dari entry_idx+1 dan seterusnya) -- backtest
     itu TIDAK PERNAH menghitung intraday hari entry sebagai bagian puncak.
 
-    Bug lama (versi sebelum Fase BW) menghitung `df["High"].max()` dari SELURUH data sejak
-    entry_date, TERMASUK jam-jam sebelum entry tercatat di hari yang sama -- untuk sinyal
-    GABUNGAN dampaknya kecil (entry biasanya dekat harga terendah, bukan puncak sesi), tapi untuk
-    sinyal MOMENTUM (entry = closing, RSI sudah tinggi -- rawan sempat spike pagi lalu turun ke
-    closing) dampaknya besar. Dibuktikan nyata 14 Agu 2026: BRPT puncak lama 1965 (mundur 4,3%,
-    kelihatan SUDAH kena trailing-stop) vs puncak baru 1900 (mundur cuma 1,1%, MASIH SEHAT) --
-    puncak lama itu dari jam 09:00 di HARI ENTRY-nya sendiri, sebelum posisi bahkan terdaftar ke
-    pemantauan (entry Momentum baru diketahui pas closing ~15:18). BUMI sama: puncak lama 187
-    (mundur 4,8%) vs puncak baru 179 (mundur 0,6%)."""
+    Fase Chronological 15m Guard: jika bar terakhir (misal 16:00 pre-closing/closing) memantul
+    tipis sehingga terlihat mundur < 2.0%, fungsi ini juga memeriksa bar-bar 15 menit secara
+    kronologis sesudah hari entry. Jika pada jam bursa (misal 14:00 atau 15:00) harga sempat
+    mundur >= 2.0% (atau >= 2.5% untuk BOTTOM_TO_TOP profit >= 3%) dari puncak berjalannya,
+    maka trigger kronologis tersebut tetap tertangkap akurat dan tidak terlewat."""
     df = fetch_15m_since(ticker, entry_date)
     if df is None:
         return None
@@ -123,8 +124,59 @@ def compute_snapshot(ticker: str, entry_date: str, entry_price: float) -> dict |
     current = float(df["Close"].iloc[-1])
     current_ts = df.index[-1]
     pullback = (peak - current) / peak
-    unrealized_pct = (current - entry_price) / entry_price
     trading_days = df.index.normalize().nunique()
+
+    if not after_entry_day.empty:
+        gain_from_entry = (peak - entry_price) / entry_price if entry_price else 0.0
+        eff_thresh = (
+            0.025
+            if (strategy == "BOTTOM_TO_TOP" and gain_from_entry >= 0.03)
+            else PULLBACK_THRESHOLD
+        )
+        if pullback < eff_thresh:
+            r_peak = entry_price
+            r_peak_ts = after_entry_day.index[0]
+            best_trig: dict | None = None
+            for ts, row in after_entry_day.iterrows():
+                h = float(row["High"])
+                c = float(row["Close"])
+                if h > r_peak:
+                    r_peak = h
+                    r_peak_ts = ts
+                if r_peak > entry_price:
+                    r_gain = (r_peak - entry_price) / entry_price
+                    r_thresh = (
+                        0.025
+                        if (strategy == "BOTTOM_TO_TOP" and r_gain >= 0.03)
+                        else PULLBACK_THRESHOLD
+                    )
+                    r_pb = (r_peak - c) / r_peak
+                    if r_pb >= r_thresh:
+                        if best_trig is None or r_peak > best_trig["peak"]:
+                            best_trig = {
+                                "peak": r_peak,
+                                "peak_ts": r_peak_ts,
+                                "current": c,
+                                "current_ts": ts,
+                                "pullback": r_pb,
+                            }
+            if best_trig is not None:
+                peak = best_trig["peak"]
+                peak_ts = best_trig["peak_ts"]
+                current = best_trig["current"]
+                current_ts = best_trig["current_ts"]
+                pullback = best_trig["pullback"]
+            else:
+                sl_mult = 0.97 if strategy == "BOTTOM_TO_TOP" else 0.965
+                sl_price = round(entry_price * sl_mult, 2)
+                sl_bars = after_entry_day[after_entry_day["Close"] <= sl_price]
+                if not sl_bars.empty and current > sl_price:
+                    first_sl_ts = sl_bars.index[0]
+                    current = float(sl_bars["Close"].iloc[0])
+                    current_ts = first_sl_ts
+                    pullback = (peak - current) / peak
+
+    unrealized_pct = (current - entry_price) / entry_price
 
     return {
         "peak": peak, "peak_ts": peak_ts, "current": current, "current_ts": current_ts,
@@ -145,7 +197,7 @@ def check_position(position: dict) -> None:
     strategy = position.get("strategy", "GABUNGAN")
     label = f"{ticker} [{strategy}]"
 
-    snap = compute_snapshot(ticker, entry_date, entry_price)
+    snap = compute_snapshot(ticker, entry_date, entry_price, strategy=strategy)
     if snap is None:
         print(f"{label}: tidak ada data 15 menit sejak {entry_date}, dilewati.")
         return
@@ -156,14 +208,14 @@ def check_position(position: dict) -> None:
     unrealized_pct = snap["unrealized_pct"]
     trading_days = snap["trading_days"]
 
-    # Fase BP: sinyal "ganda" pakai B&H 10 hari (tanpa trailing-stop) — divalidasi P1-P4,
-    # total return +555% vs TS-2% +420%, CI95 lower +2.02% vs +1.07%.
-    # Fase BP: sinyal "ganda" pakai B&H 10 hari (tanpa trailing-stop) — divalidasi P1-P4,
-    # total return +555% vs TS-2% +420%, CI95 lower +2.02% vs +1.07%.
-    is_ganda = signal_type == "ganda"
     is_bottom_to_top = strategy == "BOTTOM_TO_TOP"
-    pullback_thresh = 0.025 if is_bottom_to_top else PULLBACK_THRESHOLD
-    exit_mode = "B&H-10d" if is_ganda else ("Lock-2.5%/SL-3%" if is_bottom_to_top else "TS-2%")
+    gain_from_entry = (peak - entry_price) / entry_price if entry_price else 0.0
+    pullback_thresh = 0.025 if (is_bottom_to_top and gain_from_entry >= 0.03) else PULLBACK_THRESHOLD
+    exit_mode = (
+        "Lock-2.5%/SL-3%"
+        if (is_bottom_to_top and gain_from_entry >= 0.03)
+        else ("TS-2%/SL-3%" if is_bottom_to_top else "TS-2%/SL-3.5%")
+    )
 
     print(
         f"{label}: entry {entry_price:.0f} ({entry_date}) | puncak {peak:.0f} "

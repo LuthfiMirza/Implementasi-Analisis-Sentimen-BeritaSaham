@@ -111,7 +111,15 @@ class CheckTrailingStopAlertCommand extends Command
 
                 $exitDate = $dateStr ? Carbon::parse($dateStr) : Carbon::now();
                 foreach ($matched as $trade) {
-                    $trade->close((float) $price, $resultType, $exitDate);
+                    $snap = is_array($trade->indicators_snapshot) ? $trade->indicators_snapshot : [];
+                    $exitPrice = (float) $price;
+                    $entryPrice = (float) $trade->entry_price;
+                    if ($entryPrice > 0) {
+                        $snap['exit_mfe_pct'] = round(($exitPrice - $entryPrice) / $entryPrice * 100, 2);
+                        $snap['exit_result_type'] = $resultType;
+                        $trade->indicators_snapshot = $snap;
+                    }
+                    $trade->close($exitPrice, $resultType, $exitDate);
                     $closedCount++;
                 }
 

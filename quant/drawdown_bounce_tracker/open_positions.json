@@ -1,106 +1,32 @@
 [
-  {
-    "ticker": "TINS",
-    "entry_date": "2026-11-10",
-    "entry_price": 3550,
-    "alerted_pullback_pct": null,
-    "strategy": "BOTTOM_TO_TOP"
-  },
-  {
-    "ticker": "BUMI",
-    "entry_date": "2026-11-11",
-    "entry_price": 123,
-    "alerted_pullback_pct": null,
-    "strategy": "BOTTOM_REBOUND",
-    "milestone_peak": 138
-  },
-  {
-    "ticker": "BUMI",
-    "entry_date": "2026-11-11",
-    "entry_price": 120,
-    "alerted_pullback_pct": null,
-    "strategy": "GABUNGAN",
-    "signal_type": "drawdown",
-    "milestone_peak": 138
-  },
-  {
-    "ticker": "BUMI",
-    "entry_date": "2026-11-12",
-    "entry_price": 127,
-    "alerted_pullback_pct": null,
-    "strategy": "GABUNGAN",
-    "signal_type": "drawdown",
-    "milestone_peak": 138
-  },
-  {
-    "ticker": "BRPT",
-    "entry_date": "2026-11-13",
-    "entry_price": 805,
-    "alerted_pullback_pct": null,
-    "strategy": "GABUNGAN",
-    "signal_type": "ganda"
-  },
-  {
-    "ticker": "PTRO",
-    "entry_date": "2026-11-11",
-    "entry_price": 2250,
-    "alerted_pullback_pct": null,
-    "strategy": "GABUNGAN",
-    "signal_type": "drawdown",
-    "milestone_peak": 2550
-  },
-  {
-    "ticker": "PTRO",
-    "entry_date": "2026-11-12",
-    "entry_price": 2430,
-    "alerted_pullback_pct": null,
-    "strategy": "GABUNGAN",
-    "signal_type": "drawdown"
-  },
-  {
-    "ticker": "PTRO",
-    "entry_date": "2026-11-13",
-    "entry_price": 2540,
-    "alerted_pullback_pct": null,
-    "strategy": "GABUNGAN",
-    "signal_type": "drawdown"
-  },
-  {
-    "ticker": "ENRG",
-    "entry_date": "2026-11-11",
-    "entry_price": 590,
-    "alerted_pullback_pct": null,
-    "strategy": "GABUNGAN",
-    "signal_type": "drawdown",
-    "milestone_peak": 675
-  },
-  {
-    "ticker": "ENRG",
-    "entry_date": "2026-11-12",
-    "entry_price": 630,
-    "alerted_pullback_pct": null,
-    "strategy": "GABUNGAN",
-    "milestone_peak": 675.0
-  },
-  {
-    "ticker": "ENRG",
-    "entry_date": "2026-11-13",
-    "entry_price": 670,
-    "alerted_pullback_pct": null,
-    "strategy": "GABUNGAN"
-  },
-  {
-    "ticker": "BUMI",
-    "entry_date": "2026-11-13",
-    "entry_price": 136,
-    "alerted_pullback_pct": null,
-    "strategy": "BOTTOM_REBOUND"
-  },
-  {
-    "ticker": "TINS",
-    "entry_date": "2026-11-11",
-    "entry_price": 3600,
-    "alerted_pullback_pct": null,
-    "strategy": "BOTTOM_TO_TOP"
-  }
+    {
+        "ticker": "BRPT",
+        "entry_date": "2026-11-13",
+        "entry_price": 805,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "ganda"
+    },
+    {
+        "ticker": "PTRO",
+        "entry_date": "2026-11-13",
+        "entry_price": 2540,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN",
+        "signal_type": "drawdown"
+    },
+    {
+        "ticker": "ENRG",
+        "entry_date": "2026-11-13",
+        "entry_price": 670,
+        "alerted_pullback_pct": null,
+        "strategy": "GABUNGAN"
+    },
+    {
+        "ticker": "BUMI",
+        "entry_date": "2026-11-13",
+        "entry_price": 136,
+        "alerted_pullback_pct": null,
+        "strategy": "BOTTOM_REBOUND"
+    }
 ]
