@@ -12,6 +12,7 @@ use Tests\TestCase;
 class DetectDrawdownBounceSignalCommandTest extends TestCase
 {
     private string $newsCachePath;
+    private ?string $originalNewsCacheContent = null;
 
     protected function setUp(): void
     {
@@ -23,15 +24,17 @@ class DetectDrawdownBounceSignalCommandTest extends TestCase
         User::factory()->create(['id' => 2]);
 
         $this->newsCachePath = base_path('quant/drawdown_bounce_tracker/news_context_cache.json');
+        if (is_file($this->newsCachePath)) {
+            $this->originalNewsCacheContent = file_get_contents($this->newsCachePath);
+        }
     }
 
     protected function tearDown(): void
     {
-        // Fase DG: news_context_cache.json ditulis command ini ke path REAL (dibaca
-        // detect_signal.py produksi) -- WAJIB dibersihkan setelah test, jangan sampai isi test
-        // (mis. ticker BUMI dgn 1 artikel dummy) "bocor" ke run production berikutnya. Pola sama
-        // persis pelajaran Fase DF (snoozed_alerts.json).
-        if (is_file($this->newsCachePath)) {
+        // Fase DG: pulihkan cache asli jika ada, atau bersihkan jika sebelumnya tidak ada
+        if ($this->originalNewsCacheContent !== null) {
+            file_put_contents($this->newsCachePath, $this->originalNewsCacheContent);
+        } elseif (is_file($this->newsCachePath)) {
             unlink($this->newsCachePath);
         }
 

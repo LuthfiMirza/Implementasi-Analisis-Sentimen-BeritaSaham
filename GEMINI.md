@@ -69,4 +69,25 @@ File ini adalah memori permanen dan aturan disiplin trading untuk proyek **Senti
 - Laporan breakout IHSG > MA20 (5.344,41), panen Auto-Close 3-Lapis (96,3% WR), & kodifikasi rumus kuantitatif: `laravel-app/reports/market_regime_research_20261113.md`
 - Catatan histori trading dan evaluasi berkala: `laravel-app/docs/trading-log.md`
 
+---
+
+## 5. Matriks Signal Quality Grader & Telemetri Forensik (Fase FD - 591 Trades)
+
+1. **Aturan 5-Faktor Kualitas Sinyal (`Grade A+ / A / B / C`)**:
+   - **Grade A+ (Skor $\ge 80$, Win Rate empiris 72,6%, Profit Factor 7,57, Total Cuan +Rp 191,28 Jt)**:
+     - Volume Meledak $\ge 1,3\times$ MA20 (Climax Absorption) + Ekor Bawah $\ge 1,0\%$ (Skenario A) + RSI-14 Zona Emas ($\le 40$ atau $\ge 55$) pada saham Tier S/A.
+     - **Tindakan**: Alokasi modal **100% penuh** (*High Conviction*).
+   - **Grade A (Skor 65–79, Win Rate empiris 59,7%, PF 2,69)**:
+     - Setup kuat standar terkonfirmasi, alokasi modal **100%**.
+   - **Grade B (Skor 50–64, Win Rate empiris 59,6%, PF 4,08)**:
+     - Setup moderat / volume normal, alokasi modal dibatasi **50%**.
+   - **Grade C (Skor < 50, Win Rate empiris 43,3%, PF 1,83)**:
+     - *Dead Low* ($\text{Lower Wick} < 0,5\%$), atau RSI Tanggung ($40-55$) dengan volume kering.
+     - **Tindakan**: **DILARANG beli di Hari ke-1**; wajib tunda ke *Skenario B Day-2 Flush* pagi esoknya.
+2. **Blacklist Emiten Keras (*Auto-Drop*)**:
+   - `PSAB` (PF `0,93`, Net Loss) dan `TLKM` (PF `0,42`, Net Loss) **DIBLOKIR** dari eksekusi auto-entry `GABUNGAN`.
+3. **Telemetri MFE/MAE pada Trade**:
+   - Setiap posisi tertutup wajib menyimpan `indicators_snapshot` lengkap saat entry serta `exit_mfe_pct` dan `exit_result_type` saat exit.
+
+
 

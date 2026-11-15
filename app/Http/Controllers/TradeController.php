@@ -784,6 +784,7 @@ class TradeController extends Controller
             'ai_tp30' => 'AI Prediksi (TP30%/SL3%/40h)',
             'momentum' => 'Momentum (RSI>60) — EXPLORATORY',
             'bottom_rebound' => 'Bottom-Rebound (BUMI+DEWA)',
+            'bottom_to_top' => 'Bottom-to-Top Swing (TINS/PACK)',
             'manual_discretionary' => 'Manual/Diskresi',
         ];
         $strategyBreakdown = [];
@@ -849,11 +850,13 @@ class TradeController extends Controller
         // Sebelumnya (Fase CU) SELALU GABUNGAN, tapi user minta bisa switch supaya bisa lihat
         // performa gabungan semua strategi juga di section ini.
         $portfolioReport = $this->buildPortfolioReport($officialClosed, $officialOpen, $scope);
+        $patternAnalytics = app(\App\Services\Trading\TradeQualityGraderService::class)
+            ->buildPatternAnalytics($officialClosed);
 
         return view('trades.laporan', compact(
             'stats', 'closed', 'strategyBreakdown', 'monthlyBreakdown', 'scope',
             'closedPage', 'historyStrategy', 'historyTicker', 'historyStrategyOptions', 'historyTickerOptions',
-            'portfolioReport'
+            'portfolioReport', 'patternAnalytics'
         ));
     }
 

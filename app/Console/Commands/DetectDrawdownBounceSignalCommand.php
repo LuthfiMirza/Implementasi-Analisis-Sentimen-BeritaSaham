@@ -125,12 +125,21 @@ class DetectDrawdownBounceSignalCommand extends Command
 
         // Resilient fallback: sinkronkan juga entri dari open_positions.json
         // jika ada sinyal yang sudah tercatat di JSON tapi belum sempat masuk ke DB Trade Journal (mis. akibat timeout terdahulu)
-        $this->syncActiveOpenPositionsJson();
+        if (! app()->environment('testing')) {
+            $this->syncActiveOpenPositionsJson();
+        }
     }
 
     private function syncPositionToJournal(string $ticker, float $price, string $dateStr, string $strategy, ?string $detail): void
     {
         try {
+            $grader = app(\App\Services\Trading\TradeQualityGraderService::class);
+            if (strtoupper($strategy) === 'GABUNGAN' && $grader->isBlacklisted($ticker)) {
+                $this->warn("Sync Trade Journal (open): {$ticker} termasuk daftar blacklist PF < 1.0 -- auto-entry GABUNGAN dilewati.");
+
+                return;
+            }
+
             $stock = Stock::where('code', $ticker)->first();
             if (! $stock) {
                 $this->warn("Sync Trade Journal (open): saham {$ticker} tidak ditemukan di tabel stocks -- dilewati.");
@@ -180,14 +189,24 @@ class DetectDrawdownBounceSignalCommand extends Command
                 $quantity = 100;
             }
 
-            $slPct = 0.035; // Batas risiko teruji optimal: -3.5% (Golden Compromise: Max DD rendah & cuan maksimal)
+            $slPct = $strategyLabelColumn === 'bottom_to_top' ? 0.03 : 0.035;
+            $notes = "LIVE — sinyal otomatis {$strategyLabel}. Modal simulasi tetap Rp10.000.000 ".
+                '(bukan compounding). Exit dipantau otomatis via research:check-trailing-stop-alert '.
+                '(trailing stop 2% / target waktu 10 hari) -- posisi ini juga terdaftar di '.
+                'open_positions.json untuk alert Telegram.';
+
+            $graded = $grader->gradeTrade($ticker, $strategyLabelColumn, [], $notes, $detail);
 
             Trade::create([
                 'user_id' => 2,
                 'stock_id' => $stock->id,
                 'ticker' => $ticker,
                 'direction' => 'long',
-                'signal_quality' => 'journal',
+                'signal_quality' => $graded['grade'],
+                'dss_score' => $graded['quality_score'],
+                'dss_status' => $graded['dss_status'],
+                'dss_prediction' => $graded['dss_prediction'],
+                'indicators_snapshot' => $graded['snapshot'],
                 'entry_price' => $entryPrice,
                 'stop_loss' => round($entryPrice * (1 - $slPct), 2),
                 'target_1' => round($entryPrice * (1 + 0.05), 2),
@@ -198,10 +217,7 @@ class DetectDrawdownBounceSignalCommand extends Command
                 'entry_date' => $dateStr,
                 'trade_date' => $dateStr,
                 'result' => 'open',
-                'notes' => "LIVE — sinyal otomatis {$strategyLabel}. Modal simulasi tetap Rp10.000.000 ".
-                    '(bukan compounding). Exit dipantau otomatis via research:check-trailing-stop-alert '.
-                    '(trailing stop 2% / target waktu 10 hari) -- posisi ini juga terdaftar di '.
-                    'open_positions.json untuk alert Telegram.',
+                'notes' => $notes,
                 'strategy_label' => $strategyLabelColumn,
             ]);
 

@@ -184,4 +184,27 @@ Fitur klasifikasi kategori BSJP dan filter tabs telah aktif di `/trades/radar` d
 #### 3. Status Fase FC: SELESAI (Aktif Produksi).
 Sistem pencatatan trade live BSJP aktif penuh dan siap digunakan pengguna untuk eksekusi portofolio riil Rp 20.000.000.
 
+---
+
+### Fase FD — Riset Forensik 591 Trades, Signal Quality Grader (`A+/A/B/C`), & Dashboard Evaluasi Pola (14 Nov 2026)
+
+#### 1. Latar Belakang & Temuan Kuantitatif (`587 Closed Trades` + `4 Open Trades`)
+* Audit menyeluruh terhadap 587 posisi tertutup di `/trades` (`2025-12-05` s/d `2026-11-13`, Win Rate Global **64,91%**, Profit Factor **4,66**, Total Profit **+Rp 274.895.328**) mengungkap 5 pola kunci pembeda antara *Winning Trades* (381) dan *Losing Trades* (206):
+  1. **Efektivitas Trailing Stop 2,0%:** Posisi yang berhasil mencapai Trailing Stop memiliki **Win Rate 96,49%** (`110 W / 4 L`, Avg PnL **+6,55%**). Seluruh kerugian berasal dari kegagalan pantulan di Hari ke-1/ke-2 (`stop_loss`) atau *tail loss* lama (`> -3,5%`).
+  2. **Ledakan Volume Institusi (`Vol / Vol_MA20`):** Entri saat volume meledak **`> 1,3x MA20`** menghasilkan **Win Rate 75,36%** (`104 W / 34 L`, **PF 8,26**), jauh mengungguli volume kering `< 0,7x MA20` (**WR 59,51%**).
+  3. **Skenario A vs Skenario B (`Lower Wick %`):** Entri dengan serapan bid sore (**`Lower Wick 1,0% – 2,5%`**, Skenario A) mencetak **Win Rate 71,56%** (**PF 5,79**), sedangkan *Dead Low / ARB* (`< 0,5%`, Skenario B) turun ke **59,00%**.
+  4. **Kurva "U" pada RSI-14:** Zona Emas berada di **`RSI <= 40`** (**WR 67,19%**, PF **5,26**, profit **+Rp 101,48 Juta**) dan **`RSI >= 55`** (**WR 72,13%**, PF **10,61**). Sebaliknya, **Zona Tanggung (`RSI 40 – 55`)** menjebak **36,4% dari seluruh kekalahan** (**WR 60,11%**, PF **3,13**).
+  5. **Celah Data di Tabel `trades`:** Kolom `indicators_snapshot`, `dss_score`, dan `sentiment_avg` pada 587 trade masih kosong (`NULL`), sehingga halaman `/trades` belum bisa menampilkan skor kualitas sinyal dan analitik pola otomatis.
+
+#### 2. Rencana Eksekusi 4 Tahap (Fase FD-1 s/d FD-4)
+1. **Tahap FD-1 (`trades:backfill-indicators`):**
+   * Membuat command Artisan untuk menghitung & mengisi `indicators_snapshot` (`rsi_14`, `lower_wick_pct`, `vol_ratio_ma20`, `ret_1d`, `ret_2d`, `dd_20d`, `ihsg_ret_1d`, `ihsg_above_ma20`, `sub_signal`, `wick_scenario`, `quality_score`), `signal_quality` (`A+`, `A`, `B`, `C`), dan `sentiment_avg` pada seluruh **591 trade** di database.
+2. **Tahap FD-2 (Auto-Feature Logger & Guard Skenario B di Scanner & Sync):**
+   * Memperbarui `detect_signal.py`, `CheckTelegramCommandsCommand.php`, dan `CheckTrailingStopAlertCommand.php` agar setiap posisi baru maupun posisi yang ditutup otomatis menyimpan telemetri indikator + *MFE/MAE* (`peak_price`, `pullback_pct`) serta memblokir emiten *PF < 1,0* (`PSAB`, `TLKM`).
+3. **Tahap FD-3 (Upgrade UI `/trades` & `/trades/laporan`):**
+   * Menambahkan kartu & tabel **Evaluasi Pola & Grade Kualitas Sinyal (`A+`, `A`, `B`, `C`)**, performa per **Zona RSI**, **Volume Ratio**, dan **Lower Wick** di `/trades/laporan`, serta menambahkan `bottom_to_top` ke ringkasan strategi.
+4. **Tahap FD-4 (Verifikasi & Pengujian Otomatis):**
+   * Menjalankan backfill pada 591 trade dan memvalidasi seluruh fitur lewat PHPUnit.
+
+
 

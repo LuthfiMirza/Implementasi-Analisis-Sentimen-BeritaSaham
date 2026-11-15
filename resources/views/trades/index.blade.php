@@ -305,12 +305,27 @@
               <p class="text-[11px] text-amber-400/90">Harga live tidak tersedia</p>
               <p class="text-[10px] text-slate-500">P&amp;L belum bisa dihitung</p>
             </div>
-            <span class="px-2 py-1 rounded-full text-[10px] font-medium border
-              {{ $trade->signal_quality === 'strong'
-                 ? 'bg-green-500/10 text-green-400 border-green-500/30'
-                 : 'bg-sky-500/10 text-sky-400 border-sky-500/30' }}">
-              {{ strtoupper($trade->signal_quality ?? 'N/A') }}
-            </span>
+            @php
+              $gradeColor = match(strtoupper(trim((string)$trade->signal_quality))) {
+                'A+'    => 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold',
+                'A'     => 'bg-sky-500/20 text-sky-300 border-sky-500/40 font-bold',
+                'B'     => 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+                'C'     => 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+                default => 'bg-slate-800 text-slate-400 border-slate-700',
+              };
+              $snap = is_array($trade->indicators_snapshot) ? $trade->indicators_snapshot : [];
+            @endphp
+            <div class="flex flex-col items-end gap-1">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] border {{ $gradeColor }}" title="Grade Kualitas Sinyal (A+/A/B/C)">
+                GRADE {{ strtoupper($trade->signal_quality ?? 'N/A') }}
+              </span>
+              @if(!empty($snap['vol_ratio_ma20']) || !empty($snap['rsi_14']))
+                <span class="text-[10px] text-slate-500 font-mono">
+                  @if(!empty($snap['rsi_14'])) RSI: {{ round($snap['rsi_14']) }} @endif
+                  @if(!empty($snap['vol_ratio_ma20'])) · Vol: {{ $snap['vol_ratio_ma20'] }}x @endif
+                </span>
+              @endif
+            </div>
           </div>
         </div>
 

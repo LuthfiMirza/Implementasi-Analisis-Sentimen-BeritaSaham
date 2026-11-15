@@ -451,6 +451,94 @@
   </div>
   @endif
 
+  {{-- ── EVALUASI POLA & KUALITAS SINYAL (Fase FD) ── --}}
+  @if(!empty($patternAnalytics))
+  <div class="space-y-4" x-data="{ tab: 'grade' }">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+          <x-heroicon-o-academic-cap class="w-4 h-4 text-emerald-400" />
+          Evaluasi Pola & Kualitas Sinyal (Fase FD)
+        </h2>
+        <p class="text-[11px] text-slate-500 mt-0.5">
+          Bukti performa empiris per Grade Kualitas, Zona RSI, Rasio Volume, dan Skenario Ekor Bawah dari transaksi tertutup
+        </p>
+      </div>
+      <div class="inline-flex rounded-xl border border-slate-800 bg-slate-900/60 p-1 text-xs shrink-0">
+        <button type="button" @click="tab = 'grade'"
+                :class="tab === 'grade' ? 'bg-sky-500 text-slate-900 font-semibold' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition">Grade Kualitas</button>
+        <button type="button" @click="tab = 'vol'"
+                :class="tab === 'vol' ? 'bg-sky-500 text-slate-900 font-semibold' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition">Rasio Volume</button>
+        <button type="button" @click="tab = 'rsi'"
+                :class="tab === 'rsi' ? 'bg-sky-500 text-slate-900 font-semibold' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition">Zona RSI-14</button>
+        <button type="button" @click="tab = 'wick'"
+                :class="tab === 'wick' ? 'bg-sky-500 text-slate-900 font-semibold' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1.5 rounded-lg transition">Ekor Bawah (Wick)</button>
+      </div>
+    </div>
+
+    {{-- Tabel Tiap Tab --}}
+    @foreach(['grade' => 'by_grade', 'vol' => 'by_vol', 'rsi' => 'by_rsi', 'wick' => 'by_wick'] as $tKey => $apiKey)
+    <div x-show="tab === '{{ $tKey }}'" x-cloak class="glass-card border border-slate-800/80 rounded-2xl overflow-hidden">
+      <div class="slim-scrollbar overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-800 text-[10px] text-slate-500 uppercase bg-slate-900/40">
+              <th class="px-4 py-3 text-left">Kategori / Faktor</th>
+              <th class="px-4 py-3 text-right">Trade</th>
+              <th class="px-4 py-3 text-right">Win</th>
+              <th class="px-4 py-3 text-right">Loss</th>
+              <th class="px-4 py-3 text-right">Win Rate</th>
+              <th class="px-4 py-3 text-right">Avg PnL</th>
+              <th class="px-4 py-3 text-right">Profit Factor</th>
+              <th class="px-4 py-3 text-right">Total PnL</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/50">
+            @forelse($patternAnalytics[$apiKey] ?? [] as $row)
+            <tr class="hover:bg-slate-800/30 transition">
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded text-xs font-semibold border {{ $row['badge_class'] }}">
+                    {{ $row['label'] }}
+                  </span>
+                </div>
+                @if(!empty($row['hint']))
+                  <p class="text-[10px] text-slate-500 mt-1">{{ $row['hint'] }}</p>
+                @endif
+              </td>
+              <td class="px-4 py-3 text-right text-slate-300 font-mono">{{ $row['count'] }}</td>
+              <td class="px-4 py-3 text-right text-green-400 font-mono">{{ $row['win'] }}</td>
+              <td class="px-4 py-3 text-right text-rose-400 font-mono">{{ $row['loss'] }}</td>
+              <td class="px-4 py-3 text-right font-mono font-semibold {{ $row['win_rate'] >= 65 ? 'text-green-400' : ($row['win_rate'] >= 50 ? 'text-amber-400' : 'text-rose-400') }}">
+                {{ $row['win_rate'] }}%
+              </td>
+              <td class="px-4 py-3 text-right font-mono {{ $row['avg_pnl_pct'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
+                {{ $row['avg_pnl_pct'] >= 0 ? '+' : '' }}{{ $row['avg_pnl_pct'] }}%
+              </td>
+              <td class="px-4 py-3 text-right font-mono font-semibold {{ $row['profit_factor'] >= 4.0 ? 'text-emerald-400' : ($row['profit_factor'] >= 1.5 ? 'text-sky-400' : 'text-rose-400') }}">
+                {{ number_format($row['profit_factor'], 2) }}
+              </td>
+              <td class="px-4 py-3 text-right font-mono font-bold {{ $row['total_pnl'] >= 0 ? 'text-green-400' : 'text-rose-400' }}">
+                {{ $row['total_pnl'] >= 0 ? '+' : '' }}Rp{{ number_format($row['total_pnl'], 0, ',', '.') }}
+              </td>
+            </tr>
+            @empty
+            <tr>
+              <td colspan="8" class="px-4 py-6 text-center text-xs text-slate-500">Tidak ada data untuk kategori ini.</td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+    @endforeach
+  </div>
+  @endif
+
   {{-- ── CLOSED TRADES ── --}}
   <div>
     <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -521,18 +609,37 @@
                     'legacy_ab_ac'          => ['bg-slate-700/40 text-slate-400 border-slate-600/60', 'LAMA: AB/AC'],
                     'manual_discretionary'  => ['bg-slate-700/40 text-slate-300 border-slate-600/60', 'MANUAL'],
                     'bottom_rebound'        => ['bg-emerald-500/10 text-emerald-400 border-emerald-500/30', 'BOTTOM-REBOUND'],
+                    'bottom_to_top'         => ['bg-cyan-500/10 text-cyan-400 border-cyan-500/30', 'BOTTOM-TO-TOP'],
                     default                 => ['bg-slate-800 text-slate-500 border-slate-700', '—'],
                   };
+                  $gradeColor = match(strtoupper(trim((string)$trade->signal_quality))) {
+                    'A+'    => 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold',
+                    'A'     => 'bg-sky-500/20 text-sky-300 border-sky-500/40 font-bold',
+                    'B'     => 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+                    'C'     => 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+                    default => 'bg-slate-800 text-slate-400 border-slate-700',
+                  };
+                  $snap = is_array($trade->indicators_snapshot) ? $trade->indicators_snapshot : [];
                 @endphp
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
                   <span class="font-bold text-slate-100">{{ $trade->stock->code }}</span>
-                  <span class="text-[10px] text-slate-500">
-                    {{ strtoupper($trade->signal_quality ?? '') }}
-                  </span>
+                  @if($trade->signal_quality)
+                    <span class="px-1.5 py-0.2 rounded text-[10px] border {{ $gradeColor }}" title="Grade Kualitas Sinyal">
+                      {{ strtoupper($trade->signal_quality) }}
+                    </span>
+                  @endif
                 </div>
-                <span class="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-medium border {{ $strategyConfig[0] }}">
-                  {{ $strategyConfig[1] }}
-                </span>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-medium border {{ $strategyConfig[0] }}">
+                    {{ $strategyConfig[1] }}
+                  </span>
+                  @if(!empty($snap['rsi_14']))
+                    <span class="text-[9px] text-slate-500 font-mono" title="RSI-14 saat entry">RSI {{ round($snap['rsi_14']) }}</span>
+                  @endif
+                  @if(!empty($snap['vol_ratio_ma20']))
+                    <span class="text-[9px] text-slate-500 font-mono" title="Rasio Volume MA20">Vol {{ $snap['vol_ratio_ma20'] }}x</span>
+                  @endif
+                </div>
               </td>
               <td class="px-4 py-3 text-slate-400">
                 {{-- Fase DP: jam keluar (closed_at, diisi via form Tutup Trade Fase DO -- bisa

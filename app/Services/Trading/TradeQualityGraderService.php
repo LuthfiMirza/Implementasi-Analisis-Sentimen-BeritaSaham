@@ -1,0 +1,420 @@
+<?php
+
+namespace App\Services\Trading;
+
+use App\Models\Trade;
+use Illuminate\Support\Collection;
+
+class TradeQualityGraderService
+{
+    public const BLACKLISTED_TICKERS = ['PSAB', 'TLKM'];
+
+    public const TIER_S_TICKERS = [
+        'DEWA', 'BRPT', 'SMGR', 'ESSA', 'UNVR', 'DSSA', 'PACK', 'BBCA', 'BBRI', 'ASII', 'ICBP', 'INDF',
+    ];
+
+    public const TIER_A_TICKERS = [
+        'BUMI', 'ENRG', 'RAJA',
+    ];
+
+    public function isBlacklisted(string $ticker): bool
+    {
+        return in_array(strtoupper(trim($ticker)), self::BLACKLISTED_TICKERS, true);
+    }
+
+    public function inferSubSignal(?string $strategyLabel, ?string $notes, ?string $explicitDetail = null): string
+    {
+        $strat = strtolower((string) $strategyLabel);
+        if ($strat === 'momentum') {
+            return 'momentum';
+        }
+        if ($strat === 'bottom_rebound') {
+            return 'bottom_rebound';
+        }
+        if ($strat === 'bottom_to_top') {
+            return 'bottom_to_top';
+        }
+        if ($strat === 'ai_tp30') {
+            return 'ai_tp30';
+        }
+
+        $detail = strtolower((string) $explicitDetail);
+        if (in_array($detail, ['ganda', 'drawdown', 'ret2d'], true)) {
+            return $detail;
+        }
+
+        $n = strtolower((string) $notes);
+        if (str_contains($n, 'ganda') || (str_contains($n, 'ret2d') && str_contains($n, 'drawdown'))) {
+            return 'ganda';
+        }
+        if (str_contains($n, 'drawdown') || str_contains($n, '20 hari') || str_contains($n, '-20%')) {
+            return 'drawdown';
+        }
+        if (str_contains($n, 'ret2d') || str_contains($n, '2 hari')) {
+            return 'ret2d';
+        }
+
+        return $strat ?: 'gabungan';
+    }
+
+    /**
+     * Evaluate technical & market regime features at entry and return Grade (A+, A, B, C),
+     * quality_score (10-99), scenario classification, and enriched snapshot array.
+     */
+    public function gradeTrade(
+        string $ticker,
+        ?string $strategyLabel,
+        array $indicators = [],
+        ?string $notes = null,
+        ?string $explicitDetail = null
+    ): array {
+        $tickerUpper = strtoupper(trim($ticker));
+        $subSignal = $indicators['sub_signal'] ?? $this->inferSubSignal($strategyLabel, $notes, $explicitDetail);
+
+        $rsi14 = isset($indicators['rsi_14']) && is_numeric($indicators['rsi_14'])
+            ? round((float) $indicators['rsi_14'], 2)
+            : null;
+        $lowerWick = isset($indicators['lower_wick_pct']) && is_numeric($indicators['lower_wick_pct'])
+            ? round((float) $indicators['lower_wick_pct'], 2)
+            : null;
+        $volRatio = isset($indicators['vol_ratio_ma20']) && is_numeric($indicators['vol_ratio_ma20'])
+            ? round((float) $indicators['vol_ratio_ma20'], 2)
+            : null;
+        $ihsgRet1d = isset($indicators['ihsg_ret_1d']) && is_numeric($indicators['ihsg_ret_1d'])
+            ? round((float) $indicators['ihsg_ret_1d'], 2)
+            : null;
+        $ihsgAboveMa20 = isset($indicators['ihsg_above_ma20'])
+            ? (bool) $indicators['ihsg_above_ma20']
+            : null;
+
+        $score = 45;
+
+        // 1. Volume Serapan Institusi (Vol / Vol_MA20)
+        if ($volRatio !== null) {
+            if ($volRatio >= 1.3) {
+                $score += 25;
+                $volZone = '3_Vol_Meledak (>=1.3x)';
+            } elseif ($volRatio >= 0.7) {
+                $score += 10;
+                $volZone = '2_Vol_Normal (0.7x-1.3x)';
+            } else {
+                $score -= 5;
+                $volZone = '1_Vol_Kering (<0.7x)';
+            }
+        } else {
+            $volZone = 'Unknown';
+        }
+
+        // 2. Struktur Ekor Bawah (Skenario A vs Skenario B)
+        if ($lowerWick !== null) {
+            if ($lowerWick >= 1.0 && $lowerWick <= 3.0) {
+                $score += 20;
+                $wickScenario = 'A_SERAPAN_IDEAL (1.0%-3.0%)';
+            } elseif ($lowerWick > 3.0) {
+                $score += 14;
+                $wickScenario = 'A_EKOR_PANJANG (>3.0%)';
+            } elseif ($lowerWick >= 0.5) {
+                $score += 6;
+                $wickScenario = 'TIPIS (0.5%-1.0%)';
+            } else {
+                $score -= 12;
+                $wickScenario = 'B_DEAD_LOW (<0.5%)';
+            }
+        } else {
+            $wickScenario = 'Unknown';
+        }
+
+        // 3. Zona RSI-14 (Kurva Bimodal U-Shape)
+        if ($rsi14 !== null) {
+            if ($rsi14 >= 30.0 && $rsi14 <= 40.0) {
+                $score += 18;
+                $rsiZone = '2_Oversold_Ideal (30-40)';
+            } elseif ($rsi14 >= 55.0) {
+                $score += 20;
+                $rsiZone = '4_Momentum_Kuat (>=55)';
+            } elseif ($rsi14 < 30.0) {
+                $score += 12;
+                $rsiZone = '1_Oversold_Ekstrem (<30)';
+            } else {
+                $score -= 10;
+                $rsiZone = '3_Zona_Tanggung (40-55)';
+            }
+        } else {
+            $rsiZone = 'Unknown';
+        }
+
+        // 4. Tier Emiten & Sub-Sinyal
+        if (in_array($tickerUpper, self::TIER_S_TICKERS, true)) {
+            $score += 12;
+            $tickerTier = 'TIER_S';
+        } elseif (in_array($tickerUpper, self::TIER_A_TICKERS, true)) {
+            $score += 6;
+            $tickerTier = 'TIER_A';
+        } elseif (in_array($tickerUpper, self::BLACKLISTED_TICKERS, true)) {
+            $score -= 25;
+            $tickerTier = 'BLACKLIST_LOW_PF';
+        } else {
+            $tickerTier = 'TIER_B';
+        }
+
+        if ($subSignal === 'drawdown') {
+            $score += 8;
+        } elseif ($subSignal === 'ganda' || $subSignal === 'momentum' || $subSignal === 'ai_tp30') {
+            $score += 5;
+        } elseif ($subSignal === 'ret2d') {
+            $score -= 5;
+        }
+
+        $score = max(10, min(99, $score));
+
+        $grade = match (true) {
+            $score >= 80 => 'A+',
+            $score >= 65 => 'A',
+            $score >= 50 => 'B',
+            default => 'C',
+        };
+
+        $recommendedSizingPct = match ($grade) {
+            'A+', 'A' => 100,
+            'B' => 50,
+            default => 0,
+        };
+
+        $snapshot = array_merge($indicators, [
+            'sub_signal' => $subSignal,
+            'rsi_14' => $rsi14,
+            'rsi_zone' => $rsiZone,
+            'lower_wick_pct' => $lowerWick,
+            'wick_scenario' => $wickScenario,
+            'vol_ratio_ma20' => $volRatio,
+            'vol_zone' => $volZone,
+            'ihsg_ret_1d' => $ihsgRet1d,
+            'ihsg_above_ma20' => $ihsgAboveMa20,
+            'ticker_tier' => $tickerTier,
+            'quality_score' => $score,
+            'grade' => $grade,
+            'recommended_sizing_pct' => $recommendedSizingPct,
+        ]);
+
+        return [
+            'grade' => $grade,
+            'quality_score' => $score,
+            'dss_prediction' => $grade === 'C' ? 'neutral' : 'up',
+            'dss_status' => match ($grade) {
+                'A+' => 'HIGH_CONVICTION_BUY',
+                'A' => 'STANDARD_BUY',
+                'B' => 'SELECTIVE_HALF_SIZE',
+                default => 'WAIT_DAY2_FLUSH',
+            },
+            'recommended_sizing_pct' => $recommendedSizingPct,
+            'snapshot' => $snapshot,
+        ];
+    }
+
+    /**
+     * Build pattern evaluation tables for /trades/laporan from closed trades.
+     */
+    public function buildPatternAnalytics(Collection $closedTrades): array
+    {
+        $summarizeBuckets = function (Collection $groups, array $orderedKeys): array {
+            $out = [];
+            foreach ($orderedKeys as $key => $meta) {
+                $rows = $groups->get($key, collect());
+                $n = $rows->count();
+                if ($n === 0) {
+                    continue;
+                }
+                $wins = $rows->filter(fn (Trade $t) => ($t->pnl_total ?? 0) > 0);
+                $losses = $rows->filter(fn (Trade $t) => ($t->pnl_total ?? 0) <= 0);
+                $gw = (float) $wins->sum('pnl_total');
+                $gl = abs((float) $losses->sum('pnl_total'));
+                $pf = $gl > 0 ? round($gw / $gl, 2) : ($gw > 0 ? 99.99 : 0.0);
+
+                $out[] = [
+                    'key' => $key,
+                    'label' => $meta['label'],
+                    'badge_class' => $meta['badge'] ?? 'bg-slate-800 text-slate-300 border-slate-700',
+                    'hint' => $meta['hint'] ?? '',
+                    'count' => $n,
+                    'win' => $wins->count(),
+                    'loss' => $losses->count(),
+                    'win_rate' => round($wins->count() / $n * 100, 1),
+                    'avg_pnl_pct' => round((float) $rows->avg('pnl_percent'), 2),
+                    'profit_factor' => $pf,
+                    'total_pnl' => round((float) $rows->sum('pnl_total'), 0),
+                ];
+            }
+
+            return $out;
+        };
+
+        // 1. By Signal Grade (A+, A, B, C)
+        $byGradeGroups = $closedTrades->groupBy(function (Trade $t) {
+            $q = strtoupper(trim((string) $t->signal_quality));
+            if (in_array($q, ['A+', 'A', 'B', 'C'], true)) {
+                return $q;
+            }
+            $snapGrade = $t->indicators_snapshot['grade'] ?? null;
+            if (in_array($snapGrade, ['A+', 'A', 'B', 'C'], true)) {
+                return $snapGrade;
+            }
+
+            return 'B';
+        });
+
+        $byGrade = $summarizeBuckets($byGradeGroups, [
+            'A+' => [
+                'label' => 'Grade A+ (Skor ≥ 80)',
+                'badge' => 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+                'hint' => 'Vol ≥ 1,3x + Ekor Bawah ≥ 1% + RSI Emas (Porsi 100%)',
+            ],
+            'A' => [
+                'label' => 'Grade A (Skor 65–79)',
+                'badge' => 'bg-sky-500/15 text-sky-300 border-sky-500/40',
+                'hint' => 'Setup Kuat Terkonfirmasi (Porsi 100%)',
+            ],
+            'B' => [
+                'label' => 'Grade B (Skor 50–64)',
+                'badge' => 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+                'hint' => 'Setup Moderat / Volume Normal (Porsi 50%)',
+            ],
+            'C' => [
+                'label' => 'Grade C (Skor < 50)',
+                'badge' => 'bg-rose-500/15 text-rose-300 border-rose-500/40',
+                'hint' => 'Dead Low / RSI 40–55 / Vol Kering (Wajib Tunda Hari-2)',
+            ],
+        ]);
+
+        // 2. By RSI-14 Zone
+        $byRsiGroups = $closedTrades->groupBy(function (Trade $t) {
+            $snap = is_array($t->indicators_snapshot) ? $t->indicators_snapshot : [];
+            $rsi = $snap['rsi_14'] ?? null;
+            if ($rsi === null || ! is_numeric($rsi)) {
+                return 'unknown';
+            }
+            $r = (float) $rsi;
+            if ($r < 30.0) {
+                return 'oversold_extreme';
+            }
+            if ($r <= 40.0) {
+                return 'oversold_ideal';
+            }
+            if ($r < 55.0) {
+                return 'neutral_trap';
+            }
+
+            return 'momentum_high';
+        });
+
+        $byRsi = $summarizeBuckets($byRsiGroups, [
+            'oversold_ideal' => [
+                'label' => 'RSI 30–40 (Oversold Ideal)',
+                'badge' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+                'hint' => 'Zona Emas 1 — Pantulan Diskon Paling Akurat',
+            ],
+            'momentum_high' => [
+                'label' => 'RSI ≥ 55 (Momentum Kuat)',
+                'badge' => 'bg-sky-500/10 text-sky-400 border-sky-500/30',
+                'hint' => 'Zona Emas 2 — Breakout Kuat',
+            ],
+            'oversold_extreme' => [
+                'label' => 'RSI < 30 (Oversold Ekstrem)',
+                'badge' => 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
+                'hint' => 'Diskon Dalam — Wajib Cek Ekor Bawah ≥ 1%',
+            ],
+            'neutral_trap' => [
+                'label' => 'RSI 40–55 (Zona Tanggung)',
+                'badge' => 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+                'hint' => 'Zona Rawan Loss — Belum Murah & Momentum Patah',
+            ],
+        ]);
+
+        // 3. By Volume Ratio MA20
+        $byVolGroups = $closedTrades->groupBy(function (Trade $t) {
+            $snap = is_array($t->indicators_snapshot) ? $t->indicators_snapshot : [];
+            $vol = $snap['vol_ratio_ma20'] ?? null;
+            if ($vol === null || ! is_numeric($vol)) {
+                return 'unknown';
+            }
+            $v = (float) $vol;
+            if ($v >= 1.3) {
+                return 'vol_spike';
+            }
+            if ($v >= 0.7) {
+                return 'vol_normal';
+            }
+
+            return 'vol_dry';
+        });
+
+        $byVol = $summarizeBuckets($byVolGroups, [
+            'vol_spike' => [
+                'label' => 'Volume Meledak (≥ 1,3x MA20)',
+                'badge' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+                'hint' => 'Climax Absorption — Akumulasi Bandar / Institusi',
+            ],
+            'vol_normal' => [
+                'label' => 'Volume Normal (0,7x – 1,3x MA20)',
+                'badge' => 'bg-sky-500/10 text-sky-400 border-sky-500/30',
+                'hint' => 'Likuiditas Standar Harian',
+            ],
+            'vol_dry' => [
+                'label' => 'Volume Kering (< 0,7x MA20)',
+                'badge' => 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+                'hint' => 'Drifting Down — Minat Beli Pasar Masih Sepi',
+            ],
+        ]);
+
+        // 4. By Lower Wick Scenario (Skenario A vs Skenario B)
+        $byWickGroups = $closedTrades->groupBy(function (Trade $t) {
+            $snap = is_array($t->indicators_snapshot) ? $t->indicators_snapshot : [];
+            $wick = $snap['lower_wick_pct'] ?? null;
+            if ($wick === null || ! is_numeric($wick)) {
+                return 'unknown';
+            }
+            $w = (float) $wick;
+            if ($w >= 1.0 && $w <= 3.0) {
+                return 'wick_ideal';
+            }
+            if ($w > 3.0) {
+                return 'wick_long';
+            }
+            if ($w >= 0.5) {
+                return 'wick_thin';
+            }
+
+            return 'wick_dead';
+        });
+
+        $byWick = $summarizeBuckets($byWickGroups, [
+            'wick_ideal' => [
+                'label' => 'Skenario A: Serapan Ideal (Wick 1,0%–3,0%)',
+                'badge' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+                'hint' => 'Ada Tahanan Bid Sore — Valid Beli Hari ke-1',
+            ],
+            'wick_long' => [
+                'label' => 'Skenario A+: Ekor Panjang (Wick > 3,0%)',
+                'badge' => 'bg-sky-500/10 text-sky-400 border-sky-500/30',
+                'hint' => 'Reversal Intraday Kuat',
+            ],
+            'wick_thin' => [
+                'label' => 'Ekor Tipis (Wick 0,5%–1,0%)',
+                'badge' => 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+                'hint' => 'Serapan Bid Lemah',
+            ],
+            'wick_dead' => [
+                'label' => 'Skenario B: Dead Low / ARB (Wick < 0,5%)',
+                'badge' => 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+                'hint' => 'Rawan Lanjut Flush Pagi H+1 — Tunggu Hari ke-2',
+            ],
+        ]);
+
+        return [
+            'by_grade' => $byGrade,
+            'by_rsi' => $byRsi,
+            'by_vol' => $byVol,
+            'by_wick' => $byWick,
+        ];
+    }
+}
+
