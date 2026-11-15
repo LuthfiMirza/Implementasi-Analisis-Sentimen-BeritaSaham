@@ -81,3 +81,4 @@ class BackfillTradeIndicatorsCommandTest extends TestCase
         $this->assertSame('drawdown', $trade->indicators_snapshot['sub_signal']);
     }
 }
+

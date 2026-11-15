@@ -850,13 +850,14 @@ class TradeController extends Controller
         // Sebelumnya (Fase CU) SELALU GABUNGAN, tapi user minta bisa switch supaya bisa lihat
         // performa gabungan semua strategi juga di section ini.
         $portfolioReport = $this->buildPortfolioReport($officialClosed, $officialOpen, $scope);
-        $patternAnalytics = app(\App\Services\Trading\TradeQualityGraderService::class)
-            ->buildPatternAnalytics($officialClosed);
+        $qualityGrader = app(\App\Services\Trading\TradeQualityGraderService::class);
+        $patternAnalytics = $qualityGrader->buildPatternAnalytics($officialClosed);
+        $mfeAnalytics = $qualityGrader->buildMfeExcursionAnalytics($officialClosed);
 
         return view('trades.laporan', compact(
             'stats', 'closed', 'strategyBreakdown', 'monthlyBreakdown', 'scope',
             'closedPage', 'historyStrategy', 'historyTicker', 'historyStrategyOptions', 'historyTickerOptions',
-            'portfolioReport', 'patternAnalytics'
+            'portfolioReport', 'patternAnalytics', 'mfeAnalytics'
         ));
     }
 

@@ -590,6 +590,85 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    // Fase FE: Analisis Ekskursi MFE/MAE & Scatter Plot Chart
+    Alpine.data('mfeExcursionSection', (mfeData) => ({
+        subTab: 'scatter',
+        chartInstance: null,
+        init() {
+            this.$nextTick(() => {
+                this.renderChart();
+            });
+            this.$watch('subTab', (val) => {
+                if (val === 'scatter') {
+                    this.$nextTick(() => this.renderChart());
+                }
+            });
+        },
+        renderChart() {
+            const canvas = this.$refs.mfeCanvas;
+            if (!canvas || !window.Chart) return;
+            if (this.chartInstance) {
+                this.chartInstance.destroy();
+            }
+            const sample = mfeData?.scatter_sample || [];
+            const winPoints = sample.filter(p => p.pnl_pct > 0).map(p => ({ x: p.mfe_pct, y: p.pnl_pct, ticker: p.ticker, grade: p.grade }));
+            const lossPoints = sample.filter(p => p.pnl_pct <= 0).map(p => ({ x: p.mfe_pct, y: p.pnl_pct, ticker: p.ticker, grade: p.grade }));
+
+            this.chartInstance = new Chart(canvas.getContext('2d'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Winning Trades (Trailing Exit)',
+                            data: winPoints,
+                            backgroundColor: 'rgba(52, 211, 153, 0.7)',
+                            borderColor: 'rgb(16, 185, 129)',
+                            borderWidth: 1,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 6,
+                        },
+                        {
+                            label: 'Losing Trades (Stop Loss Exit)',
+                            data: lossPoints,
+                            backgroundColor: 'rgba(244, 63, 94, 0.7)',
+                            borderColor: 'rgb(225, 29, 72)',
+                            borderWidth: 1,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 6,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Puncak Tertinggi yang Sempat Disentuh (% MFE)', color: '#94a3b8', font: { size: 11 } },
+                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                            ticks: { color: '#94a3b8', callback: (v) => v + '%' },
+                        },
+                        y: {
+                            title: { display: true, text: 'Realisasi Profit/Rugi (% PnL)', color: '#94a3b8', font: { size: 11 } },
+                            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                            ticks: { color: '#94a3b8', callback: (v) => v + '%' },
+                        },
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label(ctx) {
+                                    const pt = ctx.raw;
+                                    return `${pt.ticker || 'Trade'} [${pt.grade || ''}]: Puncak +${pt.x}%, Exit ${pt.y >= 0 ? '+' : ''}${pt.y}%`;
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+        },
+    }));
+
     Alpine.data('priceQuote', (initialQuote, fallbackChange) => ({
         quote: {
             stock_code: initialQuote?.stock_code ?? null,

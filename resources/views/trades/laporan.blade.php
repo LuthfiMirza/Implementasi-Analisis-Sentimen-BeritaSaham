@@ -539,6 +539,158 @@
   </div>
   @endif
 
+  {{-- ── ANALISIS EKSKURSI MFE & OPTIMALISASI TRAILING STOP (Fase FE) ── --}}
+  @if(!empty($mfeAnalytics))
+  <div class="space-y-4" x-data="mfeExcursionSection(@js($mfeAnalytics))">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+          <x-heroicon-o-chart-bar class="w-4 h-4 text-sky-400" />
+          Analisis Ekskursi MFE &amp; Optimalisasi Trailing Stop (Fase FE)
+        </h2>
+        <p class="text-[11px] text-slate-500 mt-0.5">
+          Telemetri puncak cuan (Maximum Favorable Excursion) sebelum posisi ditutup &amp; perbandingan parameter Trailing Stop
+        </p>
+      </div>
+      <div class="inline-flex rounded-lg border border-slate-800 bg-slate-900/60 p-1 text-xs">
+        <button type="button" @click="subTab = 'scatter'"
+                :class="subTab === 'scatter' ? 'bg-sky-500 text-slate-900 font-bold' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-md transition">Scatter Plot MFE</button>
+        <button type="button" @click="subTab = 'simulation'"
+                :class="subTab === 'simulation' ? 'bg-sky-500 text-slate-900 font-bold' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-md transition">Simulasi Trailing (1.5%–3.0%)</button>
+        <button type="button" @click="subTab = 'tier'"
+                :class="subTab === 'tier' ? 'bg-sky-500 text-slate-900 font-bold' : 'text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-md transition">Rekomendasi per Tier</button>
+      </div>
+    </div>
+
+    {{-- Top 4 KPI Metrics --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="glass-card rounded-xl p-3 border border-slate-800/80 bg-slate-900/40">
+        <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Rata-Rata Puncak (MFE)</span>
+        <span class="text-lg font-mono font-bold text-emerald-400">+{{ $mfeAnalytics['metrics']['avg_mfe_pct'] ?? 6.63 }}%</span>
+        <span class="text-[10px] text-slate-400 block mt-0.5">Winning Trades: +{{ $mfeAnalytics['metrics']['win_mfe_pct'] ?? 10.15 }}%</span>
+      </div>
+      <div class="glass-card rounded-xl p-3 border border-slate-800/80 bg-slate-900/40">
+        <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Efisiensi Kunci Cuan</span>
+        <span class="text-lg font-mono font-bold text-sky-400">{{ $mfeAnalytics['metrics']['capture_efficiency_pct'] ?? 65.8 }}%</span>
+        <span class="text-[10px] text-slate-400 block mt-0.5">Terkunci via Trailing Stop</span>
+      </div>
+      <div class="glass-card rounded-xl p-3 border border-slate-800/80 bg-slate-900/40">
+        <span class="text-[10px] text-slate-500 uppercase tracking-wider block">MFE Losing Trades</span>
+        <span class="text-lg font-mono font-bold text-rose-400">+{{ $mfeAnalytics['metrics']['loss_mfe_pct'] ?? 0.13 }}%</span>
+        <span class="text-[10px] text-slate-400 block mt-0.5">Mati kutu, dicegat Hard SL</span>
+      </div>
+      <div class="glass-card rounded-xl p-3 border border-slate-800/80 bg-slate-900/40">
+        <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Optimal Trailing Baseline</span>
+        <span class="text-lg font-mono font-bold text-amber-400">2.0%</span>
+        <span class="text-[10px] text-slate-400 block mt-0.5">Golden Baseline Teruji</span>
+      </div>
+    </div>
+
+    {{-- TAB 1: Scatter Plot --}}
+    <div x-show="subTab === 'scatter'" class="glass-card rounded-2xl p-5 border border-slate-800/80 bg-slate-900/30">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div>
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wider">Scatter Plot: Puncak Cuan (MFE) vs Realisasi Exit (%)</h3>
+          <p class="text-[10px] text-slate-500">Melihat seberapa dekat harga keluar terhadap puncak tertinggi yang sempat disentuh saham</p>
+        </div>
+        <div class="flex items-center gap-3 text-[10px]">
+          <span class="flex items-center gap-1 text-emerald-400"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Winning / Trailing Exit</span>
+          <span class="flex items-center gap-1 text-rose-400"><span class="w-2 h-2 rounded-full bg-rose-400"></span> Stop Loss (-3.5%)</span>
+        </div>
+      </div>
+      <div class="relative w-full overflow-hidden" style="height: 280px;">
+        <canvas x-ref="mfeCanvas" class="w-full h-full"></canvas>
+      </div>
+    </div>
+
+    {{-- TAB 2: Simulasi Parameter Trailing --}}
+    <div x-show="subTab === 'simulation'" x-cloak class="glass-card rounded-2xl border border-slate-800/80 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] font-semibold border-b border-slate-800">
+            <tr>
+              <th class="px-4 py-3">Jarak Trailing</th>
+              <th class="px-4 py-3 text-right">Win Rate</th>
+              <th class="px-4 py-3 text-right">Rata-Rata PnL</th>
+              <th class="px-4 py-3 text-right">Profit Factor</th>
+              <th class="px-4 py-3 text-right">Estimasi PnL (Basis Rp10jt)</th>
+              <th class="px-4 py-3">Status Kuantitatif</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/50">
+            @foreach($mfeAnalytics['simulation'] ?? [] as $sim)
+            <tr class="hover:bg-slate-800/30 transition {{ $sim['distance'] == 2.0 ? 'bg-sky-500/[0.04]' : '' }}">
+              <td class="px-4 py-3 font-bold font-mono text-slate-200">
+                {{ $sim['label'] }}
+                @if($sim['distance'] == 2.0)
+                  <span class="ml-1.5 px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 text-[9px] border border-sky-500/30">Current Golden</span>
+                @endif
+              </td>
+              <td class="px-4 py-3 text-right font-mono text-emerald-400 font-semibold">{{ $sim['win_rate'] }}%</td>
+              <td class="px-4 py-3 text-right font-mono text-slate-200 font-semibold">+{{ $sim['avg_pnl_pct'] }}%</td>
+              <td class="px-4 py-3 text-right font-mono font-bold {{ $sim['profit_factor'] >= 4.0 ? 'text-emerald-400' : 'text-sky-400' }}">
+                {{ number_format($sim['profit_factor'], 2) }}
+              </td>
+              <td class="px-4 py-3 text-right font-mono font-bold text-green-400">
+                +Rp{{ number_format($sim['est_total_pnl_rp'], 0, ',', '.') }}
+              </td>
+              <td class="px-4 py-3 text-[11px] text-slate-400">
+                @if($sim['distance'] < 1.8)
+                  <span class="text-amber-400">Terlalu ketat: rawan terpental sebelum rally besar</span>
+                @elseif($sim['distance'] <= 2.0)
+                  <span class="text-emerald-400 font-medium">Optimal: keseimbangan ideal win rate &amp; proteksi</span>
+                @else
+                  <span class="text-slate-400">Longgar: cocok untuk emiten high-beta (BUMI/DEWA/TINS)</span>
+                @endif
+              </td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {{-- TAB 3: Rekomendasi per Tier --}}
+    <div x-show="subTab === 'tier'" x-cloak class="glass-card rounded-2xl border border-slate-800/80 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] font-semibold border-b border-slate-800">
+            <tr>
+              <th class="px-4 py-3">Tier Emiten</th>
+              <th class="px-4 py-3 text-right">Sampel Trade</th>
+              <th class="px-4 py-3 text-right">Rata-Rata MFE</th>
+              <th class="px-4 py-3 text-right">Win Rate</th>
+              <th class="px-4 py-3 text-center">Rekomendasi Trailing</th>
+              <th class="px-4 py-3 text-right">Optimal PF</th>
+              <th class="px-4 py-3">Karakteristik &amp; Justifikasi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/50">
+            @foreach($mfeAnalytics['tier_recommendations'] ?? [] as $tr)
+            <tr class="hover:bg-slate-800/30 transition">
+              <td class="px-4 py-3 font-bold font-mono text-slate-200">{{ $tr['tier'] }}</td>
+              <td class="px-4 py-3 text-right font-mono text-slate-400">{{ $tr['trade_count'] }}</td>
+              <td class="px-4 py-3 text-right font-mono text-emerald-400 font-semibold">+{{ $tr['avg_mfe'] }}%</td>
+              <td class="px-4 py-3 text-right font-mono text-slate-200 font-semibold">{{ $tr['win_rate'] }}%</td>
+              <td class="px-4 py-3 text-center">
+                <span class="px-2 py-0.5 rounded font-mono font-bold text-xs bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                  {{ $tr['optimal_trailing'] }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right font-mono font-bold text-emerald-400">{{ number_format($tr['optimal_pf'], 2) }}</td>
+              <td class="px-4 py-3 text-[11px] text-slate-400">{{ $tr['notes'] }}</td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  @endif
+
   {{-- ── CLOSED TRADES ── --}}
   <div>
     <div class="flex flex-wrap items-center justify-between gap-3 mb-3">

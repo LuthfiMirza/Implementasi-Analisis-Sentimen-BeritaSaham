@@ -206,5 +206,46 @@ Sistem pencatatan trade live BSJP aktif penuh dan siap digunakan pengguna untuk 
 4. **Tahap FD-4 (Verifikasi & Pengujian Otomatis):**
    * Menjalankan backfill pada 591 trade dan memvalidasi seluruh fitur lewat PHPUnit.
 
+#### 3. Status Fase FD: SELESAI (Aktif Produksi).
+Seluruh 591 trade telah terisi telemetri indikator & Grade Kualitas. Filter blacklist PSAB/TLKM aktif di scanner dan dashboard evaluasi pola live di `/trades/laporan`.
+
+---
+
+### Fase FE — Live Signal Quality Radar, Visualisasi Ekskursi MFE/MAE, & Watchdog Stabilitas Sistem (15 Nov 2026)
+
+#### 1. Latar Belakang & Kebutuhan Pengguna
+* Pengguna menyetujui eksekusi gabungan **Opsi 2** (Integrasi Live Quality Grader di `/trades/radar`), **Opsi 3** (Visualisasi MFE/MAE & Riset Trailing Stop di `/trades/laporan`), serta fondasi **Stabilitas Sistem** (Watchdog Auto-Healing & Endpoint Healthcheck) untuk memastikan platform berjalan stabil 24/7 dan trading terarah secara saintifik.
+
+#### 2. Implementasi Sistem 5 Tahap (FE-1 s/d FE-5)
+1. **Tahap FE-1: Fondasi Stabilitas & Healthcheck Mandiri:**
+   * Dibuat script `watchdog_sentimena.sh` di root direktori untuk menginspeksi ketersediaan MySQL, Sentiment API (8002), Prediction API (8001), Web Server (8000), dan Scheduler cron. Mampu melakukan auto-revive otomatis jika servis terhenti.
+   * Dibuat controller `app/Http/Controllers/HealthController.php` dan endpoint publik `GET /health` yang merespons status kesehatan 5 servis secara transparan.
+   * Ditambahkan visual pill `Sistem: Aktif` pada topbar `resources/views/layouts/app.blade.php`.
+   * Unit test `tests/Feature/HealthCheckTest.php` lulus 100% (20 assertions).
+2. **Tahap FE-2: Integrasi Live Quality Grader di `/trades/radar` (Opsi 2):**
+   * Diperbarui `SignalRadarService.php` dengan dependency injection `TradeQualityGraderService`.
+   * Setiap kandidat pada strategi `GABUNGAN`, `MOMENTUM`, `BOTTOM_REBOUND`, `SELF_RADAR_V1`, `TINS_BOTTOM_TO_TOP`, dan `BSJP_MOMENTUM` kini memiliki atribut `quality` (`grade`, `score`, `status`, `recommended_sizing_pct`, `action_advice`, dan checklist 5 faktor).
+   * Ditambahkan Filter Bar Interaktif pada `resources/views/trades/radar.blade.php` dan `resources/js/app.js`: `Semua`, `🌟 Grade A+ (100% Porsi)`, `✅ Grade A (Standar)`, `⚠️ Grade B (50% Porsi)`, `⛔ Grade C (Tunda/Day-2)`.
+   * Kartu kandidat dilengkapi Badge Grade cerah, indikator chip RSI/Vol/Wick, dan kotak rekomendasi aksi pre-closing 15:50 WIB.
+   * Unit test `tests/Feature/SignalRadarTest.php` dan `tests/Feature/SignalRadarQualityTest.php` lulus 100% (73 assertions).
+3. **Tahap FE-3: Riset Kuantitatif & Simulasi Trailing Stop MFE/MAE (Opsi 3 Backend):**
+   * Dibuat script riset kuantitatif `quant/drawdown_bounce_tracker/research_mfe_trailing.py` mengevaluasi 587 transaksi tertutup di database.
+   * Temuan empiris: Rata-rata puncak cuan (MFE) global mencapai **+6,63%** (Winning Trades: **+10,15%**, Losing Trades: **+0,13%**). Efisiensi penguncian cuan (*Capture Ratio*) via Trailing Stop mencapai **65,8%** dari puncak tertinggi.
+   * Simulasi 5 parameter: Trailing Stop **2,0%** terbukti sebagai *Golden Baseline* (PF 4,16), sementara Tier S (`SMGR`/`BRPT`) optimal di **1,8%** (PF 5,48) dan Tier A (`BUMI`/`DEWA`/`ENRG`) mentoleransi hingga **2,5%** (PF 4,12).
+   * Laporan formal disimpan di `reports/mfe_trailing_stop_research_20261115.md` dan cache JSON di `storage/app/mfe_analytics_cache.json`.
+   * Method `buildMfeExcursionAnalytics()` ditambahkan ke `TradeQualityGraderService.php`.
+4. **Tahap FE-4: Visualisasi Scatter MFE & Evaluasi Trailing di `/trades/laporan` (Opsi 3 Frontend):**
+   * Diperbarui `TradeController::laporan()` menyalurkan payload `$mfeAnalytics`.
+   * Ditambahkan seksi interaktif pada `resources/views/trades/laporan.blade.php`:
+     - 4 KPI Card (Rata-Rata Puncak MFE, Efisiensi Kunci Cuan, MFE Losing Trades, Optimal Trailing Baseline).
+     - Grafik interaktif **Scatter Plot (Chart.js)**: memetakan Puncak Cuan MFE (%) vs Realisasi Exit PnL (%), membedakan titik winning exit vs stop loss.
+     - Tabel Komparasi Simulasi Trailing (1,5% s/d 3,0%) & Tabel Rekomendasi per Kluster Emiten (Tier S, A, B).
+   * Feature test `tests/Feature/TradeLaporanMfeTest.php` lulus 100% (6 assertions).
+5. **Tahap FE-5: Verifikasi Keseluruhan:**
+   * Seluruh test suite (589 tests, 2.475 assertions) lulus 100% tanpa error.
+
+#### 3. Status Fase FE: SELESAI (Aktif Produksi).
+Sistem radar cerdas berbasis Grade Kualitas, dasbor ekskursi MFE interaktif, dan watchdog monitor kini beroperasi penuh.
+
 
 

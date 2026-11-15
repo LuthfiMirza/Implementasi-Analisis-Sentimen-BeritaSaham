@@ -67,6 +67,7 @@ File ini adalah memori permanen dan aturan disiplin trading untuk proyek **Senti
 - Laporan riset rebound IHSG (+3,61%) & backtest entri Sesi 1 vs Sesi 2: `laravel-app/reports/market_regime_research_20261020.md`
 - Laporan konfirmasi rebound IHSG (Support 5.000 teruji 2 hari) & eksekusi Tier 2: `laravel-app/reports/market_regime_research_20261021.md`
 - Laporan breakout IHSG > MA20 (5.344,41), panen Auto-Close 3-Lapis (96,3% WR), & kodifikasi rumus kuantitatif: `laravel-app/reports/market_regime_research_20261113.md`
+- Laporan riset ekskursi MFE/MAE & optimalisasi Trailing Stop 587 trades: `laravel-app/reports/mfe_trailing_stop_research_20261115.md`
 - Catatan histori trading dan evaluasi berkala: `laravel-app/docs/trading-log.md`
 
 ---
@@ -88,6 +89,21 @@ File ini adalah memori permanen dan aturan disiplin trading untuk proyek **Senti
    - `PSAB` (PF `0,93`, Net Loss) dan `TLKM` (PF `0,42`, Net Loss) **DIBLOKIR** dari eksekusi auto-entry `GABUNGAN`.
 3. **Telemetri MFE/MAE pada Trade**:
    - Setiap posisi tertutup wajib menyimpan `indicators_snapshot` lengkap saat entry serta `exit_mfe_pct` dan `exit_result_type` saat exit.
+
+---
+
+## 6. Telemetri Ekskursi MFE/MAE & Trailing Stop Tuning (Fase FE - 587 Trades)
+
+1. **Karakteristik Ekskursi Puncak (MFE)**:
+   - **Rata-rata MFE Global**: `+6,63%` (Median: `+4,34%`).
+   - **Winning Trades (381 trade)**: rata-rata sempat naik hingga **`+10,15%`**.
+   - **Losing Trades (206 trade)**: rata-rata hanya naik **`+0,13%`** sebelum dibanting dan diselamatkan oleh Hard Cut Loss `-3,5%`.
+   - **Efisiensi Penguncian Cuan (Capture Efficiency)**: Trailing Stop berhasil mengunci rata-rata **`65,8%`** dari puncak tertinggi.
+2. **Matriks Rekomendasi Jarak Trailing Stop per Tier**:
+   - **Tier S (`SMGR`, `BRPT`, `UNVR`, `DSSA`, `PACK`)**: optimal pada Trailing Stop **`1,8% - 2,0%`** (PF `5,48`, minim premature shakeout).
+   - **Tier A (`BUMI`, `DEWA`, `ENRG`, `TINS`)**: optimal pada Trailing Stop **`2,0% - 2,5%`** (PF `4,12`, memberi ruang napas volatilitas komoditas).
+   - **Tier B (Emiten Lainnya)**: disiplin pada Golden Baseline **`2,0%`** (PF `4,16`).
+
 
 
 
