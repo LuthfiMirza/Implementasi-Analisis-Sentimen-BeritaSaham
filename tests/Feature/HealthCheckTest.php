@@ -38,3 +38,4 @@ class HealthCheckTest extends TestCase
         $this->assertSame('ok', $json['services']['prediction_api']['status']);
     }
 }
+

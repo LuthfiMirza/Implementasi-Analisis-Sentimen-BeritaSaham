@@ -97,3 +97,4 @@ class HealthController extends Controller
         ], $statusCode);
     }
 }
+
