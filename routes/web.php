@@ -10,6 +10,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BacktestController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluasiController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\MarketAlertController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\WatchlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('dashboard'));
+Route::get('/health', [HealthController::class, 'index'])->name('health');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

@@ -269,6 +269,12 @@
                         </div>
                     </div>
                     <div class="hidden md:flex items-center gap-3 text-[11px]" x-data="marketClock()" x-init="start()">
+                        <a href="{{ route('health') }}" target="_blank"
+                           class="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition"
+                           title="Lihat status kesehatan sistem & 5 servis">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>Sistem: Aktif</span>
+                        </a>
                         <div class="topbar-chip">
                             Market: <span class="font-semibold" :class="statusClass" x-text="statusLabel"></span>
                         </div>

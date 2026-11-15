@@ -544,15 +544,36 @@ document.addEventListener('alpine:init', () => {
                 .finally(() => { this.loading = false; });
         },
         bsjpCategory: 'all',
+        gradeFilter: 'all', // 'all', 'A+', 'A', 'B', 'C'
+        matchesGrade(row) {
+            if (this.gradeFilter === 'all') return true;
+            return row?.quality?.grade === this.gradeFilter;
+        },
+        filteredRows(rows) {
+            if (!rows) return [];
+            if (this.gradeFilter === 'all') return rows;
+            return rows.filter((r) => r?.quality?.grade === this.gradeFilter);
+        },
+        gradeBadgeClass(grade) {
+            return {
+                'A+': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-emerald-500/20',
+                'A': 'bg-blue-500/20 text-blue-300 border-blue-500/50 shadow-blue-500/20',
+                'B': 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-amber-500/20',
+                'C': 'bg-rose-500/20 text-rose-300 border-rose-500/50 shadow-rose-500/20',
+            }[grade] || 'bg-slate-800 text-slate-300 border-slate-700';
+        },
         filteredBsjpCandidates() {
             const list = this.radar?.bsjp_momentum?.candidates || [];
+            let result = list;
             if (this.bsjpCategory === 'rocket') {
-                return list.filter((c) => c.category === 'rocket');
+                result = result.filter((c) => c.category === 'rocket');
+            } else if (this.bsjpCategory === 'sweetspot') {
+                result = result.filter((c) => c.category === 'sweetspot');
             }
-            if (this.bsjpCategory === 'sweetspot') {
-                return list.filter((c) => c.category === 'sweetspot');
+            if (this.gradeFilter !== 'all') {
+                result = result.filter((c) => c?.quality?.grade === this.gradeFilter);
             }
-            return list;
+            return result;
         },
         // Bar visual (0-100%) jarak ke trigger -- skala referensi beda per strategi krn unit beda
         // (persentase-poin GABUNGAN, poin RSI MOMENTUM, persentase harga BOTTOM_REBOUND).

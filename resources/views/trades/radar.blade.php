@@ -61,6 +61,49 @@
     </p>
   </div>
 
+  {{-- ── FILTER GRADE KUALITAS SINYAL (Fase FE) ── --}}
+  <div class="glass-card border border-slate-800/80 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 shadow-lg">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 mr-1">
+        <x-heroicon-o-funnel class="w-4 h-4 text-sky-400" /> Filter Kualitas:
+      </span>
+      <div class="inline-flex flex-wrap gap-1.5">
+        <button type="button" @click="gradeFilter = 'all'"
+                :class="gradeFilter === 'all' ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/20' : 'bg-slate-800/80 text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-lg text-xs font-medium transition">
+          Semua Grade
+        </button>
+        <button type="button" @click="gradeFilter = 'A+'"
+                :class="gradeFilter === 'A+' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'bg-slate-800/80 text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-lg text-xs font-medium transition inline-flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Grade A+ (100% Porsi)
+        </button>
+        <button type="button" @click="gradeFilter = 'A'"
+                :class="gradeFilter === 'A' ? 'bg-blue-500 text-slate-950 font-bold shadow-md shadow-blue-500/20' : 'bg-slate-800/80 text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-lg text-xs font-medium transition inline-flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-blue-400"></span> Grade A (Standar)
+        </button>
+        <button type="button" @click="gradeFilter = 'B'"
+                :class="gradeFilter === 'B' ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20' : 'bg-slate-800/80 text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-lg text-xs font-medium transition inline-flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span> Grade B (Porsi 50%)
+        </button>
+        <button type="button" @click="gradeFilter = 'C'"
+                :class="gradeFilter === 'C' ? 'bg-rose-500 text-slate-950 font-bold shadow-md shadow-rose-500/20' : 'bg-slate-800/80 text-slate-400 hover:text-slate-200'"
+                class="px-3 py-1 rounded-lg text-xs font-medium transition inline-flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-rose-400"></span> Grade C (Tunda/Day-2)
+        </button>
+      </div>
+    </div>
+    <div class="text-[11px] text-slate-400 hidden xl:flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 text-emerald-400 font-semibold">Grade A+ (WR 72.6% • PF 7.57)</span>
+      <span>•</span>
+      <span class="inline-flex items-center gap-1 text-blue-400">Grade A (WR 59.7%)</span>
+      <span>•</span>
+      <span class="inline-flex items-center gap-1 text-rose-400">Grade C (Wajib Tunda Hari-1)</span>
+    </div>
+  </div>
+
   {{-- ── SEKSI GABUNGAN ── --}}
   <div>
     <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-2">
@@ -69,44 +112,79 @@
     <p class="text-[11px] text-slate-500 mb-3">Mean-reversion: beli saat harga sudah jatuh, taruhan rebound.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       <template x-for="row in radar.gabungan" :key="row.ticker + '-gabungan'">
-        <div class="glass-card rounded-2xl p-4 border-2 transition-colors"
+        <div x-show="matchesGrade(row)"
+             class="glass-card rounded-2xl p-4 border-2 transition-colors flex flex-col justify-between"
              :class="row.triggered ? 'border-rose-500/50 bg-rose-500/[0.05]' : 'border-slate-800/80'">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-slate-100" x-text="row.ticker"></span>
-            <span x-show="row.triggered" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold inline-flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> SUDAH LEWAT THRESHOLD
-            </span>
-          </div>
-          <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
-
-          <div class="space-y-2">
-            <div>
-              <div class="flex justify-between text-[11px] mb-1">
-                <span class="text-slate-500">ret_2d</span>
-                <span class="font-mono" :class="row.ret_2d_pct <= -5 ? 'text-rose-400' : 'text-slate-300'"
-                      x-text="fmtNum(row.ret_2d_pct) + '% (ambang -5%)'"></span>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-100 text-base" x-text="row.ticker"></span>
+                <template x-if="row.quality">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full border font-bold font-mono inline-flex items-center gap-1"
+                        :class="gradeBadgeClass(row.quality.grade)">
+                    <span x-text="'Grade ' + row.quality.grade"></span>
+                    <span class="opacity-75" x-text="'(' + row.quality.score + ')'"></span>
+                  </span>
+                </template>
               </div>
-              <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                <div class="h-full rounded-full transition-all"
-                     :class="row.ret_2d_distance_pp <= 0 ? 'bg-rose-500' : 'bg-sky-500'"
-                     :style="`width: ${barWidth(row.ret_2d_distance_pp, 5)}%`"></div>
-              </div>
+              <span x-show="row.triggered" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> SUDAH LEWAT THRESHOLD
+              </span>
             </div>
-            <template x-if="row.dd_20d_distance_pp !== null">
+            <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
+
+            {{-- 5-Factor Indicator Chips --}}
+            <template x-if="row.quality">
+              <div class="flex flex-wrap gap-1 mb-2.5 text-[10px]">
+                <span x-show="row.quality.rsi_14 !== null" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono"
+                      x-text="'RSI ' + row.quality.rsi_14"></span>
+                <span x-show="row.quality.vol_ratio !== null" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono"
+                      x-text="'Vol ' + row.quality.vol_ratio + 'x'"></span>
+                <span x-show="row.quality.lower_wick !== null" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono"
+                      x-text="'Wick ' + row.quality.lower_wick + '%'"></span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono"
+                      x-text="row.quality.ticker_tier"></span>
+              </div>
+            </template>
+
+            <div class="space-y-2">
               <div>
                 <div class="flex justify-between text-[11px] mb-1">
-                  <span class="text-slate-500">drawdown_20d</span>
-                  <span class="font-mono" :class="row.dd_20d_pct <= -20 ? 'text-rose-400' : 'text-slate-300'"
-                        x-text="fmtNum(row.dd_20d_pct) + '% (ambang -20%)'"></span>
+                  <span class="text-slate-500">ret_2d</span>
+                  <span class="font-mono" :class="row.ret_2d_pct <= -5 ? 'text-rose-400' : 'text-slate-300'"
+                        x-text="fmtNum(row.ret_2d_pct) + '% (ambang -5%)'"></span>
                 </div>
                 <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden">
                   <div class="h-full rounded-full transition-all"
-                       :class="row.dd_20d_distance_pp <= 0 ? 'bg-rose-500' : 'bg-sky-500'"
-                       :style="`width: ${barWidth(row.dd_20d_distance_pp, 20)}%`"></div>
+                       :class="row.ret_2d_distance_pp <= 0 ? 'bg-rose-500' : 'bg-sky-500'"
+                       :style="`width: ${barWidth(row.ret_2d_distance_pp, 5)}%`"></div>
                 </div>
               </div>
-            </template>
+              <template x-if="row.dd_20d_distance_pp !== null">
+                <div>
+                  <div class="flex justify-between text-[11px] mb-1">
+                    <span class="text-slate-500">drawdown_20d</span>
+                    <span class="font-mono" :class="row.dd_20d_pct <= -20 ? 'text-rose-400' : 'text-slate-300'"
+                          x-text="fmtNum(row.dd_20d_pct) + '% (ambang -20%)'"></span>
+                  </div>
+                  <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                    <div class="h-full rounded-full transition-all"
+                         :class="row.dd_20d_distance_pp <= 0 ? 'bg-rose-500' : 'bg-sky-500'"
+                         :style="`width: ${barWidth(row.dd_20d_distance_pp, 20)}%`"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
           </div>
+
+          {{-- Action Recommendation Pill --}}
+          <template x-if="row.quality?.action_advice">
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80 text-[10.5px]">
+              <div class="px-2.5 py-1.5 rounded-lg border leading-snug font-medium"
+                   :class="row.quality.grade === 'A+' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : (row.quality.grade === 'A' ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' : (row.quality.grade === 'B' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-rose-500/10 text-rose-300 border-rose-500/30'))"
+                   x-text="row.quality.action_advice"></div>
+            </div>
+          </template>
         </div>
       </template>
     </div>
@@ -120,31 +198,51 @@
     <p class="text-[11px] text-slate-500 mb-3">Trend-following: beli saat momentum sudah naik kencang.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
       <template x-for="row in radar.momentum" :key="row.ticker + '-momentum'">
-        <div class="glass-card rounded-2xl p-4 border-2 transition-colors"
+        <div x-show="matchesGrade(row)"
+             class="glass-card rounded-2xl p-4 border-2 transition-colors flex flex-col justify-between"
              :class="row.triggered ? 'border-rose-500/50 bg-rose-500/[0.05]' : 'border-slate-800/80'">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-slate-100" x-text="row.ticker"></span>
-            <span x-show="row.triggered" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold inline-flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> SUDAH LEWAT
-            </span>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-100 text-base" x-text="row.ticker"></span>
+                <template x-if="row.quality">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full border font-bold font-mono inline-flex items-center gap-1"
+                        :class="gradeBadgeClass(row.quality.grade)">
+                    <span x-text="'Grade ' + row.quality.grade"></span>
+                    <span class="opacity-75" x-text="'(' + row.quality.score + ')'"></span>
+                  </span>
+                </template>
+              </div>
+              <span x-show="row.triggered" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> SUDAH LEWAT
+              </span>
+            </div>
+            <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
+            <div class="flex justify-between text-[11px] mb-1">
+              <span class="text-slate-500">RSI14</span>
+              <span class="font-mono" :class="row.rsi14_now > 60 ? 'text-rose-400' : 'text-slate-300'"
+                    x-text="fmtNum(row.rsi14_now) + ' (ambang 60)'"></span>
+            </div>
+            <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full rounded-full transition-all"
+                   :class="row.distance_pp <= 0 ? 'bg-rose-500' : 'bg-sky-500'"
+                   :style="`width: ${barWidth(row.distance_pp, 15)}%`"></div>
+            </div>
           </div>
-          <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
-          <div class="flex justify-between text-[11px] mb-1">
-            <span class="text-slate-500">RSI14</span>
-            <span class="font-mono" :class="row.rsi14_now > 60 ? 'text-rose-400' : 'text-slate-300'"
-                  x-text="fmtNum(row.rsi14_now) + ' (ambang 60)'"></span>
-          </div>
-          <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden">
-            <div class="h-full rounded-full transition-all"
-                 :class="row.distance_pp <= 0 ? 'bg-rose-500' : 'bg-sky-500'"
-                 :style="`width: ${barWidth(row.distance_pp, 15)}%`"></div>
-          </div>
+
+          {{-- Action Recommendation Pill --}}
+          <template x-if="row.quality?.action_advice">
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80 text-[10.5px]">
+              <div class="px-2.5 py-1.5 rounded-lg border leading-snug font-medium"
+                   :class="row.quality.grade === 'A+' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : (row.quality.grade === 'A' ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' : (row.quality.grade === 'B' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-rose-500/10 text-rose-300 border-rose-500/30'))"
+                   x-text="row.quality.action_advice"></div>
+            </div>
+          </template>
         </div>
       </template>
     </div>
   </div>
 
-  {{-- ── SEKSI BOTTOM_REBOUND ── --}}
   {{-- ── SEKSI SELF_RADAR_V1 ── --}}
   <div>
     <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-2">
@@ -153,33 +251,52 @@
     <p class="text-[11px] text-slate-500 mb-3">Overnight continuation: tanggal entry dan mulai trailing stop ditulis di tiap kartu. Bukan sinyal resmi.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
       <template x-for="row in radar.self_radar || []" :key="row.ticker + '-selfradar'">
-        <div class="glass-card rounded-2xl p-4 border-2 transition-colors"
+        <div x-show="matchesGrade(row)"
+             class="glass-card rounded-2xl p-4 border-2 transition-colors flex flex-col justify-between"
              :class="row.triggered ? 'border-emerald-500/50 bg-emerald-500/[0.05]' : 'border-slate-800/80'">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-slate-100" x-text="row.ticker"></span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                  :class="row.triggered ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-400 border border-slate-600'"
-                  x-text="row.status"></span>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-slate-100" x-text="row.ticker"></span>
+                <template x-if="row.quality">
+                  <span class="text-[9px] px-1.5 py-0.5 rounded-full border font-bold font-mono"
+                        :class="gradeBadgeClass(row.quality.grade)"
+                        x-text="'Grade ' + row.quality.grade"></span>
+                </template>
+              </div>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                    :class="row.triggered ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-400 border border-slate-600'"
+                    x-text="row.status"></span>
+            </div>
+
+            {{-- Peringatan Risiko Suspensi / High Volatility --}}
+            <template x-if="row.ret_5d_pct >= 20 && row.rsi14_now >= 75">
+              <div class="mb-2.5 px-2 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-[10px] text-rose-300 font-semibold flex items-center gap-1.5 shadow-sm shadow-rose-950/40">
+                <span class="text-xs shrink-0">⚠️</span>
+                <div>
+                  <span class="block text-rose-200 uppercase font-bold tracking-wider text-[9px]">RISIKO SUSPENSI BEI</span>
+                  <span class="text-[9px] text-rose-300 font-normal">Wajib <strong>Same-Day Exit</strong>.</span>
+                </div>
+              </div>
+            </template>
+
+            <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
+            <div class="space-y-1.5 text-[11px]">
+              <div class="flex justify-between"><span class="text-slate-500">RSI14</span><span class="font-mono" :class="row.rsi14_now >= 60 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.rsi14_now)"></span></div>
+              <div class="flex justify-between"><span class="text-slate-500">ret_5d</span><span class="font-mono" :class="row.ret_5d_pct >= 5 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.ret_5d_pct) + '%'"></span></div>
+              <div class="flex justify-between"><span class="text-slate-500">dd_20d</span><span class="font-mono" :class="row.dd_20d_pct >= -5 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.dd_20d_pct) + '%'"></span></div>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-2.5" x-text="row.entry_plan"></p>
           </div>
 
-          {{-- Peringatan Risiko Suspensi / High Volatility --}}
-          <template x-if="row.ret_5d_pct >= 20 && row.rsi14_now >= 75">
-            <div class="mb-2.5 px-2 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-[10px] text-rose-300 font-semibold flex items-center gap-1.5 shadow-sm shadow-rose-950/40">
-              <span class="text-xs shrink-0">⚠️</span>
-              <div>
-                <span class="block text-rose-200 uppercase font-bold tracking-wider text-[9px]">RISIKO SUSPENSI BEI</span>
-                <span class="text-[9px] text-rose-300 font-normal">Wajib <strong>Same-Day Exit</strong> (dilarang inapkan).</span>
-              </div>
+          {{-- Action Recommendation Pill --}}
+          <template x-if="row.quality?.action_advice">
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px]">
+              <div class="px-2 py-1 rounded-md border leading-tight font-medium"
+                   :class="row.quality.grade === 'A+' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : (row.quality.grade === 'A' ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' : 'bg-slate-800/60 text-slate-400 border-slate-700')"
+                   x-text="row.quality.action_advice"></div>
             </div>
           </template>
-
-          <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
-          <div class="space-y-1.5 text-[11px]">
-            <div class="flex justify-between"><span class="text-slate-500">RSI14</span><span class="font-mono" :class="row.rsi14_now >= 60 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.rsi14_now)"></span></div>
-            <div class="flex justify-between"><span class="text-slate-500">ret_5d</span><span class="font-mono" :class="row.ret_5d_pct >= 5 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.ret_5d_pct) + '%'"></span></div>
-            <div class="flex justify-between"><span class="text-slate-500">dd_20d</span><span class="font-mono" :class="row.dd_20d_pct >= -5 ? 'text-emerald-400' : 'text-slate-300'" x-text="fmtNum(row.dd_20d_pct) + '%'"></span></div>
-          </div>
-          <p class="text-[10px] text-slate-500 mt-3" x-text="row.entry_plan"></p>
         </div>
       </template>
     </div>
@@ -193,35 +310,56 @@
     <p class="text-[11px] text-slate-500 mb-3">Tunggu titik bawah 10 hari terkonfirmasi rebound, baru masuk.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <template x-for="row in radar.bottom_rebound" :key="row.ticker + '-bottomrebound'">
-        <div class="glass-card rounded-2xl p-4 border-2 transition-colors"
+        <div x-show="matchesGrade(row)"
+             class="glass-card rounded-2xl p-4 border-2 transition-colors flex flex-col justify-between"
              :class="row.triggered_today ? 'border-rose-500/50 bg-rose-500/[0.05]' : 'border-slate-800/80'">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-slate-100" x-text="row.ticker"></span>
-            <span x-show="row.triggered_today" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold inline-flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> CROSS BARU HARI INI
-            </span>
-            <span x-show="!row.triggered_today && row.already_in_zone" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 border border-slate-600 font-semibold">
-              sudah di atas ambang (bukan sinyal baru)
-            </span>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-100 text-base" x-text="row.ticker"></span>
+                <template x-if="row.quality">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full border font-bold font-mono inline-flex items-center gap-1"
+                        :class="gradeBadgeClass(row.quality.grade)">
+                    <span x-text="'Grade ' + row.quality.grade"></span>
+                    <span class="opacity-75" x-text="'(' + row.quality.score + ')'"></span>
+                  </span>
+                </template>
+              </div>
+              <span x-show="row.triggered_today" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> CROSS BARU HARI INI
+              </span>
+              <span x-show="!row.triggered_today && row.already_in_zone" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 border border-slate-600 font-semibold">
+                sudah di atas ambang
+              </span>
+            </div>
+            <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
+            <div class="flex justify-between text-[11px] mb-1">
+              <span class="text-slate-500">Threshold (bottom_10d kemarin &times; 1,05)</span>
+              <span class="font-mono text-slate-300" x-text="'Rp' + fmtNum(row.threshold_price, 0)"></span>
+            </div>
+            <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full rounded-full transition-all"
+                   :class="row.distance_pct >= 0 ? 'bg-rose-500' : 'bg-sky-500'"
+                   :style="`width: ${barWidth(-row.distance_pct, 5)}%`"></div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1" x-text="'Jarak: ' + fmtNum(row.distance_pct) + '%'"></p>
           </div>
-          <p class="text-lg font-mono font-bold text-slate-100 mb-2" x-text="'Rp' + fmtNum(row.price_now, 0)"></p>
-          <div class="flex justify-between text-[11px] mb-1">
-            <span class="text-slate-500">Threshold (bottom_10d kemarin &times; 1,05)</span>
-            <span class="font-mono text-slate-300" x-text="'Rp' + fmtNum(row.threshold_price, 0)"></span>
-          </div>
-          <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden">
-            <div class="h-full rounded-full transition-all"
-                 :class="row.distance_pct >= 0 ? 'bg-rose-500' : 'bg-sky-500'"
-                 :style="`width: ${barWidth(-row.distance_pct, 5)}%`"></div>
-          </div>
-          <p class="text-[11px] text-slate-500 mt-1" x-text="'Jarak: ' + fmtNum(row.distance_pct) + '%'"></p>
+
+          {{-- Action Recommendation Pill --}}
+          <template x-if="row.quality?.action_advice">
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80 text-[10.5px]">
+              <div class="px-2.5 py-1.5 rounded-lg border leading-snug font-medium"
+                   :class="row.triggered_today ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-slate-800/60 text-slate-400 border-slate-700'"
+                   x-text="row.quality.action_advice"></div>
+            </div>
+          </template>
         </div>
       </template>
     </div>
   </div>
 
   {{-- ── SEKSI TINS BOTTOM-TO-TOP SWING (SPECIAL RADAR) ── --}}
-  <div x-show="radar.tins_bottom_to_top" x-cloak>
+  <div x-show="radar.tins_bottom_to_top && matchesGrade(radar.tins_bottom_to_top)" x-cloak>
     <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
       <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
         <x-heroicon-o-chart-bar-square class="w-4 h-4 text-cyan-400" /> TINS BOTTOM-TO-TOP SWING
@@ -242,6 +380,13 @@
         <div class="flex items-center gap-2">
           <span class="text-lg font-bold text-slate-100 tracking-wide">TINS</span>
           <span class="text-xs text-slate-400 font-mono">PT Timah Tbk</span>
+          <template x-if="radar.tins_bottom_to_top?.quality">
+            <span class="text-[10px] px-2 py-0.5 rounded-full border font-bold font-mono inline-flex items-center gap-1"
+                  :class="gradeBadgeClass(radar.tins_bottom_to_top.quality.grade)">
+              <span x-text="'Grade ' + radar.tins_bottom_to_top.quality.grade"></span>
+              <span class="opacity-75" x-text="'(' + radar.tins_bottom_to_top.quality.score + ')'"></span>
+            </span>
+          </template>
         </div>
         <div>
           <span class="text-[11px] px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1.5"
@@ -413,12 +558,24 @@
               <span class="text-[9px] px-2 py-0.5 rounded-full border font-semibold inline-flex items-center gap-1"
                     :class="item.category_badge || (item.category === 'rocket' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30')"
                     x-text="item.category_label || (item.category === 'rocket' ? '🚀 Super Rocket' : '🎯 Sweetspot')"></span>
+              <template x-if="item.quality">
+                <span class="text-[9px] px-1.5 py-0.5 rounded-full border font-bold font-mono"
+                      :class="gradeBadgeClass(item.quality.grade)"
+                      x-text="'Grade ' + item.quality.grade"></span>
+              </template>
             </div>
             <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 font-bold font-mono"
                   x-text="'Vol ' + item.volume_ratio + 'x'"></span>
           </div>
 
-          <p class="text-xs text-slate-400 truncate mb-3" x-text="item.name"></p>
+          <p class="text-xs text-slate-400 truncate mb-2" x-text="item.name"></p>
+
+          {{-- Action Advice Pill --}}
+          <template x-if="item.quality?.action_advice">
+            <div class="px-2.5 py-1.5 rounded-lg border text-[10px] font-medium mb-2.5 leading-snug"
+                 :class="item.quality.grade === 'A+' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : (item.quality.grade === 'A' ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' : 'bg-amber-500/10 text-amber-300 border-amber-500/30')"
+                 x-text="item.quality.action_advice"></div>
+          </template>
 
           <div class="grid grid-cols-2 gap-2 py-2 border-y border-slate-800/80 text-[11px] mb-3">
             <div>

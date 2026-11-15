@@ -67,7 +67,14 @@ class SignalRadarService
 
     private const SELF_RADAR_DD_20D_MIN = -0.05;
 
-    public function __construct(private LiveMarketDataService $liveMarketData) {}
+    private TradeQualityGraderService $qualityGrader;
+
+    public function __construct(
+        private LiveMarketDataService $liveMarketData,
+        ?TradeQualityGraderService $qualityGrader = null
+    ) {
+        $this->qualityGrader = $qualityGrader ?? app(TradeQualityGraderService::class);
+    }
 
     /**
      * @return array{gabungan: array, momentum: array, bottom_rebound: array, self_radar: array, generated_at: string}
@@ -103,16 +110,16 @@ class SignalRadarService
             $combined = array_merge($series, [$livePrice]); // hipotetis "closing hari ini"
 
             if (in_array($ticker, self::GABUNGAN_TICKERS, true)) {
-                $gabungan[] = $this->buildGabunganRow($ticker, $livePrice, $combined);
+                $gabungan[] = $this->buildGabunganRow($ticker, $livePrice, $combined, $stock);
             }
             if (in_array($ticker, self::MOMENTUM_TICKERS, true)) {
-                $momentum[] = $this->buildMomentumRow($ticker, $livePrice, $combined);
+                $momentum[] = $this->buildMomentumRow($ticker, $livePrice, $combined, $stock);
             }
             if (in_array($ticker, self::BOTTOM_REBOUND_TICKERS, true)) {
-                $bottomRebound[] = $this->buildBottomReboundRow($ticker, $livePrice, $series);
+                $bottomRebound[] = $this->buildBottomReboundRow($ticker, $livePrice, $series, $stock);
             }
             if (in_array($ticker, self::SELF_RADAR_TICKERS, true)) {
-                $selfRadar[] = $this->buildSelfRadarRow($ticker, $livePrice, $combined);
+                $selfRadar[] = $this->buildSelfRadarRow($ticker, $livePrice, $combined, $stock);
             }
         }
 
@@ -185,7 +192,7 @@ class SignalRadarService
         }
     }
 
-    private function buildSelfRadarRow(string $ticker, float $livePrice, array $combined): array
+    private function buildSelfRadarRow(string $ticker, float $livePrice, array $combined, ?Stock $stock = null): array
     {
         $scanDate = now()->timezone('Asia/Jakarta');
         $trailingStartDate = $scanDate->copy()->addWeekday();
@@ -196,6 +203,16 @@ class SignalRadarService
             && $rsiNow >= self::SELF_RADAR_RSI_MIN
             && $ret5d >= self::SELF_RADAR_RET_5D_MIN
             && $dd20 >= self::SELF_RADAR_DD_20D_MIN;
+
+        $candle = $this->extractRecentCandleFeatures($stock, $livePrice);
+        $gradeResult = $this->qualityGrader->gradeTrade(
+            $ticker,
+            'momentum',
+            array_merge($candle, [
+                'sub_signal' => 'momentum',
+                'rsi_14' => $rsiNow,
+            ])
+        );
 
         return [
             'ticker' => $ticker,
@@ -216,10 +233,63 @@ class SignalRadarService
                 $trailingStartDate->format('Y-m-d 09:30'),
             ),
             'status' => $triggered ? 'BUY SORE INI (EXPERIMENTAL)' : 'WAIT',
+            'quality' => [
+                'grade' => $gradeResult['grade'],
+                'score' => $gradeResult['quality_score'],
+                'status' => $gradeResult['dss_status'],
+                'recommended_sizing_pct' => $gradeResult['recommended_sizing_pct'],
+                'action_advice' => $triggered
+                    ? '⚡ Overnight Continuation: Masuk Pukul 15:40 - 15:45 WIB'
+                    : '⏳ Menunggu Kriteria RSI & Ret5d Terpenuhi',
+                'ticker_tier' => $gradeResult['snapshot']['ticker_tier'] ?? 'TIER_B',
+                'vol_ratio' => $gradeResult['snapshot']['vol_ratio_ma20'] ?? null,
+                'lower_wick' => $gradeResult['snapshot']['lower_wick_pct'] ?? null,
+                'rsi_14' => $rsiNow !== null ? round($rsiNow, 1) : null,
+                'sub_signal' => 'momentum',
+            ],
         ];
     }
 
-    private function buildGabunganRow(string $ticker, float $livePrice, array $combined): array
+    private function extractRecentCandleFeatures(?Stock $stock, float $livePrice): array
+    {
+        if (! $stock) {
+            return ['lower_wick_pct' => null, 'vol_ratio_ma20' => null];
+        }
+
+        try {
+            $recent = StockPrice::where('stock_id', $stock->id)
+                ->orderByDesc('price_date')
+                ->take(21)
+                ->get();
+
+            if ($recent->isEmpty()) {
+                return ['lower_wick_pct' => null, 'vol_ratio_ma20' => null];
+            }
+
+            $latest = $recent->first();
+            $prev20 = $recent->slice(1, 20);
+            $avgVol = $prev20->avg('volume');
+
+            $volRatio = ($avgVol && $avgVol > 0 && $latest->volume > 0)
+                ? round((float) $latest->volume / (float) $avgVol, 2)
+                : null;
+
+            $low = (float) $latest->low;
+            $close = $livePrice > 0 ? $livePrice : (float) $latest->close;
+            $lowerWick = ($low > 0 && $close >= $low)
+                ? round(($close - $low) / $low * 100, 2)
+                : null;
+
+            return [
+                'lower_wick_pct' => $lowerWick,
+                'vol_ratio_ma20' => $volRatio,
+            ];
+        } catch (Throwable) {
+            return ['lower_wick_pct' => null, 'vol_ratio_ma20' => null];
+        }
+    }
+
+    private function buildGabunganRow(string $ticker, float $livePrice, array $combined, ?Stock $stock = null): array
     {
         $ret2d = $this->pctChange2($combined);
         $dd20 = $this->drawdown20($combined);
@@ -234,6 +304,30 @@ class SignalRadarService
         $primaryDistance = count($legs) > 0 ? min($legs) : 999.0;
         $triggered = $primaryDistance <= 0;
 
+        $rsiNow = $this->rsiWilder($combined, 14);
+        $candle = $this->extractRecentCandleFeatures($stock, $livePrice);
+        $subSignal = ($distDd20 !== null && $distDd20 <= 0 && $distRet2d !== null && $distRet2d <= 0)
+            ? 'ganda'
+            : (($distDd20 !== null && $distDd20 <= 0) ? 'drawdown' : 'ret2d');
+
+        $gradeResult = $this->qualityGrader->gradeTrade(
+            $ticker,
+            'gabungan',
+            array_merge($candle, [
+                'sub_signal' => $subSignal,
+                'rsi_14' => $rsiNow,
+                'ret_2d' => $ret2d !== null ? $ret2d * 100 : null,
+                'dd_20d' => $dd20 !== null ? $dd20 * 100 : null,
+            ])
+        );
+
+        $actionAdvice = match ($gradeResult['grade']) {
+            'A+' => '🚀 Setup Sempurna (WR 72.6%): Beli Penuh 100% Pre-Closing (15:50 WIB)',
+            'A' => '✅ Setup Kuat (WR 59.7%): Beli Standar 100% Pre-Closing (15:50 WIB)',
+            'B' => '⚠️ Setup Moderat: Alokasi Dibatasi 50% / Tunggu Lonjakan Volume',
+            default => '⛔ Rawan False Bounce (Dead Low): DILARANG Beli Hari-1! Tunggu Day-2 Morning Flush',
+        };
+
         return [
             'ticker' => $ticker,
             'strategy' => 'GABUNGAN',
@@ -246,14 +340,43 @@ class SignalRadarService
             'dd_20d_distance_pp' => $distDd20 !== null ? round($distDd20, 2) : null,
             'distance_pp' => round($primaryDistance, 2),
             'triggered' => $triggered,
+            'quality' => [
+                'grade' => $gradeResult['grade'],
+                'score' => $gradeResult['quality_score'],
+                'status' => $gradeResult['dss_status'],
+                'recommended_sizing_pct' => $gradeResult['recommended_sizing_pct'],
+                'action_advice' => $actionAdvice,
+                'ticker_tier' => $gradeResult['snapshot']['ticker_tier'] ?? 'TIER_B',
+                'vol_ratio' => $gradeResult['snapshot']['vol_ratio_ma20'] ?? null,
+                'lower_wick' => $gradeResult['snapshot']['lower_wick_pct'] ?? null,
+                'rsi_14' => $rsiNow !== null ? round($rsiNow, 1) : null,
+                'sub_signal' => $subSignal,
+            ],
         ];
     }
 
-    private function buildMomentumRow(string $ticker, float $livePrice, array $combined): array
+    private function buildMomentumRow(string $ticker, float $livePrice, array $combined, ?Stock $stock = null): array
     {
         $rsiNow = $this->rsiWilder($combined, 14);
         $distance = $rsiNow !== null ? (self::MOMENTUM_RSI_THRESHOLD - $rsiNow) : null;
         $triggered = $distance !== null && $distance < 0;
+
+        $candle = $this->extractRecentCandleFeatures($stock, $livePrice);
+        $gradeResult = $this->qualityGrader->gradeTrade(
+            $ticker,
+            'momentum',
+            array_merge($candle, [
+                'sub_signal' => 'momentum',
+                'rsi_14' => $rsiNow,
+            ])
+        );
+
+        $actionAdvice = match ($gradeResult['grade']) {
+            'A+' => '🚀 Momentum Sempurna: Beli Penuh 100% Pre-Closing',
+            'A' => '✅ Momentum Kuat: Beli Standar 100%',
+            'B' => '⚠️ Momentum Moderat: Porsi 50%',
+            default => '⛔ Evaluasi Volatilitas / Tunggu Konfirmasi',
+        };
 
         return [
             'ticker' => $ticker,
@@ -263,10 +386,22 @@ class SignalRadarService
             'rsi_threshold' => self::MOMENTUM_RSI_THRESHOLD,
             'distance_pp' => $distance !== null ? round($distance, 2) : 999.0,
             'triggered' => $triggered,
+            'quality' => [
+                'grade' => $gradeResult['grade'],
+                'score' => $gradeResult['quality_score'],
+                'status' => $gradeResult['dss_status'],
+                'recommended_sizing_pct' => $gradeResult['recommended_sizing_pct'],
+                'action_advice' => $actionAdvice,
+                'ticker_tier' => $gradeResult['snapshot']['ticker_tier'] ?? 'TIER_B',
+                'vol_ratio' => $gradeResult['snapshot']['vol_ratio_ma20'] ?? null,
+                'lower_wick' => $gradeResult['snapshot']['lower_wick_pct'] ?? null,
+                'rsi_14' => $rsiNow !== null ? round($rsiNow, 1) : null,
+                'sub_signal' => 'momentum',
+            ],
         ];
     }
 
-    private function buildBottomReboundRow(string $ticker, float $livePrice, array $series): array
+    private function buildBottomReboundRow(string $ticker, float $livePrice, array $series, ?Stock $stock = null): array
     {
         // bottom_10d PAKAI DATA KEMARIN SAJA (bukan termasuk hari ini) -- sama persis
         // detect_bottom_rebound() python: threshold dihitung dari prev_row["bottom_10d"].
@@ -288,6 +423,17 @@ class SignalRadarService
             ? ($livePrice - $thresholdPrice) / $thresholdPrice * 100
             : null;
 
+        $rsiNow = $this->rsiWilder(array_merge($series, [$livePrice]), 14);
+        $candle = $this->extractRecentCandleFeatures($stock, $livePrice);
+        $gradeResult = $this->qualityGrader->gradeTrade(
+            $ticker,
+            'bottom_rebound',
+            array_merge($candle, [
+                'sub_signal' => 'bottom_rebound',
+                'rsi_14' => $rsiNow,
+            ])
+        );
+
         return [
             'ticker' => $ticker,
             'strategy' => 'BOTTOM_REBOUND',
@@ -297,6 +443,20 @@ class SignalRadarService
             'distance_pct' => $distancePct !== null ? round($distancePct, 2) : 999.0,
             'already_in_zone' => $wasAboveYesterday,
             'triggered_today' => $triggeredToday,
+            'quality' => [
+                'grade' => $gradeResult['grade'],
+                'score' => $gradeResult['quality_score'],
+                'status' => $gradeResult['dss_status'],
+                'recommended_sizing_pct' => $gradeResult['recommended_sizing_pct'],
+                'action_advice' => $triggeredToday
+                    ? '🎯 Cross Baru Hari Ini: Beli Dekat Closing Sesi 2'
+                    : '⏸️ Belum Memenuhi Syarat Rebound Baru',
+                'ticker_tier' => $gradeResult['snapshot']['ticker_tier'] ?? 'TIER_B',
+                'vol_ratio' => $gradeResult['snapshot']['vol_ratio_ma20'] ?? null,
+                'lower_wick' => $gradeResult['snapshot']['lower_wick_pct'] ?? null,
+                'rsi_14' => $rsiNow !== null ? round($rsiNow, 1) : null,
+                'sub_signal' => 'bottom_rebound',
+            ],
         ];
     }
 
@@ -581,6 +741,15 @@ class SignalRadarService
 
         $slPrice = round($livePrice * 0.97, 0);
 
+        $gradeResult = $this->qualityGrader->gradeTrade(
+            'TINS',
+            'bottom_to_top',
+            [
+                'rsi_14' => $rsiNow,
+                'sub_signal' => 'bottom_to_top',
+            ]
+        );
+
         return [
             'ticker' => 'TINS',
             'strategy' => 'BOTTOM_TO_TOP',
@@ -595,6 +764,20 @@ class SignalRadarService
             'triggered' => $triggered,
             'status' => $status,
             'notes' => 'Validasi Kuantitatif: 12 trade, Win Rate 66.7%, Modal Rp10jt jadi Rp18.46M (+84.66%). Auto Cut Loss 3.0%, Kunci Cuan Trailing 2.5% dari Puncak.',
+            'quality' => [
+                'grade' => $triggered ? 'A+' : ($condDip ? 'B' : 'C'),
+                'score' => $triggered ? 88 : ($condDip ? 65 : 45),
+                'status' => $triggered ? 'HIGH_CONVICTION_BUY' : 'WAIT_SIGNAL',
+                'recommended_sizing_pct' => $triggered ? 100 : 0,
+                'action_advice' => $triggered
+                    ? '🚀 Rebound Siklus Terkonfirmasi: Beli Pre-Closing (SL -3%, Trailing 2.5%)'
+                    : ($condDip ? '⏳ Diskon Siklus: Tunggu Lilin Hijau di Sesi 2' : '⏸️ Area Netral / Pucuk: Jangan FOMO'),
+                'ticker_tier' => 'TIER_S',
+                'vol_ratio' => null,
+                'lower_wick' => null,
+                'rsi_14' => $rsiNow !== null ? round($rsiNow, 1) : null,
+                'sub_signal' => 'bottom_to_top',
+            ],
         ];
     }
 
@@ -701,6 +884,17 @@ class SignalRadarService
                 $price = (float) $r->price;
                 $retPct = (float) $r->return_pct;
                 $isRocket = $retPct >= 15.0;
+                $val = (float) $r->transaction_value;
+                $qualityGrade = match (true) {
+                    $isRocket => 'B',
+                    $val >= 5000000000 => 'A+',
+                    default => 'A',
+                };
+                $qualityScore = match ($qualityGrade) {
+                    'A+' => 88,
+                    'A' => 74,
+                    default => 60,
+                };
 
                 return [
                     'ticker' => (string) $r->ticker,
@@ -709,12 +903,26 @@ class SignalRadarService
                     'open' => (float) $r->open_price,
                     'return_pct' => $retPct,
                     'volume_ratio' => round((float) $r->volume_ratio, 1),
-                    'value' => (float) $r->transaction_value,
+                    'value' => $val,
                     'category' => $isRocket ? 'rocket' : 'sweetspot',
                     'category_label' => $isRocket ? '🚀 Super Rocket' : '🎯 Sweetspot',
                     'category_badge' => $isRocket ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
                     'target_tp' => round($price * 1.025),
                     'stop_loss' => round($price * 0.97),
+                    'quality' => [
+                        'grade' => $qualityGrade,
+                        'score' => $qualityScore,
+                        'status' => $qualityGrade === 'A+' ? 'HIGH_CONVICTION_BSJP' : ($qualityGrade === 'A' ? 'STANDARD_BSJP' : 'SELECTIVE_BSJP'),
+                        'recommended_sizing_pct' => $qualityGrade === 'B' ? 50 : 100,
+                        'action_advice' => $isRocket
+                            ? '🚀 Super Rocket: Potensi gap-up tinggi, batasi lot agar terhindar dari guyuran'
+                            : '🎯 Sweetspot BSJP: Likuiditas melimpah, antre beli pre-closing 15:50 WIB',
+                        'ticker_tier' => 'TIER_A',
+                        'vol_ratio' => round((float) $r->volume_ratio, 1),
+                        'lower_wick' => null,
+                        'rsi_14' => null,
+                        'sub_signal' => 'bsjp_momentum',
+                    ],
                 ];
             })->all(),
         ];
