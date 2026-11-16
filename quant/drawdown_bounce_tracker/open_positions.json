@@ -1,32 +1,18 @@
 [
-    {
-        "ticker": "BRPT",
-        "entry_date": "2026-11-13",
-        "entry_price": 805,
-        "alerted_pullback_pct": null,
-        "strategy": "GABUNGAN",
-        "signal_type": "ganda"
-    },
-    {
-        "ticker": "PTRO",
-        "entry_date": "2026-11-13",
-        "entry_price": 2540,
-        "alerted_pullback_pct": null,
-        "strategy": "GABUNGAN",
-        "signal_type": "drawdown"
-    },
-    {
-        "ticker": "ENRG",
-        "entry_date": "2026-11-13",
-        "entry_price": 670,
-        "alerted_pullback_pct": null,
-        "strategy": "GABUNGAN"
-    },
-    {
-        "ticker": "BUMI",
-        "entry_date": "2026-11-13",
-        "entry_price": 136,
-        "alerted_pullback_pct": null,
-        "strategy": "BOTTOM_REBOUND"
-    }
+  {
+    "ticker": "BRPT",
+    "entry_date": "2026-11-16",
+    "entry_price": 750.0,
+    "alerted_pullback_pct": null,
+    "strategy": "GABUNGAN",
+    "signal_type": "drawdown"
+  },
+  {
+    "ticker": "ENRG",
+    "entry_date": "2026-11-16",
+    "entry_price": 630.0,
+    "alerted_pullback_pct": null,
+    "strategy": "GABUNGAN",
+    "signal_type": "drawdown"
+  }
 ]

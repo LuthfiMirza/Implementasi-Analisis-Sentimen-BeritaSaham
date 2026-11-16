@@ -224,36 +224,6 @@ def check_position(position: dict) -> None:
         f"hari bursa ke-{trading_days} | P&L {unrealized_pct:+.1%} | exit={exit_mode}"
     )
 
-    # --- Khusus BOTTOM_TO_TOP: Alert Hard Stop Loss 3.0% ---
-    if is_bottom_to_top:
-        sl_price = round(entry_price * 0.97, 2)
-        if current <= sl_price and not position.get("alerted_sl"):
-            send_telegram_alert(
-                f"\U0001F6A8 <b>CUT LOSS (STOP LOSS 3%): {label}</b>\n\n"
-                f"Harga menyentuh batas risiko stop loss 3.0%: <b>Rp{current:.0f}</b> (SL: Rp{sl_price:.0f}).\n\n"
-                f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
-                f"<b>Kerugian Saat Ini</b>: {unrealized_pct:+.1%}\n\n"
-                f"⚠️ Segera pastikan order Auto Cut Loss di broker tereksekusi untuk mencegah kerugian lebih dalam (anti-minus 5%)!"
-            )
-            position["alerted_sl"] = True
-            print(f"  -> ALERT CUT LOSS 3% terkirim (Harga Rp{current:.0f} <= SL Rp{sl_price:.0f}).")
-            print(f"SYNC_ALERT_CLOSE|{ticker}|{sl_price:.2f}|{current_ts.strftime('%Y-%m-%d %H:%M')}|stop_loss|{strategy}|{entry_date}")
-    # --- GABUNGAN / MOMENTUM / BOTTOM_REBOUND: Alert Stop Loss Pengaman -3.5% (Golden Compromise) ---
-    elif strategy in ("GABUNGAN", "MOMENTUM", "BOTTOM_REBOUND"):
-        sl_price = round(entry_price * 0.965, 2)
-        if current <= sl_price and not position.get("alerted_sl_initial"):
-            send_telegram_alert(
-                f"\U0001F6A8 <b>PERINGATAN CUT LOSS (STOP LOSS -3.5%): {label}</b>\n\n"
-                f"Harga menyentuh batas risiko stop loss -3.5%: <b>Rp{current:.0f}</b> (Level SL: Rp{sl_price:.0f}).\n\n"
-                f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
-                f"<b>Kerugian Saat Ini</b>: {unrealized_pct:+.1%}\n\n"
-                f"⚠️ Batas toleransi risiko teruji optimal (-3.5%) telah tercapai. "
-                f"Disiplin eksekusi Cut Loss di broker/StockBit untuk membatasi kerugian dan melindungi modal!"
-            )
-            position["alerted_sl_initial"] = True
-            print(f"  -> ALERT CUT LOSS -3.5% terkirim (Harga Rp{current:.0f} <= SL Rp{sl_price:.0f}).")
-            print(f"SYNC_ALERT_CLOSE|{ticker}|{sl_price:.2f}|{current_ts.strftime('%Y-%m-%d %H:%M')}|stop_loss|{strategy}|{entry_date}")
-
     # --- Lapis 2: Puncak Baru & Trailing Stop 2.0% dari Puncak (Kunci Cuan) ---
     milestone_base = position.get("milestone_peak") or entry_price
     if peak >= milestone_base * (1 + NEW_HIGH_THRESHOLD):
@@ -273,9 +243,10 @@ def check_position(position: dict) -> None:
         position["milestone_peak"] = peak
         print(f"  -> ALERT PUNCAK BARU terkirim (Rp{peak:.0f}, {gain_from_last:+.1%} dari puncak sebelumnya).")
 
-    # --- Alert 1: trailing stop / kunci profit ---
+    # --- Lapis 2 Exit: trailing stop / kunci profit (Prioritas Kronologis) ---
     alerted_at_peak = position.get("alerted_pullback_at_peak") or 0
     ts_level_price = round(peak * (1 - pullback_thresh), 2)
+    has_ts_triggered = False
     if pullback >= pullback_thresh and peak > alerted_at_peak:
         gain_from_entry = (peak - entry_price) / entry_price
         if is_bottom_to_top:
@@ -298,6 +269,40 @@ def check_position(position: dict) -> None:
         position["alerted_pullback_at_peak"] = peak
         print(f"  -> ALERT TRAILING STOP terkirim ({pullback:.1%}, puncak Rp{peak:.0f}, TS Rp{ts_level_price:.2f}).")
         print(f"SYNC_ALERT_CLOSE|{ticker}|{ts_level_price:.2f}|{current_ts.strftime('%Y-%m-%d %H:%M')}|trailing_stop|{strategy}|{entry_date}")
+        has_ts_triggered = True
+
+    # --- Lapis 1 Exit: Hard Stop Loss (Hanya jika Trailing Stop belum terpicu di harga lebih tinggi) ---
+    min_sl_thresh = entry_price * (0.97 if is_bottom_to_top else 0.965)
+    if not (has_ts_triggered and ts_level_price > min_sl_thresh):
+        # --- Khusus BOTTOM_TO_TOP: Alert Hard Stop Loss 3.0% ---
+        if is_bottom_to_top:
+            sl_price = round(entry_price * 0.97, 2)
+            if current <= sl_price and not position.get("alerted_sl"):
+                send_telegram_alert(
+                    f"\U0001F6A8 <b>CUT LOSS (STOP LOSS 3%): {label}</b>\n\n"
+                    f"Harga menyentuh batas risiko stop loss 3.0%: <b>Rp{current:.0f}</b> (SL: Rp{sl_price:.0f}).\n\n"
+                    f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
+                    f"<b>Kerugian Saat Ini</b>: {unrealized_pct:+.1%}\n\n"
+                    f"⚠️ Segera pastikan order Auto Cut Loss di broker tereksekusi untuk mencegah kerugian lebih dalam (anti-minus 5%)!"
+                )
+                position["alerted_sl"] = True
+                print(f"  -> ALERT CUT LOSS 3% terkirim (Harga Rp{current:.0f} <= SL Rp{sl_price:.0f}).")
+                print(f"SYNC_ALERT_CLOSE|{ticker}|{sl_price:.2f}|{current_ts.strftime('%Y-%m-%d %H:%M')}|stop_loss|{strategy}|{entry_date}")
+        # --- GABUNGAN / MOMENTUM / BOTTOM_REBOUND: Alert Stop Loss Pengaman -3.5% (Golden Compromise) ---
+        elif strategy in ("GABUNGAN", "MOMENTUM", "BOTTOM_REBOUND"):
+            sl_price = round(entry_price * 0.965, 2)
+            if current <= sl_price and not position.get("alerted_sl_initial"):
+                send_telegram_alert(
+                    f"\U0001F6A8 <b>PERINGATAN CUT LOSS (STOP LOSS -3.5%): {label}</b>\n\n"
+                    f"Harga menyentuh batas risiko stop loss -3.5%: <b>Rp{current:.0f}</b> (Level SL: Rp{sl_price:.0f}).\n\n"
+                    f"<b>Entry</b>: {entry_date} @ Rp{entry_price:.0f}\n"
+                    f"<b>Kerugian Saat Ini</b>: {unrealized_pct:+.1%}\n\n"
+                    f"⚠️ Batas toleransi risiko teruji optimal (-3.5%) telah tercapai. "
+                    f"Disiplin eksekusi Cut Loss di broker/StockBit untuk membatasi kerugian dan melindungi modal!"
+                )
+                position["alerted_sl_initial"] = True
+                print(f"  -> ALERT CUT LOSS -3.5% terkirim (Harga Rp{current:.0f} <= SL Rp{sl_price:.0f}).")
+                print(f"SYNC_ALERT_CLOSE|{ticker}|{sl_price:.2f}|{current_ts.strftime('%Y-%m-%d %H:%M')}|stop_loss|{strategy}|{entry_date}")
 
     # Fase CS: alert target-waktu 10 hari cuma valid utk strategi yang BENERAN divalidasi pakai
     # exit waktu tetap (GABUNGAN/MOMENTUM, Fase AB/AD/AE). BOTTOM_REBOUND TIDAK divalidasi pakai
