@@ -55,3 +55,4 @@ Seluruh sinyal dari `BRPT`, `BUMI`, `DEWA`, `ENRG`, `PTRO`, `RAJA`, `SMGR`, `ESS
 | **Summary Bursa (`idx_daily_summaries`)** | Bolong pada 10 & 11 Nov | **LENGKAP (10.503 Baris)** | Backfill via `idx:fetch-daily-summary --backfill=15` |
 | **Data Harga Menit 15M (`intraday_prices`)** | Belum ada tabel arsip | **168.718 Bar Tersimpan** | Migrasi tabel baru & backfill 60 hari penuh |
 | **Portofolio Terbuka (`/trades`)** | BRPT & ENRG masih terbuka | **0 Posisi Open (100% Kas)** | Ditutup disiplin via Lapis 1 & 2 proteksi |
+

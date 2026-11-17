@@ -785,6 +785,7 @@ class TradeController extends Controller
             'momentum' => 'Momentum (RSI>60) — EXPLORATORY',
             'bottom_rebound' => 'Bottom-Rebound (BUMI+DEWA)',
             'bottom_to_top' => 'Bottom-to-Top Swing (TINS/PACK)',
+            'bsjp' => 'BSJP Momentum (Scalping 1 Malam)',
             'manual_discretionary' => 'Manual/Diskresi',
         ];
         $strategyBreakdown = [];

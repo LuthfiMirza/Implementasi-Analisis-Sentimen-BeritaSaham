@@ -65,3 +65,4 @@ class ArchiveIntradayPricesTest extends TestCase
         $this->assertSame(1, DB::table('intraday_prices')->where('stock_code', 'BUMI')->count());
     }
 }
+

@@ -225,6 +225,8 @@
           'legacy_ab_ac'          => ['bg-slate-700/40 text-slate-400 border-slate-600/60', 'LAMA: AB/AC'],
           'manual_discretionary'  => ['bg-slate-700/40 text-slate-300 border-slate-600/60', 'MANUAL'],
           'bottom_rebound'        => ['bg-emerald-500/10 text-emerald-400 border-emerald-500/30', 'BOTTOM-REBOUND'],
+          'bottom_to_top'         => ['bg-indigo-500/10 text-indigo-400 border-indigo-500/30', 'BOTTOM-TO-TOP'],
+          'bsjp'                  => ['bg-emerald-500/10 text-emerald-400 border-emerald-500/30', 'BSJP MOMENTUM'],
           default                 => ['bg-slate-800 text-slate-500 border-slate-700', '—'],
         };
       @endphp
