@@ -328,3 +328,25 @@ Berdasarkan 25 closed trades Aug-Sep:
 - **Self Radar V1 (`#78`)**: **`NSSS` @ Rp665** (`RSI14=62,24`, `ret_5d=+30,39%`, `dd_20d=0,00%`, Score `30,62`).
 - **BSJP Momentum (`13 Nov`)**: **`ESSA` @ Rp545** (+11,68%, Vol Spike 2,94x, Nilai Trx Rp115,05 Miliar — *Sweetspot Utama*), **`SINI` @ Rp10.975** (+19,95%, Vol Spike 2,91x, Nilai Trx Rp230,61 Miliar — *Super Rocket*), **`NSSS` @ Rp665** (+10,83%, Vol Spike 2,75x), **`HRUM` @ Rp720** (+4,35%, Vol Spike 2,75x).
 - **DIP5_WICK Skenario A (`Lower Wick >= 1,0%`)**: **`RAJA`** (Low 510 / -4,67% ➔ Close 530, Wick +3,92%, Trx Rp81,35M), **`BREN`** (Low 2.120 / -5,78% ➔ Close 2.160, Wick +1,89%, Trx Rp80,58M), **`TEBE`** (Low 1.590 / -4,50% ➔ Close 1.660, Wick +4,40%).
+
+---
+
+## 2026-11-17
+
+### Eksekusi Live Trade Beli Sore: CENT (BSJP Sweetspot Likuid)
+- **Emiten**: **`CENT`** (Centratama Telekomunikasi Indonesia Tbk.)
+- **ID Trade**: **`#904`** (Trade Journal) & **`#42`** (BSJP Tracker)
+- **Waktu Match**: **17 Nov 2026, 16:02:00 WIB** (Sesi Pre-Closing Selesai)
+- **Harga Beli (Entry)**: **Rp 74** (+8,82% hari ini)
+- **Jumlah Lot**: **249 Lot** (24.900 lembar)
+- **Investasi Gross**: **Rp 1.842.600,00**
+- **Biaya Transaksi**: Broker Fee Rp 1.966,05 + Exchange Fee Rp 797,84 = **Rp 2.763,89**
+- **Total Investasi Net (Plus Fee)**: **Rp 1.845.363,90**
+- **Strategi & Kategori**: **BSJP Momentum / Sweetspot Likuid** (Vol Ratio: 9,77x vs MA20, Nilai Transaksi: Rp 3,50 Miliar)
+- **Target Take Profit**: **Rp 76** (+2,70% / 2 tick) di Pembukaan 09:00 WIB (18 Nov 2026)
+  - Pasang antrian jual (Sell Order) di broker pukul **08:55 WIB** esok pagi.
+- **Batas Risiko (Cut Loss)**: **Rp 72** (-2,70% / 2 tick) disiplin jika terjadi gap down drastis.
+- **Tautan Dasbor**:
+  - BSJP Tracker: `http://127.0.0.1:8000/trades/bsjp-tracker`
+  - Trade Journal: `http://127.0.0.1:8000/trades`
+
