@@ -190,6 +190,15 @@ Schedule::command('research:check-session1-warning')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
 
+// SESI 1: 12.10 WIB
+// Arsipkan bar intraday 15m penutupan Sesi 1 ke database lokal intraday_prices
+Schedule::command('stocks:archive-intraday --days=5')
+    ->weekdays()
+    ->dailyAt('12:10')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
 // END-OF-DAY: 15.18 WIB
 // Fase AC (prospektif, BUKAN fitur produksi): deteksi otomatis aturan "IHSG+saham crash bareng"
 // (Fase AB) untuk BUMI/DEWA, lalu isi outcome sinyal yang horizon-nya sudah lewat. Dijalankan
@@ -205,6 +214,15 @@ Schedule::command('research:detect-drawdown-bounce-signal')
 Schedule::command('research:evaluate-drawdown-bounce-signal')
     ->weekdays()
     ->dailyAt('15:19')
+    ->timezone('Asia/Jakarta')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+
+// POST-MARKET: 16.15 WIB
+// Arsipkan bar intraday 15m lengkap hari ini (dan tangkap gap 5 hari ke belakang) ke tabel intraday_prices
+Schedule::command('stocks:archive-intraday --days=5')
+    ->weekdays()
+    ->dailyAt('16:15')
     ->timezone('Asia/Jakarta')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
