@@ -247,7 +247,10 @@ def check_position(position: dict) -> None:
     alerted_at_peak = position.get("alerted_pullback_at_peak") or 0
     ts_level_price = round(peak * (1 - pullback_thresh), 2)
     has_ts_triggered = False
-    if pullback >= pullback_thresh and peak > alerted_at_peak:
+    # GEMINI.md Seksi 3.1: trailing stop HANYA aktif bila Peak > Entry. Jika harga belum pernah
+    # naik di atas entry, penurunan dari entry adalah urusan Lapis 1 (Hard SL), bukan trailing.
+    # (Bug 17 Nov 2026: BRPT entry 750, high 745 -> tercatat "trailing_stop -2%" padahal SL -3.5%.)
+    if peak > entry_price and pullback >= pullback_thresh and peak > alerted_at_peak:
         gain_from_entry = (peak - entry_price) / entry_price
         if is_bottom_to_top:
             title = "KUNCI PROFIT (MUNDUR 2.5% DARI PUNCAK)" if gain_from_entry >= 0.03 else "TRAILING STOP"

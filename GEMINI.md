@@ -69,6 +69,7 @@ File ini adalah memori permanen dan aturan disiplin trading untuk proyek **Senti
 - Laporan breakout IHSG > MA20 (5.344,41), panen Auto-Close 3-Lapis (96,3% WR), & kodifikasi rumus kuantitatif: `laravel-app/reports/market_regime_research_20261113.md`
 - Laporan riset ekskursi MFE/MAE & optimalisasi Trailing Stop 587 trades: `laravel-app/reports/mfe_trailing_stop_research_20261115.md`
 - Laporan konsolidasi IHSG > MA20 (5.320,98), audit 4 trade 13 Nov, & evaluasi Skenario A vs B: `laravel-app/reports/market_regime_research_20261116.md`
+- Laporan audit integritas sinyal November, koreksi rule Peak > Entry, & arsip 168k bar 15m intraday: `laravel-app/reports/data_gap_audit_intraday_20261117.md`
 - Catatan histori trading dan evaluasi berkala: `laravel-app/docs/trading-log.md`
 
 ---
