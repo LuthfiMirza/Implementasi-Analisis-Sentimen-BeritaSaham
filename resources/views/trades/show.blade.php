@@ -197,32 +197,35 @@
     </div>
 
     {{-- Pane 1: Main Candlestick + Strategy Lines + Volume --}}
-    <div class="relative">
+    <div class="relative" style="min-height: 400px; background: #0b1120;">
       <div x-show="loading"
-           class="absolute inset-0 z-10 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs text-xs text-slate-300">
+           class="absolute inset-0 z-10 flex items-center justify-center bg-slate-950/60 text-xs text-slate-300">
         Memuat data chart...
       </div>
-      <div id="tradeMainChart" class="w-full h-[380px]"></div>
+      <div x-show="chartError" x-cloak
+           class="absolute inset-0 z-10 flex items-center justify-center p-4 text-xs text-rose-300 bg-slate-950/80"
+           x-text="chartError"></div>
+      <div id="tradeMainChart" style="width: 100%; height: 400px;"></div>
     </div>
 
     {{-- Pane 2: RSI(14) --}}
-    <div class="border-t border-slate-800/90">
+    <div class="border-t border-slate-800/90" style="background: #0b1120;">
       <div class="flex items-center justify-between px-4 py-1 bg-slate-900/50 text-[11px]">
         <span class="font-semibold text-violet-300">RSI (14) Wilder</span>
         <span class="text-slate-500">Oversold: 30 • Momentum: 60</span>
       </div>
-      <div id="tradeRsiChart" class="w-full h-[125px]"></div>
+      <div id="tradeRsiChart" style="width: 100%; height: 135px;"></div>
     </div>
 
     {{-- Pane 3: MACD (12, 26, 9) --}}
-    <div class="border-t border-slate-800/90">
+    <div class="border-t border-slate-800/90" style="background: #0b1120;">
       <div class="flex items-center justify-between px-4 py-1 bg-slate-900/50 text-[11px]">
         <span class="font-semibold text-sky-300">MACD (12, 26, 9)</span>
         <span class="text-slate-500">
           <span class="text-sky-400">MACD</span> • <span class="text-orange-400">Signal</span> • Histogram
         </span>
       </div>
-      <div id="tradeMacdChart" class="w-full h-[125px]"></div>
+      <div id="tradeMacdChart" style="width: 100%; height: 135px;"></div>
     </div>
   </div>
 
@@ -333,7 +336,7 @@
   @endif
 </div>
 
-<script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
+<script src="{{ asset('vendor/lightweight-charts.standalone.production.js') }}"></script>
 <script>
 function tradeDetailChart(cfg) {
   return {
@@ -348,11 +351,13 @@ function tradeDetailChart(cfg) {
     fallbackNotice: !!cfg.initialPayload.fallback_to_daily,
     levels: cfg.initialPayload.levels,
     loading: false,
+    chartError: null,
     showCloseModal: false,
     hoverInfo: '',
     liveStatusText: 'Menunggu quote...',
     livePrice: null,
     pollTimer: null,
+    resizeHandler: null,
 
     // Chart instances
     mainChart: null,
@@ -430,6 +435,10 @@ function tradeDetailChart(cfg) {
     },
 
     destroyCharts() {
+      if (this.resizeHandler) {
+        window.removeEventListener('resize', this.resizeHandler);
+        this.resizeHandler = null;
+      }
       if (this.mainChart) { this.mainChart.remove(); this.mainChart = null; }
       if (this.rsiChart) { this.rsiChart.remove(); this.rsiChart = null; }
       if (this.macdChart) { this.macdChart.remove(); this.macdChart = null; }
@@ -437,175 +446,191 @@ function tradeDetailChart(cfg) {
       this.trailingLineRef = null;
     },
 
-    renderCharts() {
-      if (typeof LightweightCharts === 'undefined') return;
+    renderCharts(attempt = 0) {
+      if (typeof LightweightCharts === 'undefined') {
+        if (attempt < 20) {
+          setTimeout(() => this.renderCharts(attempt + 1), 150);
+        } else {
+          this.chartError = 'Library chart gagal dimuat. Coba refresh halaman (Cmd+Shift+R).';
+        }
+        return;
+      }
 
       const mainEl = document.getElementById('tradeMainChart');
       const rsiEl = document.getElementById('tradeRsiChart');
       const macdEl = document.getElementById('tradeMacdChart');
       if (!mainEl || !rsiEl || !macdEl) return;
 
-      const isIntraday = this.timeframe === '15m';
-      const baseOptions = {
-        layout: {
-          background: { type: 'solid', color: '#0b1120' },
-          textColor: '#94a3b8',
-          fontSize: 11,
-        },
-        grid: {
-          vertLines: { color: 'rgba(51, 65, 85, 0.25)' },
-          horzLines: { color: 'rgba(51, 65, 85, 0.25)' },
-        },
-        crosshair: {
-          mode: LightweightCharts.CrosshairMode.Normal,
-          vertLine: { color: 'rgba(148, 163, 184, 0.4)', style: LightweightCharts.LineStyle.Dashed },
-          horzLine: { color: 'rgba(148, 163, 184, 0.4)', style: LightweightCharts.LineStyle.Dashed },
-        },
-        rightPriceScale: {
-          borderColor: 'rgba(51, 65, 85, 0.6)',
-        },
-        timeScale: {
-          borderColor: 'rgba(51, 65, 85, 0.6)',
-          timeVisible: isIntraday,
-          secondsVisible: false,
-        },
-      };
+      this.chartError = null;
+      const chartWidth = mainEl.clientWidth || mainEl.parentElement?.clientWidth || 900;
 
-      // 1. Main Candlestick Chart
-      this.mainChart = LightweightCharts.createChart(mainEl, {
-        ...baseOptions,
-        width: mainEl.clientWidth,
-        height: mainEl.clientHeight,
-      });
+      try {
+        const isIntraday = this.timeframe === '15m';
+        const baseOptions = {
+          layout: {
+            background: { type: 'solid', color: '#0b1120' },
+            textColor: '#94a3b8',
+            fontSize: 11,
+          },
+          grid: {
+            vertLines: { color: 'rgba(51, 65, 85, 0.25)' },
+            horzLines: { color: 'rgba(51, 65, 85, 0.25)' },
+          },
+          crosshair: {
+            mode: LightweightCharts.CrosshairMode.Normal,
+            vertLine: { color: 'rgba(148, 163, 184, 0.4)', style: LightweightCharts.LineStyle.Dashed },
+            horzLine: { color: 'rgba(148, 163, 184, 0.4)', style: LightweightCharts.LineStyle.Dashed },
+          },
+          rightPriceScale: {
+            borderColor: 'rgba(51, 65, 85, 0.6)',
+          },
+          timeScale: {
+            borderColor: 'rgba(51, 65, 85, 0.6)',
+            timeVisible: isIntraday,
+            secondsVisible: false,
+          },
+        };
 
-      this.candleSeries = this.mainChart.addCandlestickSeries({
-        upColor: '#10b981',
-        downColor: '#f43f5e',
-        borderVisible: false,
-        wickUpColor: '#10b981',
-        wickDownColor: '#f43f5e',
-      });
-      this.candleSeries.setData(this.payload.candles || []);
-
-      // Markers (BUY, PEAK, EXIT)
-      if (Array.isArray(this.payload.markers) && this.payload.markers.length > 0) {
-        this.candleSeries.setMarkers(this.payload.markers);
-      }
-
-      // Volume Histogram overlay at bottom 20%
-      const volSeries = this.mainChart.addHistogramSeries({
-        priceFormat: { type: 'volume' },
-        priceScaleId: '',
-      });
-      volSeries.priceScale().applyOptions({
-        scaleMargins: { top: 0.80, bottom: 0 },
-      });
-      volSeries.setData(this.payload.volume || []);
-
-      // MA20 Line
-      if (Array.isArray(this.payload.ma20) && this.payload.ma20.length > 0) {
-        const ma20Series = this.mainChart.addLineSeries({
-          color: '#f59e0b',
-          lineWidth: 1.5,
-          priceLineVisible: false,
-          lastValueVisible: false,
+        // 1. Main Candlestick Chart
+        this.mainChart = LightweightCharts.createChart(mainEl, {
+          ...baseOptions,
+          width: chartWidth,
+          height: mainEl.clientHeight || 400,
         });
-        ma20Series.setData(this.payload.ma20);
-      }
 
-      // Strategy-specific overlays
-      const strat = (this.payload.trade.strategy_label || '').toLowerCase();
-      if (strat === 'bottom_to_top' && Array.isArray(this.payload.bb_lower) && this.payload.bb_lower.length > 0) {
-        const bbUpper = this.mainChart.addLineSeries({
-          color: 'rgba(56, 189, 248, 0.45)',
-          lineWidth: 1,
-          lineStyle: LightweightCharts.LineStyle.Dotted,
-          priceLineVisible: false,
-          lastValueVisible: false,
+        this.candleSeries = this.mainChart.addCandlestickSeries({
+          upColor: '#10b981',
+          downColor: '#f43f5e',
+          borderVisible: false,
+          wickUpColor: '#10b981',
+          wickDownColor: '#f43f5e',
         });
-        const bbLower = this.mainChart.addLineSeries({
-          color: 'rgba(56, 189, 248, 0.75)',
-          lineWidth: 1,
-          lineStyle: LightweightCharts.LineStyle.Dashed,
-          priceLineVisible: false,
-          lastValueVisible: false,
-        });
-        bbUpper.setData(this.payload.bb_upper || []);
-        bbLower.setData(this.payload.bb_lower || []);
-      } else if (['gabungan', 'bottom_rebound'].includes(strat) && Array.isArray(this.payload.high20) && this.payload.high20.length > 0) {
-        const high20Series = this.mainChart.addLineSeries({
-          color: 'rgba(148, 163, 184, 0.45)',
-          lineWidth: 1,
-          lineStyle: LightweightCharts.LineStyle.Dotted,
-          priceLineVisible: false,
-          lastValueVisible: false,
-        });
-        high20Series.setData(this.payload.high20);
-      }
+        this.candleSeries.setData(this.payload.candles || []);
 
-      // Horizontal Price Lines (Entry, Hard SL, TP1, TP2, Trailing Stop)
-      this.drawStrategyPriceLines();
-
-      // 2. RSI(14) Chart
-      this.rsiChart = LightweightCharts.createChart(rsiEl, {
-        ...baseOptions,
-        width: rsiEl.clientWidth,
-        height: rsiEl.clientHeight,
-      });
-      const rsiSeries = this.rsiChart.addLineSeries({
-        color: '#a78bfa',
-        lineWidth: 2,
-        priceLineVisible: false,
-      });
-      rsiSeries.setData(this.payload.rsi14 || []);
-      rsiSeries.createPriceLine({ price: 60, color: 'rgba(16, 185, 129, 0.45)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: '60' });
-      rsiSeries.createPriceLine({ price: 30, color: 'rgba(244, 63, 94, 0.55)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: '30' });
-
-      // 3. MACD (12, 26, 9) Chart
-      this.macdChart = LightweightCharts.createChart(macdEl, {
-        ...baseOptions,
-        width: macdEl.clientWidth,
-        height: macdEl.clientHeight,
-      });
-      const macdHist = this.macdChart.addHistogramSeries({ priceLineVisible: false });
-      macdHist.setData(this.payload.macd?.histogram || []);
-      const macdLine = this.macdChart.addLineSeries({ color: '#38bdf8', lineWidth: 1.5, priceLineVisible: false });
-      macdLine.setData(this.payload.macd?.macd || []);
-      const signalLine = this.macdChart.addLineSeries({ color: '#fb923c', lineWidth: 1.5, priceLineVisible: false });
-      signalLine.setData(this.payload.macd?.signal || []);
-
-      // Sync time scales across all 3 panes
-      const charts = [this.mainChart, this.rsiChart, this.macdChart];
-      let syncing = false;
-      charts.forEach((src) => {
-        src.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-          if (syncing || !range) return;
-          syncing = true;
-          charts.forEach((dst) => {
-            if (dst !== src) dst.timeScale().setVisibleLogicalRange(range);
-          });
-          syncing = false;
-        });
-      });
-
-      // Hover readout on main chart
-      this.mainChart.subscribeCrosshairMove((param) => {
-        if (!param || !param.seriesData) return;
-        const bar = param.seriesData.get(this.candleSeries);
-        if (bar) {
-          this.hoverInfo = `O:${this.formatNum(bar.open)} H:${this.formatNum(bar.high)} L:${this.formatNum(bar.low)} C:${this.formatNum(bar.close)}`;
+        // Markers (BUY, PEAK, EXIT)
+        if (Array.isArray(this.payload.markers) && this.payload.markers.length > 0) {
+          this.candleSeries.setMarkers(this.payload.markers);
         }
-      });
 
-      this.mainChart.timeScale().fitContent();
+        // Volume Histogram overlay at bottom 20%
+        const volSeries = this.mainChart.addHistogramSeries({
+          priceFormat: { type: 'volume' },
+          priceScaleId: '',
+        });
+        volSeries.priceScale().applyOptions({
+          scaleMargins: { top: 0.80, bottom: 0 },
+        });
+        volSeries.setData(this.payload.volume || []);
 
-      // Responsive resize
-      const onResize = () => {
-        if (this.mainChart && mainEl) this.mainChart.applyOptions({ width: mainEl.clientWidth });
-        if (this.rsiChart && rsiEl) this.rsiChart.applyOptions({ width: rsiEl.clientWidth });
-        if (this.macdChart && macdEl) this.macdChart.applyOptions({ width: macdEl.clientWidth });
-      };
-      window.addEventListener('resize', onResize);
+        // MA20 Line
+        if (Array.isArray(this.payload.ma20) && this.payload.ma20.length > 0) {
+          const ma20Series = this.mainChart.addLineSeries({
+            color: '#f59e0b',
+            lineWidth: 1.5,
+            priceLineVisible: false,
+            lastValueVisible: false,
+          });
+          ma20Series.setData(this.payload.ma20);
+        }
+
+        // Strategy-specific overlays
+        const strat = (this.payload.trade.strategy_label || '').toLowerCase();
+        if (strat === 'bottom_to_top' && Array.isArray(this.payload.bb_lower) && this.payload.bb_lower.length > 0) {
+          const bbUpper = this.mainChart.addLineSeries({
+            color: 'rgba(56, 189, 248, 0.45)',
+            lineWidth: 1,
+            lineStyle: LightweightCharts.LineStyle.Dotted,
+            priceLineVisible: false,
+            lastValueVisible: false,
+          });
+          const bbLower = this.mainChart.addLineSeries({
+            color: 'rgba(56, 189, 248, 0.75)',
+            lineWidth: 1,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            priceLineVisible: false,
+            lastValueVisible: false,
+          });
+          bbUpper.setData(this.payload.bb_upper || []);
+          bbLower.setData(this.payload.bb_lower || []);
+        } else if (['gabungan', 'bottom_rebound'].includes(strat) && Array.isArray(this.payload.high20) && this.payload.high20.length > 0) {
+          const high20Series = this.mainChart.addLineSeries({
+            color: 'rgba(148, 163, 184, 0.45)',
+            lineWidth: 1,
+            lineStyle: LightweightCharts.LineStyle.Dotted,
+            priceLineVisible: false,
+            lastValueVisible: false,
+          });
+          high20Series.setData(this.payload.high20);
+        }
+
+        // Horizontal Price Lines (Entry, Hard SL, TP1, TP2, Trailing Stop)
+        this.drawStrategyPriceLines();
+
+        // 2. RSI(14) Chart
+        this.rsiChart = LightweightCharts.createChart(rsiEl, {
+          ...baseOptions,
+          width: rsiEl.clientWidth || chartWidth,
+          height: rsiEl.clientHeight || 135,
+        });
+        const rsiSeries = this.rsiChart.addLineSeries({
+          color: '#a78bfa',
+          lineWidth: 2,
+          priceLineVisible: false,
+        });
+        rsiSeries.setData(this.payload.rsi14 || []);
+        rsiSeries.createPriceLine({ price: 60, color: 'rgba(16, 185, 129, 0.45)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: '60' });
+        rsiSeries.createPriceLine({ price: 30, color: 'rgba(244, 63, 94, 0.55)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: '30' });
+
+        // 3. MACD (12, 26, 9) Chart
+        this.macdChart = LightweightCharts.createChart(macdEl, {
+          ...baseOptions,
+          width: macdEl.clientWidth || chartWidth,
+          height: macdEl.clientHeight || 135,
+        });
+        const macdHist = this.macdChart.addHistogramSeries({ priceLineVisible: false });
+        macdHist.setData(this.payload.macd?.histogram || []);
+        const macdLine = this.macdChart.addLineSeries({ color: '#38bdf8', lineWidth: 1.5, priceLineVisible: false });
+        macdLine.setData(this.payload.macd?.macd || []);
+        const signalLine = this.macdChart.addLineSeries({ color: '#fb923c', lineWidth: 1.5, priceLineVisible: false });
+        signalLine.setData(this.payload.macd?.signal || []);
+
+        // Sync time scales across all 3 panes
+        const charts = [this.mainChart, this.rsiChart, this.macdChart];
+        let syncing = false;
+        charts.forEach((src) => {
+          src.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+            if (syncing || !range) return;
+            syncing = true;
+            charts.forEach((dst) => {
+              if (dst !== src) dst.timeScale().setVisibleLogicalRange(range);
+            });
+            syncing = false;
+          });
+        });
+
+        // Hover readout on main chart
+        this.mainChart.subscribeCrosshairMove((param) => {
+          if (!param || !param.seriesData) return;
+          const bar = param.seriesData.get(this.candleSeries);
+          if (bar) {
+            this.hoverInfo = `O:${this.formatNum(bar.open)} H:${this.formatNum(bar.high)} L:${this.formatNum(bar.low)} C:${this.formatNum(bar.close)}`;
+          }
+        });
+
+        this.mainChart.timeScale().fitContent();
+
+        // Responsive resize
+        this.resizeHandler = () => {
+          const w = mainEl.clientWidth || 800;
+          if (this.mainChart) this.mainChart.applyOptions({ width: w });
+          if (this.rsiChart) this.rsiChart.applyOptions({ width: rsiEl.clientWidth || w });
+          if (this.macdChart) this.macdChart.applyOptions({ width: macdEl.clientWidth || w });
+        };
+        window.addEventListener('resize', this.resizeHandler);
+      } catch (err) {
+        console.error('Chart render error:', err);
+        this.chartError = 'Gagal merender chart: ' + (err?.message || err);
+      }
     },
 
     drawStrategyPriceLines() {
@@ -715,3 +740,4 @@ function tradeDetailChart(cfg) {
 }
 </script>
 </x-app-layout>
+
