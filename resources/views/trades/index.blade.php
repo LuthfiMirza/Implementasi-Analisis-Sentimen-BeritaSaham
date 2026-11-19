@@ -262,7 +262,11 @@
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <p class="font-semibold text-slate-100">{{ $trade->stock->code }}</p>
+                <a href="{{ route('trades.show', $trade) }}"
+                   class="font-semibold text-slate-100 hover:text-sky-400 transition underline-offset-2 hover:underline"
+                   title="Buka Interactive Strategy Chart {{ $trade->stock->code }}">
+                  {{ $trade->stock->code }}
+                </a>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-medium border {{ $strategyConfig[0] }}">
                   {{ $strategyConfig[1] }}
                 </span>
@@ -397,6 +401,11 @@
             <span class="text-slate-600" x-show="fetchedAt" x-cloak>• harga <span x-text="formatTime(fetchedAt)"></span></span>
           </div>
           <div class="flex gap-2">
+            <a href="{{ route('trades.show', $trade) }}"
+               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-500/15 border border-sky-500/40
+                      text-sky-300 text-xs hover:bg-sky-500/25 transition font-semibold">
+              📈 Lihat Chart
+            </a>
             <button onclick="openCloseModal({{ $trade->id }}, '{{ $trade->stock->code }}', {{ $trade->entry_price }})"
                     class="px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30
                            text-green-400 text-xs hover:bg-green-500/20 transition font-medium">
