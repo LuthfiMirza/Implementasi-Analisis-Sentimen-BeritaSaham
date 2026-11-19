@@ -7,6 +7,7 @@ use App\Models\SystemSetting;
 use App\Models\Trade;
 use App\Services\MarketData\LiveMarketDataService;
 use App\Services\Trading\SignalRadarService;
+use App\Services\Trading\TradeChartService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -1400,6 +1401,34 @@ class TradeController extends Controller
         }
 
         return redirect()->route('trades.index')->with('success', 'Trade ditutup!');
+    }
+
+    public function show(Trade $trade, TradeChartService $chartService)
+    {
+        if ($trade->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $trade->load('stock');
+        $defaultTf = strtolower((string) $trade->strategy_label) === 'bsjp' ? '15m' : '1d';
+        $initialChart = $chartService->buildChartPayload($trade, $defaultTf);
+
+        return view('trades.show', [
+            'trade' => $trade,
+            'initialChart' => $initialChart,
+        ]);
+    }
+
+    public function chartData(Request $request, Trade $trade, TradeChartService $chartService)
+    {
+        if ($trade->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $trade->load('stock');
+        $tf = (string) $request->query('tf', '1d');
+
+        return response()->json($chartService->buildChartPayload($trade, $tf));
     }
 
     public function destroy(Trade $trade)

@@ -72,6 +72,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/trades/portofolio', [TradeController::class, 'stockbitPortfolio'])->name('trades.portofolio');
     Route::post('/trades', [TradeController::class, 'store'])->name('trades.store');
     Route::post('/trades/position-sizing', [TradeController::class, 'updatePositionSizing'])->name('trades.position-sizing');
+    Route::get('/trades/{trade}', [TradeController::class, 'show'])->whereNumber('trade')->name('trades.show');
+    Route::get('/trades/{trade}/chart-data', [TradeController::class, 'chartData'])->whereNumber('trade')->name('trades.chart-data');
     Route::post('/trades/{trade}/close', [TradeController::class, 'close'])->name('trades.close');
     Route::delete('/trades/{trade}', [TradeController::class, 'destroy'])->name('trades.destroy');
     Route::prefix('trade-journal')->name('trade-journal.')->group(function () {
