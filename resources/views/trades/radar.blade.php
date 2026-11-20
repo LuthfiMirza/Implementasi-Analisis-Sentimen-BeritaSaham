@@ -61,6 +61,48 @@
     </p>
   </div>
 
+  {{-- ── IHSG MARKET REGIME & STREAK BANNER (Protokol GEMINI.md #1) ── --}}
+  <template x-if="radar.market_regime && radar.market_regime.available">
+    <div class="glass-card rounded-2xl p-4 border-2 transition-colors"
+         :class="radar.market_regime.status === 'CASH_IS_KING'
+           ? 'border-rose-500/50 bg-rose-500/[0.06]'
+           : (radar.market_regime.status === 'DEFENSIVE'
+             ? 'border-amber-500/40 bg-amber-500/[0.05]'
+             : 'border-emerald-500/40 bg-emerald-500/[0.05]')">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="px-2.5 py-1 rounded-lg text-xs font-bold border"
+                :class="radar.market_regime.status === 'CASH_IS_KING'
+                  ? 'bg-rose-500/20 text-rose-200 border-rose-500/40'
+                  : (radar.market_regime.status === 'DEFENSIVE'
+                    ? 'bg-amber-500/20 text-amber-200 border-amber-500/40'
+                    : 'bg-emerald-500/20 text-emerald-200 border-emerald-500/40')"
+                x-text="radar.market_regime.label"></span>
+          <span class="text-sm font-mono font-bold text-slate-100">
+            IHSG <span x-text="fmtNum(radar.market_regime.close, 2)"></span>
+          </span>
+          <span class="text-xs font-mono font-semibold"
+                :class="radar.market_regime.change_1d_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'"
+                x-text="(radar.market_regime.change_1d_pct >= 0 ? '+' : '') + fmtNum(radar.market_regime.change_1d_pct, 2) + '%'"></span>
+          <span class="text-xs text-slate-400 font-mono">
+            • MA20: <span class="text-slate-200" x-text="fmtNum(radar.market_regime.ma20, 2)"></span>
+            (<span :class="radar.market_regime.vs_ma20_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'"
+                   x-text="(radar.market_regime.vs_ma20_pct >= 0 ? '+' : '') + fmtNum(radar.market_regime.vs_ma20_pct, 2) + '%'"></span>)
+          </span>
+          <template x-if="radar.market_regime.red_streak >= 2">
+            <span class="px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-[11px] font-semibold text-rose-300"
+                  x-text="'🔻 Merah ' + radar.market_regime.red_streak + ' Hari Beruntun'"></span>
+          </template>
+          <template x-if="radar.market_regime.green_streak >= 2">
+            <span class="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-[11px] font-semibold text-emerald-300"
+                  x-text="'🔺 Hijau ' + radar.market_regime.green_streak + ' Hari Beruntun'"></span>
+          </template>
+        </div>
+      </div>
+      <p class="text-xs text-slate-300 mt-2 leading-relaxed" x-text="radar.market_regime.advice"></p>
+    </div>
+  </template>
+
   {{-- ── FILTER GRADE KUALITAS SINYAL (Fase FE) ── --}}
   <div class="glass-card border border-slate-800/80 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 shadow-lg">
     <div class="flex flex-wrap items-center gap-2">
@@ -177,6 +219,20 @@
             </div>
           </div>
 
+          {{-- News Event Catalyst / Risk Pill (Pilar 1+2+3) --}}
+          <template x-if="row.news_event && row.news_event.badge && row.news_event.badge !== 'NONE'">
+            <div class="mt-2.5 pt-2 border-t border-slate-800/70">
+              <div class="flex items-start gap-1.5 text-[10.5px]">
+                <span class="shrink-0 px-1.5 py-0.5 rounded border text-[10px]"
+                      :class="row.news_event.badge_class"
+                      x-text="row.news_event.label"></span>
+                <span class="text-slate-400 line-clamp-2 leading-snug"
+                      :title="row.news_event.headline || ''"
+                      x-text="row.news_event.headline"></span>
+              </div>
+            </div>
+          </template>
+
           {{-- Action Recommendation Pill --}}
           <template x-if="row.quality?.action_advice">
             <div class="mt-3 pt-2.5 border-t border-slate-800/80 text-[10.5px]">
@@ -229,6 +285,20 @@
                    :style="`width: ${barWidth(row.distance_pp, 15)}%`"></div>
             </div>
           </div>
+
+          {{-- News Event Catalyst / Risk Pill (Pilar 1+2+3) --}}
+          <template x-if="row.news_event && row.news_event.badge && row.news_event.badge !== 'NONE'">
+            <div class="mt-2.5 pt-2 border-t border-slate-800/70">
+              <div class="flex items-start gap-1.5 text-[10.5px]">
+                <span class="shrink-0 px-1.5 py-0.5 rounded border text-[10px]"
+                      :class="row.news_event.badge_class"
+                      x-text="row.news_event.label"></span>
+                <span class="text-slate-400 line-clamp-2 leading-snug"
+                      :title="row.news_event.headline || ''"
+                      x-text="row.news_event.headline"></span>
+              </div>
+            </div>
+          </template>
 
           {{-- Action Recommendation Pill --}}
           <template x-if="row.quality?.action_advice">
@@ -289,6 +359,20 @@
             <p class="text-[10px] text-slate-500 mt-2.5" x-text="row.entry_plan"></p>
           </div>
 
+          {{-- News Event Catalyst / Risk Pill (Pilar 1+2+3) --}}
+          <template x-if="row.news_event && row.news_event.badge && row.news_event.badge !== 'NONE'">
+            <div class="mt-2.5 pt-2 border-t border-slate-800/70">
+              <div class="flex items-start gap-1.5 text-[10.5px]">
+                <span class="shrink-0 px-1.5 py-0.5 rounded border text-[10px]"
+                      :class="row.news_event.badge_class"
+                      x-text="row.news_event.label"></span>
+                <span class="text-slate-400 line-clamp-2 leading-snug"
+                      :title="row.news_event.headline || ''"
+                      x-text="row.news_event.headline"></span>
+              </div>
+            </div>
+          </template>
+
           {{-- Action Recommendation Pill --}}
           <template x-if="row.quality?.action_advice">
             <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px]">
@@ -344,6 +428,20 @@
             </div>
             <p class="text-[11px] text-slate-500 mt-1" x-text="'Jarak: ' + fmtNum(row.distance_pct) + '%'"></p>
           </div>
+
+          {{-- News Event Catalyst / Risk Pill (Pilar 1+2+3) --}}
+          <template x-if="row.news_event && row.news_event.badge && row.news_event.badge !== 'NONE'">
+            <div class="mt-2.5 pt-2 border-t border-slate-800/70">
+              <div class="flex items-start gap-1.5 text-[10.5px]">
+                <span class="shrink-0 px-1.5 py-0.5 rounded border text-[10px]"
+                      :class="row.news_event.badge_class"
+                      x-text="row.news_event.label"></span>
+                <span class="text-slate-400 line-clamp-2 leading-snug"
+                      :title="row.news_event.headline || ''"
+                      x-text="row.news_event.headline"></span>
+              </div>
+            </div>
+          </template>
 
           {{-- Action Recommendation Pill --}}
           <template x-if="row.quality?.action_advice">
