@@ -6,6 +6,7 @@ use App\Models\Stock;
 use App\Models\StockPrice;
 use App\Models\SelfRadarSignalLog;
 use App\Services\MarketData\LiveMarketDataService;
+use App\Services\News\NewsEventClassifierService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -69,11 +70,15 @@ class SignalRadarService
 
     private TradeQualityGraderService $qualityGrader;
 
+    private NewsEventClassifierService $newsClassifier;
+
     public function __construct(
         private LiveMarketDataService $liveMarketData,
-        ?TradeQualityGraderService $qualityGrader = null
+        ?TradeQualityGraderService $qualityGrader = null,
+        ?NewsEventClassifierService $newsClassifier = null
     ) {
         $this->qualityGrader = $qualityGrader ?? app(TradeQualityGraderService::class);
+        $this->newsClassifier = $newsClassifier ?? app(NewsEventClassifierService::class);
     }
 
     /**
@@ -138,16 +143,144 @@ class SignalRadarService
         $tinsBottomToTop = $this->buildTinsBottomToTopRow($tinsStock);
         $bsjpMomentum = $this->buildBsjpMomentumRows(10);
 
+        // Pilar 1+2+3: Batch-attach filtered News Event badges (CATALYST / HARD_RISK / SUSPENSION / PANIC_DROP)
+        $newsTickers = collect($gabungan)->pluck('ticker')
+            ->merge(collect($momentum)->pluck('ticker'))
+            ->merge(collect($bottomRebound)->pluck('ticker'))
+            ->merge(collect($bsjpMomentum['candidates'] ?? [])->pluck('ticker'))
+            ->push('TINS')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $newsMap = $this->newsClassifier->summarizeBatch($newsTickers, 14);
+        $attachNews = fn (array $rows) => array_map(function (array $row) use ($newsMap) {
+            $tk = strtoupper((string) ($row['ticker'] ?? ''));
+            $row['news_event'] = $newsMap[$tk] ?? null;
+
+            return $row;
+        }, array_values($rows));
+
+        $gabungan = $attachNews($gabungan);
+        $momentum = $attachNews($momentum);
+        $bottomRebound = $attachNews($bottomRebound);
+        if (is_array($tinsBottomToTop) && isset($tinsBottomToTop['ticker'])) {
+            $tinsBottomToTop['news_event'] = $newsMap[strtoupper((string) $tinsBottomToTop['ticker'])] ?? null;
+        }
+        if (isset($bsjpMomentum['candidates']) && is_array($bsjpMomentum['candidates'])) {
+            $bsjpMomentum['candidates'] = $attachNews($bsjpMomentum['candidates']);
+        }
+
         return [
-            'gabungan' => array_values($gabungan),
-            'momentum' => array_values($momentum),
-            'bottom_rebound' => array_values($bottomRebound),
+            'market_regime' => $this->buildMarketRegimeBanner(),
+            'gabungan' => $gabungan,
+            'momentum' => $momentum,
+            'bottom_rebound' => $bottomRebound,
             'self_radar' => array_values(array_slice($selfRadar, 0, 10)),
             'self_radar_top5' => $selfRadarTop5,
             'tins_bottom_to_top' => $tinsBottomToTop,
             'bsjp_momentum' => $bsjpMomentum,
             'generated_at' => now()->timezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
         ];
+    }
+
+    /**
+     * Build live IHSG Market Regime & Red-Streak Banner aligned with GEMINI.md Protocol #1.
+     *
+     * @return array<string, mixed>
+     */
+    public function buildMarketRegimeBanner(): array
+    {
+        $cacheStore = app()->environment('testing') ? 'array' : 'file';
+
+        return Cache::store($cacheStore)->remember('trades:radar-ihsg-regime:v1', now()->addMinutes(15), function () {
+            $closes = [];
+            try {
+                $resp = Http::withHeaders(['User-Agent' => 'Mozilla/5.0'])
+                    ->timeout(10)
+                    ->get('https://query2.finance.yahoo.com/v8/finance/chart/%5EJKSE', [
+                        'range' => '3mo',
+                        'interval' => '1d',
+                    ]);
+
+                if ($resp->ok()) {
+                    $result = $resp->json('chart.result.0');
+                    $rawCloses = $result['indicators']['quote'][0]['close'] ?? [];
+                    foreach ($rawCloses as $c) {
+                        if ($c !== null && (float) $c > 0) {
+                            $closes[] = (float) $c;
+                        }
+                    }
+                }
+            } catch (Throwable $e) {
+                $closes = [];
+            }
+
+            if (count($closes) < 2) {
+                return [
+                    'available' => false,
+                    'status' => 'UNKNOWN',
+                    'label' => 'Data IHSG Belum Tersedia',
+                    'advice' => 'Pastikan koneksi data pasar aktif untuk validasi rezim IHSG.',
+                ];
+            }
+
+            $latest = $closes[count($closes) - 1];
+            $prev = $closes[count($closes) - 2];
+            $chg1d = $prev > 0 ? round((($latest - $prev) / $prev) * 100, 2) : 0.0;
+            $ma20Slice = array_slice($closes, -min(20, count($closes)));
+            $ma20 = round(array_sum($ma20Slice) / count($ma20Slice), 2);
+            $vsMa20 = $ma20 > 0 ? round((($latest - $ma20) / $ma20) * 100, 2) : 0.0;
+
+            $redStreak = 0;
+            $greenStreak = 0;
+            for ($i = count($closes) - 1; $i >= 1; $i--) {
+                if ($closes[$i] < $closes[$i - 1]) {
+                    if ($greenStreak > 0) {
+                        break;
+                    }
+                    $redStreak++;
+                } elseif ($closes[$i] > $closes[$i - 1]) {
+                    if ($redStreak > 0) {
+                        break;
+                    }
+                    $greenStreak++;
+                } else {
+                    break;
+                }
+            }
+
+            $isCrashGuard = $chg1d <= -1.0 || ($latest < $ma20 && $redStreak >= 3);
+            $isBelowMa20 = $latest < $ma20;
+
+            if ($isCrashGuard) {
+                $status = 'CASH_IS_KING';
+                $label = '⛔ CASH IS KING / DEFENSIF';
+                $advice = 'IHSG sedang koreksi tajam / di bawah MA20 dengan streak merah. DILARANG all-in Drawdown Bounce Hari-1; tunggu konfirmasi candle hijau atau Day-2 Morning Flush.';
+            } elseif ($isBelowMa20) {
+                $status = 'DEFENSIVE';
+                $label = '⚠️ DEFENSIF / SELEKTIF';
+                $advice = 'IHSG di bawah MA20. Batasi alokasi 25–30% kas hanya pada sinyal Grade A+/A dengan Lower Wick >= 1,0% & tanpa Hard Risk berita.';
+            } else {
+                $status = 'BULLISH';
+                $label = '🟢 REZIM AMAN (DI ATAS MA20)';
+                $advice = 'IHSG berdiri di atas MA20. Eksekusi penuh sesuai Grade A+/A & disiplin 3-Lapis Proteksi.';
+            }
+
+            return [
+                'available' => true,
+                'close' => round($latest, 2),
+                'change_1d_pct' => $chg1d,
+                'ma20' => $ma20,
+                'vs_ma20_pct' => $vsMa20,
+                'red_streak' => $redStreak,
+                'green_streak' => $greenStreak,
+                'status' => $status,
+                'label' => $label,
+                'advice' => $advice,
+            ];
+        });
     }
 
     private function logSelfRadarTop5(array $rows): void
