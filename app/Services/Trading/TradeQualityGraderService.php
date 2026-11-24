@@ -243,6 +243,15 @@ class TradeQualityGraderService
 
         $score = max(10, min(99, $score));
 
+        // Protokol GEMINI.md #3 & #5: Skenario B Dead Low (Lower Wick < 0.5%) memiliki
+        // probabilitas 74%-85% lanjut flush esok pagi -> WAJIB di-cap maksimal Grade C (0% sizing)
+        // agar saham Tier S yang sedang falling knife tidak pernah lolos sebagai Grade A+/A.
+        $deadLowCapped = false;
+        if ($lowerWick !== null && $lowerWick < 0.5) {
+            $score = min($score, 49);
+            $deadLowCapped = true;
+        }
+
         $grade = match (true) {
             $score >= 80 => 'A+',
             $score >= 65 => 'A',
@@ -262,6 +271,7 @@ class TradeQualityGraderService
             'rsi_zone' => $rsiZone,
             'lower_wick_pct' => $lowerWick,
             'wick_scenario' => $wickScenario,
+            'dead_low_cap_applied' => $deadLowCapped,
             'vol_ratio_ma20' => $volRatio,
             'vol_zone' => $volZone,
             'ihsg_ret_1d' => $ihsgRet1d,
