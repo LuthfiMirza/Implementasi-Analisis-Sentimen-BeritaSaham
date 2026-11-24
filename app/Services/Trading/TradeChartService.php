@@ -5,12 +5,19 @@ namespace App\Services\Trading;
 use App\Models\Stock;
 use App\Models\StockPrice;
 use App\Models\Trade;
+use App\Services\News\NewsEventClassifierService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class TradeChartService
 {
+    private NewsEventClassifierService $newsClassifier;
+
+    public function __construct(?NewsEventClassifierService $newsClassifier = null)
+    {
+        $this->newsClassifier = $newsClassifier ?? app(NewsEventClassifierService::class);
+    }
     /**
      * Build complete OHLCV, technical indicators, strategy levels, and markers
      * for TradingView Lightweight Charts on /trades/{trade}.
@@ -37,7 +44,12 @@ class TradeChartService
 
         $indicators = $this->computeIndicators($bars);
         $levels = $this->computeStrategyLevels($trade, $bars, $tf);
-        $markers = $this->buildMarkers($trade, $bars, $levels, $tf);
+
+        $untilDate = ($trade->status === 'closed' && ($trade->closed_at || $trade->exit_date))
+            ? Carbon::parse($trade->closed_at ?? $trade->exit_date)->timezone('Asia/Jakarta')->addDays(7)->toDateString()
+            : null;
+        $newsSummary = $this->newsClassifier->summarizeForTicker($ticker, 30, $untilDate);
+        $markers = $this->buildMarkers($trade, $bars, $levels, $tf, $newsSummary['events'] ?? []);
 
         $lastBar = count($bars) > 0 ? $bars[count($bars) - 1] : null;
         $hasIntraday = $this->hasIntradayData($ticker, $trade);
@@ -81,6 +93,7 @@ class TradeChartService
             'macd' => $indicators['macd'],
             'levels' => $levels,
             'markers' => $markers,
+            'news_summary' => $newsSummary,
             'last_bar' => $lastBar,
         ];
     }
@@ -447,13 +460,14 @@ class TradeChartService
     }
 
     /**
-     * Build Lightweight Charts markers for BUY, PEAK, and EXIT.
+     * Build Lightweight Charts markers for BUY, PEAK, EXIT, and dated News Catalyst/Risk events.
      *
      * @param  list<array<string, mixed>>  $bars
      * @param  array<string, mixed>  $levels
+     * @param  list<array<string, mixed>>  $newsEvents
      * @return list<array<string, mixed>>
      */
-    private function buildMarkers(Trade $trade, array $bars, array $levels, string $tf): array
+    private function buildMarkers(Trade $trade, array $bars, array $levels, string $tf, array $newsEvents = []): array
     {
         if (count($bars) === 0) {
             return [];
@@ -511,6 +525,35 @@ class TradeChartService
             }
         }
 
+        // News Catalyst / Hard Risk / Suspension markers (max 4 most important dated events within chart range)
+        $minDate = $bars[0]['raw_date'] ?? null;
+        $maxDate = $bars[count($bars) - 1]['raw_date'] ?? null;
+        $addedNewsDates = [];
+        foreach ($newsEvents as $ev) {
+            if (count($addedNewsDates) >= 4) {
+                break;
+            }
+            $tag = (string) ($ev['tag'] ?? '');
+            $evDate = (string) ($ev['date'] ?? '');
+            if (! in_array($tag, ['SUSPENSION_ALERT', 'HARD_RISK', 'CATALYST'], true) || $evDate === '') {
+                continue;
+            }
+            if (($minDate && $evDate < $minDate) || ($maxDate && $evDate > $maxDate) || isset($addedNewsDates[$evDate])) {
+                continue;
+            }
+            $newsBar = $this->findClosestBar($bars, $evDate, true);
+            if ($newsBar !== null) {
+                $addedNewsDates[$evDate] = true;
+                $markers[] = [
+                    'time' => $newsBar['time'],
+                    'position' => $tag === 'CATALYST' ? 'belowBar' : 'aboveBar',
+                    'color' => $tag === 'CATALYST' ? '#10b981' : '#f43f5e',
+                    'shape' => 'square',
+                    'text' => $tag === 'CATALYST' ? '📰 CATALYST' : ($tag === 'SUSPENSION_ALERT' ? '⛔ UMA/SUSP' : '📰 RISK'),
+                ];
+            }
+        }
+
         // Lightweight Charts requires markers strictly sorted by ascending time
         usort($markers, fn (array $a, array $b) => $a['time'] <=> $b['time']);
 
@@ -542,3 +585,4 @@ class TradeChartService
         return $bars[count($bars) - 1] ?? null;
     }
 }
+

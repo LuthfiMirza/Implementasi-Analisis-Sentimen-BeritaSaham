@@ -289,6 +289,43 @@
     </div>
   </div>
 
+  {{-- ── KATALIS & RISIKO BERITA TERFILTER (Pilar 1+2+3) ── --}}
+  <div class="glass-card rounded-2xl p-4 border border-slate-800 space-y-3">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+        📰 Katalis & Risiko Berita Terkait {{ $ticker }}
+        <template x-if="payload.news_summary && payload.news_summary.badge !== 'NONE'">
+          <span class="px-2 py-0.5 rounded-md border text-[11px]"
+                :class="payload.news_summary.badge_class"
+                x-text="payload.news_summary.label"></span>
+        </template>
+      </h2>
+      <span class="text-[11px] text-slate-500"
+            x-text="payload.news_summary ? (payload.news_summary.counts.total_relevant + ' berita relevan • ' + payload.news_summary.counts.filtered_noise + ' noise dibuang') : ''"></span>
+    </div>
+
+    <template x-if="!payload.news_summary || !payload.news_summary.events || payload.news_summary.events.length === 0">
+      <p class="text-xs text-slate-500">Tidak ada katalis atau risiko berita signifikan dalam 30 hari sekitar trade ini.</p>
+    </template>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5" x-show="payload.news_summary && payload.news_summary.events && payload.news_summary.events.length > 0">
+      <template x-for="ev in (payload.news_summary?.events || [])" :key="ev.id">
+        <div class="rounded-xl bg-slate-900/70 border border-slate-800 p-3 flex flex-col justify-between gap-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold border"
+                  :class="ev.tag === 'SUSPENSION_ALERT' ? 'bg-rose-600/25 text-rose-200 border-rose-500/60'
+                    : (ev.tag === 'HARD_RISK' ? 'bg-rose-500/15 text-rose-300 border-rose-500/40'
+                    : (ev.tag === 'CATALYST' ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+                    : 'bg-amber-500/15 text-amber-300 border-amber-500/40'))"
+                  x-text="ev.label"></span>
+            <span class="text-[10px] text-slate-500 font-mono" x-text="ev.published_at || ev.date"></span>
+          </div>
+          <p class="text-xs text-slate-200 leading-snug" x-text="ev.title"></p>
+        </div>
+      </template>
+    </div>
+  </div>
+
   {{-- ── QUICK CLOSE MODAL (ONLY IF OPEN) ── --}}
   @if($isOpen)
     <div x-show="showCloseModal" x-cloak
