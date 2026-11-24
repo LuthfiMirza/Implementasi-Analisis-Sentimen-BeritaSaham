@@ -350,3 +350,34 @@ Berdasarkan 25 closed trades Aug-Sep:
   - BSJP Tracker: `http://127.0.0.1:8000/trades/bsjp-tracker`
   - Trade Journal: `http://127.0.0.1:8000/trades`
 
+---
+
+## 2026-11-18 s/d 2026-11-20
+
+### Rekonsiliasi & Koreksi 5 Hari Beruntun IHSG
+- **BSJP `#42 CENT`**: Ditutup **WIN @ Rp 76 (`+2,70%` gross / `+2,29%` net)** tepat pada pembukaan 18 Nov 09:00 WIB (High 79).
+- **IHSG (`^JKSE`)**: Mengalami 5 hari merah berturut-turut hingga Jumat 20 Nov (**5.146,33 / `-0,92%`**), sempat jebol tipis di bawah MA20 (`5.160,11`) dengan *lower wick* `+1,01%` dari Low 5.094,89.
+- **Auto-Close 3-Lapis Proteksi (20 Nov)**:
+  - `#916 RAJA`: Auto-Close TS 2% @ **Rp 444,92 (`+3,95%`)**
+  - `#914 ENRG`: Auto-Close TS 2% @ **Rp 568,40 (`+2,41%`)**
+  - `#912 PTRO`: Auto-Close TS 2% @ **Rp 2.263,80 (`+1,06%`)**
+  - `#905 BUMI`: Auto-Close TS 2% @ **Rp 120,54 (`-0,38%`)**
+  - `#908 BRPT`: Auto-Close TS 2% @ **Rp 656,60 (`-1,26%`)** *(terselamatkan dari guyuran sore ke 625 / `-6,02%`)*
+
+---
+
+## 2026-11-23 s/d 2026-11-24
+
+### Konfirmasi Rebound IHSG 2 Hari Berturut-Turut di Atas MA20
+- **Senin, 23 Nov 2026**: IHSG sempat *morning flush* ke Low **5.062,09** lalu memantul kuat membentuk *Bullish Hammer* (`Wick +3,04%`) ditutup **`+1,35%` di 5.215,85** (kembali di atas MA20 `5.152,24`).
+- **Selasa, 24 Nov 2026**: IHSG lanjut menguat **`+0,79%` di 5.257,21** (bertahan 2 hari di atas MA20 `5.151,80`, MACD Histogram mulai berbalik naik `+44,86 ➔ +44,88`).
+- **Status Rezim (`GEMINI.md`)**: **BULLISH REBOUND TERKONFIRMASI (AMAN ENTRY)**.
+
+### Panen Auto-Close & Scan Sinyal 24 Nov 2026 (15:35 WIB)
+- **Panen Auto-Close (`24 Nov 15:15 WIB`)**: **`#910 ESSA` (`GABUNGAN`, Entry 19 Nov @ 498)** memuncak di Rp 530 (`+6,4%`) ➔ Auto-Close TS 2% @ **Rp 519,40 (`+4,30%` CUAN)**.
+- **Kandidat Utama 24 Nov Pre-Closing (15:50 WIB)**:
+  1. **BSJP Momentum #1**: **`ISAT` @ Rp 1.500** (`+10,29%`, Vol Spike `2,44x`, Trx **Rp 150,30 M**, *Upper Wick* hanya `0,67%` Marubozu, News `🟢 CATALYST` Data Center). Target besok Rp 1.540 (`+2,67%`), SL Rp 1.455 (`-3,0%`).
+  2. **GABUNGAN Swing #1**: **`ENRG` @ Rp 550–555** (**Grade A+ Skor 99**, *Lower Wick* `+2,78%` Skenario A, RSI 32,6, News `🟢 CATALYST` Temuan Sumber Minyak Malacca Strait). TP1 Rp 585 (`+5,4%`), SL Rp 535 (`-3,5%`).
+  3. **Ditolak/Dihindari**: `NZIA` (*Upper Wick* `19,66%`), `BAJA` (*Upper Wick* `12,90%`), dan `BRPT` (*Dead Low* `0,00%` + *Upper Wick* `11,03%`).
+
+
