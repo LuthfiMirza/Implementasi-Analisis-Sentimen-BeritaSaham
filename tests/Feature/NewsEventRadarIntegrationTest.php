@@ -102,4 +102,33 @@ class NewsEventRadarIntegrationTest extends TestCase
         $markerTexts = array_column($chart['markers'], 'text');
         $this->assertContains('📰 CATALYST', $markerTexts);
     }
+
+    public function test_dead_low_hard_cap_prevents_falling_knife_from_getting_grade_a_plus(): void
+    {
+        $grader = app(\App\Services\Trading\TradeQualityGraderService::class);
+
+        // BRPT (Tier S) with Dead Low (0.00% wick) must be capped at Grade C (0% sizing)
+        $brptDeadLow = $grader->gradeTrade('BRPT', 'gabungan', [
+            'rsi_14' => 31.07,
+            'lower_wick_pct' => 0.0,
+            'vol_ratio_ma20' => 1.27,
+        ], null, 'drawdown');
+
+        $this->assertSame('C', $brptDeadLow['grade']);
+        $this->assertLessThanOrEqual(49, $brptDeadLow['quality_score']);
+        $this->assertSame(0, $brptDeadLow['recommended_sizing_pct']);
+        $this->assertSame('WAIT_DAY2_FLUSH', $brptDeadLow['dss_status']);
+        $this->assertTrue($brptDeadLow['snapshot']['dead_low_cap_applied']);
+
+        // ENRG (Tier A) with ideal Skenario A Lower Wick (2.78%) keeps Grade A+
+        $enrgIdeal = $grader->gradeTrade('ENRG', 'gabungan', [
+            'rsi_14' => 32.98,
+            'lower_wick_pct' => 2.78,
+            'vol_ratio_ma20' => 0.71,
+        ], null, 'drawdown');
+
+        $this->assertSame('A+', $enrgIdeal['grade']);
+        $this->assertSame(100, $enrgIdeal['recommended_sizing_pct']);
+        $this->assertFalse($enrgIdeal['snapshot']['dead_low_cap_applied']);
+    }
 }
