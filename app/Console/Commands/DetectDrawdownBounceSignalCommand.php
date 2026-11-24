@@ -196,6 +196,13 @@ class DetectDrawdownBounceSignalCommand extends Command
                 'open_positions.json untuk alert Telegram.';
 
             $indicators = $grader->computeIndicatorsForDate($stock, $dateStr);
+            $foreignFlow = app(\App\Services\MarketData\IdxForeignFlowService::class)->summarize($ticker, 5);
+            if (is_array($foreignFlow)) {
+                $indicators['foreign_status'] = $foreignFlow['status'];
+                $indicators['foreign_net_1d_rp'] = $foreignFlow['net_1d_rp'];
+                $indicators['foreign_net_5d_rp'] = $foreignFlow['net_5d_rp'];
+                $indicators['foreign_buy_days'] = $foreignFlow['buy_days'];
+            }
             $graded = $grader->gradeTrade($ticker, $strategyLabelColumn, $indicators, $notes, $detail);
 
             Trade::create([

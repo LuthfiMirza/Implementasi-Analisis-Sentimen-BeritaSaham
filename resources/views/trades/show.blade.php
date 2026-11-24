@@ -267,6 +267,17 @@
             @endif
           </p>
         </div>
+        <template x-if="payload.foreign_flow">
+          <div class="col-span-2 rounded-xl bg-slate-900/70 border border-slate-800 p-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p class="text-slate-500 text-[11px]">Arus Dana Asing Resmi BEI (5 Hari)</p>
+              <p class="text-slate-200 font-mono font-semibold mt-0.5" x-text="payload.foreign_flow.summary_text"></p>
+            </div>
+            <span class="px-2 py-0.5 rounded-md border text-[11px]"
+                  :class="payload.foreign_flow.badge_class"
+                  x-text="payload.foreign_flow.label"></span>
+          </div>
+        </template>
       </div>
     </div>
 

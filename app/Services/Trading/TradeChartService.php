@@ -5,6 +5,7 @@ namespace App\Services\Trading;
 use App\Models\Stock;
 use App\Models\StockPrice;
 use App\Models\Trade;
+use App\Services\MarketData\IdxForeignFlowService;
 use App\Services\News\NewsEventClassifierService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -14,9 +15,14 @@ class TradeChartService
 {
     private NewsEventClassifierService $newsClassifier;
 
-    public function __construct(?NewsEventClassifierService $newsClassifier = null)
-    {
+    private IdxForeignFlowService $foreignFlowService;
+
+    public function __construct(
+        ?NewsEventClassifierService $newsClassifier = null,
+        ?IdxForeignFlowService $foreignFlowService = null
+    ) {
         $this->newsClassifier = $newsClassifier ?? app(NewsEventClassifierService::class);
+        $this->foreignFlowService = $foreignFlowService ?? app(IdxForeignFlowService::class);
     }
     /**
      * Build complete OHLCV, technical indicators, strategy levels, and markers
@@ -94,6 +100,7 @@ class TradeChartService
             'levels' => $levels,
             'markers' => $markers,
             'news_summary' => $newsSummary,
+            'foreign_flow' => $this->foreignFlowService->summarize($ticker, 5),
             'last_bar' => $lastBar,
         ];
     }
