@@ -5,6 +5,7 @@ namespace App\Services\Trading;
 use App\Models\Stock;
 use App\Models\StockPrice;
 use App\Models\SelfRadarSignalLog;
+use App\Services\MarketData\IdxForeignFlowService;
 use App\Services\MarketData\LiveMarketDataService;
 use App\Services\News\NewsEventClassifierService;
 use Carbon\Carbon;
@@ -72,13 +73,17 @@ class SignalRadarService
 
     private NewsEventClassifierService $newsClassifier;
 
+    private IdxForeignFlowService $foreignFlowService;
+
     public function __construct(
         private LiveMarketDataService $liveMarketData,
         ?TradeQualityGraderService $qualityGrader = null,
-        ?NewsEventClassifierService $newsClassifier = null
+        ?NewsEventClassifierService $newsClassifier = null,
+        ?IdxForeignFlowService $foreignFlowService = null
     ) {
         $this->qualityGrader = $qualityGrader ?? app(TradeQualityGraderService::class);
         $this->newsClassifier = $newsClassifier ?? app(NewsEventClassifierService::class);
+        $this->foreignFlowService = $foreignFlowService ?? app(IdxForeignFlowService::class);
     }
 
     /**
@@ -155,21 +160,25 @@ class SignalRadarService
             ->all();
 
         $newsMap = $this->newsClassifier->summarizeBatch($newsTickers, 14);
-        $attachNews = fn (array $rows) => array_map(function (array $row) use ($newsMap) {
+        $foreignMap = $this->foreignFlowService->summarizeBatch($newsTickers, 5);
+        $attachEnrichments = fn (array $rows) => array_map(function (array $row) use ($newsMap, $foreignMap) {
             $tk = strtoupper((string) ($row['ticker'] ?? ''));
             $row['news_event'] = $newsMap[$tk] ?? null;
+            $row['foreign_flow'] = $foreignMap[$tk] ?? null;
 
             return $row;
         }, array_values($rows));
 
-        $gabungan = $attachNews($gabungan);
-        $momentum = $attachNews($momentum);
-        $bottomRebound = $attachNews($bottomRebound);
+        $gabungan = $attachEnrichments($gabungan);
+        $momentum = $attachEnrichments($momentum);
+        $bottomRebound = $attachEnrichments($bottomRebound);
         if (is_array($tinsBottomToTop) && isset($tinsBottomToTop['ticker'])) {
-            $tinsBottomToTop['news_event'] = $newsMap[strtoupper((string) $tinsBottomToTop['ticker'])] ?? null;
+            $tinsTk = strtoupper((string) $tinsBottomToTop['ticker']);
+            $tinsBottomToTop['news_event'] = $newsMap[$tinsTk] ?? null;
+            $tinsBottomToTop['foreign_flow'] = $foreignMap[$tinsTk] ?? null;
         }
         if (isset($bsjpMomentum['candidates']) && is_array($bsjpMomentum['candidates'])) {
-            $bsjpMomentum['candidates'] = $attachNews($bsjpMomentum['candidates']);
+            $bsjpMomentum['candidates'] = $attachEnrichments($bsjpMomentum['candidates']);
         }
 
         return [

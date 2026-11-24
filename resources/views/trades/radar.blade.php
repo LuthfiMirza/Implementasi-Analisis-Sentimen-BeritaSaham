@@ -219,6 +219,17 @@
             </div>
           </div>
 
+          {{-- Foreign Flow 5D Pill (idx CLI resmi idx.co.id) --}}
+          <template x-if="row.foreign_flow">
+            <div class="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2 text-[10.5px]">
+              <span class="shrink-0 px-1.5 py-0.5 rounded border text-[10px]"
+                    :class="row.foreign_flow.badge_class"
+                    x-text="row.foreign_flow.label"></span>
+              <span class="font-mono text-slate-300 truncate"
+                    x-text="row.foreign_flow.summary_text"></span>
+            </div>
+          </template>
+
           {{-- News Event Catalyst / Risk Pill (Pilar 1+2+3) --}}
           <template x-if="row.news_event && row.news_event.badge && row.news_event.badge !== 'NONE'">
             <div class="mt-2.5 pt-2 border-t border-slate-800/70">
@@ -285,6 +296,17 @@
                    :style="`width: ${barWidth(row.distance_pp, 15)}%`"></div>
             </div>
           </div>
+
+          {{-- Foreign Flow 5D Pill (idx CLI resmi idx.co.id) --}}
+          <template x-if="row.foreign_flow">
+            <div class="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2 text-[10.5px]">
+              <span class="shrink-0 px-1.5 py-0.5 rounded border text-[10px]"
+                    :class="row.foreign_flow.badge_class"
+                    x-text="row.foreign_flow.label"></span>
+              <span class="font-mono text-slate-300 truncate"
+                    x-text="row.foreign_flow.summary_text"></span>
+            </div>
+          </template>
 
           {{-- News Event Catalyst / Risk Pill (Pilar 1+2+3) --}}
           <template x-if="row.news_event && row.news_event.badge && row.news_event.badge !== 'NONE'">
@@ -359,6 +381,17 @@
             <p class="text-[10px] text-slate-500 mt-2.5" x-text="row.entry_plan"></p>
           </div>
 
+          {{-- Foreign Flow 5D Pill (idx CLI resmi idx.co.id) --}}
+          <template x-if="row.foreign_flow">
+            <div class="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2 text-[10.5px]">
+              <span class="shrink-0 px-1.5 py-0.5 rounded border text-[10px]"
+                    :class="row.foreign_flow.badge_class"
+                    x-text="row.foreign_flow.label"></span>
+              <span class="font-mono text-slate-300 truncate"
+                    x-text="row.foreign_flow.summary_text"></span>
+            </div>
+          </template>
+
           {{-- News Event Catalyst / Risk Pill (Pilar 1+2+3) --}}
           <template x-if="row.news_event && row.news_event.badge && row.news_event.badge !== 'NONE'">
             <div class="mt-2.5 pt-2 border-t border-slate-800/70">
@@ -428,6 +461,17 @@
             </div>
             <p class="text-[11px] text-slate-500 mt-1" x-text="'Jarak: ' + fmtNum(row.distance_pct) + '%'"></p>
           </div>
+
+          {{-- Foreign Flow 5D Pill (idx CLI resmi idx.co.id) --}}
+          <template x-if="row.foreign_flow">
+            <div class="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2 text-[10.5px]">
+              <span class="shrink-0 px-1.5 py-0.5 rounded border text-[10px]"
+                    :class="row.foreign_flow.badge_class"
+                    x-text="row.foreign_flow.label"></span>
+              <span class="font-mono text-slate-300 truncate"
+                    x-text="row.foreign_flow.summary_text"></span>
+            </div>
+          </template>
 
           {{-- News Event Catalyst / Risk Pill (Pilar 1+2+3) --}}
           <template x-if="row.news_event && row.news_event.badge && row.news_event.badge !== 'NONE'">
