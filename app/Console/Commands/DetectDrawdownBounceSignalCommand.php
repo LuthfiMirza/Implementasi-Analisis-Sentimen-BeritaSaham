@@ -195,7 +195,8 @@ class DetectDrawdownBounceSignalCommand extends Command
                 '(trailing stop 2% / target waktu 10 hari) -- posisi ini juga terdaftar di '.
                 'open_positions.json untuk alert Telegram.';
 
-            $graded = $grader->gradeTrade($ticker, $strategyLabelColumn, [], $notes, $detail);
+            $indicators = $grader->computeIndicatorsForDate($stock, $dateStr);
+            $graded = $grader->gradeTrade($ticker, $strategyLabelColumn, $indicators, $notes, $detail);
 
             Trade::create([
                 'user_id' => 2,

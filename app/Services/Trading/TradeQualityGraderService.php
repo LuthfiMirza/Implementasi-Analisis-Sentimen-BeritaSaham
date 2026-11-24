@@ -2,6 +2,8 @@
 
 namespace App\Services\Trading;
 
+use App\Models\Stock;
+use App\Models\StockPrice;
 use App\Models\Trade;
 use Illuminate\Support\Collection;
 
@@ -20,6 +22,80 @@ class TradeQualityGraderService
     public function isBlacklisted(string $ticker): bool
     {
         return in_array(strtoupper(trim($ticker)), self::BLACKLISTED_TICKERS, true);
+    }
+
+    /**
+     * Compute real RSI(14) Wilder, Lower Wick (%), and Volume Ratio vs MA20
+     * from stock_prices up to $dateStr so auto-synced trades are graded identically to Signal Radar.
+     *
+     * @return array<string, float|null>
+     */
+    public function computeIndicatorsForDate(Stock $stock, string $dateStr): array
+    {
+        $rows = StockPrice::query()
+            ->where('stock_id', $stock->id)
+            ->whereDate('price_date', '<=', $dateStr)
+            ->whereNotNull('close')
+            ->orderByDesc('price_date')
+            ->limit(120)
+            ->get()
+            ->sortBy('price_date')
+            ->values();
+
+        if (method_exists(StockPrice::class, 'canonicalize')) {
+            $rows = StockPrice::canonicalize($rows)->values();
+        }
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $latest = $rows->last();
+        $close = (float) $latest->close;
+        $low = (float) ($latest->low ?: $close);
+        $lowerWick = $low > 0 ? round((($close - $low) / $low) * 100, 2) : null;
+
+        // Volume ratio vs 20-day avg volume (excluding latest bar)
+        $vols = $rows->pluck('volume')->map(fn ($v) => (float) ($v ?? 0))->all();
+        $n = count($vols);
+        $volRatio = null;
+        if ($n >= 2) {
+            $prevVols = array_slice($vols, max(0, $n - 21), min(20, $n - 1));
+            $avgVol = count($prevVols) > 0 ? array_sum($prevVols) / count($prevVols) : 0.0;
+            if ($avgVol > 0) {
+                $volRatio = round($vols[$n - 1] / $avgVol, 2);
+            }
+        }
+
+        // Wilder RSI(14)
+        $closes = $rows->pluck('close')->map(fn ($c) => (float) $c)->all();
+        $rsi14 = null;
+        if (count($closes) >= 16) {
+            $alpha = 1.0 / 14.0;
+            $avgGain = null;
+            $avgLoss = null;
+            for ($i = 1; $i < count($closes); $i++) {
+                $delta = $closes[$i] - $closes[$i - 1];
+                $gain = max($delta, 0.0);
+                $loss = max(-$delta, 0.0);
+                if ($avgGain === null) {
+                    $avgGain = $gain;
+                    $avgLoss = $loss;
+                } else {
+                    $avgGain = (1.0 - $alpha) * $avgGain + $alpha * $gain;
+                    $avgLoss = (1.0 - $alpha) * $avgLoss + $alpha * $loss;
+                }
+            }
+            if ($avgLoss !== null) {
+                $rsi14 = $avgLoss == 0.0 ? 100.0 : round(100.0 - (100.0 / (1.0 + ($avgGain / $avgLoss))), 2);
+            }
+        }
+
+        return [
+            'rsi_14' => $rsi14,
+            'lower_wick_pct' => $lowerWick,
+            'vol_ratio_ma20' => $volRatio,
+        ];
     }
 
     public function inferSubSignal(?string $strategyLabel, ?string $notes, ?string $explicitDetail = null): string
