@@ -19,6 +19,75 @@ class TradeQualityGraderService
         'BUMI', 'ENRG', 'RAJA',
     ];
 
+    /**
+     * Fase FF-1 (Walk-Forward OOS Calmar 28.08, MaxDD -61.3%):
+     * Conglomerate/sector clusters where holding >1 concurrent position concentrates risk.
+     *
+     * @var array<string, string>
+     */
+    public const CONGLOMERATE_CLUSTERS = [
+        'BUMI' => 'BAKRIE',
+        'DEWA' => 'BAKRIE',
+        'ENRG' => 'BAKRIE',
+        'BRMS' => 'BAKRIE',
+        'BRPT' => 'BARITO',
+        'BREN' => 'BARITO',
+        'CUAN' => 'BARITO',
+        'TPIA' => 'BARITO',
+        'PTRO' => 'BARITO_ENERGY',
+        'RAJA' => 'HAPSORO_ENERGY',
+        'BBCA' => 'BIG_BANKS',
+        'BBRI' => 'BIG_BANKS',
+        'BMRI' => 'BIG_BANKS',
+        'BBNI' => 'BIG_BANKS',
+        'SMGR' => 'CEMENT',
+        'INTP' => 'CEMENT',
+    ];
+
+    public function getCluster(string $ticker): ?string
+    {
+        $code = strtoupper(trim($ticker));
+
+        return self::CONGLOMERATE_CLUSTERS[$code] ?? null;
+    }
+
+    /**
+     * Check whether opening $ticker conflicts with an already-open position in the same cluster
+     * (max 1 concurrent position per conglomerate cluster).
+     *
+     * @param  list<string>  $openTickers
+     * @return array{cluster: ?string, conflict: bool, open_cluster_tickers: list<string>, warning: ?string}
+     */
+    public function checkClusterConflict(string $ticker, array $openTickers): array
+    {
+        $code = strtoupper(trim($ticker));
+        $cluster = $this->getCluster($code);
+        if ($cluster === null) {
+            return [
+                'cluster' => null,
+                'conflict' => false,
+                'open_cluster_tickers' => [],
+                'warning' => null,
+            ];
+        }
+
+        $peers = array_values(array_unique(array_filter(
+            array_map(fn ($t) => strtoupper(trim((string) $t)), $openTickers),
+            fn (string $t) => $t !== '' && $t !== $code && $this->getCluster($t) === $cluster
+        )));
+
+        $conflict = count($peers) > 0;
+
+        return [
+            'cluster' => $cluster,
+            'conflict' => $conflict,
+            'open_cluster_tickers' => $peers,
+            'warning' => $conflict
+                ? sprintf('Kluster %s sudah terisi (%s) — batas FF-1 maks 1 posisi/kluster.', $cluster, implode(', ', $peers))
+                : null,
+        ];
+    }
+
     public function isBlacklisted(string $ticker): bool
     {
         return in_array(strtoupper(trim($ticker)), self::BLACKLISTED_TICKERS, true);
@@ -259,8 +328,11 @@ class TradeQualityGraderService
             default => 'C',
         };
 
+        // Fase FF-1 Walk-Forward OOS (628 trades, 4 folds):
+        // Grade A+ = 125% boosts PF 3.97 -> 4.74 & PnL +228.97 -> +246.51 Jt while cutting F4 Crisis DD.
         $recommendedSizingPct = match ($grade) {
-            'A+', 'A' => 100,
+            'A+' => 125,
+            'A' => 100,
             'B' => 50,
             default => 0,
         };

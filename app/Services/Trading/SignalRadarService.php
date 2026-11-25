@@ -161,10 +161,15 @@ class SignalRadarService
 
         $newsMap = $this->newsClassifier->summarizeBatch($newsTickers, 14);
         $foreignMap = $this->foreignFlowService->summarizeBatch($newsTickers, 5);
-        $attachEnrichments = fn (array $rows) => array_map(function (array $row) use ($newsMap, $foreignMap) {
+        $openTickers = Schema::hasTable('trades')
+            ? DB::table('trades')->where('status', 'open')->pluck('ticker')->filter()->map(fn ($t) => strtoupper((string) $t))->unique()->values()->all()
+            : [];
+
+        $attachEnrichments = fn (array $rows) => array_map(function (array $row) use ($newsMap, $foreignMap, $openTickers) {
             $tk = strtoupper((string) ($row['ticker'] ?? ''));
             $row['news_event'] = $newsMap[$tk] ?? null;
             $row['foreign_flow'] = $foreignMap[$tk] ?? null;
+            $row['cluster_guard'] = $tk !== '' ? $this->qualityGrader->checkClusterConflict($tk, $openTickers) : null;
 
             return $row;
         }, array_values($rows));
