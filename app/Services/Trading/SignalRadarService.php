@@ -7,6 +7,7 @@ use App\Models\StockPrice;
 use App\Models\SelfRadarSignalLog;
 use App\Services\MarketData\IdxForeignFlowService;
 use App\Services\MarketData\LiveMarketDataService;
+use App\Services\MarketData\MarketBreadthAndMacroService;
 use App\Services\News\NewsEventClassifierService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -75,15 +76,19 @@ class SignalRadarService
 
     private IdxForeignFlowService $foreignFlowService;
 
+    private MarketBreadthAndMacroService $macroGateService;
+
     public function __construct(
         private LiveMarketDataService $liveMarketData,
         ?TradeQualityGraderService $qualityGrader = null,
         ?NewsEventClassifierService $newsClassifier = null,
-        ?IdxForeignFlowService $foreignFlowService = null
+        ?IdxForeignFlowService $foreignFlowService = null,
+        ?MarketBreadthAndMacroService $macroGateService = null
     ) {
         $this->qualityGrader = $qualityGrader ?? app(TradeQualityGraderService::class);
         $this->newsClassifier = $newsClassifier ?? app(NewsEventClassifierService::class);
         $this->foreignFlowService = $foreignFlowService ?? app(IdxForeignFlowService::class);
+        $this->macroGateService = $macroGateService ?? app(MarketBreadthAndMacroService::class);
     }
 
     /**
@@ -188,6 +193,7 @@ class SignalRadarService
 
         return [
             'market_regime' => $this->buildMarketRegimeBanner(),
+            'macro_risk_gate' => $this->macroGateService->buildGate(),
             'gabungan' => $gabungan,
             'momentum' => $momentum,
             'bottom_rebound' => $bottomRebound,
