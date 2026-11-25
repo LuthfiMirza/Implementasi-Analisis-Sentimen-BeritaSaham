@@ -247,5 +247,27 @@ Seluruh 591 trade telah terisi telemetri indikator & Grade Kualitas. Filter blac
 #### 3. Status Fase FE: SELESAI (Aktif Produksi).
 Sistem radar cerdas berbasis Grade Kualitas, dasbor ekskursi MFE interaktif, dan watchdog monitor kini beroperasi penuh.
 
+---
+
+### Roadmap Fase Berikutnya (Fase FF – FH: Direncanakan 26 Nov 2026)
+
+Berdasarkan audit forensik 628 closed trades (`+Rp 283,4 Jt`), 186.170 bar 15-menit, dan evaluasi 75 stop loss pada rezim koreksi Okt–Nov 2026 (`-Rp 25,97 Jt`):
+
+1. **Fase FF (Prioritas #1 — Sizing, Breadth, Cluster Cap, & Upgrade Exit Engine)**:
+   - **FF-1**: Walk-Forward OOS Backtest *Grade-Weighted Sizing* (`Grade C = 0%`, `B = 50%`, `A = 100%`, `A+ = 125–150%`), *Market Breadth Gate* (`>= 35%`), dan *Cluster Exposure Cap* (maks 1 posisi per kluster korelasi `r > 0,65`).
+   - **FF-2**: Walk-Forward OOS Backtest *Activation-Buffered / ATR-Adaptive Trailing Stop*, *Scale-Out Partial TP (50/50)*, dan audit perbaikan *Chronological Intraday Hard SL*.
+   - **FF-3**: Implementasi produksi hanya untuk parameter yang lolos OOS + unit test & atomic commits.
+2. **Fase FG (Prioritas #2 — Perbaikan Data Inti & Strategi Anti-Crash `RS_DEFENSIVE`)**:
+   - **FG-1**: Perbaikan pipeline *Foreign Flow* (`idx_daily_summaries` macet `0` sejak 17 Nov 2026) + metrik *Foreign Streak 3–5d* & *Participation Ratio*.
+   - **FG-2**: Pembangunan *Market Breadth Logger* & *Overnight Macro / Corporate Event Risk Gate* (`USD/IDR`, `^IXIC`, `GC=F`, `BZ=F`, kalender MSCI/FOMC/PCE).
+   - **FG-3**: Riset & Walk-Forward OOS Strategi Baru **`RS_DEFENSIVE`** (*Defensive Relative Strength Rotation* pada BigCap/Defensif saat IHSG melemah).
+3. **Fase FH (Prioritas #3 — Microstructure Intraday, `DAY2_FLUSH_CATCHER`, & BSJP/Bottom-Rebound Gate)**:
+   - **FH-1**: Evaluasi OOS fitur *Intraday VWAP* & *Late-Session Volume Ratio (`14:30–16:00`)* pada `intraday_prices`.
+   - **FH-2**: Backtest Walk-Forward **`DAY2_FLUSH_CATCHER`** (otomatisasi Skenario B Hari ke-2) & *Regime-Gated BSJP / BOTTOM_REBOUND*.
+   - **FH-3**: Integrasi produksi tervalidasi, full PHPUnit regression test, dan update dokumentasi `plan.md` & `GEMINI.md`.
+
+**Status Fase FF–FH**: `PLANNED — SIAP EKSEKUSI` (Commit & push dilakukan secara atomik per sub-fase).
+
+
 
 
