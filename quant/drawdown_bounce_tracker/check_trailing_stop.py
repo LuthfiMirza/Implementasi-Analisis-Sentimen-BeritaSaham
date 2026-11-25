@@ -136,7 +136,11 @@ def compute_snapshot(
             if (strategy == "BOTTOM_TO_TOP" and gain_from_entry >= 0.03)
             else PULLBACK_THRESHOLD
         )
-        if pullback < eff_thresh:
+        ts_ready_on_latest = (
+            peak >= entry_price * (1.0 + TS_ACTIVATION_BUFFER)
+            and pullback >= eff_thresh
+        )
+        if not ts_ready_on_latest:
             r_peak = entry_price
             r_peak_ts = after_entry_day.index[0]
             best_trig: dict | None = None
