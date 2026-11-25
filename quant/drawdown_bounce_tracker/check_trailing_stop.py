@@ -52,6 +52,9 @@ from detect_signal import send_telegram_alert  # noqa: E402
 PULLBACK_THRESHOLD = 0.02  # 2% -- tighter than daily ATR (~5.8-6.0%), chosen deliberately by the
 # user after seeing this WILL fire on ordinary intraday noise sometimes, in exchange for catching
 # genuine reversals close to real-time instead of lagging by up to 1.5h.
+TS_ACTIVATION_BUFFER = 0.02  # Fase FF-2 OOS (193 trades, 15m chronological): TS 2.0% only activates
+# once Peak >= Entry * 1.02 (+2.0% buffer), winning BOTH Discovery (PF 3.37->3.48) & Holdout Crisis
+# (PF 1.01->1.03), lifting WR 45.1%->50.8% & slashing negative trailing-stop exits by 74.5%.
 NEW_HIGH_THRESHOLD = 0.05  # 5% -- Fase AU: new peak counts as a "milestone" worth a PUNCAK BARU
 # alert once it's this much above the last-notified peak (or entry price, before the first one).
 TARGET_HOLD_DAYS = 10  # trading days -- the exit that won in Fase AB/AD/AE
@@ -143,7 +146,7 @@ def compute_snapshot(
                 if h > r_peak:
                     r_peak = h
                     r_peak_ts = ts
-                if r_peak > entry_price:
+                if r_peak >= entry_price * (1.0 + TS_ACTIVATION_BUFFER):
                     r_gain = (r_peak - entry_price) / entry_price
                     r_thresh = (
                         0.025
@@ -247,10 +250,10 @@ def check_position(position: dict) -> None:
     alerted_at_peak = position.get("alerted_pullback_at_peak") or 0
     ts_level_price = round(peak * (1 - pullback_thresh), 2)
     has_ts_triggered = False
-    # GEMINI.md Seksi 3.1: trailing stop HANYA aktif bila Peak > Entry. Jika harga belum pernah
-    # naik di atas entry, penurunan dari entry adalah urusan Lapis 1 (Hard SL), bukan trailing.
-    # (Bug 17 Nov 2026: BRPT entry 750, high 745 -> tercatat "trailing_stop -2%" padahal SL -3.5%.)
-    if peak > entry_price and pullback >= pullback_thresh and peak > alerted_at_peak:
+    # Fase FF-2 OOS: trailing stop HANYA aktif bila Peak >= Entry * (1 + TS_ACTIVATION_BUFFER) (+2.0%).
+    # Mencegah noise pembukaan (+0.5%..+1.8%) memicu negative trailing stop; penurunan di bawah entry
+    # tetap menjadi tanggung jawab Lapis 1 (Hard SL -3.5% / -3.0%).
+    if peak >= entry_price * (1.0 + TS_ACTIVATION_BUFFER) and pullback >= pullback_thresh and peak > alerted_at_peak:
         gain_from_entry = (peak - entry_price) / entry_price
         if is_bottom_to_top:
             title = "KUNCI PROFIT (MUNDUR 2.5% DARI PUNCAK)" if gain_from_entry >= 0.03 else "TRAILING STOP"
