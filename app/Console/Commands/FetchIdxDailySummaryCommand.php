@@ -57,8 +57,8 @@ class FetchIdxDailySummaryCommand extends Command
         foreach ($dates as $date) {
             $iso = $date->toDateString();
 
-            if (! $this->option('force') && IdxDailySummary::whereDate('trade_date', $iso)->exists()) {
-                $this->line("• {$iso} sudah ada, dilewati (pakai --force untuk timpa).");
+            if (! $this->option('force') && IdxDailySummary::whereDate('trade_date', $iso)->where('source', 'idx_scrape')->exists()) {
+                $this->line("• {$iso} (idx_scrape) sudah ada, dilewati (pakai --force untuk timpa).");
 
                 continue;
             }
@@ -106,8 +106,10 @@ class FetchIdxDailySummaryCommand extends Command
             $cursor = $cursor->subDay();
         }
 
+        // Fase FG-1: check source='idx_scrape' specifically so yahoo_live_sync rows (which carry
+        // foreign_net=0) never mask missing official IDX EOD summaries & foreign flow data.
         $missing = $expected
-            ->reject(fn (CarbonImmutable $d): bool => IdxDailySummary::whereDate('trade_date', $d->toDateString())->exists())
+            ->reject(fn (CarbonImmutable $d): bool => IdxDailySummary::whereDate('trade_date', $d->toDateString())->where('source', 'idx_scrape')->exists())
             ->sortBy(fn (CarbonImmutable $d): int => $d->getTimestamp())
             ->values();
 
