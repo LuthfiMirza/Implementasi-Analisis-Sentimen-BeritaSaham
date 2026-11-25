@@ -135,4 +135,21 @@ class FetchIdxDailySummaryCommandTest extends TestCase
 
         Process::assertNothingRan();
     }
+
+    public function test_recover_does_not_skip_dates_that_only_have_yahoo_live_sync_rows(): void
+    {
+        $this->travelTo(Carbon::parse('2026-09-02 08:30', 'Asia/Jakarta'));
+        IdxDailySummary::create([
+            'trade_date' => '2026-09-01', 'stock_code' => 'BBCA', 'close' => 1,
+            'previous' => 1, 'volume' => 1, 'value' => 1, 'source' => 'yahoo_live_sync',
+        ]);
+
+        Process::fake(['*' => Process::result(output: $this->wrapperJson('2026-09-01', [$this->idxRow('BBCA', ['__date' => '2026-09-01'])]))]);
+
+        $this->artisan('idx:fetch-daily-summary', ['--recover' => true, '--recover-days' => 1])
+            ->expectsOutputToContain('2026-09-01')
+            ->assertExitCode(0);
+
+        Process::assertRanTimes(fn ($p) => true, 1);
+    }
 }
