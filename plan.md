@@ -249,24 +249,33 @@ Sistem radar cerdas berbasis Grade Kualitas, dasbor ekskursi MFE interaktif, dan
 
 ---
 
-### Roadmap Fase Berikutnya (Fase FF – FH: Direncanakan 26 Nov 2026)
+### Fase FF – FH — Riset Kuantitatif Walk-Forward OOS, Perbaikan Pipeline Foreign Flow, Macro Risk Gate, & Microstructure (25–26 Nov 2026)
 
-Berdasarkan audit forensik 628 closed trades (`+Rp 283,4 Jt`), 186.170 bar 15-menit, dan evaluasi 75 stop loss pada rezim koreksi Okt–Nov 2026 (`-Rp 25,97 Jt`):
+Berdasarkan audit forensik 628 closed trades (`+Rp 283,4 Jt`), 186.170 bar 15-menit (`intraday_prices`), 40.650 baris resmi `idx_daily_summaries`, dan evaluasi krisis Okt–Nov 2026 (`75 stop_loss = -Rp 25,97 Jt`):
 
-1. **Fase FF (Prioritas #1 — Sizing, Breadth, Cluster Cap, & Upgrade Exit Engine)**:
-   - **FF-1**: Walk-Forward OOS Backtest *Grade-Weighted Sizing* (`Grade C = 0%`, `B = 50%`, `A = 100%`, `A+ = 125–150%`), *Market Breadth Gate* (`>= 35%`), dan *Cluster Exposure Cap* (maks 1 posisi per kluster korelasi `r > 0,65`).
-   - **FF-2**: Walk-Forward OOS Backtest *Activation-Buffered / ATR-Adaptive Trailing Stop*, *Scale-Out Partial TP (50/50)*, dan audit perbaikan *Chronological Intraday Hard SL*.
-   - **FF-3**: Implementasi produksi hanya untuk parameter yang lolos OOS + unit test & atomic commits.
-2. **Fase FG (Prioritas #2 — Perbaikan Data Inti & Strategi Anti-Crash `RS_DEFENSIVE`)**:
-   - **FG-1**: Perbaikan pipeline *Foreign Flow* (`idx_daily_summaries` macet `0` sejak 17 Nov 2026) + metrik *Foreign Streak 3–5d* & *Participation Ratio*.
-   - **FG-2**: Pembangunan *Market Breadth Logger* & *Overnight Macro / Corporate Event Risk Gate* (`USD/IDR`, `^IXIC`, `GC=F`, `BZ=F`, kalender MSCI/FOMC/PCE).
-   - **FG-3**: Riset & Walk-Forward OOS Strategi Baru **`RS_DEFENSIVE`** (*Defensive Relative Strength Rotation* pada BigCap/Defensif saat IHSG melemah).
-3. **Fase FH (Prioritas #3 — Microstructure Intraday, `DAY2_FLUSH_CATCHER`, & BSJP/Bottom-Rebound Gate)**:
-   - **FH-1**: Evaluasi OOS fitur *Intraday VWAP* & *Late-Session Volume Ratio (`14:30–16:00`)* pada `intraday_prices`.
-   - **FH-2**: Backtest Walk-Forward **`DAY2_FLUSH_CATCHER`** (otomatisasi Skenario B Hari ke-2) & *Regime-Gated BSJP / BOTTOM_REBOUND*.
-   - **FH-3**: Integrasi produksi tervalidasi, full PHPUnit regression test, dan update dokumentasi `plan.md` & `GEMINI.md`.
+#### 1. Ringkasan Hasil Walk-Forward OOS (Lolos vs Ditolak Jujur)
+- **Fase FF-1 (Sizing, Breadth, Cluster Cap — 628 trades, 4 folds kronologis)** [`reports/research_ff1_sizing_breadth_cluster_20261126.md`]:
+  - ✅ **LOLOS OOS — Grade-Weighted Sizing (`C=0%, B=50%, A=100%, A+=125%`)**: Meningkatkan WR `64,6% -> 67,5%`, PF `3,97 -> 4,74`, Total PnL `+228,97 -> +246,51 Jt`, memangkas SL `102 -> 80`, dan menekan MaxDD Krisis F4 `-8,88 -> -6,81 Jt`.
+  - ✅ **LOLOS OOS — Conglomerate Cluster Cap (maks 1 posisi/kluster)**: Combo `Grade125 + ClusterCap=1` memangkas MaxDD `-61,3%` (`-10,20 -> -3,95 Jt`) dan mencetak **Calmar tertinggi `28,08`** (F4 Crisis MaxDD turun `-68%` ke `-2,81 Jt`).
+  - ❌ **GAGAL OOS (DITOLAK) — Breadth Gate `< 35%` pada `GABUNGAN`**: Memblokir mean-reversion di hari merah menurunkan PF `3,97 -> 2,99` & memotong profit >50% (`+228,97 -> +92,53 Jt`).
+- **Fase FF-2 (Exit Engine 15m Kronologis — 193–229 trades, Discovery vs Holdout Krisis)** [`reports/research_ff2_exit_engine_oos_20261126.md`]:
+  - ✅ **LOLOS OOS — Trailing Stop Activation Buffer `2,0%` (`Peak >= Entry × 1,02`)**: Memenangkan KEDUA fold (Discovery PF `3,37 -> 3,48`, Holdout PF `1,01 -> 1,03`), WR naik `45,1% -> 50,8%`, PnL `+14,77 -> +16,63 Jt`, dan memangkas *negative trailing stop* `-74,5%` (`47 -> 12`).
+  - ❌ **GAGAL OOS (DITOLAK)**: *ATR-Adaptive Trailing* (`PF 1,22`), *Partial TP 50/50 + Runner TS 3%* (`PF 1,27`), dan *Intrabar Low Hard SL* (`Holdout PF 0,73` vs `1,01` karena tersapu *morning flush* IDX).
+- **Fase FG-1 & FG-2 (Perbaikan Data Inti & Macro Risk Gate)**:
+  - ✅ **Root-Cause Fix `FetchIdxDailySummaryCommand`**: Memperbaiki filter `where('source', 'idx_scrape')` sehingga sinkronisasi Yahoo (`foreign_net=0`) tidak lagi memblokir scrape resmi BEI; berhasil mem-backfill **6.615 baris** (`2026-11-17` s/d `2026-11-25`, 0 gagal).
+  - ✅ **Upgrade `IdxForeignFlowService`**: Menambahkan `streak_days` (hari beli/jual berturut-turut) & `participation_pct`.
+  - ✅ **Baru `MarketBreadthAndMacroService`**: Menghitung breadth resmi BEI + *Overnight Macro Gate* (`USD/IDR`, `^IXIC`, `^GSPC`, `GC=F`, `BZ=F`) dan mengekspos `macro_risk_gate` di `SignalRadarService`.
+- **Fase FG-3 (`RS_DEFENSIVE` 4-Year Walk-Forward OOS 2023–2026, 18 BigCap/Defensif)** [`reports/research_fg3_rs_defensive_20261126.md`]:
+  - ❌ **GAGAL TOTAL OOS (DITOLAK — TIDAK DI-DEPLOY)**: Semua 5 varian mencatat WR `32,6%–37,9%`, PF `0,46–0,59`, rugi bersih `-102%` s/d `-248%` di seluruh tahun 2023–2026 (mengejar BigCap hijau di hari IHSG merah di BEI adalah *1-day bull trap*).
+- **Fase FH-1 (*Intraday Microstructure* 186k bar 15m, Discovery vs Holdout)** [`reports/research_fh1_intraday_microstructure_20261126.md`]:
+  - ✅ **LOLOS OOS TERKUAT — `Late-Session Volume Ratio (14:30–16:00)`**: Monotonik lintas kedua fold! `Dry Late (<15%)` = WR `29,0%`, PF **`0,71`** (Holdout WR `25,0%`, `-1,36%`); `Strong Late (30–45%)` = WR **`69,6%`**, PF **`5,16`** (Holdout WR **`73,5%`**, `+3,62%`); `Climax Late (>45%)` = PF **`5,93`** (Holdout `+5,03%`).
+  - ✅ **LOLOS OOS — `Close vs Intraday VWAP`**: Penutupan di atas VWAP (`0%..+1,5%`) mencetak WR **`67,2%`**, PF **`3,73`** vs jauh di bawah VWAP (`<-1,5%`, WR `46,6%`, PF `2,19`).
+- **Fase FH-2 (`DAY2_FLUSH_CATCHER` & *Regime-Gated BSJP*)** [`reports/research_fh2_day2_flush_bsjp_gate_20261126.md`]:
+  - ❌ **GAGAL HOLDOUT OOS (DITOLAK — TIDAK DI-DEPLOY) — `DAY2_FLUSH_CATCHER`**: Discovery `PF 1,60`, tetapi Holdout Krisis jatuh ke `WR 43,4%`, `PF 0,98` (rugi bersih pasca fee `0,40%`). Skenario B dipertahankan murni sebagai rem pelindung Grade C (`0%`), bukan auto-entry.
+  - ✅ **LOLOS OOS — *Regime-Gated BSJP***: Base BSJP (`n=701`, PF `0,66`) berbalik profit di kedua fold saat ditambah `Breadth >= 40%` (PF `1,10`) dan melompat ke **Holdout PF `1,84` (`+0,57%` net overnight)** dengan `Breadth >= 40% + Upper Wick <= 1,5% + Foreign Net Buy`.
 
-**Status Fase FF–FH**: `PLANNED — SIAP EKSEKUSI` (Commit & push dilakukan secara atomik per sub-fase).
+#### 2. Status Fase FF–FH: SELESAI (Aktif Produksi untuk Fitur Lolos OOS).
+Implementasi produksi terbatas ketat pada temuan yang lolos OOS (`TradeQualityGraderService`, `SignalRadarService`, `check_trailing_stop.py`, `FetchIdxDailySummaryCommand`, `IdxForeignFlowService`, `MarketBreadthAndMacroService`), terverifikasi full PHPUnit test suite dan commit atomik terbagi rata di 25–26 Nov 2026.
 
 
 
