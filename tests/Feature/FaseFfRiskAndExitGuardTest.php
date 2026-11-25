@@ -71,4 +71,30 @@ class FaseFfRiskAndExitGuardTest extends TestCase
         $this->assertNull($unclustered['cluster']);
         $this->assertFalse($unclustered['conflict']);
     }
+
+    public function test_fh1_microstructure_late_volume_and_vwap_adjust_score(): void
+    {
+        $grader = app(TradeQualityGraderService::class);
+
+        $strongLate = $grader->gradeTrade('ENRG', 'gabungan', [
+            'vol_ratio_ma20' => 0.9,
+            'lower_wick_pct' => 1.5,
+            'rsi_14' => 45.0,
+            'late_vol_ratio' => 38.0,
+            'close_vs_vwap_pct' => 0.8,
+        ]);
+
+        $dryLate = $grader->gradeTrade('ENRG', 'gabungan', [
+            'vol_ratio_ma20' => 0.9,
+            'lower_wick_pct' => 1.5,
+            'rsi_14' => 45.0,
+            'late_vol_ratio' => 11.0,
+            'close_vs_vwap_pct' => -2.0,
+        ]);
+
+        $this->assertSame('STRONG_LATE_ABSORPTION (>=30%)', $strongLate['snapshot']['microstructure_zone']);
+        $this->assertSame('DRY_LATE_TRAP (<15%)', $dryLate['snapshot']['microstructure_zone']);
+        $this->assertGreaterThan($dryLate['quality_score'], $strongLate['quality_score']);
+        $this->assertGreaterThanOrEqual(30, $strongLate['quality_score'] - $dryLate['quality_score']);
+    }
 }

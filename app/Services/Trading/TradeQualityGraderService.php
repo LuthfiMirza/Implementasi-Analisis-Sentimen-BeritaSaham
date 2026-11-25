@@ -231,6 +231,12 @@ class TradeQualityGraderService
         $ihsgAboveMa20 = isset($indicators['ihsg_above_ma20'])
             ? (bool) $indicators['ihsg_above_ma20']
             : null;
+        $lateVolRatio = isset($indicators['late_vol_ratio']) && is_numeric($indicators['late_vol_ratio'])
+            ? round((float) $indicators['late_vol_ratio'], 1)
+            : null;
+        $closeVsVwap = isset($indicators['close_vs_vwap_pct']) && is_numeric($indicators['close_vs_vwap_pct'])
+            ? round((float) $indicators['close_vs_vwap_pct'], 2)
+            : null;
 
         $score = 45;
 
@@ -310,6 +316,29 @@ class TradeQualityGraderService
             $score -= 5;
         }
 
+        // 5. Fase FH-1 OOS Microstructure (186k 15m bars, Discovery + Holdout Crisis):
+        // Late-session volume (14:30-16:00) >=30% yields PF 5.16-5.93 (HoldWR 70-73.5%);
+        // <15% ("Dry Late") yields PF 0.71 (HoldWR 25%, net loss). Close >= VWAP lifts WR to 67.2%.
+        $microstructureZone = 'Unknown';
+        if ($lateVolRatio !== null) {
+            if ($lateVolRatio >= 30.0) {
+                $score += 12;
+                $microstructureZone = 'STRONG_LATE_ABSORPTION (>=30%)';
+            } elseif ($lateVolRatio < 15.0) {
+                $score -= 18;
+                $microstructureZone = 'DRY_LATE_TRAP (<15%)';
+            } else {
+                $microstructureZone = 'NORMAL_LATE (15%-30%)';
+            }
+        }
+        if ($closeVsVwap !== null) {
+            if ($closeVsVwap >= 0.0) {
+                $score += 6;
+            } elseif ($closeVsVwap < -1.5) {
+                $score -= 4;
+            }
+        }
+
         $score = max(10, min(99, $score));
 
         // Protokol GEMINI.md #3 & #5: Skenario B Dead Low (Lower Wick < 0.5%) memiliki
@@ -349,6 +378,9 @@ class TradeQualityGraderService
             'ihsg_ret_1d' => $ihsgRet1d,
             'ihsg_above_ma20' => $ihsgAboveMa20,
             'ticker_tier' => $tickerTier,
+            'late_vol_ratio' => $lateVolRatio,
+            'close_vs_vwap_pct' => $closeVsVwap,
+            'microstructure_zone' => $microstructureZone,
             'quality_score' => $score,
             'grade' => $grade,
             'recommended_sizing_pct' => $recommendedSizingPct,
