@@ -182,10 +182,13 @@ class SignalRadarService
         $gabungan = $attachEnrichments($gabungan);
         $momentum = $attachEnrichments($momentum);
         $bottomRebound = $attachEnrichments($bottomRebound);
+        $selfRadar = $attachEnrichments($selfRadar);
+        $selfRadarTop5 = $attachEnrichments($selfRadarTop5);
         if (is_array($tinsBottomToTop) && isset($tinsBottomToTop['ticker'])) {
             $tinsTk = strtoupper((string) $tinsBottomToTop['ticker']);
             $tinsBottomToTop['news_event'] = $newsMap[$tinsTk] ?? null;
             $tinsBottomToTop['foreign_flow'] = $foreignMap[$tinsTk] ?? null;
+            $tinsBottomToTop['cluster_guard'] = $this->qualityGrader->checkClusterConflict($tinsTk, $openTickers);
         }
         if (isset($bsjpMomentum['candidates']) && is_array($bsjpMomentum['candidates'])) {
             $bsjpMomentum['candidates'] = $attachEnrichments($bsjpMomentum['candidates']);
@@ -433,12 +436,99 @@ class SignalRadarService
                 ? round(($close - $low) / $low * 100, 2)
                 : null;
 
-            return [
+            $micro = $this->extractIntradayMicrostructure($stock->code, $close);
+
+            return array_merge([
                 'lower_wick_pct' => $lowerWick,
                 'vol_ratio_ma20' => $volRatio,
+            ], $micro);
+        } catch (Throwable) {
+            return ['lower_wick_pct' => null, 'vol_ratio_ma20' => null, 'late_vol_ratio' => null, 'close_vs_vwap_pct' => null];
+        }
+    }
+
+    /**
+     * Fase FH-1 OOS: extract late-session volume ratio (14:30-16:00 / total daily volume)
+     * and close vs intraday VWAP (%) from `intraday_prices` on the latest complete session.
+     *
+     * @return array{late_vol_ratio: ?float, close_vs_vwap_pct: ?float}
+     */
+    private function extractIntradayMicrostructure(string $ticker, float $fallbackClose): array
+    {
+        if (! Schema::hasTable('intraday_prices')) {
+            return ['late_vol_ratio' => null, 'close_vs_vwap_pct' => null];
+        }
+
+        try {
+            $code = strtoupper(trim($ticker));
+            $latestBarTime = DB::table('intraday_prices')
+                ->where('stock_code', $code)
+                ->max('bar_time');
+
+            if (! $latestBarTime) {
+                return ['late_vol_ratio' => null, 'close_vs_vwap_pct' => null];
+            }
+
+            $latestDate = substr((string) $latestBarTime, 0, 10);
+            $latestTime = substr((string) $latestBarTime, 11, 8);
+
+            // Only evaluate late_vol_ratio on a session that has reached >= 14:30 WIB;
+            // if today's intraday table only has morning bars, fall back to the previous complete day.
+            if ($latestTime < '14:30:00') {
+                $prevBarTime = DB::table('intraday_prices')
+                    ->where('stock_code', $code)
+                    ->where('bar_time', '<', $latestDate.' 00:00:00')
+                    ->max('bar_time');
+                if (! $prevBarTime) {
+                    return ['late_vol_ratio' => null, 'close_vs_vwap_pct' => null];
+                }
+                $latestDate = substr((string) $prevBarTime, 0, 10);
+            }
+
+            $bars = DB::table('intraday_prices')
+                ->where('stock_code', $code)
+                ->where('bar_time', '>=', $latestDate.' 00:00:00')
+                ->where('bar_time', '<=', $latestDate.' 23:59:59')
+                ->orderBy('bar_time')
+                ->get(['bar_time', 'close', 'volume']);
+
+            if ($bars->isEmpty()) {
+                return ['late_vol_ratio' => null, 'close_vs_vwap_pct' => null];
+            }
+
+            $totVol = 0.0;
+            $lateVol = 0.0;
+            $pvSum = 0.0;
+            $lastClose = $fallbackClose;
+
+            foreach ($bars as $b) {
+                $v = (float) ($b->volume ?? 0);
+                $c = (float) ($b->close ?? 0);
+                if ($c > 0) {
+                    $lastClose = $c;
+                }
+                if ($v <= 0) {
+                    continue;
+                }
+                $totVol += $v;
+                $pvSum += $c * $v;
+                if (substr((string) $b->bar_time, 11, 8) >= '14:30:00') {
+                    $lateVol += $v;
+                }
+            }
+
+            if ($totVol <= 0.0) {
+                return ['late_vol_ratio' => null, 'close_vs_vwap_pct' => null];
+            }
+
+            $vwap = $pvSum / $totVol;
+
+            return [
+                'late_vol_ratio' => round(($lateVol / $totVol) * 100.0, 1),
+                'close_vs_vwap_pct' => $vwap > 0 ? round((($lastClose - $vwap) / $vwap) * 100.0, 2) : null,
             ];
         } catch (Throwable) {
-            return ['lower_wick_pct' => null, 'vol_ratio_ma20' => null];
+            return ['late_vol_ratio' => null, 'close_vs_vwap_pct' => null];
         }
     }
 

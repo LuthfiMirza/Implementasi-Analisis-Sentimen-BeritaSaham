@@ -59,7 +59,7 @@ class MarketBreadthAndMacroService
         }
 
         $latestDate = DB::table('idx_daily_summaries')
-            ->where('source', 'idx_scrape')
+            ->where('source', '<>', 'yahoo_live_sync')
             ->max('trade_date')
             ?? DB::table('idx_daily_summaries')->max('trade_date');
 
@@ -76,10 +76,12 @@ class MarketBreadthAndMacroService
             ];
         }
 
-        $rows = DB::table('idx_daily_summaries')
+        $query = DB::table('idx_daily_summaries')
             ->whereDate('trade_date', $latestDate)
-            ->where('volume', '>', 0)
-            ->get(['pct_change', 'foreign_net_value']);
+            ->where('volume', '>', 0);
+
+        $officialRows = (clone $query)->where('source', '<>', 'yahoo_live_sync')->get(['pct_change', 'foreign_net_value']);
+        $rows = $officialRows->isNotEmpty() ? $officialRows : $query->get(['pct_change', 'foreign_net_value']);
 
         $total = $rows->count();
         $gainers = $rows->filter(fn ($r) => (float) $r->pct_change > 0)->count();
@@ -227,3 +229,4 @@ class MarketBreadthAndMacroService
         });
     }
 }
+
