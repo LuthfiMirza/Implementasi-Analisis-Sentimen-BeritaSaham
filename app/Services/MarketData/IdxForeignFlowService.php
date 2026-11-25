@@ -83,16 +83,42 @@ class IdxForeignFlowService
         $net5dRp = 0.0;
         $buyDays = 0;
         $sellDays = 0;
+        $totalVal5d = 0.0;
+        $totalAbsForeign5d = 0.0;
 
         foreach ($rows as $row) {
             $netVal = (float) ($row['foreign_net_value_at_close'] ?? 0);
+            $dayVal = (float) ($row['value'] ?? 0);
             $net5dRp += $netVal;
+            $totalVal5d += max(0.0, $dayVal);
+            $totalAbsForeign5d += abs($netVal);
             if ($netVal > 0) {
                 $buyDays++;
             } elseif ($netVal < 0) {
                 $sellDays++;
             }
         }
+
+        // Fase FG-1: consecutive net buy (+) / net sell (-) streak ending at latest session
+        $streakDays = 0;
+        for ($i = count($rows) - 1; $i >= 0; $i--) {
+            $v = (float) ($rows[$i]['foreign_net_value_at_close'] ?? 0);
+            if ($v == 0.0) {
+                break;
+            }
+            $dir = $v > 0 ? 1 : -1;
+            if ($streakDays === 0) {
+                $streakDays = $dir;
+            } elseif (($streakDays > 0 && $dir > 0) || ($streakDays < 0 && $dir < 0)) {
+                $streakDays += $dir;
+            } else {
+                break;
+            }
+        }
+
+        $participationPct = $totalVal5d > 0
+            ? round(($totalAbsForeign5d / $totalVal5d) * 100.0, 1)
+            : null;
 
         $latest = $rows[count($rows) - 1];
         $net1dRp = (float) ($latest['foreign_net_value_at_close'] ?? 0);
@@ -125,6 +151,8 @@ class IdxForeignFlowService
             'sessions' => $sessions,
             'buy_days' => $buyDays,
             'sell_days' => $sellDays,
+            'streak_days' => $streakDays,
+            'participation_pct' => $participationPct,
             'net_1d_rp' => round($net1dRp, 0),
             'net_5d_rp' => round($net5dRp, 0),
             'net_1d_formatted' => $this->formatRupiahShort($net1dRp),
@@ -177,3 +205,4 @@ class IdxForeignFlowService
         return null;
     }
 }
+
