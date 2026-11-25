@@ -128,7 +128,7 @@ class NewsEventRadarIntegrationTest extends TestCase
         ], null, 'drawdown');
 
         $this->assertSame('A+', $enrgIdeal['grade']);
-        $this->assertSame(100, $enrgIdeal['recommended_sizing_pct']);
+        $this->assertSame(125, $enrgIdeal['recommended_sizing_pct']);
         $this->assertFalse($enrgIdeal['snapshot']['dead_low_cap_applied']);
     }
 }

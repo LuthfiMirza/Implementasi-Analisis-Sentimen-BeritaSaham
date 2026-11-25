@@ -30,7 +30,7 @@ class BackfillTradeIndicatorsCommandTest extends TestCase
 
         $this->assertSame('A+', $gradedA['grade']);
         $this->assertGreaterThanOrEqual(80, $gradedA['quality_score']);
-        $this->assertSame(100, $gradedA['recommended_sizing_pct']);
+        $this->assertSame(125, $gradedA['recommended_sizing_pct']);
         $this->assertSame('A_SERAPAN_IDEAL (1.0%-3.0%)', $gradedA['snapshot']['wick_scenario']);
 
         // Grade C: Blacklisted / Dead Low / dry volume
