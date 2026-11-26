@@ -20,7 +20,8 @@ class EvaluateDrawdownBounceSignalCommandTest extends TestCase
             ->assertExitCode(0);
 
         Process::assertRan(function ($process) {
-            return str_contains(implode(' ', $process->command), 'evaluate.py');
+            return str_contains(implode(' ', $process->command), 'evaluate.py')
+                && $process->timeout === 180;
         });
     }
 

@@ -26,7 +26,7 @@ class EvaluateDrawdownBounceSignalCommand extends Command
             return self::FAILURE;
         }
 
-        $result = Process::timeout(60)->run([$python, $script]);
+        $result = Process::timeout(180)->run([$python, $script]);
 
         foreach (explode("\n", trim($result->output())) as $line) {
             if ($line !== '') {
