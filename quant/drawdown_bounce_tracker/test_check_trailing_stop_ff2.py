@@ -62,6 +62,20 @@ class CheckTrailingStopFf2Test(unittest.TestCase):
         self.assertGreaterEqual(snap["pullback"], 0.02)
         self.assertEqual(snap["current"], 101.5)
 
+    def test_future_peak_cannot_turn_past_hard_sl_into_trailing_stop(self):
+        """Regression for live BUMI 26 Nov bug: Day-2 14:00 closes at 124 (<=SL 125.45), Day-3 09:00 spikes to 135.
+        Peak must be bounded <= first_sl_ts (130), NOT future 135!"""
+        df = make_15m_df([
+            ("2026-11-24 15:45", 130, 130, 130, 130),
+            ("2026-11-25 14:00", 127, 127, 123, 124),
+            ("2026-11-26 09:00", 132, 135, 132, 133),
+        ])
+        with patch.object(cts, "fetch_15m_since", return_value=df):
+            snap = cts.compute_snapshot("BUMI", "2026-11-24", 130.0, strategy="BOTTOM_REBOUND")
+        self.assertIsNotNone(snap)
+        self.assertEqual(snap["current"], 124.0)
+        self.assertEqual(snap["peak"], 130.0, "Peak must NOT use future Day-3 high 135 for a Day-2 SL bar")
+
 
 if __name__ == "__main__":
     unittest.main()

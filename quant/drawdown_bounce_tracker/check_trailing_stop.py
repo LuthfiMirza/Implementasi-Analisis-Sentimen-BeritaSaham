@@ -181,6 +181,14 @@ def compute_snapshot(
                     first_sl_ts = sl_bars.index[0]
                     current = float(sl_bars["Close"].iloc[0])
                     current_ts = first_sl_ts
+                    # Recompute peak strictly up to first_sl_ts (prevent future peak from turning a past SL into TS)
+                    pre_sl = after_entry_day[after_entry_day.index <= first_sl_ts]
+                    if not pre_sl.empty and float(pre_sl["High"].max()) > entry_price:
+                        peak = float(pre_sl["High"].max())
+                        peak_ts = pre_sl["High"].idxmax()
+                    else:
+                        peak = entry_price
+                        peak_ts = first_sl_ts
                     pullback = (peak - current) / peak
 
     unrealized_pct = (current - entry_price) / entry_price
