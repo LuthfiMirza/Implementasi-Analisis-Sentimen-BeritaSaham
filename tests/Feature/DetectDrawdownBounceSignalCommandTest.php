@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\NewsArticle;
 use App\Models\Stock;
+use App\Models\StockPrice;
 use App\Models\Trade;
 use App\Models\User;
 use Illuminate\Support\Facades\Process;
@@ -12,6 +13,7 @@ use Tests\TestCase;
 class DetectDrawdownBounceSignalCommandTest extends TestCase
 {
     private string $newsCachePath;
+
     private ?string $originalNewsCacheContent = null;
 
     protected function setUp(): void
@@ -280,6 +282,36 @@ class DetectDrawdownBounceSignalCommandTest extends TestCase
         $cache = json_decode(file_get_contents($this->newsCachePath), true);
         $this->assertArrayHasKey('BUMI', $cache);
         $this->assertSame([], $cache['BUMI']);
+    }
+
+    public function test_sync_open_skips_grade_c_signal_per_ff1_auto_skip_rule(): void
+    {
+        $stock = Stock::factory()->create(['code' => 'BRPT']);
+
+        // Dead Low bar (close === low -> lower_wick_pct = 0.0) triggers hard Grade C cap (sizing 0%)
+        StockPrice::create([
+            'stock_id' => $stock->id,
+            'price_date' => '2026-11-25',
+            'interval_type' => '1d',
+            'open' => 680,
+            'high' => 685,
+            'low' => 635,
+            'close' => 635,
+            'volume' => 10_000_000,
+        ]);
+
+        Process::fake([
+            '*' => Process::result(output: 'SYNC_OPEN|BRPT|635|2026-11-25|GABUNGAN|drawdown'),
+        ]);
+
+        $this->artisan('research:detect-drawdown-bounce-signal')
+            ->expectsOutputToContain('Grade C (skor 49, sizing 0% — aturan FF-1 Auto-Skip)')
+            ->assertExitCode(0);
+
+        $this->assertDatabaseMissing('trades', [
+            'ticker' => 'BRPT',
+            'entry_price' => 635,
+        ]);
     }
 
     public function test_failed_fetch_reports_error_and_nonzero_exit(): void

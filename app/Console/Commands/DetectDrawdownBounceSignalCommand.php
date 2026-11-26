@@ -5,7 +5,10 @@ namespace App\Console\Commands;
 use App\Models\NewsArticle;
 use App\Models\Stock;
 use App\Models\Trade;
+use App\Services\MarketData\IdxForeignFlowService;
+use App\Services\Trading\TradeQualityGraderService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Process;
 use Throwable;
 
@@ -60,7 +63,7 @@ class DetectDrawdownBounceSignalCommand extends Command
         // Pastikan posisi open yang sudah kena Lapis 1 (-3.5% SL) atau Lapis 2 (2% Trailing Stop)
         // ditutup lebih dulu sebelum mengecek batas pyramiding (MAX_CONCURRENT_POSITIONS_PER_TICKER_STRATEGY).
         if (! app()->environment('testing')) {
-            \Illuminate\Support\Facades\Artisan::call('research:check-trailing-stop-alert');
+            Artisan::call('research:check-trailing-stop-alert');
         }
 
         // Fase DG: News-in-Signal -- cache berita+sentimen terbaru per ticker DITULIS SEBELUM
@@ -133,7 +136,7 @@ class DetectDrawdownBounceSignalCommand extends Command
     private function syncPositionToJournal(string $ticker, float $price, string $dateStr, string $strategy, ?string $detail): void
     {
         try {
-            $grader = app(\App\Services\Trading\TradeQualityGraderService::class);
+            $grader = app(TradeQualityGraderService::class);
             if (strtoupper($strategy) === 'GABUNGAN' && $grader->isBlacklisted($ticker)) {
                 $this->warn("Sync Trade Journal (open): {$ticker} termasuk daftar blacklist PF < 1.0 -- auto-entry GABUNGAN dilewati.");
 
@@ -196,7 +199,7 @@ class DetectDrawdownBounceSignalCommand extends Command
                 'open_positions.json untuk alert Telegram.';
 
             $indicators = $grader->computeIndicatorsForDate($stock, $dateStr);
-            $foreignFlow = app(\App\Services\MarketData\IdxForeignFlowService::class)->summarize($ticker, 5);
+            $foreignFlow = app(IdxForeignFlowService::class)->summarize($ticker, 5);
             if (is_array($foreignFlow)) {
                 $indicators['foreign_status'] = $foreignFlow['status'];
                 $indicators['foreign_net_1d_rp'] = $foreignFlow['net_1d_rp'];
@@ -204,6 +207,21 @@ class DetectDrawdownBounceSignalCommand extends Command
                 $indicators['foreign_buy_days'] = $foreignFlow['buy_days'];
             }
             $graded = $grader->gradeTrade($ticker, $strategyLabelColumn, $indicators, $notes, $detail);
+
+            $hasTechnicalData = ($indicators['lower_wick_pct'] ?? null) !== null
+                || ($indicators['rsi_14'] ?? null) !== null
+                || ($indicators['vol_ratio_ma20'] ?? null) !== null;
+
+            if ($hasTechnicalData && $graded['grade'] === 'C') {
+                $this->warn(sprintf(
+                    'Sync Trade Journal (open): %s (%s) mendapat Grade C (skor %d, sizing 0%% — aturan FF-1 Auto-Skip) -- tidak dibuka di /trades.',
+                    $ticker,
+                    $strategyLabel,
+                    $graded['quality_score']
+                ));
+
+                return;
+            }
 
             Trade::create([
                 'user_id' => 2,
@@ -289,6 +307,7 @@ class DetectDrawdownBounceSignalCommand extends Command
                 $stock = Stock::where('code', $ticker)->first();
                 if (! $stock) {
                     $context[$ticker] = [];
+
                     continue;
                 }
 
